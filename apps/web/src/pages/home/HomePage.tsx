@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
+import { recommendParties, userToContext } from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
 import { ALL_CATEGORIES } from '@features/categories/meta'
 import { PartyCard } from '@features/parties/PartyCard'
@@ -9,10 +10,12 @@ import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
+import { useAuthStore } from '@store/authStore'
 import { api } from '@services/api'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
+  const me = useAuthStore((s) => s.user)
   const { data: parties, isLoading } = useParties({ status: 'open', pageSize: 6 })
   const { data: nowParties } = useQuery({
     queryKey: ['happening-now'],
@@ -20,6 +23,9 @@ export default function HomePage() {
     refetchInterval: 30_000,
   })
   const reduce = useReducedMotion() ?? false
+  const recommended = me && parties
+    ? recommendParties(parties.items, userToContext(me), 3)
+    : []
 
   return (
     <div>
@@ -135,6 +141,21 @@ export default function HomePage() {
           </li>
         </ol>
       </section>
+
+      {recommended.length > 0 && (
+        <section className={`container ${styles.section}`} aria-labelledby="rec-title">
+          <header className={styles.sectionHead}>
+            <h2 id="rec-title" className={styles.sectionTitle}>
+              <Badge tone="gold" size="sm">FOR YOU</Badge>
+              {me?.nickname}님께 어울리는 모임
+            </h2>
+            <p className={styles.sectionSub}>관심사 · MBTI · 카테고리 기반 추천</p>
+          </header>
+          <div className={styles.partyGrid}>
+            {recommended.map((p) => <PartyCard key={p.id} party={p} />)}
+          </div>
+        </section>
+      )}
 
       <section className={`container ${styles.section}`} aria-labelledby="open-title">
         <header className={styles.sectionHead}>

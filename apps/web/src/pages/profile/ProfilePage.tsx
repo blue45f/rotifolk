@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import type { AvatarMood, PartySummary } from '@rotifolk/shared'
+import { computeHostLevel } from '@rotifolk/shared'
 import { useMyParties } from '@features/parties/queries'
 import { useLogout, useMe } from '@features/auth/queries'
 import { useAuthStore } from '@store/authStore'
@@ -10,6 +11,7 @@ import { Card } from '@components/ui/Card/Card'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
+import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Chip } from '@components/ui/Chip/Chip'
@@ -56,6 +58,11 @@ export default function ProfilePage() {
   if (!user) return null
   if (isLoading) return <Loading />
 
+  const hostLevel = computeHostLevel({
+    hostedCount: user.hostedCount,
+    averageRating: 0,
+  })
+
   const upcoming = mine?.filter((m) =>
     ['confirmed', 'waitlist', 'checked-in'].includes(m.participation.status),
   )
@@ -84,6 +91,7 @@ export default function ProfilePage() {
           <h1 className={styles.name}>
             {user.nickname}
             {user.isVerified && <Badge tone="info">✓ 인증</Badge>}
+            <HostLevelBadge level={hostLevel.level} size="md" />
           </h1>
           <p className={styles.bio}>{user.bio ?? '한 줄 소개를 추가해 보세요.'}</p>
           <div className={styles.statRow}>
