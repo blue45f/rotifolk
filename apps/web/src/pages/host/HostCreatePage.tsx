@@ -95,16 +95,19 @@ export default function HostCreatePage() {
     <form onSubmit={onSubmit} className={styles.page}>
       <header className={`container ${styles.head}`}>
         <h1 className={styles.title}>새 로테이션 파티 만들기</h1>
-        <div className={styles.stepper} role="navigation">
+        <div className={styles.stepper} role="tablist" aria-label="파티 개설 단계">
           {(['concept', 'venue', 'rounds', 'price'] as const).map((s, i) => (
-            <div
+            <button
               key={s}
+              type="button"
+              role="tab"
+              aria-selected={step === s}
               className={`${styles.stepItem} ${step === s ? styles.stepActive : ''}`}
               onClick={() => setStep(s)}
             >
               <span className={styles.stepDot}>{i + 1}</span>
               <span>{STEP_LABEL[s]}</span>
-            </div>
+            </button>
           ))}
         </div>
       </header>

@@ -18,18 +18,28 @@
   background: var(--color-surface-soft);
   padding: 4px;
   border-radius: var(--radius-pill);
-  flex-wrap: wrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  max-width: 100%;
 }
+.stepper::-webkit-scrollbar { display: none; }
+.stepItem { flex-shrink: 0; white-space: nowrap; }
 .stepItem {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
   border-radius: var(--radius-pill);
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
   cursor: pointer;
+  font: inherit;
+  transition: background var(--dur-fast) var(--ease-out-quart);
 }
+.stepItem:hover { background: color-mix(in oklab, var(--color-primary) 6%, transparent); }
 .stepDot {
   width: 22px;
   height: 22px;
