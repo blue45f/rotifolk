@@ -11,9 +11,13 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  @UsePipes(new ZodValidationPipe(SignUpSchema))
-  signUp(@Body() dto: SignUpDto) {
-    return this.authService.signUp(dto)
+  signUp(@Body() body: Record<string, unknown>) {
+    const referralCodeRaw = body['referralCode']
+    const referralCode = typeof referralCodeRaw === 'string' ? referralCodeRaw : undefined
+    const dto = new ZodValidationPipe(SignUpSchema).transform(body, {
+      type: 'body',
+    }) as SignUpDto
+    return this.authService.signUp(dto, referralCode)
   }
 
   @Post('login')

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useHostedParties } from '@features/parties/queries'
 import { useAuthStore } from '@store/authStore'
 import { PartyCard } from '@features/parties/PartyCard'
@@ -6,11 +7,28 @@ import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
+import { api } from '@services/api'
 import styles from './HostConsole.module.css'
+
+interface HostRevenueSummary {
+  totalKRW: number
+  paidCount: number
+  refundedKRW: number
+  recent: Array<{
+    partyId: string
+    partyTitle: string
+    totalKRW: number
+    paidCount: number
+  }>
+}
 
 export default function HostConsolePage() {
   const user = useAuthStore((s) => s.user)
   const { data, isLoading } = useHostedParties()
+  const { data: revenue } = useQuery({
+    queryKey: ['payments', 'host', 'summary'],
+    queryFn: () => api.get<HostRevenueSummary>('payments/host/summary'),
+  })
 
   if (isLoading) return <Loading />
 
@@ -38,6 +56,60 @@ export default function HostConsolePage() {
         <StatCard label="진행 중인 파티" value={live} emoji="🔴" />
         <StatCard label="모집 중인 파티" value={open} emoji="🌙" />
         <StatCard label="총 호스팅 횟수" value={total} emoji="🏆" />
+      </section>
+
+      <section className="container">
+        <Card padding="lg" variant="gradient" className={styles.revenueCard}>
+          <div className={styles.revenueHead}>
+            <span className={styles.revenueTitle}>호스트 매출 ✨</span>
+            <span className={styles.revenueBadge}>최근 12개 파티 기준</span>
+          </div>
+
+          <div className={styles.revenueStats}>
+            <div className={`${styles.revenueStat} ${styles.revenueStatHero}`}>
+              <span className={styles.revenueLabel}>누적 매출</span>
+              <strong className={styles.revenueValue}>
+                {(revenue?.totalKRW ?? 0).toLocaleString()}원
+              </strong>
+            </div>
+            <div className={styles.revenueStat}>
+              <span className={styles.revenueLabel}>결제 건수</span>
+              <strong className={styles.revenueValue}>
+                {(revenue?.paidCount ?? 0).toLocaleString()}건
+              </strong>
+            </div>
+            <div className={styles.revenueStat}>
+              <span className={styles.revenueLabel}>환불 금액</span>
+              <strong className={styles.revenueValue}>
+                {(revenue?.refundedKRW ?? 0).toLocaleString()}원
+              </strong>
+            </div>
+          </div>
+
+          <div className={styles.revenueDivider} />
+
+          {(revenue?.totalKRW ?? 0) === 0 ? (
+            <p className={styles.revenueEmpty}>
+              첫 모임이 결제되면 여기에 표시돼요
+            </p>
+          ) : (
+            <ul className={styles.revenueList}>
+              {revenue?.recent
+                .filter((r) => r.totalKRW > 0)
+                .map((r) => (
+                  <li key={r.partyId} className={styles.revenueListItem}>
+                    <span className={styles.revenueListTitle} title={r.partyTitle}>
+                      {r.partyTitle}
+                    </span>
+                    <span className={styles.revenueListMeta}>
+                      ₩{r.totalKRW.toLocaleString()}
+                      <span className={styles.revenueListCount}>· {r.paidCount}건</span>
+                    </span>
+                  </li>
+                ))}
+            </ul>
+          )}
+        </Card>
       </section>
 
       <section className={`container ${styles.list}`}>

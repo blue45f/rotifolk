@@ -55,6 +55,25 @@ export default function ProfilePage() {
     enabled: !!user,
   })
 
+  const { data: referral } = useQuery({
+    queryKey: ['users', 'me', 'referral'],
+    queryFn: () =>
+      api.get<{ referralCode: string; pointsKRW: number; referredCount: number }>(
+        'users/me/referral',
+      ),
+    enabled: !!user,
+  })
+
+  const copyReferralCode = async () => {
+    if (!referral?.referralCode) return
+    try {
+      await navigator.clipboard.writeText(referral.referralCode)
+      toast.show('초대 코드를 복사했어요', 'success')
+    } catch {
+      toast.show('복사에 실패했어요. 코드를 길게 눌러 복사해 주세요.', 'error')
+    }
+  }
+
   if (!user) return null
   if (isLoading) return <Loading />
 
@@ -193,20 +212,56 @@ export default function ProfilePage() {
         )}
 
         {tab === 'settings' && (
-          <Card padding="lg">
-            <h3 className={styles.h3}>화면</h3>
-            <div className={styles.themeRow}>
-              {(['light', 'dark', 'system'] as const).map((t) => (
-                <Chip key={t} selected={theme === t} onClick={() => setTheme(t)}>
-                  {t === 'light' ? '🌞 라이트' : t === 'dark' ? '🌙 다크' : '🌗 시스템'}
-                </Chip>
-              ))}
-            </div>
-            <div className={styles.divider} />
-            <Button variant="ghost" onClick={() => logout()}>
-              로그아웃
-            </Button>
-          </Card>
+          <>
+            <Card padding="lg">
+              <h3 className={styles.h3}>친구 초대 코드</h3>
+              <p className={styles.referralLead}>
+                친구가 이 코드로 가입하면 <strong>둘 다 3,000원</strong>이 적립돼요. 다음 모임 결제에 사용할 수 있어요.
+              </p>
+              <div className={styles.referralCode}>
+                <code className={styles.referralCodeText}>
+                  {referral?.referralCode ?? '불러오는 중…'}
+                </code>
+                <Button
+                  variant="soft"
+                  size="sm"
+                  onClick={copyReferralCode}
+                  disabled={!referral?.referralCode}
+                >
+                  복사
+                </Button>
+              </div>
+              <div className={styles.referralStats}>
+                <div className={styles.referralStat}>
+                  <span className={styles.referralStatLabel}>누적 포인트</span>
+                  <strong className={styles.referralStatValue}>
+                    {(referral?.pointsKRW ?? 0).toLocaleString('ko-KR')}원 적립됨
+                  </strong>
+                </div>
+                <div className={styles.referralStat}>
+                  <span className={styles.referralStatLabel}>초대한 친구</span>
+                  <strong className={styles.referralStatValue}>
+                    {referral?.referredCount ?? 0}명
+                  </strong>
+                </div>
+              </div>
+            </Card>
+
+            <Card padding="lg">
+              <h3 className={styles.h3}>화면</h3>
+              <div className={styles.themeRow}>
+                {(['light', 'dark', 'system'] as const).map((t) => (
+                  <Chip key={t} selected={theme === t} onClick={() => setTheme(t)}>
+                    {t === 'light' ? '🌞 라이트' : t === 'dark' ? '🌙 다크' : '🌗 시스템'}
+                  </Chip>
+                ))}
+              </div>
+              <div className={styles.divider} />
+              <Button variant="ghost" onClick={() => logout()}>
+                로그아웃
+              </Button>
+            </Card>
+          </>
         )}
       </section>
 

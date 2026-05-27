@@ -123,6 +123,55 @@ class PaymentsController {
     return items.map((p) => this.shape(p))
   }
 
+  @Get('host/summary')
+  async hostSummary(@CurrentUser() me: JwtUserPayload) {
+    const hostedParties = await this.prisma.party.findMany({
+      where: { hostId: me.sub },
+      select: { id: true, title: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    if (hostedParties.length === 0) {
+      return { totalKRW: 0, paidCount: 0, refundedKRW: 0, recent: [] }
+    }
+
+    const partyIds = hostedParties.map((p) => p.id)
+    const payments = await this.prisma.payment.findMany({
+      where: { partyId: { in: partyIds } },
+      select: { partyId: true, amountKRW: true, status: true },
+    })
+
+    let totalKRW = 0
+    let paidCount = 0
+    let refundedKRW = 0
+    const byParty = new Map<string, { totalKRW: number; paidCount: number }>()
+
+    for (const p of payments) {
+      if (p.status === 'paid') {
+        totalKRW += p.amountKRW
+        paidCount += 1
+        const entry = byParty.get(p.partyId) ?? { totalKRW: 0, paidCount: 0 }
+        entry.totalKRW += p.amountKRW
+        entry.paidCount += 1
+        byParty.set(p.partyId, entry)
+      } else if (p.status === 'refunded') {
+        refundedKRW += p.amountKRW
+      }
+    }
+
+    const recent = hostedParties.slice(0, 12).map((party) => {
+      const entry = byParty.get(party.id) ?? { totalKRW: 0, paidCount: 0 }
+      return {
+        partyId: party.id,
+        partyTitle: party.title,
+        totalKRW: entry.totalKRW,
+        paidCount: entry.paidCount,
+      }
+    })
+
+    return { totalKRW, paidCount, refundedKRW, recent }
+  }
+
   private shape(p: PaymentRow) {
     return {
       id: p.id,

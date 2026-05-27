@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, Link } from 'react-router-dom'
@@ -14,6 +15,7 @@ export default function SignUpPage() {
   const signUp = useSignUp()
   const navigate = useNavigate()
   const toast = useToast()
+  const [referralCode, setReferralCode] = useState('')
 
   const {
     register,
@@ -31,7 +33,11 @@ export default function SignUpPage() {
           className={styles.form}
           onSubmit={handleSubmit(async (data) => {
             try {
-              await signUp.mutateAsync(data)
+              const trimmed = referralCode.trim()
+              await signUp.mutateAsync({
+                ...data,
+                ...(trimmed ? { referralCode: trimmed } : {}),
+              })
               toast.show('환영해요! 첫 파티를 골라보세요 ✨', 'success')
               navigate('/discover')
             } catch (e) {
@@ -60,6 +66,12 @@ export default function SignUpPage() {
             autoComplete="new-password"
             error={errors.password?.message}
             {...register('password')}
+          />
+          <Input
+            label="추천 코드 (선택)"
+            placeholder="친구에게 받은 코드를 입력하면 3,000원 적립"
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value)}
           />
           <Button type="submit" size="lg" fullWidth isLoading={signUp.isPending}>
             계정 만들기
