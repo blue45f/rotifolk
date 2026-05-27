@@ -255,6 +255,47 @@
 .reviewStars { color: var(--brand-gold-500); font-size: var(--fs-sm); }
 .reviewHead time { font-size: var(--fs-xs); }
 
+.reply {
+  margin-top: var(--space-3);
+  margin-left: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-left: 3px solid var(--brand-gold-500, var(--color-primary));
+  background: var(--color-surface-soft);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.replyHead {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+}
+.replyHead time { font-size: var(--fs-xs); }
+.reply p {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+  color: var(--color-text);
+  white-space: pre-wrap;
+}
+.replyToggle {
+  align-self: flex-start;
+  color: var(--color-primary);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.replyToggle:hover { text-decoration: underline; }
+.replyActions {
+  display: inline-flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
 .hostBlock {
   display: flex;
   gap: var(--space-3);

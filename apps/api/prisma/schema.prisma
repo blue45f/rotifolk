@@ -489,6 +489,8 @@ model Review {
   body          String
   anonymous     Boolean  @default(false)
   tagsJson      String   @default("[]")
+  hostReply     String?
+  hostRepliedAt DateTime?
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

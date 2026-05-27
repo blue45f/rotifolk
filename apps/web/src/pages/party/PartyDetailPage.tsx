@@ -22,6 +22,8 @@ interface PartyReview {
   anonymous: boolean
   tags: string[]
   author: { nickname: string; avatarId: string | null }
+  hostReply: string | null
+  hostRepliedAt: string | null
   createdAt: string
 }
 
@@ -99,6 +101,20 @@ export default function PartyDetailPage() {
     onSuccess: () => {
       toast.show('후기가 등록됐어요 ✨', 'success')
       setReviewBody('')
+      queryClient.invalidateQueries({ queryKey: ['reviews', partyId] })
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
+
+  const [replyOpenId, setReplyOpenId] = useState<string | null>(null)
+  const [replyBody, setReplyBody] = useState('')
+  const submitReply = useMutation({
+    mutationFn: (reviewId: string) =>
+      api.patch(`reviews/${reviewId}/reply`, { body: replyBody.trim() }),
+    onSuccess: () => {
+      toast.show('답글이 등록됐어요 🎙️', 'success')
+      setReplyBody('')
+      setReplyOpenId(null)
       queryClient.invalidateQueries({ queryKey: ['reviews', partyId] })
     },
     onError: (e) => toast.show((e as Error).message, 'error'),
@@ -416,6 +432,67 @@ export default function PartyDetailPage() {
                         </time>
                       </div>
                       <p>{r.body}</p>
+                      {r.hostReply ? (
+                        <div className={styles.reply}>
+                          <div className={styles.replyHead}>
+                            <strong>🎙️ 호스트 답글</strong>
+                            {r.hostRepliedAt && (
+                              <time className={styles.muted}>
+                                {new Date(r.hostRepliedAt).toLocaleDateString('ko-KR')}
+                              </time>
+                            )}
+                          </div>
+                          <p>{r.hostReply}</p>
+                        </div>
+                      ) : (
+                        isHost && (
+                          <div className={styles.reply}>
+                            {replyOpenId === r.id ? (
+                              <>
+                                <textarea
+                                  className={styles.textarea}
+                                  placeholder="참가자에게 따뜻한 답글을 남겨주세요"
+                                  value={replyBody}
+                                  onChange={(e) => setReplyBody(e.target.value)}
+                                  rows={3}
+                                />
+                                <div className={styles.replyActions}>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setReplyOpenId(null)
+                                      setReplyBody('')
+                                    }}
+                                  >
+                                    취소
+                                  </Button>
+                                  <Button
+                                    variant="primary"
+                                    size="sm"
+                                    onClick={() => submitReply.mutate(r.id)}
+                                    isLoading={submitReply.isPending}
+                                    disabled={!replyBody.trim()}
+                                  >
+                                    답글 등록
+                                  </Button>
+                                </div>
+                              </>
+                            ) : (
+                              <button
+                                type="button"
+                                className={styles.replyToggle}
+                                onClick={() => {
+                                  setReplyOpenId(r.id)
+                                  setReplyBody('')
+                                }}
+                              >
+                                🎙️ 답글 작성
+                              </button>
+                            )}
+                          </div>
+                        )
+                      )}
                     </li>
                   ))}
                 </ul>

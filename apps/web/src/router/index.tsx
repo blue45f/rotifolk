@@ -22,6 +22,8 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: lazyPage(() => import('@pages/home/HomePage')) },
       { path: 'discover', element: lazyPage(() => import('@pages/discover/DiscoverPage')) },
+      { path: 'category/:value', element: lazyPage(() => import('@pages/category/CategoryPage')) },
+      { path: 'vibe', element: lazyPage(() => import('@pages/vibe/VibePage')) },
       { path: 'neighborhood', element: lazyPage(() => import('@pages/neighborhood/NeighborhoodPage')) },
       { path: 'quick', element: lazyPage(() => import('@pages/quick/QuickCreatePage')) },
       { path: 'parties/:partyId', element: lazyPage(() => import('@pages/party/PartyDetailPage')) },
