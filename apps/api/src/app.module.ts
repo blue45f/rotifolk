@@ -12,6 +12,8 @@ import { OrdersModule } from './modules/orders/orders.module'
 import { LiveModule } from './modules/live/live.module'
 import { HealthModule } from './modules/health/health.module'
 import { AvatarsModule } from './modules/avatars/avatars.module'
+import { ChatModule } from './modules/chat/chat.module'
+import { SafetyModule } from './modules/safety/safety.module'
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { AvatarsModule } from './modules/avatars/avatars.module'
     QuizModule,
     QuestionCardsModule,
     OrdersModule,
+    ChatModule,
+    SafetyModule,
     LiveModule,
   ],
 })

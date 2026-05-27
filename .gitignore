@@ -44,3 +44,7 @@ apps/api/prisma/migrations/dev/
 playwright-report
 test-results
 e2e-results
+.playwright-mcp/
+
+# screenshots / artifacts
+screenshots/

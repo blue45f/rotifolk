@@ -28,7 +28,7 @@ export const routes: RouteObject[] = [
       { path: 'signup', element: lazyPage(() => import('@pages/auth/SignUpPage')) },
       {
         path: 'host',
-        element: <ProtectedRoute role="host" />,
+        element: <ProtectedRoute />,
         children: [
           { index: true, element: lazyPage(() => import('@pages/host/HostConsolePage')) },
           { path: 'create', element: lazyPage(() => import('@pages/host/HostCreatePage')) },
@@ -44,6 +44,19 @@ export const routes: RouteObject[] = [
         path: 'me',
         element: <ProtectedRoute />,
         children: [{ index: true, element: lazyPage(() => import('@pages/profile/ProfilePage')) }],
+      },
+      {
+        path: 'chats',
+        element: <ProtectedRoute />,
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/chat/ChatListPage')) },
+          { path: ':roomId', element: lazyPage(() => import('@pages/chat/ChatRoomPage')) },
+        ],
+      },
+      {
+        path: 'admin',
+        element: <ProtectedRoute role="admin" />,
+        children: [{ index: true, element: lazyPage(() => import('@pages/admin/AdminPage')) }],
       },
       { path: '*', element: lazyPage(() => import('@pages/notfound/NotFoundPage')) },
     ],
