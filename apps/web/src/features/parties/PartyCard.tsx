@@ -8,60 +8,81 @@ interface Props {
   party: PartySummary
 }
 
+const TONE_BY_CATEGORY: Record<string, 'wine' | 'coffee' | 'tea' | 'whisky' | 'gold' | 'primary'> = {
+  wine: 'wine',
+  coffee: 'coffee',
+  tea: 'tea',
+  whisky: 'whisky',
+  'natural-wine': 'gold',
+}
+
+const DRINK_HINT: Record<string, string> = {
+  none: '음료 별도',
+  'per-glass': '잔당 결제',
+  unlimited: '무제한',
+  paired: '페어링 코스',
+}
+
 export function PartyCard({ party }: Props) {
   const cat = CATEGORY_META[party.category]
   const start = new Date(party.startAt)
-  const isFull = party.currentParticipants >= party.maxParticipants
-  const tones: Record<string, 'wine' | 'coffee' | 'tea' | 'whisky' | 'gold' | 'primary'> = {
-    wine: 'wine',
-    coffee: 'coffee',
-    tea: 'tea',
-    whisky: 'whisky',
-    'natural-wine': 'gold',
-  }
-  const tone = tones[party.category] ?? 'primary'
+  const fillRate = Math.min(1, party.currentParticipants / Math.max(1, party.maxParticipants))
+  const isFull = fillRate >= 1
+  const isHot = fillRate >= 0.75 && !isFull
+  const isLive = party.status === 'live'
+  const tone = TONE_BY_CATEGORY[party.category] ?? 'primary'
+
+  const datePart = start.toLocaleDateString('ko-KR', {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'short',
+  })
+  const timePart = start.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
 
   return (
-    <Link to={`/parties/${party.id}`} className={styles.card}>
+    <Link to={`/parties/${party.id}`} className={styles.card} aria-label={party.title}>
       <div className={styles.cover} style={{ background: cat.bgGradient }}>
         {party.coverImageUrl ? (
-          <img src={party.coverImageUrl} alt="" className={styles.coverImg} />
+          <img src={party.coverImageUrl} alt="" className={styles.coverImg} loading="lazy" />
         ) : (
-          <div className={styles.coverEmoji} aria-hidden="true">
-            {cat.emoji}
-          </div>
+          <div className={styles.coverEmoji} aria-hidden="true">{cat.emoji}</div>
         )}
-        <div className={styles.coverOverlay} />
+        <div className={styles.coverScrim} aria-hidden="true" />
         <div className={styles.coverHead}>
-          <Badge tone={tone} size="sm">
-            {cat.emoji} {cat.shortLabel}
-          </Badge>
-          {isFull && (
-            <Badge tone="danger" size="sm">
-              마감 임박
-            </Badge>
-          )}
+          <Badge tone={tone} size="sm">{cat.emoji} {cat.shortLabel}</Badge>
+          {isLive && <Badge tone="danger" size="sm">🔴 LIVE</Badge>}
+          {!isLive && isFull && <Badge tone="warning" size="sm">마감</Badge>}
+          {!isLive && isHot && <Badge tone="gold" size="sm">곧 마감</Badge>}
+        </div>
+        <div className={styles.coverFoot}>
+          <span className={styles.dateBadge}>
+            <strong>{datePart}</strong>
+            <em>{timePart}</em>
+          </span>
         </div>
       </div>
+
       <div className={styles.body}>
         <h3 className={styles.title}>{party.title}</h3>
-        <div className={styles.meta}>
+        <p className={styles.meta}>
           <span>📍 {party.venueArea}</span>
-          <span aria-hidden="true">·</span>
-          <span>
-            {start.toLocaleDateString('ko-KR', {
-              month: 'long',
-              day: 'numeric',
-              weekday: 'short',
-            })}{' '}
-            {start.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-          </span>
+          <span className={styles.metaDivider} aria-hidden="true" />
+          <span>{DRINK_HINT[party.drinkPackage] ?? party.drinkPackage}</span>
+        </p>
+
+        <div className={styles.gauge} aria-label={`${party.currentParticipants}명 참여`}>
+          <div className={styles.gaugeFill} style={{ width: `${fillRate * 100}%` }} />
         </div>
+
         <div className={styles.footer}>
           <span className={styles.people}>
-            <strong>{party.currentParticipants}</strong> / {party.maxParticipants}명
+            <strong>{party.currentParticipants}</strong>
+            <span aria-hidden="true">/</span>
+            {party.maxParticipants}명
           </span>
-          <span className={styles.price}>{party.basePriceKRW.toLocaleString()}원</span>
+          <span className={styles.price}>
+            {party.basePriceKRW === 0 ? '무료' : `${party.basePriceKRW.toLocaleString()}원`}
+          </span>
         </div>
       </div>
     </Link>

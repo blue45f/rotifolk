@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
@@ -7,7 +7,6 @@ import { ALL_CATEGORIES } from '@features/categories/meta'
 import { PartyCard } from '@features/parties/PartyCard'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
-import { Avatar } from '@components/ui/Avatar/Avatar'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { api } from '@services/api'
@@ -20,76 +19,52 @@ export default function HomePage() {
     queryFn: () => api.get<PartySummary[]>('parties/happening-now'),
     refetchInterval: 30_000,
   })
+  const reduce = useReducedMotion() ?? false
 
   return (
     <div>
       <section className={styles.hero} aria-labelledby="hero-title">
-        <div className={styles.blobs} aria-hidden="true">
-          <span className={styles.blob1} />
-          <span className={styles.blob2} />
-          <span className={styles.blob3} />
+        <div className={styles.cellar} aria-hidden="true">
+          <span className={styles.cellarVeil} />
+          <CellarBottles reduce={reduce} />
         </div>
+
         <div className={`container ${styles.heroInner}`}>
           <motion.div
             className={styles.heroCopy}
-            initial={{ opacity: 0, y: 24 }}
+            initial={reduce ? false : { opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
           >
-            <Badge tone="gold" size="md">
-              ✨ 모르는 사람과의 5분 라운드
-            </Badge>
+            <span className={styles.kicker}>로테이션 파티 매칭 · 와인 · 커피 · 차</span>
             <h1 id="hero-title" className={styles.heroTitle}>
               한 모금이 끝나기 전,
               <br />
-              <span className={styles.heroAccent}>다음 자리로</span>.
+              다음 자리로.
             </h1>
             <p className={styles.heroLead}>
-              와인 · 커피 · 차 · 위스키 — 호스트가 짠 라운드로 모든 사람을 만나고,
-              <br className={styles.brDesktop} />
-              마지막엔 가장 마음 맞는 사람과 매칭되는 로테이션 파티.
+              호스트가 짠 5분 라운드. 모르는 사람과 한 잔, 새로운 와인 한 모금.
+              마지막 라운드에 서로를 고른 사람만 1:1로 이어집니다.
             </p>
             <div className={styles.heroCta}>
               <Link to="/discover">
-                <Button variant="primary" size="xl">
-                  오늘의 파티 둘러보기
-                </Button>
+                <Button variant="primary" size="xl">오늘의 파티</Button>
               </Link>
-              <Link to="/host/create">
-                <Button variant="outline" size="xl">
-                  내 파티 열기
-                </Button>
+              <Link to="/quick">
+                <Button variant="outline" size="xl">⚡ 즉석 모임</Button>
               </Link>
             </div>
-            <div className={styles.heroProof}>
-              <div className={styles.avatars}>
-                {(['#7A1F3D', '#C9627F', '#D4A24C', '#6B8E5A', '#2F7884'] as const).map((hue, i) => (
-                  <Avatar
-                    key={hue}
-                    size="sm"
-                    hue={hue}
-                    pattern={(['gradient', 'sparkle', 'wave', 'gradient', 'sparkle'] as const)[i]}
-                    emoji={['🍷', '✨', '☕️', '🍵', '🥃'][i]}
-                    ring="soft"
-                  />
-                ))}
-              </div>
-              <span>
-                <strong>1,284명</strong>이 이번 달 로테이션 파티를 즐겼어요
-              </span>
-            </div>
-          </motion.div>
-
-          <motion.div
-            className={styles.heroVisual}
-            initial={{ opacity: 0, scale: 0.92, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-            aria-hidden="true"
-          >
-            <RotationVisual />
+            <ul className={styles.heroProof}>
+              <li><span>5</span>분 라운드</li>
+              <li className={styles.proofDot} aria-hidden="true" />
+              <li><span>5:5</span> 이성 매칭</li>
+              <li className={styles.proofDot} aria-hidden="true" />
+              <li>실명 노출 없이 아바타 모드</li>
+            </ul>
           </motion.div>
         </div>
+
+        <div className={styles.heroEdge} aria-hidden="true" />
       </section>
 
       {nowParties && nowParties.length > 0 && (
@@ -97,11 +72,9 @@ export default function HomePage() {
           <header className={styles.sectionHead}>
             <h2 id="now-title" className={styles.sectionTitle}>
               <span className={styles.liveDot} aria-hidden="true" />
-              지금 진행 중인 모임
+              지금 진행 중
             </h2>
-            <Link to="/discover?status=live" className={styles.sectionAction}>
-              전체 보기 →
-            </Link>
+            <Link to="/discover?status=live" className={styles.sectionAction}>전체 보기 →</Link>
           </header>
           <div className={styles.partyGrid}>
             {nowParties.slice(0, 3).map((p) => (
@@ -111,64 +84,25 @@ export default function HomePage() {
         </section>
       )}
 
-      <section className={`container ${styles.section}`} aria-labelledby="instant-title">
-        <div className={styles.instantBanner}>
-          <div className={styles.instantBody}>
-            <Badge tone="gold" size="md">⚡ 즉석 모임</Badge>
-            <h2 id="instant-title" className={styles.instantTitle}>
-              지금 한 잔, 같이 할 사람?
-            </h2>
-            <p>
-              30분 뒤, 1시간 뒤, 2시간 뒤. 카테고리·시간·장소만 고르면 1분 만에 개설.
-              친구한테 공유 코드만 던지면 모여요.
-            </p>
-            <div className={styles.instantCta}>
-              <Link to="/quick">
-                <Button variant="gold" size="lg">⚡ 즉석 모임 열기</Button>
-              </Link>
-              <Link to="/neighborhood">
-                <Button variant="ghost" size="lg">📍 내 동네 보기</Button>
-              </Link>
-            </div>
-          </div>
-          <div className={styles.instantVisual} aria-hidden="true">
-            {['🍷','☕️','🍵','🥃','🍸'].map((e, i) => (
-              <motion.span
-                key={i}
-                className={styles.float}
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 2 + i * 0.4, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ left: `${15 + i * 18}%`, fontSize: `${2 + (i % 2) * 0.5}rem` }}
-              >
-                {e}
-              </motion.span>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className={`container ${styles.section}`} aria-labelledby="cats-title">
         <header className={styles.sectionHead}>
-          <h2 id="cats-title" className={styles.sectionTitle}>
-            오늘은 어떤 잔으로 시작할까요?
-          </h2>
-          <p className={styles.sectionSub}>카테고리별 라운드 컨셉이 달라요.</p>
+          <h2 id="cats-title" className={styles.sectionTitle}>오늘은 어떤 잔으로</h2>
+          <p className={styles.sectionSub}>카테고리마다 라운드 컨셉과 분위기가 달라요.</p>
         </header>
-        <div className={styles.catGrid}>
+        <div className={styles.catRail}>
           {ALL_CATEGORIES.filter((c) => c.value !== 'custom').map((cat) => (
             <Link
               key={cat.value}
               to={`/discover?category=${cat.value}`}
-              className={styles.catCard}
-              style={{ background: cat.bgGradient }}
+              className={styles.catTile}
+              style={{ ['--tile-bg' as never]: cat.bgGradient } as never}
             >
-              <div className={styles.catEmoji} aria-hidden="true">
-                {cat.emoji}
-              </div>
-              <div className={styles.catBody}>
-                <h3>{cat.label}</h3>
-                <p>{cat.description}</p>
-              </div>
+              <span className={styles.tileSurface} aria-hidden="true" />
+              <span className={styles.tileEmoji} aria-hidden="true">{cat.emoji}</span>
+              <span className={styles.tileBody}>
+                <strong>{cat.label}</strong>
+                <small>{cat.description}</small>
+              </span>
             </Link>
           ))}
         </div>
@@ -176,54 +110,47 @@ export default function HomePage() {
 
       <section className={`container ${styles.section}`} aria-labelledby="how-title">
         <header className={styles.sectionHead}>
-          <h2 id="how-title" className={styles.sectionTitle}>
-            어떻게 진행되나요?
-          </h2>
-          <p className={styles.sectionSub}>호스트가 라운드를 짜고, 우리는 자리만 바꾸면 돼요.</p>
+          <h2 id="how-title" className={styles.sectionTitle}>이렇게 흘러갑니다</h2>
         </header>
-        <div className={styles.steps}>
-          {[
-            {
-              n: '01',
-              t: '체크인 & 아바타',
-              d: '도착 즉시 좌석 안내. 닉네임·아바타로만 시작해도 좋아요.',
-              emoji: '🎟️',
-            },
-            { n: '02', t: '라운드 매칭', d: '5분마다 자동으로 다음 자리로. 한 잔, 한 사람씩.', emoji: '🔄' },
-            { n: '03', t: '질문 카드 & 퀴즈', d: '4단계 깊이의 카드와 라이브 퀴즈가 어색함을 녹여요.', emoji: '🃏' },
-            { n: '04', t: '최종 매칭', d: '마지막엔 “이 사람 또 보고 싶어요” 투표 → 상호 매칭만 공개.', emoji: '💌' },
-          ].map((step) => (
-            <div key={step.n} className={styles.step}>
-              <div className={styles.stepNum}>{step.n}</div>
-              <div className={styles.stepEmoji} aria-hidden="true">
-                {step.emoji}
-              </div>
-              <h3>{step.t}</h3>
-              <p>{step.d}</p>
-            </div>
-          ))}
-        </div>
+        <ol className={styles.steps}>
+          <li>
+            <span className={styles.stepIndex}>01</span>
+            <h3>체크인 · 아바타</h3>
+            <p>도착하면 좌석 안내. 닉네임과 아바타만으로 충분합니다.</p>
+          </li>
+          <li>
+            <span className={styles.stepIndex}>02</span>
+            <h3>라운드 회전</h3>
+            <p>5분마다 자동으로 다음 자리. 한 잔에 한 사람.</p>
+          </li>
+          <li>
+            <span className={styles.stepIndex}>03</span>
+            <h3>질문 카드 · 라이브 퀴즈</h3>
+            <p>4단계 깊이의 카드가 어색함을 녹입니다.</p>
+          </li>
+          <li>
+            <span className={styles.stepIndex}>04</span>
+            <h3>최종 매칭</h3>
+            <p>서로를 고른 사람만 1:1 채팅이 열립니다.</p>
+          </li>
+        </ol>
       </section>
 
       <section className={`container ${styles.section}`} aria-labelledby="open-title">
         <header className={styles.sectionHead}>
-          <h2 id="open-title" className={styles.sectionTitle}>
-            지금 모집 중인 파티
-          </h2>
-          <Link to="/discover" className={styles.sectionAction}>
-            전체 보기 →
-          </Link>
+          <h2 id="open-title" className={styles.sectionTitle}>지금 모집 중</h2>
+          <Link to="/discover" className={styles.sectionAction}>전체 보기 →</Link>
         </header>
         {isLoading ? (
           <Loading />
         ) : !parties || parties.items.length === 0 ? (
           <EmptyState
             emoji="🌙"
-            title="아직 모집 중인 파티가 없어요"
-            description="가장 먼저 파티를 열어볼래요?"
+            title="아직 모집 중인 모임이 없어요"
+            description="가장 먼저 한 잔을 열어보는 건 어때요?"
             action={
-              <Link to="/host/create">
-                <Button variant="primary">파티 열기</Button>
+              <Link to="/quick">
+                <Button variant="primary">⚡ 즉석 모임</Button>
               </Link>
             }
           />
@@ -236,17 +163,13 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className={`container ${styles.ctaSection}`}>
+      <section className={`container ${styles.ctaSection}`} aria-labelledby="host-cta">
         <div className={styles.ctaCard}>
-          <h2>호스트가 되어볼래요?</h2>
-          <p>
-            제휴 라운지·와인바·카페 디렉터리에서 장소를 고르고, 라운드 컨셉만 정하면 끝.
-            <br />첫 파티 호스팅 시 무료 카메라 출장.
-          </p>
+          <Badge tone="gold" size="md">호스트가 되어볼래요?</Badge>
+          <h2 id="host-cta">한 모임을 여는 데 5분이면 충분해요.</h2>
+          <p>제휴 라운지 · 와인바 · 카페 디렉터리에서 장소를 고르고, 라운드 컨셉만 정하세요.</p>
           <Link to="/host/create">
-            <Button variant="gold" size="lg">
-              파티 개설 시작
-            </Button>
+            <Button variant="gold" size="lg">파티 개설 시작</Button>
           </Link>
         </div>
       </section>
@@ -254,36 +177,30 @@ export default function HomePage() {
   )
 }
 
-function RotationVisual() {
-  const items = [
-    { emoji: '🍷', hue: '#7A1F3D' },
-    { emoji: '✨', hue: '#C9627F' },
-    { emoji: '🍵', hue: '#6B8E5A' },
-    { emoji: '☕️', hue: '#6B4226' },
-    { emoji: '🥃', hue: '#B47433' },
-    { emoji: '🌹', hue: '#4A0E25' },
+function CellarBottles({ reduce }: { reduce: boolean }) {
+  const bottles = [
+    { left: '8%',  delay: 0,    height: 220 },
+    { left: '22%', delay: 0.4,  height: 260 },
+    { left: '36%', delay: 0.8,  height: 200 },
+    { left: '64%', delay: 0.6,  height: 240 },
+    { left: '78%', delay: 0.3,  height: 220 },
+    { left: '90%', delay: 0.9,  height: 250 },
   ]
   return (
-    <div className={styles.rotation}>
-      <div className={styles.rotationRing} />
-      <div className={styles.rotationCore}>
-        <span>5분</span>
-        <small>라운드</small>
-      </div>
-      {items.map((it, i) => {
-        const angle = (360 / items.length) * i
-        return (
-          <div
-            key={i}
-            className={styles.rotationItem}
-            style={{
-              transform: `rotate(${angle}deg) translateY(-140px) rotate(${-angle}deg)`,
-            }}
-          >
-            <Avatar size="md" hue={it.hue} pattern="gradient" emoji={it.emoji} ring="glow" />
-          </div>
-        )
-      })}
+    <div className={styles.bottles}>
+      {bottles.map((b, i) => (
+        <motion.span
+          key={i}
+          className={styles.bottle}
+          style={{ left: b.left, height: b.height }}
+          initial={reduce ? false : { opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: b.delay, duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
+        >
+          <span className={styles.bottleNeck} />
+          <span className={styles.bottleLabel} />
+        </motion.span>
+      ))}
     </div>
   )
 }

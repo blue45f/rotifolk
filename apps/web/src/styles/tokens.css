@@ -1,92 +1,111 @@
 /* ============================================================
-   Rotifolk Design Tokens — Wine × Cream × Twilight
+   Rotifolk Design Tokens
+   Wine cellar at twilight — burgundy × cream × gold.
+   OKLCH로 정렬, 모든 중성색은 burgundy hue로 미세 틴트.
    ============================================================ */
 
 :root {
-  /* —— Brand —— */
-  --brand-burgundy-900: #4A0E25;
-  --brand-burgundy-800: #62122F;
-  --brand-burgundy-700: #7A1F3D;       /* primary */
-  --brand-burgundy-600: #93324F;
-  --brand-burgundy-500: #B14868;
-  --brand-burgundy-400: #C9627F;       /* primary-soft */
-  --brand-burgundy-300: #DA8AA0;
-  --brand-burgundy-200: #ECBBC8;
-  --brand-burgundy-100: #F8E2EA;
-  --brand-burgundy-50:  #FDF4F7;
+  /* —— Brand (OKLCH) —— */
+  --brand-burgundy-900: oklch(25% 0.10  10);
+  --brand-burgundy-800: oklch(30% 0.115 10);
+  --brand-burgundy-700: oklch(36% 0.13  10);    /* primary */
+  --brand-burgundy-600: oklch(43% 0.13  10);
+  --brand-burgundy-500: oklch(53% 0.13  10);
+  --brand-burgundy-400: oklch(63% 0.115 10);    /* primary-soft / rose accent */
+  --brand-burgundy-300: oklch(73% 0.085 10);
+  --brand-burgundy-200: oklch(85% 0.055 10);
+  --brand-burgundy-100: oklch(94% 0.025 10);
+  --brand-burgundy-50:  oklch(98% 0.012 10);
 
-  --brand-gold-700:     #A57A2C;
-  --brand-gold-600:     #BD8E36;
-  --brand-gold-500:     #D4A24C;       /* accent */
-  --brand-gold-400:     #E2B978;
-  --brand-gold-300:     #EFD2A6;
-  --brand-gold-100:     #FBF1DC;
+  --brand-gold-700:     oklch(55% 0.105 78);
+  --brand-gold-600:     oklch(63% 0.115 80);
+  --brand-gold-500:     oklch(74% 0.125 80);    /* accent */
+  --brand-gold-400:     oklch(82% 0.105 82);
+  --brand-gold-300:     oklch(88% 0.070 82);
+  --brand-gold-100:     oklch(96% 0.030 82);
 
-  --brand-cream-50:     #FDFAF2;
-  --brand-cream-100:    #FBF3E2;       /* canvas */
-  --brand-cream-200:    #F4E8CB;
+  --brand-cream-50:     oklch(99% 0.008 80);
+  --brand-cream-100:    oklch(97% 0.020 80);    /* canvas warm */
+  --brand-cream-200:    oklch(93% 0.045 82);
 
-  --brand-ink-900:      #14101D;       /* dark canvas */
-  --brand-ink-800:      #1F1A2A;
-  --brand-ink-700:      #2A2438;
-  --brand-ink-600:      #382F4A;
+  --brand-ink-900:      oklch(15% 0.025 290);   /* dark canvas */
+  --brand-ink-800:      oklch(20% 0.030 290);
+  --brand-ink-700:      oklch(26% 0.035 290);
+  --brand-ink-600:      oklch(32% 0.040 290);
 
-  /* —— Category accents —— */
-  --cat-wine:     #7A1F3D;
-  --cat-coffee:   #6B4226;
-  --cat-tea:      #6B8E5A;
-  --cat-whisky:   #B47433;
-  --cat-cocktail: #2F7884;
-  --cat-beer:     #C89E2A;
-  --cat-sake:     #B7C8C8;
-  --cat-dessert:  #C9628E;
-  --cat-custom:   #6E5BB3;
+  /* —— Category accents (OKLCH, 같은 명도 대역에서 채도만 살짝) —— */
+  --cat-wine:     oklch(36% 0.13  10);
+  --cat-coffee:   oklch(36% 0.07  50);
+  --cat-tea:      oklch(56% 0.07 135);
+  --cat-whisky:   oklch(57% 0.13  60);
+  --cat-cocktail: oklch(48% 0.08 200);
+  --cat-beer:     oklch(70% 0.13  85);
+  --cat-sake:     oklch(72% 0.02 195);
+  --cat-dessert:  oklch(60% 0.13  10);
+  --cat-custom:   oklch(48% 0.09 295);
 
   /* —— Semantic —— */
   --color-primary:        var(--brand-burgundy-700);
   --color-primary-hover:  var(--brand-burgundy-800);
   --color-primary-soft:   var(--brand-burgundy-100);
-  --color-primary-fg:     #FFFFFF;
+  --color-primary-fg:     oklch(98% 0.005 80);
 
   --color-accent:         var(--brand-gold-500);
-  --color-accent-fg:      #2A1F0C;
+  --color-accent-fg:      oklch(20% 0.030 60);
 
-  --color-bg:             #FCFAF5;
-  --color-surface:        #FFFFFF;
-  --color-surface-soft:   #FBF3E2;
-  --color-surface-elev:   #FFFFFF;
-  --color-overlay:        rgba(20, 16, 29, 0.55);
+  --color-bg:             oklch(98.5% 0.008 80);
+  --color-surface:        oklch(100% 0   80);
+  --color-surface-soft:   oklch(96.5% 0.022 80);
+  --color-surface-elev:   oklch(100% 0   80);
+  --color-overlay:        color-mix(in oklab, var(--brand-ink-900) 60%, transparent);
 
-  --color-text:           #1B1422;
-  --color-text-muted:     #5A5066;
-  --color-text-subtle:    #87808F;
-  --color-text-inverse:   #FCFAF5;
+  --color-text:           oklch(20% 0.025 290);
+  --color-text-muted:     oklch(45% 0.020 290);
+  --color-text-subtle:    oklch(60% 0.012 290);
+  --color-text-inverse:   var(--brand-cream-50);
 
-  --color-border:         rgba(20, 16, 29, 0.10);
-  --color-border-strong:  rgba(20, 16, 29, 0.18);
+  --color-border:         color-mix(in oklab, var(--brand-ink-900) 10%, transparent);
+  --color-border-strong:  color-mix(in oklab, var(--brand-ink-900) 18%, transparent);
 
-  --color-success:        #2F8F66;
-  --color-success-bg:     #E6F5EE;
-  --color-warning:        #C9871F;
-  --color-warning-bg:     #FBF0DA;
-  --color-danger:         #C13F4E;
-  --color-danger-bg:      #FBE6E9;
-  --color-info:           #486AB0;
-  --color-info-bg:        #E6ECF8;
+  --color-success:        oklch(58% 0.110 160);
+  --color-success-bg:     oklch(95% 0.030 160);
+  --color-warning:        oklch(70% 0.130  70);
+  --color-warning-bg:     oklch(96% 0.045  82);
+  --color-danger:         oklch(57% 0.165  20);
+  --color-danger-bg:      oklch(95% 0.035  20);
+  --color-info:           oklch(56% 0.105 250);
+  --color-info-bg:        oklch(95% 0.025 250);
 
   /* —— Gradients —— */
-  --grad-burgundy-night: linear-gradient(135deg, #4A0E25 0%, #7A1F3D 45%, #C9627F 100%);
-  --grad-cream-rose:     linear-gradient(135deg, #FBF3E2 0%, #F8E2EA 65%, #ECBBC8 100%);
-  --grad-gold-shine:     linear-gradient(135deg, #FBF1DC 0%, #E2B978 50%, #A57A2C 100%);
-  --grad-twilight:       linear-gradient(180deg, #14101D 0%, #2A2438 50%, #62122F 100%);
-  --grad-wine-glow:      radial-gradient(circle at 30% 20%, #C9627F 0%, transparent 55%),
-                         radial-gradient(circle at 80% 70%, #7A1F3D 0%, transparent 60%),
-                         #14101D;
+  --grad-cellar:         linear-gradient(180deg,
+                          oklch(20% 0.04 290) 0%,
+                          oklch(28% 0.075 10) 55%,
+                          oklch(40% 0.115 12) 100%);
+  --grad-burgundy-night: linear-gradient(135deg,
+                          oklch(25% 0.10 10) 0%,
+                          oklch(38% 0.13 10) 50%,
+                          oklch(60% 0.12 12) 100%);
+  --grad-cream-rose:     linear-gradient(135deg,
+                          oklch(96.5% 0.022 80) 0%,
+                          oklch(93% 0.045 22) 60%,
+                          oklch(85% 0.075 18) 100%);
+  --grad-gold-shine:     linear-gradient(135deg,
+                          oklch(96% 0.030 82) 0%,
+                          oklch(82% 0.105 82) 50%,
+                          oklch(58% 0.115 78) 100%);
+  --grad-twilight:       var(--grad-cellar);
+  --grad-wine-glow:      radial-gradient(120% 80% at 30% 20%,
+                           color-mix(in oklab, var(--brand-burgundy-400) 50%, transparent),
+                           transparent 60%),
+                         radial-gradient(100% 70% at 80% 70%,
+                           color-mix(in oklab, var(--brand-burgundy-700) 50%, transparent),
+                           transparent 65%),
+                         var(--brand-ink-900);
 
   /* —— Typography —— */
   --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
                'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  --font-display: var(--font-sans);
   --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 
   --fs-3xs: 0.6875rem;
@@ -108,14 +127,15 @@
   --fw-bold:     700;
   --fw-black:    800;
 
-  --lh-tight:  1.15;
-  --lh-snug:   1.3;
-  --lh-normal: 1.5;
+  --lh-tight:   1.1;
+  --lh-snug:    1.25;
+  --lh-normal:  1.5;
   --lh-relaxed: 1.7;
 
-  --tracking-tight:  -0.02em;
+  --tracking-tight:  -0.022em;
   --tracking-normal: 0;
   --tracking-wide:   0.04em;
+  --tracking-uppercase: 0.18em;
 
   /* —— Space (4px base) —— */
   --space-0:  0;
@@ -125,6 +145,7 @@
   --space-4:  1rem;
   --space-5:  1.25rem;
   --space-6:  1.5rem;
+  --space-7:  1.75rem;
   --space-8:  2rem;
   --space-10: 2.5rem;
   --space-12: 3rem;
@@ -141,59 +162,66 @@
   --radius-2xl:  32px;
   --radius-pill: 999px;
 
-  /* —— Shadows (warm) —— */
-  --shadow-xs: 0 1px 2px rgba(74, 14, 37, 0.06);
-  --shadow-sm: 0 2px 6px rgba(74, 14, 37, 0.08), 0 1px 2px rgba(74, 14, 37, 0.04);
-  --shadow-md: 0 8px 18px rgba(74, 14, 37, 0.10), 0 2px 6px rgba(74, 14, 37, 0.06);
-  --shadow-lg: 0 18px 36px rgba(74, 14, 37, 0.14), 0 4px 12px rgba(74, 14, 37, 0.08);
-  --shadow-xl: 0 32px 64px rgba(74, 14, 37, 0.20), 0 12px 24px rgba(74, 14, 37, 0.12);
-  --shadow-glow: 0 0 0 4px rgba(201, 98, 127, 0.18), 0 8px 24px rgba(122, 31, 61, 0.25);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  /* —— Shadows (warm, burgundy-tinted) —— */
+  --shadow-xs: 0 1px 2px color-mix(in oklab, var(--brand-burgundy-900) 8%, transparent);
+  --shadow-sm: 0 2px 6px color-mix(in oklab, var(--brand-burgundy-900) 10%, transparent),
+               0 1px 2px color-mix(in oklab, var(--brand-burgundy-900) 6%, transparent);
+  --shadow-md: 0 10px 24px color-mix(in oklab, var(--brand-burgundy-900) 12%, transparent),
+               0 2px 6px color-mix(in oklab, var(--brand-burgundy-900) 8%, transparent);
+  --shadow-lg: 0 22px 48px color-mix(in oklab, var(--brand-burgundy-900) 16%, transparent),
+               0 4px 12px color-mix(in oklab, var(--brand-burgundy-900) 10%, transparent);
+  --shadow-xl: 0 40px 80px color-mix(in oklab, var(--brand-burgundy-900) 22%, transparent),
+               0 14px 30px color-mix(in oklab, var(--brand-burgundy-900) 14%, transparent);
+  --shadow-glow: 0 0 0 4px color-mix(in oklab, var(--brand-burgundy-400) 22%, transparent),
+                 0 14px 36px color-mix(in oklab, var(--brand-burgundy-700) 32%, transparent);
+  --shadow-inset: inset 0 1px 0 color-mix(in oklab, white 36%, transparent);
 
   /* —— Motion —— */
-  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:       cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
+  --ease-out-expo:  cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out:    cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring:    cubic-bezier(0.34, 1.45, 0.64, 1);
   --dur-fast:    140ms;
-  --dur-base:    220ms;
-  --dur-slow:    400ms;
-  --dur-deliberate: 700ms;
+  --dur-base:    200ms;
+  --dur-slow:    320ms;
+  --dur-deliberate: 600ms;
 
   /* —— Layout —— */
   --max-content: 1200px;
-  --max-prose:   720px;
+  --max-prose:   680px;
   --header-h:    64px;
   --bottom-nav-h: 64px;
 
-  --z-base:      1;
-  --z-sticky:    50;
-  --z-overlay:   100;
-  --z-modal:     200;
-  --z-toast:     300;
+  --z-base:    1;
+  --z-sticky:  50;
+  --z-overlay: 100;
+  --z-modal:   200;
+  --z-toast:   300;
 }
 
-/* —— Dark mode (twilight) —— */
+/* —— Dark = late-night cellar —— */
 :root[data-theme='dark'] {
   --color-bg:             var(--brand-ink-900);
-  --color-surface:        var(--brand-ink-800);
-  --color-surface-soft:   var(--brand-ink-700);
-  --color-surface-elev:   #2F2740;
+  --color-surface:        oklch(22% 0.030 290);
+  --color-surface-soft:   oklch(26% 0.035 290);
+  --color-surface-elev:   oklch(28% 0.038 290);
 
-  --color-text:           #F4ECF6;
-  --color-text-muted:     #B7AEC2;
-  --color-text-subtle:    #8A8298;
+  --color-text:           oklch(94% 0.010 80);
+  --color-text-muted:     oklch(70% 0.015 290);
+  --color-text-subtle:    oklch(55% 0.018 290);
   --color-text-inverse:   var(--brand-ink-900);
 
-  --color-border:         rgba(255, 255, 255, 0.08);
-  --color-border-strong:  rgba(255, 255, 255, 0.16);
+  --color-border:         color-mix(in oklab, white 9%, transparent);
+  --color-border-strong:  color-mix(in oklab, white 18%, transparent);
 
   --color-primary:        var(--brand-burgundy-400);
   --color-primary-hover:  var(--brand-burgundy-300);
-  --color-primary-soft:   rgba(201, 98, 127, 0.15);
+  --color-primary-soft:   color-mix(in oklab, var(--brand-burgundy-400) 18%, transparent);
 
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 8px 18px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 18px 36px rgba(0, 0, 0, 0.55);
-  --shadow-xl: 0 32px 64px rgba(0, 0, 0, 0.6);
+  --shadow-xs: 0 1px 2px oklch(0% 0 0 / 0.45);
+  --shadow-sm: 0 2px 6px oklch(0% 0 0 / 0.45);
+  --shadow-md: 0 10px 24px oklch(0% 0 0 / 0.55);
+  --shadow-lg: 0 22px 48px oklch(0% 0 0 / 0.6);
+  --shadow-xl: 0 40px 80px oklch(0% 0 0 / 0.7);
 }
