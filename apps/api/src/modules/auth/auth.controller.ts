@@ -22,6 +22,11 @@ export class AuthController {
     return this.authService.login(dto)
   }
 
+  @Post('kakao')
+  async kakaoSim(@Body() body: { kakaoId: string; nickname: string }) {
+    return this.authService.kakaoSimulate(body)
+  }
+
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   me(@CurrentUser() user: JwtUserPayload) {
