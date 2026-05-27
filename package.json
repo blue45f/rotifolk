@@ -12,6 +12,7 @@
     "dev": "pnpm -r --parallel --filter=./apps/* run dev",
     "dev:web": "pnpm --filter @rotifolk/web run dev",
     "dev:api": "pnpm --filter @rotifolk/api run dev",
+    "dev:mock": "pnpm --filter @rotifolk/web run dev:mock",
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm -r run typecheck",

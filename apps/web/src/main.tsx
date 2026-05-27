@@ -3,8 +3,16 @@ import { createRoot } from 'react-dom/client'
 import AppProviders from '@/app/AppProviders'
 import '@/styles/global.css'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AppProviders />
-  </StrictMode>,
-)
+async function bootstrap() {
+  if (import.meta.env.VITE_USE_MSW === 'true' || import.meta.env.VITE_USE_MSW === '1') {
+    const { startMockServiceWorker } = await import('@/mocks/browser')
+    await startMockServiceWorker()
+  }
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <AppProviders />
+    </StrictMode>,
+  )
+}
+
+bootstrap()
