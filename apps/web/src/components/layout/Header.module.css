@@ -96,3 +96,25 @@
 .themeBtn:hover {
   background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
 }
+
+.langBtn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart);
+}
+.langBtn:hover {
+  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
+  border-color: color-mix(in oklab, var(--color-primary) 32%, var(--color-border));
+}
