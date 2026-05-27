@@ -1,0 +1,30 @@
+import { Outlet, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Header } from './Header'
+import { BottomNav } from './BottomNav'
+import { useApplyTheme } from '@store/themeStore'
+import styles from './RootLayout.module.css'
+
+export default function RootLayout() {
+  useApplyTheme()
+  const location = useLocation()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.pathname])
+
+  const isLive = location.pathname.startsWith('/live')
+
+  return (
+    <div className={styles.shell} data-live={isLive ? 'true' : undefined}>
+      <a href="#main-content" className="skip-link">
+        본문 바로가기
+      </a>
+      {!isLive && <Header />}
+      <main id="main-content" role="main" className={styles.main}>
+        <Outlet />
+      </main>
+      {!isLive && <BottomNav />}
+    </div>
+  )
+}

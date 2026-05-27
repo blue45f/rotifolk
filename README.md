@@ -1,0 +1,97 @@
+# 🍷 Rotifolk
+
+> 로테이션 파티 매칭 플랫폼 — 와인, 커피, 차, 위스키. 모르는 사람들이 진짜 친해지는 5분 라운드.
+
+Rotifolk는 문토·프립의 소셜링 모임을 한 단계 발전시킨 **로테이션 매칭** 전용 앱입니다.
+파티가 시작되면 자동으로 4~5분 라운드마다 자리를 바꾸며 모든 참가자와 1:1/소그룹 매칭을 경험하고, 마지막엔 가장 마음 맞는 사람을 **최종 매칭**으로 연결합니다.
+
+## ✨ 핵심 기능
+
+### 호스트 (모임장)
+- 모임 카테고리 선택 — 와인 / 커피 / 차 / 위스키 / 칵테일 / 커스텀
+- 장소 섭외 어시스턴트 (제휴 라운지/와인바/카페 추천 & 직접 등록)
+- 라운드 설정 (인원, 시간, 매칭 알고리즘, 좌석 배치)
+- 파티 진행 컨트롤 패널 — 라운드 시작/정지, 이벤트 발사, 음료/안주 주문 현황
+- 퀴즈/질문 카드 큐레이션
+- 정산 / 후기 / 다음 모임 리마인드
+
+### 참여자
+- 카테고리·지역·시간대로 파티 탐색
+- 아바타 빌더 (실명 노출 X, 무드 표현)
+- 라운드 시작 알림 — 다음 자리/파트너 안내
+- 라이브 퀴즈 · 질문 카드 · 미니 이벤트
+- "이 사람이 좋아요" — 중간 매칭 / 최종 매칭 투표
+- 그 자리에서 음료·안주 추가 주문
+- 파티 종료 후 상호 매칭된 사람과 채팅 오픈
+
+## 🧱 아키텍처
+
+```
+rotifolk/                 (pnpm workspace)
+├─ apps/
+│  ├─ web/                React 19 + Vite 8 + TS  (react-scaffolding 베이스)
+│  └─ api/                NestJS 11 + Prisma + Socket.IO + PostgreSQL
+└─ packages/
+   └─ shared/             도메인 타입 · Zod 스키마 · 매칭 알고리즘
+```
+
+### 프론트엔드 스택
+- React 19 + Vite 8 + TypeScript
+- React Router 7 (object-based, lazy routes)
+- Zustand (UI 상태) + TanStack Query 5 (서버 상태)
+- React Hook Form + Zod
+- CSS Modules + 디자인 토큰
+- Framer Motion (마이크로 인터랙션)
+- Socket.IO Client
+
+### 백엔드 스택
+- NestJS 11 (Fastify adapter)
+- Prisma ORM + PostgreSQL (SQLite fallback for dev)
+- Socket.IO Gateway — 라운드 타이머/매칭/이벤트/주문 실시간
+- JWT 인증 + Passport (Local + Kakao 준비)
+- Class-validator + Zod 공유 스키마
+
+## 🚀 시작하기
+
+```bash
+# 1. 설치
+pnpm install
+
+# 2. DB 준비 (SQLite 기본)
+cp apps/api/.env.example apps/api/.env
+pnpm db:generate
+pnpm db:push
+pnpm seed          # 호스트·참가자·장소·파티·질문카드 시드
+
+# 3. 동시 실행
+pnpm dev           # web :5173 + api :3000 동시 실행
+# 또는 따로:
+# pnpm dev:web
+# pnpm dev:api
+```
+
+### 데모 계정
+
+| 역할 | 이메일 | 비밀번호 |
+|------|-------|---------|
+| 호스트 | `host@rotifolk.dev` | `rotifolk1234!` |
+| 참가자 | `p1@rotifolk.dev` ~ `p7@rotifolk.dev` | `rotifolk1234!` |
+
+### 시나리오
+
+1. 두 개 브라우저(또는 시크릿 창)로 같이 띄워요.
+2. **호스트 창**: `host@rotifolk.dev`로 로그인 → 호스트 콘솔 → 한남 와인 파티 → "라운드 짜기" → "▶ 파티 시작" → 라이브 화면 진입 → "▶ 다음 라운드"
+3. **참가자 창**: `p1@rotifolk.dev`로 로그인 → 같은 파티 → "🔴 라이브 입장"
+4. 라운드 시작 시 양쪽 모두 자기 파트너와 좌석이 표시됩니다.
+5. "🃏 다음 카드 뽑기"로 양쪽에 같은 카드가 동시에 도착, "🥂 건배" 이벤트를 호스트가 발사하면 모든 참가자 화면에 이벤트 버스트.
+6. 마지막 라운드 후 호스트가 "🌹 파티 종료"를 누르면 최종 매칭이 공개됩니다.
+
+## 📂 디렉터리
+
+- `apps/web` — React 클라이언트 ([README](apps/web/README.md))
+- `apps/api` — NestJS 서버 ([README](apps/api/README.md))
+- `packages/shared` — 공유 타입/스키마/매칭 로직 ([README](packages/shared/README.md))
+
+## 📝 라이선스
+
+Private — 2026 Rotifolk.

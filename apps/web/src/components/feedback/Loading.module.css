@@ -1,0 +1,13 @@
+.wrap {
+  display: grid;
+  place-items: center;
+  min-height: 50dvh;
+}
+.ring {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 4px solid var(--color-primary-soft);
+  border-top-color: var(--color-primary);
+  animation: spin-slow 0.8s linear infinite;
+}

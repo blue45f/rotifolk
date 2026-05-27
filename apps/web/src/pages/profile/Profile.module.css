@@ -1,0 +1,95 @@
+.page { padding-block: var(--space-8) var(--space-16); }
+.head {
+  display: flex;
+  gap: var(--space-5);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-8);
+}
+.headBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.name {
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-black);
+  letter-spacing: -0.03em;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.bio { color: var(--color-text-muted); }
+.statRow {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
+}
+.statRow span { color: var(--color-text-muted); font-size: var(--fs-sm); }
+.statRow strong { color: var(--color-text); font-weight: var(--fw-bold); }
+.actions { display: flex; gap: var(--space-2); margin-top: var(--space-3); flex-wrap: wrap; }
+
+.tabsRow { margin-bottom: var(--space-6); }
+.section { display: flex; flex-direction: column; gap: var(--space-4); }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-5);
+}
+
+.h3 {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-3);
+}
+.themeRow { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: var(--space-4) 0;
+}
+
+.avatarPreview {
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: var(--grad-cream-rose);
+  border-radius: var(--radius-lg);
+}
+.lbl {
+  margin-top: var(--space-5);
+  margin-bottom: var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+}
+.chipRow { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.swatchRow { display: flex; gap: var(--space-2); }
+.swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: all var(--dur-fast) var(--ease-spring);
+}
+.swatch:hover { transform: scale(1.1); }
+.swatchActive {
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 3px var(--color-bg);
+}
+.emojiRow { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.emojiBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-surface-soft);
+  font-size: 22px;
+  transition: all var(--dur-fast);
+}
+.emojiBtn:hover { background: var(--color-primary-soft); }
+.emojiActive {
+  background: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(122, 31, 61, 0.35);
+}

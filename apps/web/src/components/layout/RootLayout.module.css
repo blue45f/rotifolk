@@ -1,0 +1,13 @@
+.shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+.main {
+  flex: 1;
+  padding-bottom: calc(var(--bottom-nav-h) + var(--space-12));
+}
+.shell[data-live='true'] .main {
+  padding-bottom: 0;
+}

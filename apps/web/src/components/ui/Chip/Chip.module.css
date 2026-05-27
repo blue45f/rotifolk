@@ -1,0 +1,28 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-border);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  cursor: pointer;
+  transition:
+    background var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    transform var(--dur-fast) var(--ease-spring);
+}
+.chip:hover {
+  border-color: var(--brand-burgundy-300);
+}
+.chip:active { transform: scale(0.97); }
+.selected {
+  background: var(--brand-burgundy-700);
+  color: #fff;
+  border-color: var(--brand-burgundy-700);
+  box-shadow: 0 4px 14px rgba(122, 31, 61, 0.3);
+}

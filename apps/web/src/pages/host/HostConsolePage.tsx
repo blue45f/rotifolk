@@ -1,0 +1,86 @@
+import { Link } from 'react-router-dom'
+import { useHostedParties } from '@features/parties/queries'
+import { useAuthStore } from '@store/authStore'
+import { PartyCard } from '@features/parties/PartyCard'
+import { Button } from '@components/ui/Button/Button'
+import { Card } from '@components/ui/Card/Card'
+import Loading from '@components/feedback/Loading'
+import EmptyState from '@components/feedback/EmptyState'
+import styles from './HostConsole.module.css'
+
+export default function HostConsolePage() {
+  const user = useAuthStore((s) => s.user)
+  const { data, isLoading } = useHostedParties()
+
+  if (isLoading) return <Loading />
+
+  const total = data?.length ?? 0
+  const live = data?.filter((p) => p.status === 'live').length ?? 0
+  const open = data?.filter((p) => p.status === 'open').length ?? 0
+
+  return (
+    <div className={styles.page}>
+      <header className={`container ${styles.head}`}>
+        <div>
+          <h1 className={styles.title}>
+            안녕하세요, <span className={styles.accent}>{user?.nickname}</span> 호스트님 🎙️
+          </h1>
+          <p className={styles.lead}>오늘의 라운드를 준비해 볼까요?</p>
+        </div>
+        <Link to="/host/create">
+          <Button variant="primary" size="lg">
+            + 새 파티 열기
+          </Button>
+        </Link>
+      </header>
+
+      <section className={`container ${styles.stats}`}>
+        <StatCard label="진행 중인 파티" value={live} emoji="🔴" />
+        <StatCard label="모집 중인 파티" value={open} emoji="🌙" />
+        <StatCard label="총 호스팅 횟수" value={total} emoji="🏆" />
+      </section>
+
+      <section className={`container ${styles.list}`}>
+        <h2 className={styles.h2}>내 파티</h2>
+        {!data || data.length === 0 ? (
+          <EmptyState
+            emoji="✨"
+            title="첫 파티를 열어볼 시간이에요"
+            description="장소를 고르고 라운드 컨셉을 정하면 끝. 5분이면 충분해요."
+            action={
+              <Link to="/host/create">
+                <Button variant="primary" size="lg">
+                  파티 만들기
+                </Button>
+              </Link>
+            }
+          />
+        ) : (
+          <div className={styles.grid}>
+            {data.map((p) => (
+              <Link key={p.id} to={`/host/parties/${p.id}`} className={styles.cardLink}>
+                <PartyCard party={p} />
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
+
+function StatCard({ label, value, emoji }: { label: string; value: number; emoji: string }) {
+  return (
+    <Card padding="md" variant="soft">
+      <div className={styles.stat}>
+        <span className={styles.statEmoji} aria-hidden="true">
+          {emoji}
+        </span>
+        <div>
+          <strong>{value}</strong>
+          <span>{label}</span>
+        </div>
+      </div>
+    </Card>
+  )
+}

@@ -1,0 +1,29 @@
+{
+  "name": "rotifolk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Rotifolk — 로테이션 파티 매칭 플랫폼 (와인/커피/차 로테이션 모임)",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20.11.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter=./apps/* run dev",
+    "dev:web": "pnpm --filter @rotifolk/web run dev",
+    "dev:api": "pnpm --filter @rotifolk/api run dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\"",
+    "seed": "pnpm --filter @rotifolk/api run seed",
+    "db:generate": "pnpm --filter @rotifolk/api run prisma:generate",
+    "db:push": "pnpm --filter @rotifolk/api run prisma:push",
+    "db:reset": "pnpm --filter @rotifolk/api run prisma:reset"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
+  }
+}

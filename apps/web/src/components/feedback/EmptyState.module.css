@@ -1,0 +1,26 @@
+.wrap {
+  display: grid;
+  place-items: center;
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+.emoji {
+  font-size: 4rem;
+  margin-bottom: var(--space-3);
+  filter: drop-shadow(0 8px 16px rgba(122, 31, 61, 0.15));
+}
+.title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--space-2);
+}
+.desc {
+  color: var(--color-text-muted);
+  max-width: 360px;
+  line-height: var(--lh-relaxed);
+  margin-bottom: var(--space-4);
+}
+.actions {
+  margin-top: var(--space-2);
+}
