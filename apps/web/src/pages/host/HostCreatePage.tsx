@@ -390,6 +390,9 @@ export default function HostCreatePage() {
               <h3 className={styles.h3}>최종 요약</h3>
               <Summary watched={watched} />
             </div>
+            <p className={styles.inviteHint}>
+              💌 개설 후 친구 초대 코드가 발급돼요. 카톡 한 번에 보낼 수 있어요.
+            </p>
           </Card>
         )}
 

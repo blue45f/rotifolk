@@ -36,6 +36,12 @@ export class PartiesController {
     return this.parties.list(q)
   }
 
+  /** 친구 초대 코드로 조회 (auth X) */
+  @Get('by-code/:code')
+  byCode(@Param('code') code: string) {
+    return this.parties.findByQuickCode(code.toUpperCase())
+  }
+
   /** 즉석/당일 빠른 개설. 카테고리·시간·장소만으로 즉시 OPEN 파티 생성. */
   @Post('quick')
   @UseGuards(AuthGuard('jwt'))

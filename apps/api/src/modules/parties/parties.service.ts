@@ -211,6 +211,29 @@ export class PartiesService {
     return items.map(toPartySummary)
   }
 
+  /** 초대 코드(quickCode)로 단건 조회 — 미로그인 사용자에게도 일부 정보 공개 */
+  async findByQuickCode(code: string) {
+    const party = await this.prisma.party.findUnique({
+      where: { quickCode: code },
+      include: { venue: true, _count: { select: { participations: true } } },
+    })
+    if (!party) {
+      throw new NotFoundException({ code: 'invite_not_found', message: '초대 코드를 찾을 수 없어요' })
+    }
+    return {
+      id: party.id,
+      title: party.title,
+      startAt: party.startAt.toISOString(),
+      venueArea: party.venue?.area ?? '',
+      venueName: party.venue?.name ?? '',
+      category: party.category,
+      quickCode: party.quickCode,
+      currentParticipants: party._count.participations,
+      maxParticipants: party.maxParticipants,
+      status: party.status,
+    }
+  }
+
   async update(hostId: string, id: string, dto: UpdatePartyDto) {
     const existing = await this.prisma.party.findUnique({ where: { id } })
     if (!existing) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })

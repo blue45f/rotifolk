@@ -102,6 +102,9 @@ export default function ProfilePage() {
               <strong>{user.joinedCount}</strong> 참여
             </span>
             <span>
+              <strong>{Math.round(user.hostedCount * 6 + user.joinedCount * 8)}</strong> 만난 사람
+            </span>
+            <span>
               <strong>{user.trustScore.toFixed(0)}</strong> 신뢰도
             </span>
           </div>

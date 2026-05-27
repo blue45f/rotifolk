@@ -248,6 +248,13 @@
 .summaryList li span { color: var(--brand-burgundy-800); }
 .summaryList li strong { font-weight: var(--fw-bold); }
 
+.inviteHint {
+  margin-top: var(--space-3);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 .actions {
   display: flex;
   justify-content: space-between;
