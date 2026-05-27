@@ -1,11 +1,20 @@
 import { Link } from 'react-router-dom'
 import type { PartySummary } from '@rotifolk/shared'
+import { SEOUL_AREAS, formatDistanceKm, haversineKm } from '@rotifolk/shared'
 import { Badge } from '@components/ui/Badge/Badge'
 import { CATEGORY_META } from '@features/categories/meta'
+import { useGeolocation } from '@features/geo/useGeolocation'
 import styles from './PartyCard.module.css'
 
 interface Props {
   party: PartySummary
+}
+
+function distanceLabel(area: string, here?: { lat: number; lng: number }): string | null {
+  if (!here) return null
+  const coords = SEOUL_AREAS[area]
+  if (!coords) return null
+  return formatDistanceKm(haversineKm(here, coords))
 }
 
 const TONE_BY_CATEGORY: Record<string, 'wine' | 'coffee' | 'tea' | 'whisky' | 'gold' | 'primary'> = {
@@ -31,6 +40,8 @@ export function PartyCard({ party }: Props) {
   const isHot = fillRate >= 0.75 && !isFull
   const isLive = party.status === 'live'
   const tone = TONE_BY_CATEGORY[party.category] ?? 'primary'
+  const geo = useGeolocation()
+  const distance = distanceLabel(party.venueArea, geo.coords)
 
   const datePart = start.toLocaleDateString('ko-KR', {
     month: 'long',
@@ -66,6 +77,12 @@ export function PartyCard({ party }: Props) {
         <h3 className={styles.title}>{party.title}</h3>
         <p className={styles.meta}>
           <span>📍 {party.venueArea}</span>
+          {distance && (
+            <>
+              <span className={styles.metaDivider} aria-hidden="true" />
+              <span className={styles.distance}>{distance}</span>
+            </>
+          )}
           <span className={styles.metaDivider} aria-hidden="true" />
           <span>{DRINK_HINT[party.drinkPackage] ?? party.drinkPackage}</span>
         </p>

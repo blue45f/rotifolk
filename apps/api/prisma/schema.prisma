@@ -53,6 +53,8 @@ model User {
   reviewsReceived   Review[]           @relation("ReviewTarget")
   reportsFiled      Report[]           @relation("ReportFrom")
   reportsAgainst    Report[]           @relation("ReportTarget")
+  following         Follow[]           @relation("FollowerRel")
+  followers         Follow[]           @relation("FollowingRel")
 
   @@index([role])
   @@index([createdAt])
@@ -395,6 +397,20 @@ model OrderItem {
   note         String?
 
   @@index([orderId])
+}
+
+// ======================== FOLLOW ========================
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("FollowerRel", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("FollowingRel", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
 }
 
 // ======================== SAFETY / REVIEW ========================

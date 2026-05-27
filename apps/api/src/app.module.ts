@@ -14,6 +14,7 @@ import { HealthModule } from './modules/health/health.module'
 import { AvatarsModule } from './modules/avatars/avatars.module'
 import { ChatModule } from './modules/chat/chat.module'
 import { SafetyModule } from './modules/safety/safety.module'
+import { CommunityModule } from './modules/community/community.module'
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SafetyModule } from './modules/safety/safety.module'
     OrdersModule,
     ChatModule,
     SafetyModule,
+    CommunityModule,
     LiveModule,
   ],
 })
