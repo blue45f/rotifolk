@@ -46,5 +46,6 @@ jobs:
           DATABASE_URL: 'file:./prisma/dev.db'
           JWT_SECRET: ci-secret
         run: |
-          pnpm --filter @rotifolk/api prisma:push
+          rm -f apps/api/prisma/dev.db apps/api/prisma/prisma/dev.db
+          pnpm --filter @rotifolk/api prisma:push --accept-data-loss
           pnpm --filter @rotifolk/api seed
