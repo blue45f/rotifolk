@@ -45,6 +45,40 @@ export class AuthService {
     return this.issueSession(user)
   }
 
+  async kakaoSimulate({ kakaoId, nickname }: { kakaoId: string; nickname: string }) {
+    const email = `kakao_${kakaoId}@rotifolk.dev`
+
+    const existing = await this.prisma.user.findUnique({
+      where: { email },
+      include: { avatar: true },
+    })
+    if (existing) return this.issueSession(existing)
+
+    const randomPassword =
+      Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
+    const passwordHash = await argon2.hash(randomPassword)
+
+    const user = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          email,
+          passwordHash,
+          nickname,
+        },
+      })
+      const avatar = await tx.avatar.create({
+        data: { ...this.makeDefaultAvatar(nickname), ownerId: created.id },
+      })
+      return tx.user.update({
+        where: { id: created.id },
+        data: { avatarId: avatar.id },
+        include: { avatar: true },
+      })
+    })
+
+    return this.issueSession(user)
+  }
+
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },

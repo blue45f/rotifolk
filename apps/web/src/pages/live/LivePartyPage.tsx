@@ -13,6 +13,7 @@ import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { useVenueMenu } from '@features/venues/queries'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
+import { useBgmQueue, getEmbedUrl, type BgmTrack } from '@features/bgm/useBgmQueue'
 import styles from './LiveParty.module.css'
 
 export default function LivePartyPage() {
@@ -26,8 +27,10 @@ export default function LivePartyPage() {
 
   const [showOrder, setShowOrder] = useState(false)
   const [showFinal, setShowFinal] = useState(false)
+  const [showBgm, setShowBgm] = useState(false)
   const [orderCart, setOrderCart] = useState<Record<string, number>>({})
   const [orderTab, setOrderTab] = useState<'drink' | 'snack' | 'dessert'>('drink')
+  const bgm = useBgmQueue(partyId, user?.nickname)
 
   useEffect(() => {
     if (state.status === 'ended') setShowFinal(true)
@@ -73,6 +76,17 @@ export default function LivePartyPage() {
           <span className={styles.timer} aria-live="polite">
             {mm}:{ss}
           </span>
+          <button
+            type="button"
+            className={styles.bgmBtn}
+            onClick={() => setShowBgm(true)}
+            aria-label="BGM 큐 열기"
+          >
+            🎵
+            {bgm.tracks.length > 0 && (
+              <span className={styles.bgmBadge}>{bgm.tracks.length}</span>
+            )}
+          </button>
         </div>
       </header>
 
@@ -251,6 +265,24 @@ export default function LivePartyPage() {
             돌아가기
           </Button>
         </Link>
+      </Sheet>
+
+      <Sheet
+        open={showBgm}
+        onClose={() => setShowBgm(false)}
+        title="🎵 BGM 큐"
+        description={isHost ? '트랙을 큐에 등록해 분위기를 만들어 보세요' : '호스트가 등록한 트랙을 함께 즐겨요'}
+      >
+        <BgmPanel
+          tracks={bgm.tracks}
+          current={bgm.current}
+          currentTrack={bgm.currentTrack}
+          isHost={isHost}
+          onAdd={(url, title) => bgm.addTrack(url, title)}
+          onRemove={bgm.removeTrack}
+          onNext={bgm.playNext}
+          onPrev={bgm.playPrev}
+        />
       </Sheet>
     </div>
   )
@@ -460,6 +492,145 @@ function ParticipantBar({
           </Button>
         )}
       </div>
+    </div>
+  )
+}
+
+function BgmPanel({
+  tracks,
+  current,
+  currentTrack,
+  isHost,
+  onAdd,
+  onRemove,
+  onNext,
+  onPrev,
+}: {
+  tracks: BgmTrack[]
+  current: number
+  currentTrack: BgmTrack | null
+  isHost: boolean
+  onAdd: (url: string, title?: string) => void
+  onRemove: (id: string) => void
+  onNext: () => void
+  onPrev: () => void
+}) {
+  const [url, setUrl] = useState('')
+  const [title, setTitle] = useState('')
+
+  const handleAdd = () => {
+    const trimmed = url.trim()
+    if (!trimmed) return
+    onAdd(trimmed, title.trim() || undefined)
+    setUrl('')
+    setTitle('')
+  }
+
+  return (
+    <div className={styles.bgmSheet}>
+      <div className={styles.bgmPlayer}>
+        {currentTrack ? (
+          <iframe
+            key={currentTrack.id}
+            className={styles.bgmFrame}
+            src={getEmbedUrl(currentTrack.url)}
+            title={currentTrack.title}
+            allow="autoplay; encrypted-media; clipboard-write; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <div className={styles.bgmEmpty}>아직 큐가 비어 있어요</div>
+        )}
+        <div className={styles.bgmNowMeta}>
+          {currentTrack ? (
+            <>
+              <strong className={styles.bgmNowTitle}>{currentTrack.title}</strong>
+              <span className={styles.bgmNowBy}>by {currentTrack.addedBy}</span>
+            </>
+          ) : (
+            <span className={styles.bgmMuted}>현재 재생 중인 트랙이 없어요</span>
+          )}
+        </div>
+        <div className={styles.bgmControls}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onPrev}
+            disabled={tracks.length === 0}
+          >
+            ⏮ 이전
+          </Button>
+          <span className={styles.bgmPos}>
+            {tracks.length === 0 ? '0 / 0' : `${current} / ${tracks.length}`}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onNext}
+            disabled={tracks.length === 0}
+          >
+            다음 ⏭
+          </Button>
+        </div>
+      </div>
+
+      <ul className={styles.bgmList}>
+        {tracks.length === 0 ? (
+          <li className={styles.bgmListEmpty}>큐에 등록된 트랙이 없어요</li>
+        ) : (
+          tracks.map((t, i) => (
+            <li
+              key={t.id}
+              className={`${styles.bgmTrack} ${current === i + 1 ? styles.bgmTrackActive : ''}`}
+            >
+              <span className={styles.bgmIdx}>{i + 1}</span>
+              <div className={styles.bgmTrackBody}>
+                <strong className={styles.bgmTrackTitle}>{t.title}</strong>
+                <span className={styles.bgmTrackBy}>by {t.addedBy}</span>
+              </div>
+              {isHost && (
+                <button
+                  type="button"
+                  className={styles.bgmRemove}
+                  onClick={() => onRemove(t.id)}
+                  aria-label={`${t.title} 삭제`}
+                >
+                  ✕
+                </button>
+              )}
+            </li>
+          ))
+        )}
+      </ul>
+
+      {isHost ? (
+        <div className={styles.bgmForm}>
+          <input
+            type="url"
+            className={styles.bgmInput}
+            placeholder="YouTube 또는 Spotify URL"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+          <input
+            type="text"
+            className={styles.bgmInput}
+            placeholder="제목 (선택)"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handleAdd}
+            disabled={!url.trim()}
+          >
+            추가
+          </Button>
+        </div>
+      ) : (
+        <p className={styles.bgmHint}>트랙은 호스트만 추가/삭제할 수 있어요</p>
+      )}
     </div>
   )
 }
