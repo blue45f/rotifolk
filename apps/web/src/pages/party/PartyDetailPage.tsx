@@ -25,6 +25,15 @@ interface PartyReview {
   createdAt: string
 }
 
+interface PartyPhoto {
+  id: string
+  url: string
+  caption: string | null
+  createdAt: string
+  userId: string
+  uploader: { id: string; nickname: string; avatarId: string | null } | null
+}
+
 export default function PartyDetailPage() {
   const { partyId } = useParams<{ partyId: string }>()
   const navigate = useNavigate()
@@ -51,6 +60,28 @@ export default function PartyDetailPage() {
     queryKey: ['reviews', partyId],
     queryFn: () => api.get<PartyReview[]>(`parties/${partyId}/reviews`),
     enabled: !!partyId,
+  })
+
+  const { data: photos } = useQuery({
+    queryKey: ['party-photos', partyId],
+    queryFn: () => api.get<PartyPhoto[]>(`parties/${partyId}/photos`),
+    enabled: !!partyId,
+  })
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [photoCaption, setPhotoCaption] = useState('')
+  const addPhoto = useMutation({
+    mutationFn: () =>
+      api.post(`parties/${partyId}/photos`, {
+        url: photoUrl.trim(),
+        caption: photoCaption.trim() || undefined,
+      }),
+    onSuccess: () => {
+      toast.show('사진이 추가됐어요 📸', 'success')
+      setPhotoUrl('')
+      setPhotoCaption('')
+      queryClient.invalidateQueries({ queryKey: ['party-photos', partyId] })
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
   })
 
   const [rating, setRating] = useState(5)
@@ -246,6 +277,84 @@ export default function PartyDetailPage() {
               </div>
             )}
           </Card>
+
+          {(() => {
+            const canPostPhoto =
+              !!me &&
+              (status === 'live' || status === 'ended') &&
+              (isHost || participants.some((p) => p.userId === me.id))
+            const showPhotosSection = (photos && photos.length > 0) || canPostPhoto
+            if (!showPhotosSection) return null
+            return (
+              <Card padding="lg">
+                <h2 className={styles.h2}>사진 ({photos?.length ?? 0})</h2>
+                {canPostPhoto && (
+                  <form
+                    className={styles.photoForm}
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      if (!photoUrl.trim()) return
+                      addPhoto.mutate()
+                    }}
+                  >
+                    <input
+                      type="url"
+                      className={styles.photoInput}
+                      placeholder="사진 URL (https://...)"
+                      value={photoUrl}
+                      onChange={(e) => setPhotoUrl(e.target.value)}
+                      required
+                    />
+                    <input
+                      type="text"
+                      className={styles.photoInput}
+                      placeholder="설명 (선택)"
+                      value={photoCaption}
+                      onChange={(e) => setPhotoCaption(e.target.value)}
+                      maxLength={120}
+                    />
+                    <Button
+                      variant="primary"
+                      type="submit"
+                      isLoading={addPhoto.isPending}
+                      disabled={!photoUrl.trim()}
+                    >
+                      추가
+                    </Button>
+                  </form>
+                )}
+                {photos && photos.length > 0 ? (
+                  <ul className={styles.photoGrid}>
+                    {photos.map((p) => (
+                      <li key={p.id} className={styles.photoItem}>
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className={styles.photoLink}
+                          title={p.caption ?? p.uploader?.nickname ?? ''}
+                        >
+                          <img
+                            className={styles.photoImg}
+                            src={p.url}
+                            alt={p.caption ?? `${p.uploader?.nickname ?? '참가자'}의 사진`}
+                            loading="lazy"
+                          />
+                          {p.caption && (
+                            <span className={styles.photoCaption}>{p.caption}</span>
+                          )}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className={styles.muted}>
+                    아직 사진이 없어요. 참가자만 추가할 수 있어요.
+                  </p>
+                )}
+              </Card>
+            )
+          })()}
 
           {(reviews && reviews.length > 0) || (status === 'ended' && joinedMe) ? (
             <Card padding="lg">

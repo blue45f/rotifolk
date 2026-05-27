@@ -56,6 +56,7 @@ model User {
   following         Follow[]           @relation("FollowerRel")
   followers         Follow[]           @relation("FollowingRel")
   savedParties      SavedParty[]       @relation("SavedByUser")
+  partyPhotos       PartyPhoto[]       @relation("PhotosUploaded")
   notifications     Notification[]     @relation("UserNotifications")
 
   @@index([role])
@@ -191,6 +192,7 @@ model Party {
   reviews             Review[]
   reports             Report[]
   savedBy             SavedParty[]
+  photos              PartyPhoto[]
 
   @@index([status, startAt])
   @@index([category])
@@ -431,6 +433,19 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([userId, createdAt])
+}
+
+// ======================== PARTY PHOTO ========================
+model PartyPhoto {
+  id        String @id @default(cuid())
+  partyId   String
+  party     Party  @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User   @relation("PhotosUploaded", fields: [userId], references: [id], onDelete: Cascade)
+  url       String
+  caption   String?
+  createdAt DateTime @default(now())
+  @@index([partyId, createdAt])
 }
 
 // ======================== FOLLOW ========================

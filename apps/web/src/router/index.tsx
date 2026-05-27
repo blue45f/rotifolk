@@ -62,6 +62,7 @@ export const routes: RouteObject[] = [
         children: [{ index: true, element: lazyPage(() => import('@pages/notifications/NotificationsPage')) }],
       },
       { path: 'search', element: lazyPage(() => import('@pages/search/SearchPage')) },
+      { path: 'invite/:code', element: lazyPage(() => import('@pages/invite/InvitePage')) },
       {
         path: 'calendar',
         element: <ProtectedRoute />,
