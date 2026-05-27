@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParty, useJoinParty, useCancelJoin } from '@features/parties/queries'
 import { CATEGORY_META } from '@features/categories/meta'
 import { Button } from '@components/ui/Button/Button'
@@ -10,7 +12,18 @@ import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { useAuthStore } from '@store/authStore'
+import { api } from '@services/api'
 import styles from './PartyDetailPage.module.css'
+
+interface PartyReview {
+  id: string
+  rating: number
+  body: string
+  anonymous: boolean
+  tags: string[]
+  author: { nickname: string; avatarId: string | null }
+  createdAt: string
+}
 
 export default function PartyDetailPage() {
   const { partyId } = useParams<{ partyId: string }>()
@@ -20,6 +33,60 @@ export default function PartyDetailPage() {
   const join = useJoinParty(partyId!)
   const cancel = useCancelJoin(partyId!)
   const toast = useToast()
+  const queryClient = useQueryClient()
+
+  const { data: saved } = useQuery({
+    queryKey: ['saved', partyId],
+    queryFn: () => api.get<Array<{ id: string }>>('saved'),
+    enabled: !!me && !!partyId,
+  })
+  const isSaved = saved?.some((s) => s.id === partyId) ?? false
+  const toggleSave = useMutation({
+    mutationFn: () =>
+      isSaved ? api.delete(`saved/${partyId}`) : api.post(`saved/${partyId}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['saved', partyId] }),
+  })
+
+  const { data: reviews } = useQuery({
+    queryKey: ['reviews', partyId],
+    queryFn: () => api.get<PartyReview[]>(`parties/${partyId}/reviews`),
+    enabled: !!partyId,
+  })
+
+  const [rating, setRating] = useState(5)
+  const [reviewBody, setReviewBody] = useState('')
+  const [anonymous, setAnonymous] = useState(true)
+  const submitReview = useMutation({
+    mutationFn: () =>
+      api.post('reviews', {
+        partyId,
+        targetUserId: data?.party.hostId,
+        rating,
+        body: reviewBody.trim(),
+        anonymous,
+      }),
+    onSuccess: () => {
+      toast.show('후기가 등록됐어요 ✨', 'success')
+      setReviewBody('')
+      queryClient.invalidateQueries({ queryKey: ['reviews', partyId] })
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
+
+  const handleShare = async () => {
+    const url = window.location.href
+    const title = data?.party.title ?? 'Rotifolk 파티'
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, text: '같이 가실래요?', url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        toast.show('링크를 복사했어요', 'success')
+      }
+    } catch {
+      // user cancelled
+    }
+  }
 
   if (isLoading) return <Loading />
   if (!data) return <EmptyState emoji="🌙" title="파티를 찾을 수 없어요" />
@@ -76,8 +143,6 @@ export default function PartyDetailPage() {
             </div>
             <h1 className={styles.heroTitle}>{party.title}</h1>
             <div className={styles.heroMeta}>
-              <span>📍 {/* venue 정보 */}</span>
-              <span aria-hidden="true">·</span>
               <span>
                 {start.toLocaleString('ko-KR', {
                   month: 'long',
@@ -87,6 +152,27 @@ export default function PartyDetailPage() {
                   minute: '2-digit',
                 })}
               </span>
+              <div className={styles.heroActions}>
+                <button
+                  type="button"
+                  className={styles.iconBtn}
+                  onClick={handleShare}
+                  aria-label="공유"
+                >
+                  ↗ 공유
+                </button>
+                {me && (
+                  <button
+                    type="button"
+                    className={`${styles.iconBtn} ${isSaved ? styles.iconBtnActive : ''}`}
+                    onClick={() => toggleSave.mutate()}
+                    aria-pressed={isSaved}
+                    aria-label="북마크"
+                  >
+                    {isSaved ? '★ 저장됨' : '☆ 저장'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -160,6 +246,73 @@ export default function PartyDetailPage() {
               </div>
             )}
           </Card>
+
+          {(reviews && reviews.length > 0) || (status === 'ended' && joinedMe) ? (
+            <Card padding="lg">
+              <h2 className={styles.h2}>후기</h2>
+              {status === 'ended' && joinedMe && (
+                <div className={styles.reviewForm}>
+                  <p className={styles.muted}>이번 모임은 어땠어요?</p>
+                  <div className={styles.starRow} role="radiogroup" aria-label="별점">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <button
+                        type="button"
+                        key={n}
+                        className={`${styles.star} ${n <= rating ? styles.starOn : ''}`}
+                        onClick={() => setRating(n)}
+                        role="radio"
+                        aria-checked={n === rating}
+                        aria-label={`${n}점`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    className={styles.textarea}
+                    placeholder="어떤 점이 좋았나요?"
+                    value={reviewBody}
+                    onChange={(e) => setReviewBody(e.target.value)}
+                    rows={3}
+                  />
+                  <label className={styles.anonRow}>
+                    <input
+                      type="checkbox"
+                      checked={anonymous}
+                      onChange={(e) => setAnonymous(e.target.checked)}
+                    />
+                    익명으로 작성
+                  </label>
+                  <Button
+                    variant="primary"
+                    onClick={() => submitReview.mutate()}
+                    isLoading={submitReview.isPending}
+                    disabled={!reviewBody.trim()}
+                  >
+                    후기 등록
+                  </Button>
+                </div>
+              )}
+              {reviews && reviews.length > 0 && (
+                <ul className={styles.reviewList}>
+                  {reviews.map((r) => (
+                    <li key={r.id}>
+                      <div className={styles.reviewHead}>
+                        <strong>{r.author.nickname}</strong>
+                        <span className={styles.reviewStars} aria-label={`${r.rating}점`}>
+                          {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                        </span>
+                        <time className={styles.muted}>
+                          {new Date(r.createdAt).toLocaleDateString('ko-KR')}
+                        </time>
+                      </div>
+                      <p>{r.body}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          ) : null}
         </div>
 
         <aside className={styles.aside}>

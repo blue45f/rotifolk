@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { AvatarMood } from '@rotifolk/shared'
+import { useQuery } from '@tanstack/react-query'
+import type { AvatarMood, PartySummary } from '@rotifolk/shared'
 import { useMyParties } from '@features/parties/queries'
 import { useLogout, useMe } from '@features/auth/queries'
 import { useAuthStore } from '@store/authStore'
@@ -45,6 +46,12 @@ export default function ProfilePage() {
   const [draftMood, setDraftMood] = useState<AvatarMood>('sparkling')
   const [draftHue, setDraftHue] = useState(HUES[0])
   const [draftEmoji, setDraftEmoji] = useState(EMOJIS[0])
+
+  const { data: savedItems } = useQuery({
+    queryKey: ['saved'],
+    queryFn: () => api.get<PartySummary[]>('saved'),
+    enabled: !!user,
+  })
 
   if (!user) return null
   if (isLoading) return <Loading />
@@ -115,6 +122,7 @@ export default function ProfilePage() {
         <Tabs
           tabs={[
             { value: 'upcoming', label: `다가오는 (${upcoming?.length ?? 0})` },
+            { value: 'saved', label: `저장 (${savedItems?.length ?? 0})` },
             { value: 'past', label: `지난 (${past?.length ?? 0})` },
             { value: 'settings', label: '설정' },
           ]}
@@ -141,6 +149,22 @@ export default function ProfilePage() {
                   <Button variant="primary">파티 탐색</Button>
                 </Link>
               }
+            />
+          )
+        )}
+
+        {tab === 'saved' && (
+          savedItems && savedItems.length > 0 ? (
+            <div className={styles.grid}>
+              {savedItems.map((p) => (
+                <PartyCard key={p.id} party={p} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              emoji="★"
+              title="저장한 모임이 없어요"
+              description="파티 상세에서 ☆를 누르면 여기 모여요."
             />
           )
         )}
