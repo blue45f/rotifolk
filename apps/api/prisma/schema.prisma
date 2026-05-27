@@ -59,6 +59,7 @@ model User {
   partyPhotos       PartyPhoto[]       @relation("PhotosUploaded")
   notifications     Notification[]     @relation("UserNotifications")
   hostApplications  HostApplication[]  @relation("HostApplications")
+  payments          Payment[]          @relation("UserPayments")
 
   @@index([role])
   @@index([createdAt])
@@ -194,6 +195,7 @@ model Party {
   reports             Report[]
   savedBy             SavedParty[]
   photos              PartyPhoto[]
+  payments            Payment[]
 
   @@index([status, startAt])
   @@index([category])
@@ -436,6 +438,23 @@ model HostApplication {
   updatedAt       DateTime @updatedAt
   @@index([status, createdAt])
   @@index([userId])
+}
+
+// ======================== PAYMENT ========================
+model Payment {
+  id        String   @id @default(cuid())
+  partyId   String
+  party     Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("UserPayments", fields: [userId], references: [id], onDelete: Cascade)
+  amountKRW Int
+  status    String   @default("paid") // pending | paid | refunded | cancelled
+  method    String   @default("card") // card | kakao | toss | mock
+  paidAt    DateTime?
+  refundedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+  @@index([partyId])
 }
 
 // ======================== NOTIFICATION ========================

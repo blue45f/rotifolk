@@ -8,6 +8,8 @@ import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Card } from '@components/ui/Card/Card'
+import { Chip } from '@components/ui/Chip/Chip'
+import { Sheet } from '@components/ui/Sheet/Sheet'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
@@ -35,6 +37,26 @@ interface PartyPhoto {
   userId: string
   uploader: { id: string; nickname: string; avatarId: string | null } | null
 }
+
+type PaymentMethod = 'card' | 'kakao' | 'toss' | 'mock'
+interface PaymentRow {
+  id: string
+  partyId: string
+  userId: string
+  amountKRW: number
+  status: 'pending' | 'paid' | 'refunded' | 'cancelled'
+  method: PaymentMethod
+  paidAt: string | null
+  refundedAt: string | null
+  createdAt: string
+}
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string; emoji: string }[] = [
+  { value: 'card', label: '신용/체크카드', emoji: '💳' },
+  { value: 'kakao', label: '카카오페이', emoji: '🟡' },
+  { value: 'toss', label: '토스페이', emoji: '🔵' },
+  { value: 'mock', label: '테스트 결제', emoji: '🧪' },
+]
 
 export default function PartyDetailPage() {
   const { partyId } = useParams<{ partyId: string }>()
@@ -82,6 +104,36 @@ export default function PartyDetailPage() {
       setPhotoUrl('')
       setPhotoCaption('')
       queryClient.invalidateQueries({ queryKey: ['party-photos', partyId] })
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
+
+  const { data: myPayments } = useQuery({
+    queryKey: ['payments', 'me', partyId],
+    queryFn: () => api.get<PaymentRow[]>(`payments/me?partyId=${partyId}`),
+    enabled: !!me && !!partyId,
+  })
+  const paidPayment = myPayments?.find((p) => p.status === 'paid') ?? null
+
+  const [payOpen, setPayOpen] = useState(false)
+  const [payMethod, setPayMethod] = useState<PaymentMethod>('card')
+  const payMutation = useMutation({
+    mutationFn: (method: PaymentMethod) =>
+      api.post<PaymentRow>(`payments/${partyId}/pay`, { method }),
+    onSuccess: () => {
+      toast.show('결제가 완료됐어요 💳', 'success')
+      setPayOpen(false)
+      queryClient.invalidateQueries({ queryKey: ['payments', 'me', partyId] })
+      queryClient.invalidateQueries({ queryKey: ['parties', 'detail', partyId] })
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
+  const refundMutation = useMutation({
+    mutationFn: (paymentId: string) =>
+      api.post<PaymentRow>(`payments/${paymentId}/refund`),
+    onSuccess: () => {
+      toast.show('환불이 완료됐어요', 'info')
+      queryClient.invalidateQueries({ queryKey: ['payments', 'me', partyId] })
     },
     onError: (e) => toast.show((e as Error).message, 'error'),
   })
@@ -153,6 +205,9 @@ export default function PartyDetailPage() {
 
   const isFull = party.currentParticipants >= party.maxParticipants
   const status = party.status
+  const isFree = party.pricing.basePriceKRW === 0
+  const hoursUntilStart = (start.getTime() - Date.now()) / 3_600_000
+  const canRefund = !!paidPayment && hoursUntilStart >= 24
 
   return (
     <div className={styles.page}>
@@ -523,13 +578,40 @@ export default function PartyDetailPage() {
               </Link>
             ) : joinedMe ? (
               <div className={styles.stack}>
-                <Badge tone="success">✅ 신청 완료 — {joinedMe.status === 'waitlist' ? '대기' : '확정'}</Badge>
+                <div className={styles.joinedBadges}>
+                  <Badge tone="success">✅ 신청 완료 — {joinedMe.status === 'waitlist' ? '대기' : '확정'}</Badge>
+                  {paidPayment && <Badge tone="gold">💳 결제 완료</Badge>}
+                </div>
                 {status === 'live' && (
                   <Link to={`/live/${party.id}`}>
                     <Button variant="gold" size="lg" fullWidth>
                       🔴 라이브 입장
                     </Button>
                   </Link>
+                )}
+                {!isFree && !paidPayment && (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    onClick={() => {
+                      setPayMethod('card')
+                      setPayOpen(true)
+                    }}
+                  >
+                    결제하기 ({party.pricing.basePriceKRW.toLocaleString()}원)
+                  </Button>
+                )}
+                {paidPayment && canRefund && (
+                  <Button
+                    variant="ghost"
+                    size="md"
+                    fullWidth
+                    isLoading={refundMutation.isPending}
+                    onClick={() => refundMutation.mutate(paidPayment.id)}
+                  >
+                    환불 요청
+                  </Button>
                 )}
                 <Button
                   variant="ghost"
@@ -587,6 +669,45 @@ export default function PartyDetailPage() {
           </Card>
         </aside>
       </div>
+
+      <Sheet
+        open={payOpen}
+        onClose={() => setPayOpen(false)}
+        title="결제 수단 선택"
+        description={`${party.pricing.basePriceKRW.toLocaleString()}원을 결제할 수단을 골라주세요`}
+        variant="modal"
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPayOpen(false)}>
+              취소
+            </Button>
+            <Button
+              variant="primary"
+              isLoading={payMutation.isPending}
+              onClick={() => payMutation.mutate(payMethod)}
+            >
+              {party.pricing.basePriceKRW.toLocaleString()}원 결제하기
+            </Button>
+          </>
+        }
+      >
+        <div className={styles.payMethodGrid}>
+          {PAYMENT_METHODS.map((m) => (
+            <Chip
+              key={m.value}
+              leadingEmoji={m.emoji}
+              selected={payMethod === m.value}
+              onClick={() => setPayMethod(m.value)}
+            >
+              {m.label}
+            </Chip>
+          ))}
+        </div>
+        <p className={styles.payNote}>
+          ※ 실제 결제는 발생하지 않는 시뮬레이션이에요.
+        </p>
+      </Sheet>
     </div>
   )
 }

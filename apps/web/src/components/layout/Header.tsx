@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
+import { useLocale, useT } from '@features/i18n/i18n'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 import styles from './Header.module.css'
@@ -9,11 +10,15 @@ export function Header() {
   const user = useAuthStore((s) => s.user)
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
+  const t = useT()
+  const [locale, setLocale] = useLocale()
   const isDark =
     theme === 'dark' ||
     (theme === 'system' &&
       typeof window !== 'undefined' &&
       window.matchMedia?.('(prefers-color-scheme: dark)').matches)
+  const nextLocale = locale === 'ko' ? 'en' : 'ko'
+  const langLabel = locale === 'ko' ? 'EN' : '한'
   return (
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
@@ -24,17 +29,17 @@ export function Header() {
 
         <nav className={styles.nav} aria-label="주요 메뉴">
           <NavLink to="/discover" className={({ isActive }) => (isActive ? styles.active : '')}>
-            파티 탐색
+            {t('nav.discover')}
           </NavLink>
           <NavLink to="/venues" className={({ isActive }) => (isActive ? styles.active : '')}>
-            장소
+            {t('nav.venues')}
           </NavLink>
           <NavLink to="/digest" className={({ isActive }) => (isActive ? styles.active : '')}>
-            다이제스트
+            {t('nav.digest')}
           </NavLink>
           {user && (
             <NavLink to="/host" className={({ isActive }) => (isActive ? styles.active : '')}>
-              호스트 콘솔
+              {t('nav.host')}
             </NavLink>
           )}
         </nav>
@@ -42,10 +47,19 @@ export function Header() {
         <div className={styles.actions}>
           <button
             type="button"
+            className={styles.langBtn}
+            onClick={() => setLocale(nextLocale)}
+            aria-label={`Switch language to ${nextLocale.toUpperCase()}`}
+            title={nextLocale.toUpperCase()}
+          >
+            {langLabel}
+          </button>
+          <button
+            type="button"
             className={styles.themeBtn}
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            aria-label={isDark ? '라이트 모드로' : '다크 모드로'}
-            title={isDark ? '라이트 모드' : '다크 모드'}
+            aria-label={isDark ? t('btn.light') : t('btn.dark')}
+            title={isDark ? t('btn.light') : t('btn.dark')}
           >
             {isDark ? '🌞' : '🌙'}
           </button>
@@ -57,12 +71,12 @@ export function Header() {
             <>
               <Link to="/login">
                 <Button variant="ghost" size="sm">
-                  로그인
+                  {t('btn.login')}
                 </Button>
               </Link>
               <Link to="/signup">
                 <Button variant="primary" size="sm">
-                  무료 시작
+                  {t('btn.signup')}
                 </Button>
               </Link>
             </>
