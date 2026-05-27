@@ -27,6 +27,7 @@ export const routes: RouteObject[] = [
       { path: 'parties/:partyId', element: lazyPage(() => import('@pages/party/PartyDetailPage')) },
       { path: 'venues', element: lazyPage(() => import('@pages/venues/VenuesPage')) },
       { path: 'hosts/:hostId', element: lazyPage(() => import('@pages/host-profile/HostProfilePage')) },
+      { path: 'match-card/:userId', element: lazyPage(() => import('@pages/match-card/MatchCardPage')) },
       { path: 'login', element: lazyPage(() => import('@pages/auth/LoginPage')) },
       { path: 'signup', element: lazyPage(() => import('@pages/auth/SignUpPage')) },
       {

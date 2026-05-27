@@ -207,6 +207,59 @@
   font-weight: var(--fw-semibold);
 }
 
+.icsBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in oklab, var(--brand-burgundy-300) 40%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 80%, transparent);
+  color: var(--brand-burgundy-700);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--dur-fast) var(--ease-out-quart),
+    background var(--dur-fast) var(--ease-out-quart),
+    transform var(--dur-fast) var(--ease-out-quart);
+}
+
+.cell:hover .icsBtn,
+.cell:focus-within .icsBtn,
+.icsBtn:focus-visible {
+  opacity: 1;
+}
+
+.icsBtn:hover {
+  background: var(--brand-burgundy-100);
+  transform: translateY(-1px);
+}
+
+.icsBtn:active {
+  transform: translateY(0);
+}
+
+.icsBtn:focus-visible {
+  outline: 2px solid var(--brand-burgundy-400);
+  outline-offset: 1px;
+}
+
+@media (hover: none) {
+  /* 터치 디바이스에서는 hover가 없으니 항상 보이게 한다. */
+  .icsBtn { opacity: 0.85; }
+}
+
+@media (max-width: 640px) {
+  .icsBtn { width: 16px; height: 16px; font-size: 10px; opacity: 0.7; }
+}
+
 @container (max-width: 86px) {
   .event { font-size: 10px; padding: 2px 4px; }
   .eventEmoji { font-size: 10px; }
