@@ -57,6 +57,17 @@ export const routes: RouteObject[] = [
         ],
       },
       {
+        path: 'notifications',
+        element: <ProtectedRoute />,
+        children: [{ index: true, element: lazyPage(() => import('@pages/notifications/NotificationsPage')) }],
+      },
+      { path: 'search', element: lazyPage(() => import('@pages/search/SearchPage')) },
+      {
+        path: 'calendar',
+        element: <ProtectedRoute />,
+        children: [{ index: true, element: lazyPage(() => import('@pages/calendar/CalendarPage')) }],
+      },
+      {
         path: 'admin',
         element: <ProtectedRoute role="admin" />,
         children: [{ index: true, element: lazyPage(() => import('@pages/admin/AdminPage')) }],
