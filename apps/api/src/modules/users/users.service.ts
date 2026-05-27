@@ -37,4 +37,22 @@ export class UsersService {
     })
     return toPublicUser(u)
   }
+
+  async getReferralSummary(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { referralCode: true, pointsKRW: true },
+    })
+    if (!user) {
+      return { referralCode: '', pointsKRW: 0, referredCount: 0 }
+    }
+    const referredCount = await this.prisma.referral.count({
+      where: { referrerId: userId },
+    })
+    return {
+      referralCode: user.referralCode,
+      pointsKRW: user.pointsKRW,
+      referredCount,
+    }
+  }
 }

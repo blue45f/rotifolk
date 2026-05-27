@@ -26,4 +26,9 @@ export class UsersController {
   becomeHost(@CurrentUser() me: JwtUserPayload) {
     return this.users.promoteToHost(me.sub)
   }
+
+  @Get('me/referral')
+  myReferral(@CurrentUser() me: JwtUserPayload) {
+    return this.users.getReferralSummary(me.sub)
+  }
 }

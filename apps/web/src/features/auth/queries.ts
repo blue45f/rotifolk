@@ -11,7 +11,8 @@ export function useSignUp() {
   const queryClient = useQueryClient()
   const setSession = useAuthStore((s) => s.setSession)
   return useMutation({
-    mutationFn: (dto: SignUpDto) => api.post<{ token: string; user: User }>('auth/signup', dto),
+    mutationFn: (dto: SignUpDto & { referralCode?: string }) =>
+      api.post<{ token: string; user: User }>('auth/signup', dto),
     onSuccess: (data) => {
       setSession(data)
       queryClient.setQueryData(authKeys.me, { user: data.user })

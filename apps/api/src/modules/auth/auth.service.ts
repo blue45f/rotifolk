@@ -16,11 +16,16 @@ export class AuthService {
     private readonly jwt: JwtService,
   ) {}
 
-  async signUp(dto: SignUpDto) {
+  async signUp(dto: SignUpDto, referralCode?: string) {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } })
     if (existing) throw new BadRequestException({ code: 'email_taken', message: '이미 가입된 이메일이에요' })
 
     const passwordHash = await argon2.hash(dto.password)
+
+    const trimmedCode = referralCode?.trim()
+    const referrer = trimmedCode
+      ? await this.prisma.user.findUnique({ where: { referralCode: trimmedCode } })
+      : null
 
     const user = await this.prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
@@ -35,11 +40,33 @@ export class AuthService {
       const avatar = await tx.avatar.create({
         data: { ...this.makeDefaultAvatar(dto.nickname), ownerId: created.id },
       })
-      return tx.user.update({
+      const updated = await tx.user.update({
         where: { id: created.id },
         data: { avatarId: avatar.id },
         include: { avatar: true },
       })
+
+      if (referrer && referrer.id !== created.id) {
+        const BONUS = 3000
+        await tx.referral.create({
+          data: {
+            referrerId: referrer.id,
+            referredId: created.id,
+            bonusKRW: BONUS,
+          },
+        })
+        await tx.user.update({
+          where: { id: referrer.id },
+          data: { pointsKRW: { increment: BONUS } },
+        })
+        return tx.user.update({
+          where: { id: created.id },
+          data: { pointsKRW: { increment: BONUS } },
+          include: { avatar: true },
+        })
+      }
+
+      return updated
     })
 
     return this.issueSession(user)
