@@ -56,6 +56,7 @@ model User {
   following         Follow[]           @relation("FollowerRel")
   followers         Follow[]           @relation("FollowingRel")
   savedParties      SavedParty[]       @relation("SavedByUser")
+  notifications     Notification[]     @relation("UserNotifications")
 
   @@index([role])
   @@index([createdAt])
@@ -414,6 +415,22 @@ model SavedParty {
   @@unique([userId, partyId])
   @@index([userId])
   @@index([partyId])
+}
+
+// ======================== NOTIFICATION ========================
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  kind      String    // party_join | party_starting | match_made | host_review | message
+  title     String
+  body      String?
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
 }
 
 // ======================== FOLLOW ========================
