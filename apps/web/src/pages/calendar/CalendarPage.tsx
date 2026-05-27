@@ -3,10 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import type { PartySummary } from '@rotifolk/shared'
 import { useMyParties } from '@features/parties/queries'
 import { CATEGORY_META } from '@features/categories/meta'
+import { downloadIcs } from '@features/ics/buildIcs'
 import { Button } from '@components/ui/Button/Button'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Calendar.module.css'
+
+const DEFAULT_DURATION_MS = 2 * 60 * 60 * 1000 // 종료 시각 정보가 없을 때 기본 2시간
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const
 const MAX_VISIBLE_PER_DAY = 2
@@ -160,6 +163,20 @@ export default function CalendarPage() {
               const isToday = isSameDay(cell.date, today)
               const visible = cell.parties.slice(0, MAX_VISIBLE_PER_DAY)
               const overflow = cell.parties.length - visible.length
+              const firstParty = cell.parties[0]
+
+              const handleDownload = (party: PartySummary) => {
+                const start = new Date(party.startAt)
+                const end = new Date(start.getTime() + DEFAULT_DURATION_MS)
+                downloadIcs({
+                  id: party.id,
+                  title: party.title,
+                  startAt: start,
+                  endAt: end,
+                  venueName: party.venueName,
+                  venueArea: party.venueArea,
+                })
+              }
 
               return (
                 <div
@@ -185,6 +202,21 @@ export default function CalendarPage() {
                   >
                     {cell.date.getDate()}
                   </span>
+
+                  {firstParty && (
+                    <button
+                      type="button"
+                      className={styles.icsBtn}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDownload(firstParty)
+                      }}
+                      aria-label={`${firstParty.title} 캘린더에 저장 (ICS 다운로드)`}
+                      title="캘린더에 저장 (.ics)"
+                    >
+                      <span aria-hidden="true">⤓</span>
+                    </button>
+                  )}
 
                   <div className={styles.events}>
                     {visible.map((party) => {

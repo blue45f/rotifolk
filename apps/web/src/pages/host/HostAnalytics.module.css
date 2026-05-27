@@ -1,0 +1,258 @@
+/* ============================================================
+   Host Analytics — burgundy × gold × sage tokens only.
+   No chart library: pure CSS (div + width %, conic-gradient).
+   ============================================================ */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+@media (min-width: 720px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+  }
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  min-height: 168px;
+  overflow: hidden;
+}
+
+.card.accent {
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--brand-gold-100) 60%, var(--color-surface)) 0%,
+    var(--color-surface) 70%
+  );
+  border-color: color-mix(in oklab, var(--brand-gold-500) 24%, var(--color-border));
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  font-weight: var(--fw-semibold);
+}
+
+.bigNumber {
+  font-size: clamp(2rem, 5vw, 2.5rem);
+  font-weight: var(--fw-black);
+  letter-spacing: -0.03em;
+  color: var(--brand-burgundy-700);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.bigNumber.gold {
+  color: var(--brand-gold-700);
+}
+
+.bigNumber.sage {
+  color: var(--color-success);
+}
+
+.unit {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  margin-left: 2px;
+}
+
+.subLabel {
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+  margin-top: 2px;
+}
+
+/* —— mini bar (single horizontal bar with a fill) —— */
+.barTrack {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: color-mix(in oklab, var(--brand-burgundy-100) 70%, transparent);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.barFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--brand-burgundy-500);
+  border-radius: inherit;
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.barFill.gold {
+  background: var(--brand-gold-500);
+}
+
+.barFill.sage {
+  background: var(--color-success);
+}
+
+/* —— gender split bar (two-segment) —— */
+.splitBar {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  background: var(--color-surface-soft);
+}
+
+.splitLeft {
+  background: var(--brand-burgundy-500);
+  transition: flex-basis var(--dur-slow) var(--ease-out);
+}
+
+.splitRight {
+  background: var(--brand-gold-500);
+  transition: flex-basis var(--dur-slow) var(--ease-out);
+}
+
+.splitLegend {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.splitLegend strong {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+}
+
+.balanceBadge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--brand-gold-500) 20%, transparent);
+  color: var(--brand-gold-700);
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+/* —— donut via conic-gradient —— */
+.donutRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.donut {
+  --pct: 50;
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--brand-burgundy-500) 0 calc(var(--pct) * 1%),
+    var(--color-success) calc(var(--pct) * 1%) 100%
+  );
+  flex-shrink: 0;
+}
+
+.donut::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  background: var(--color-surface);
+  border-radius: 50%;
+}
+
+.donutCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.donutLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.legendRow strong {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot.burgundy { background: var(--brand-burgundy-500); }
+.dot.gold     { background: var(--brand-gold-500); }
+.dot.sage     { background: var(--color-success); }
+
+/* —— empty state spacing —— */
+.empty {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+}

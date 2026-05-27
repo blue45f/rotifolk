@@ -11,6 +11,7 @@ import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { useState } from 'react'
 import { CATEGORY_META } from '@features/categories/meta'
 import { api } from '@services/api'
+import HostAnalyticsTab from './HostAnalyticsTab'
 import styles from './HostManage.module.css'
 
 export default function HostManagePage() {
@@ -111,6 +112,7 @@ export default function HostManagePage() {
             { value: 'rounds', label: '라운드', icon: '🔄' },
             { value: 'cards', label: '질문 카드', icon: '🃏' },
             { value: 'orders', label: '주문', icon: '🍷' },
+            { value: 'analytics', label: '분석', icon: '📊' },
           ]}
           value={tab}
           onChange={setTab}
@@ -184,6 +186,8 @@ export default function HostManagePage() {
             </p>
           </Card>
         )}
+
+        {tab === 'analytics' && <HostAnalyticsTab participants={participants} />}
       </div>
     </div>
   )
