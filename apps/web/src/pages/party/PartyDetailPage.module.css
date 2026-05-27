@@ -182,6 +182,79 @@
 .bookCard {
   position: relative;
 }
+.heroActions {
+  display: inline-flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--brand-ink-900) 35%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--brand-cream-50);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  border: 1px solid color-mix(in oklab, white 14%, transparent);
+  transition: background var(--dur-fast) var(--ease-out-quart);
+}
+.iconBtn:hover { background: color-mix(in oklab, var(--brand-ink-900) 55%, transparent); }
+.iconBtnActive {
+  background: var(--brand-gold-500);
+  color: var(--color-accent-fg);
+  border-color: transparent;
+}
+
+.reviewForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.starRow { display: inline-flex; gap: 2px; }
+.star {
+  font-size: 28px;
+  line-height: 1;
+  color: var(--color-border-strong);
+  transition: color var(--dur-fast) var(--ease-out-quart);
+}
+.starOn { color: var(--brand-gold-500); }
+.textarea {
+  width: 100%;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 88px;
+  font: inherit;
+}
+.textarea:focus { outline: none; border-color: var(--color-primary); }
+.anonRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+.reviewList { display: flex; flex-direction: column; gap: var(--space-4); }
+.reviewList li { padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); }
+.reviewList li:last-child { border-bottom: 0; padding-bottom: 0; }
+.reviewHead {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 4px;
+}
+.reviewStars { color: var(--brand-gold-500); font-size: var(--fs-sm); }
+.reviewHead time { font-size: var(--fs-xs); }
+
 .hostBlock {
   display: flex;
   gap: var(--space-3);
