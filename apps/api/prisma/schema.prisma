@@ -58,6 +58,7 @@ model User {
   savedParties      SavedParty[]       @relation("SavedByUser")
   partyPhotos       PartyPhoto[]       @relation("PhotosUploaded")
   notifications     Notification[]     @relation("UserNotifications")
+  hostApplications  HostApplication[]  @relation("HostApplications")
 
   @@index([role])
   @@index([createdAt])
@@ -417,6 +418,24 @@ model SavedParty {
   @@unique([userId, partyId])
   @@index([userId])
   @@index([partyId])
+}
+
+// ======================== HOST APPLICATION ========================
+model HostApplication {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation("HostApplications", fields: [userId], references: [id], onDelete: Cascade)
+  introduction    String
+  hostingStyle    String   // "차분 / 따뜻 / 진지 / 발랄"
+  plannedCategories String  // JSON array
+  experience      String?
+  status          String   @default("pending") // pending | approved | rejected
+  reviewedById    String?
+  reviewedNote    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@index([status, createdAt])
+  @@index([userId])
 }
 
 // ======================== NOTIFICATION ========================

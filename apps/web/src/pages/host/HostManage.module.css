@@ -57,6 +57,32 @@
 }
 .partInfo strong { font-weight: var(--fw-semibold); }
 .partInfo span { color: var(--color-text-muted); font-size: var(--fs-xs); }
+.memoPreview {
+  margin-top: 4px;
+  background: color-mix(in oklab, var(--brand-gold-100) 70%, transparent);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  display: inline-block;
+  color: var(--brand-burgundy-800);
+}
+.memoBox {
+  margin-top: var(--space-2);
+  width: 100%;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  font: inherit;
+  font-size: var(--fs-sm);
+  resize: vertical;
+  min-height: 56px;
+}
+.memoBox:focus { outline: none; border-color: var(--color-primary); }
+.partActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
 
 .actionsRow {
   margin-top: var(--space-5);

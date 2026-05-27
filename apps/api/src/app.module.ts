@@ -18,6 +18,7 @@ import { CommunityModule } from './modules/community/community.module'
 import { SavedModule } from './modules/saved/saved.module'
 import { PhotosModule } from './modules/photos/photos.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
+import { HostApplicationsModule } from './modules/host-applications/host-applications.module'
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     SavedModule,
     PhotosModule,
     NotificationsModule,
+    HostApplicationsModule,
     LiveModule,
   ],
 })
