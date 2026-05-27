@@ -4,10 +4,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import type { CreatePartyDto, PartyQueryDto, UpdatePartyDto } from '@rotifolk/shared'
+import type { CreatePartyDto, PartyCategory, PartyQueryDto, UpdatePartyDto } from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
 import { toJsonString } from '@/common/json-utils'
 import { toParticipation, toParty, toPartySummary } from './party.mapper'
+
+const CATEGORY_LABEL: Record<PartyCategory, string> = {
+  wine: '와인', coffee: '커피', tea: '차', whisky: '위스키',
+  cocktail: '칵테일', beer: '맥주', sake: '사케',
+  'natural-wine': '내추럴 와인', dessert: '디저트', custom: '모임',
+}
 
 @Injectable()
 export class PartiesService {
@@ -113,6 +119,96 @@ export class PartiesService {
       include: { venue: true, host: { include: { avatar: true } } },
     })
     return toParty(created)
+  }
+
+  /** 즉석/당일 파티 빠른 개설. 기본값으로 즉시 OPEN. */
+  async quickCreate(
+    hostId: string,
+    input: {
+      category: PartyCategory
+      title?: string
+      venueId: string
+      startInMinutes: number
+      maxParticipants?: number
+    },
+  ) {
+    const now = new Date()
+    const startAt = new Date(now.getTime() + Math.max(15, input.startInMinutes) * 60_000)
+    const endAt = new Date(startAt.getTime() + 2 * 3600_000)
+    const code = Math.random().toString(36).slice(2, 8).toUpperCase()
+    const label = CATEGORY_LABEL[input.category]
+    const created = await this.prisma.party.create({
+      data: {
+        title: input.title ?? `즉석 ${label} 모임`,
+        description: '지금 막 열린 모임이에요. 자유롭게 들러주세요!',
+        hostId,
+        venueId: input.venueId,
+        startAt,
+        endAt,
+        minParticipants: 2,
+        maxParticipants: input.maxParticipants ?? 8,
+        status: 'open',
+        category: input.category,
+        rotationMode: 'random-shuffle',
+        roundDurationSec: 300,
+        totalRounds: 3,
+        breakBetweenRoundsSec: 60,
+        enableMidMatching: true,
+        enableFinalMatching: false,
+        enableQuiz: false,
+        enableQuestionCards: true,
+        enableLiveOrders: true,
+        enableAvatarOnly: false,
+        basePriceKRW: 0,
+        drinkPackage: 'per-glass',
+        snackPackage: 'none',
+        tagsJson: toJsonString(['#즉석', '#당일', `#${label}`]),
+        isInstant: true,
+        quickCode: code,
+      },
+      include: { venue: true, host: { include: { avatar: true } } },
+    })
+    return toParty(created)
+  }
+
+  /** 우리 동네 — 사용자 area 또는 직접 지정 area의 파티 목록 */
+  async neighborhood(userId: string, areaOverride?: string) {
+    let area = areaOverride
+    if (!area) {
+      const u = await this.prisma.user.findUnique({ where: { id: userId } })
+      area = u?.homeArea ?? undefined
+    }
+    if (!area) {
+      return { area: null, items: [] as ReturnType<typeof toPartySummary>[] }
+    }
+    const items = await this.prisma.party.findMany({
+      where: {
+        status: { in: ['open', 'live'] },
+        venue: { area: { contains: area } },
+      },
+      include: { venue: true, _count: { select: { participations: true } } },
+      orderBy: { startAt: 'asc' },
+      take: 20,
+    })
+    return { area, items: items.map(toPartySummary) }
+  }
+
+  /** 지금 진행 중인/곧 시작하는 파티 — 1시간 이내 또는 LIVE */
+  async happeningNow() {
+    const now = new Date()
+    const in1h = new Date(now.getTime() + 60 * 60_000)
+    const items = await this.prisma.party.findMany({
+      where: {
+        OR: [
+          { status: 'live' },
+          { status: 'open', startAt: { lte: in1h } },
+        ],
+      },
+      include: { venue: true, _count: { select: { participations: true } } },
+      orderBy: { startAt: 'asc' },
+      take: 10,
+    })
+    return items.map(toPartySummary)
   }
 
   async update(hostId: string, id: string, dto: UpdatePartyDto) {

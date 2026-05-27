@@ -26,6 +26,9 @@ model User {
   hostedCount  Int      @default(0)
   joinedCount  Int      @default(0)
   isVerified   Boolean  @default(false)
+  homeArea     String?
+  homeLat      Float?
+  homeLng      Float?
 
   avatarId     String?  @unique
   avatar       Avatar?  @relation(fields: [avatarId], references: [id], onDelete: SetNull)
@@ -164,6 +167,9 @@ model Party {
   genderRatio         String?
 
   currentRoundIndex   Int      @default(0)
+
+  isInstant           Boolean  @default(false)
+  quickCode           String?  @unique
 
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
+import type { PartySummary } from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
 import { ALL_CATEGORIES } from '@features/categories/meta'
 import { PartyCard } from '@features/parties/PartyCard'
@@ -8,10 +10,16 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
+import { api } from '@services/api'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
   const { data: parties, isLoading } = useParties({ status: 'open', pageSize: 6 })
+  const { data: nowParties } = useQuery({
+    queryKey: ['happening-now'],
+    queryFn: () => api.get<PartySummary[]>('parties/happening-now'),
+    refetchInterval: 30_000,
+  })
 
   return (
     <div>
@@ -81,6 +89,61 @@ export default function HomePage() {
           >
             <RotationVisual />
           </motion.div>
+        </div>
+      </section>
+
+      {nowParties && nowParties.length > 0 && (
+        <section className={`container ${styles.section}`} aria-labelledby="now-title">
+          <header className={styles.sectionHead}>
+            <h2 id="now-title" className={styles.sectionTitle}>
+              <span className={styles.liveDot} aria-hidden="true" />
+              지금 진행 중인 모임
+            </h2>
+            <Link to="/discover?status=live" className={styles.sectionAction}>
+              전체 보기 →
+            </Link>
+          </header>
+          <div className={styles.partyGrid}>
+            {nowParties.slice(0, 3).map((p) => (
+              <PartyCard key={p.id} party={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className={`container ${styles.section}`} aria-labelledby="instant-title">
+        <div className={styles.instantBanner}>
+          <div className={styles.instantBody}>
+            <Badge tone="gold" size="md">⚡ 즉석 모임</Badge>
+            <h2 id="instant-title" className={styles.instantTitle}>
+              지금 한 잔, 같이 할 사람?
+            </h2>
+            <p>
+              30분 뒤, 1시간 뒤, 2시간 뒤. 카테고리·시간·장소만 고르면 1분 만에 개설.
+              친구한테 공유 코드만 던지면 모여요.
+            </p>
+            <div className={styles.instantCta}>
+              <Link to="/quick">
+                <Button variant="gold" size="lg">⚡ 즉석 모임 열기</Button>
+              </Link>
+              <Link to="/neighborhood">
+                <Button variant="ghost" size="lg">📍 내 동네 보기</Button>
+              </Link>
+            </div>
+          </div>
+          <div className={styles.instantVisual} aria-hidden="true">
+            {['🍷','☕️','🍵','🥃','🍸'].map((e, i) => (
+              <motion.span
+                key={i}
+                className={styles.float}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 2 + i * 0.4, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ left: `${15 + i * 18}%`, fontSize: `${2 + (i % 2) * 0.5}rem` }}
+              >
+                {e}
+              </motion.span>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -36,6 +36,22 @@ export class PartiesController {
     return this.parties.list(q)
   }
 
+  /** 즉석/당일 빠른 개설. 카테고리·시간·장소만으로 즉시 OPEN 파티 생성. */
+  @Post('quick')
+  @UseGuards(AuthGuard('jwt'))
+  quickCreate(
+    @CurrentUser() me: JwtUserPayload,
+    @Body() body: {
+      category: CreatePartyDto['config']['category']
+      title?: string
+      venueId: string
+      startInMinutes: number
+      maxParticipants?: number
+    },
+  ) {
+    return this.parties.quickCreate(me.sub, body)
+  }
+
   @Get('mine')
   @UseGuards(AuthGuard('jwt'))
   mine(@CurrentUser() me: JwtUserPayload) {
@@ -46,6 +62,17 @@ export class PartiesController {
   @UseGuards(AuthGuard('jwt'))
   hosted(@CurrentUser() me: JwtUserPayload) {
     return this.parties.hostedParties(me.sub)
+  }
+
+  @Get('happening-now')
+  happeningNow() {
+    return this.parties.happeningNow()
+  }
+
+  @Get('neighborhood')
+  @UseGuards(AuthGuard('jwt'))
+  neighborhood(@CurrentUser() me: JwtUserPayload, @Query('area') area?: string) {
+    return this.parties.neighborhood(me.sub, area)
   }
 
   @Get(':id')

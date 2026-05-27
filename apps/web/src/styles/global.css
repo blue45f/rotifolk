@@ -157,11 +157,26 @@ ol {
   width: 100%;
   max-width: var(--max-content);
   margin-inline: auto;
-  padding-inline: var(--space-4);
+  padding-inline: var(--space-3);
 }
-@media (min-width: 768px) {
+@media (min-width: 640px) {
+  .container { padding-inline: var(--space-5); }
+}
+@media (min-width: 1024px) {
   .container { padding-inline: var(--space-8); }
 }
+
+/* Fluid typography & safer mobile */
+@media (max-width: 480px) {
+  :root {
+    --header-h: 56px;
+    --bottom-nav-h: 60px;
+  }
+}
+
+/* Avoid horizontal overflow on small viewports */
+html, body { overflow-x: hidden; }
+img, video { max-width: 100%; height: auto; }
 
 .stack {
   display: flex;

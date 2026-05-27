@@ -3,9 +3,9 @@ import styles from './BottomNav.module.css'
 
 const items = [
   { to: '/', label: '홈', icon: '🏠', end: true },
-  { to: '/discover', label: '탐색', icon: '🔭' },
-  { to: '/host/create', label: '개설', icon: '✨', emphasize: true },
-  { to: '/host', label: '호스트', icon: '🎙️' },
+  { to: '/neighborhood', label: '내 동네', icon: '📍' },
+  { to: '/quick', label: '즉석', icon: '⚡', emphasize: true },
+  { to: '/chats', label: '채팅', icon: '💌' },
   { to: '/me', label: '나', icon: '🌙' },
 ] as const
 
