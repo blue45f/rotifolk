@@ -126,27 +126,15 @@ export default function HostManagePage() {
             <p className={styles.muted}>도착한 사람부터 체크인해 주세요.</p>
             <div className={styles.partList}>
               {participants.map((p, i) => (
-                <div key={p.id} className={styles.part}>
-                  <Avatar
-                    size="lg"
-                    hue="#7A1F3D"
-                    pattern="gradient"
-                    emoji={p.user?.nickname?.[0]}
-                    ring={p.status === 'checked-in' ? 'glow' : 'soft'}
-                  />
-                  <div className={styles.partInfo}>
-                    <strong>{p.user?.nickname ?? '익명'}</strong>
-                    <span>좌석 #{p.seatNumber ?? i + 1}</span>
-                  </div>
-                  <Button
-                    variant={p.status === 'checked-in' ? 'soft' : 'primary'}
-                    size="sm"
-                    onClick={() => handleCheckIn(p.userId)}
-                    disabled={p.status === 'checked-in'}
-                  >
-                    {p.status === 'checked-in' ? '✓ 체크인됨' : '체크인'}
-                  </Button>
-                </div>
+                <GuestRow
+                  key={p.id}
+                  partyId={party.id}
+                  userId={p.userId}
+                  nickname={p.user?.nickname ?? '익명'}
+                  seatNumber={p.seatNumber ?? i + 1}
+                  status={p.status}
+                  onCheckIn={() => handleCheckIn(p.userId)}
+                />
               ))}
             </div>
           </Card>
@@ -188,6 +176,67 @@ export default function HostManagePage() {
         )}
 
         {tab === 'analytics' && <HostAnalyticsTab participants={participants} />}
+      </div>
+    </div>
+  )
+}
+
+interface GuestRowProps {
+  partyId: string
+  userId: string
+  nickname: string
+  seatNumber: number
+  status: string
+  onCheckIn: () => void
+}
+
+function GuestRow({ partyId, userId, nickname, seatNumber, status, onCheckIn }: GuestRowProps) {
+  const storageKey = `rotifolk-guest-memo-${partyId}-${userId}`
+  const [memo, setMemo] = useState(() => {
+    try { return localStorage.getItem(storageKey) ?? '' } catch { return '' }
+  })
+  const [open, setOpen] = useState(false)
+  const save = (next: string) => {
+    setMemo(next)
+    try { localStorage.setItem(storageKey, next) } catch {}
+  }
+  return (
+    <div className={styles.part}>
+      <Avatar
+        size="lg"
+        hue="#7A1F3D"
+        pattern="gradient"
+        emoji={nickname[0]}
+        ring={status === 'checked-in' ? 'glow' : 'soft'}
+      />
+      <div className={styles.partInfo}>
+        <strong>{nickname}</strong>
+        <span>좌석 #{seatNumber}</span>
+        {memo && !open && <span className={styles.memoPreview}>📝 {memo.slice(0, 40)}</span>}
+        {open && (
+          <textarea
+            className={styles.memoBox}
+            placeholder="이 게스트에 대한 비공개 메모 (내 브라우저에만 저장)"
+            value={memo}
+            onChange={(e) => save(e.target.value)}
+            rows={2}
+            autoFocus
+            onBlur={() => setOpen(false)}
+          />
+        )}
+      </div>
+      <div className={styles.partActions}>
+        <Button variant="ghost" size="sm" onClick={() => setOpen((v) => !v)}>
+          {open ? '닫기' : memo ? '메모' : '+ 메모'}
+        </Button>
+        <Button
+          variant={status === 'checked-in' ? 'soft' : 'primary'}
+          size="sm"
+          onClick={onCheckIn}
+          disabled={status === 'checked-in'}
+        >
+          {status === 'checked-in' ? '✓ 체크인됨' : '체크인'}
+        </Button>
       </div>
     </div>
   )
