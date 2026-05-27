@@ -1,11 +1,13 @@
 import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
+import { computeHostLevel } from '@rotifolk/shared'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
+import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
 import { Card } from '@components/ui/Card/Card'
 import { PartyCard } from '@features/parties/PartyCard'
 import Loading from '@components/feedback/Loading'
@@ -68,6 +70,10 @@ export default function HostProfilePage() {
   if (!data) return <EmptyState emoji="🌙" title="호스트를 찾을 수 없어요" />
   const { user, stats, recentParties } = data
   const isSelf = me?.id === user.id
+  const hostLevel = computeHostLevel({
+    hostedCount: user.hostedCount,
+    averageRating: stats.averageRating,
+  })
 
   return (
     <div className={styles.page}>
@@ -78,7 +84,11 @@ export default function HostProfilePage() {
             <div className={styles.nameRow}>
               <h1>{user.nickname}</h1>
               {user.isVerified && <Badge tone="info">✓ 인증</Badge>}
-              <Badge tone="primary">{user.role === 'host' ? '🎙️ 호스트' : user.role}</Badge>
+              {user.role === 'host' ? (
+                <HostLevelBadge level={hostLevel.level} size="md" />
+              ) : (
+                <Badge tone="primary">{user.role}</Badge>
+              )}
             </div>
             {user.bio && <p className={styles.bio}>{user.bio}</p>}
             <div className={styles.stats}>
