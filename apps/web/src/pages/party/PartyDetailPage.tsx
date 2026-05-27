@@ -228,7 +228,7 @@ export default function PartyDetailPage() {
 
           <Card padding="lg">
             <h3 className={styles.h3}>호스트</h3>
-            <div className={styles.hostBlock}>
+            <Link to={`/hosts/${party.hostId}`} className={styles.hostBlock}>
               <Avatar
                 size="lg"
                 hue="#7A1F3D"
@@ -242,8 +242,9 @@ export default function PartyDetailPage() {
                   {party.host?.isVerified && <Badge tone="info">✓ 인증</Badge>}
                 </div>
                 {party.host?.bio && <p className={styles.muted}>{party.host.bio}</p>}
+                <p className={styles.hostLink}>프로필 보기 →</p>
               </div>
-            </div>
+            </Link>
           </Card>
         </aside>
       </div>

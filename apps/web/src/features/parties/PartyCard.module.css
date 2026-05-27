@@ -114,6 +114,10 @@
   background: currentColor;
   opacity: 0.4;
 }
+.distance {
+  color: var(--color-primary);
+  font-weight: var(--fw-medium);
+}
 
 .gauge {
   position: relative;
