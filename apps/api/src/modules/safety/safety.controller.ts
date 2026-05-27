@@ -68,6 +68,16 @@ export class SafetyController {
     return this.safety.listReviewsForHost(userId)
   }
 
+  @Patch('reviews/:id/reply')
+  @UseGuards(AuthGuard('jwt'))
+  hostReply(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('id') id: string,
+    @Body() body: { body: string },
+  ) {
+    return this.safety.addHostReply(me.sub, id, body.body)
+  }
+
   @Post('reports')
   @UseGuards(AuthGuard('jwt'))
   report(

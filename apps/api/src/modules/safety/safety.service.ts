@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '@/prisma/prisma.service'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
 
@@ -112,6 +112,8 @@ export class SafetyService {
       anonymous: r.anonymous,
       tags: parseJsonArray<string>(r.tagsJson),
       author: r.anonymous ? { nickname: '익명', avatarId: null } : r.fromUser,
+      hostReply: r.hostReply,
+      hostRepliedAt: r.hostRepliedAt ? r.hostRepliedAt.toISOString() : null,
       createdAt: r.createdAt.toISOString(),
     }))
   }
@@ -133,9 +135,26 @@ export class SafetyService {
         body: r.body,
         anonymous: r.anonymous,
         tags: parseJsonArray<string>(r.tagsJson),
+        hostReply: r.hostReply,
+        hostRepliedAt: r.hostRepliedAt ? r.hostRepliedAt.toISOString() : null,
         createdAt: r.createdAt.toISOString(),
       })),
     }
+  }
+
+  async addHostReply(hostUserId: string, reviewId: string, reply: string) {
+    const trimmed = reply?.trim() ?? ''
+    if (!trimmed)
+      throw new BadRequestException({ code: 'empty_reply', message: '답글 내용을 입력해주세요' })
+    const review = await this.prisma.review.findUnique({ where: { id: reviewId } })
+    if (!review)
+      throw new NotFoundException({ code: 'review_not_found', message: '후기를 찾을 수 없어요' })
+    if (review.targetUserId !== hostUserId)
+      throw new ForbiddenException({ code: 'not_host', message: '호스트만 답글을 남길 수 있어요' })
+    return this.prisma.review.update({
+      where: { id: reviewId },
+      data: { hostReply: trimmed, hostRepliedAt: new Date() },
+    })
   }
 
   // ============ Reports ============

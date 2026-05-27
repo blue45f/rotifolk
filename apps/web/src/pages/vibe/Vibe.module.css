@@ -1,0 +1,75 @@
+.page {
+  position: relative;
+  padding: var(--space-12) clamp(var(--space-3), 4vw, var(--space-8)) var(--space-16);
+  isolation: isolate;
+  max-width: var(--max-content);
+  margin-inline: auto;
+}
+.heroVeil {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 40% at 10% 0%, color-mix(in oklab, var(--brand-burgundy-400) 16%, transparent), transparent 60%),
+    radial-gradient(50% 35% at 90% 100%, color-mix(in oklab, var(--brand-gold-500) 18%, transparent), transparent 60%);
+}
+.hero {
+  max-width: 680px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: center;
+  align-items: center;
+}
+.title {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.05;
+}
+.lead { color: var(--color-text-muted); }
+.composer {
+  width: 100%;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  font: inherit;
+  font-size: var(--fs-lg);
+  resize: vertical;
+  min-height: 100px;
+  transition:
+    border-color var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart);
+}
+.composer:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 14%, transparent);
+}
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+}
+
+.result {
+  margin-top: var(--space-12);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.resultHead h2 {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+}
+.muted { color: var(--color-text-muted); font-size: var(--fs-sm); margin-top: 4px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-5);
+}
