@@ -55,13 +55,25 @@
   grid-template-columns: 1fr;
   gap: var(--space-6);
   margin-top: var(--space-8);
+  padding-bottom: 96px;
 }
 @media (min-width: 1024px) {
   .body {
     grid-template-columns: minmax(0, 1fr) 380px;
     align-items: start;
+    padding-bottom: 0;
   }
   .aside { position: sticky; top: calc(var(--header-h) + var(--space-4)); }
+}
+
+/* Mobile sticky CTA bar — appears below the page, above bottom nav */
+@media (max-width: 1023px) {
+  .bookCard {
+    position: sticky;
+    bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0));
+    z-index: 5;
+    box-shadow: 0 -10px 30px color-mix(in oklab, var(--brand-burgundy-900) 18%, transparent);
+  }
 }
 
 .main, .aside {

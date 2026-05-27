@@ -157,26 +157,39 @@ ol {
   width: 100%;
   max-width: var(--max-content);
   margin-inline: auto;
-  padding-inline: var(--space-3);
-}
-@media (min-width: 640px) {
-  .container { padding-inline: var(--space-5); }
-}
-@media (min-width: 1024px) {
-  .container { padding-inline: var(--space-8); }
+  padding-inline: clamp(var(--space-3), 4vw, var(--space-8));
 }
 
-/* Fluid typography & safer mobile */
-@media (max-width: 480px) {
+/* Mobile-first responsive tokens */
+@media (max-width: 540px) {
   :root {
     --header-h: 56px;
-    --bottom-nav-h: 60px;
+    --bottom-nav-h: 62px;
+    --radius-xl: 20px;
+    --radius-2xl: 26px;
+  }
+}
+@media (min-width: 1280px) {
+  :root {
+    --max-content: 1240px;
   }
 }
 
 /* Avoid horizontal overflow on small viewports */
 html, body { overflow-x: hidden; }
 img, video { max-width: 100%; height: auto; }
+
+/* iOS safe-area */
+@supports (padding: env(safe-area-inset-top)) {
+  body { padding-top: env(safe-area-inset-top); }
+}
+
+/* Touch targets ≥ 44×44 on mobile */
+@media (pointer: coarse) {
+  button, a[role='button'], [data-touch] {
+    min-height: 44px;
+  }
+}
 
 .stack {
   display: flex;
