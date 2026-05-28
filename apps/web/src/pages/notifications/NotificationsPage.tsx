@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@services/api'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
+import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Notifications.module.css'
@@ -25,8 +27,20 @@ const KIND_EMOJI: Record<string, string> = {
   message: '💬',
 }
 
+type FilterKey = 'all' | 'party' | 'match' | 'message' | 'review'
+
+const FILTER_KIND: Record<FilterKey, (kind: string) => boolean> = {
+  all: () => true,
+  party: (k) => k === 'party_join' || k === 'party_starting',
+  match: (k) => k === 'match_made',
+  message: (k) => k === 'message',
+  review: (k) => k === 'host_review',
+}
+
 export default function NotificationsPage() {
   const queryClient = useQueryClient()
+  const [filter, setFilter] = useState<FilterKey>('all')
+
   const { data, isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => api.get<NotificationItem[]>('notifications'),
@@ -42,7 +56,17 @@ export default function NotificationsPage() {
   })
 
   if (isLoading) return <Loading />
-  const unread = data?.filter((n) => !n.isRead).length ?? 0
+  const all = data ?? []
+  const unread = all.filter((n) => !n.isRead).length
+
+  const counts: Record<FilterKey, number> = {
+    all: all.length,
+    party: all.filter((n) => FILTER_KIND.party(n.kind)).length,
+    match: all.filter((n) => FILTER_KIND.match(n.kind)).length,
+    message: all.filter((n) => FILTER_KIND.message(n.kind)).length,
+    review: all.filter((n) => FILTER_KIND.review(n.kind)).length,
+  }
+  const filtered = all.filter((n) => FILTER_KIND[filter](n.kind))
 
   return (
     <div className={`container ${styles.page}`}>
@@ -58,16 +82,45 @@ export default function NotificationsPage() {
         )}
       </header>
 
-      {!data || data.length === 0 ? (
+      {all.length > 0 && (
+        <div className={styles.tabs}>
+          <Tabs
+            value={filter}
+            onChange={(v) => setFilter(v as FilterKey)}
+            tabs={[
+              { value: 'all', label: `전체 (${counts.all})` },
+              { value: 'party', label: `모임 (${counts.party})`, icon: '🎟️' },
+              { value: 'match', label: `매칭 (${counts.match})`, icon: '💌' },
+              { value: 'message', label: `메시지 (${counts.message})`, icon: '💬' },
+              { value: 'review', label: `후기 (${counts.review})`, icon: '⭐' },
+            ]}
+          />
+        </div>
+      )}
+
+      {filtered.length === 0 ? (
         <EmptyState
           emoji="🔕"
-          title="아직 알림이 없어요"
-          description="모임이 곧 시작되거나 매칭이 성사되면 여기로 알려드릴게요."
+          title={
+            all.length === 0
+              ? '아직 알림이 없어요'
+              : '이 필터에 해당하는 알림이 없어요'
+          }
+          description={
+            all.length === 0
+              ? '모임이 곧 시작되거나 매칭이 성사되면 여기로 알려드릴게요.'
+              : '다른 탭에서 확인해 보세요.'
+          }
         />
       ) : (
         <ul className={styles.list}>
-          {data.map((n) => {
+          {filtered.map((n) => {
             const handleClick = () => !n.isRead && markOne.mutate(n.id)
+            const handleDismiss = (e: React.MouseEvent) => {
+              e.preventDefault()
+              e.stopPropagation()
+              if (!n.isRead) markOne.mutate(n.id)
+            }
             const inner = (
               <>
                 <span className={styles.kindIcon} aria-hidden="true">
@@ -85,7 +138,17 @@ export default function NotificationsPage() {
                     })}
                   </time>
                 </div>
-                {!n.isRead && <span className={styles.dot} aria-label="새 알림" />}
+                {!n.isRead && (
+                  <button
+                    type="button"
+                    className={styles.dismissBtn}
+                    onClick={handleDismiss}
+                    aria-label="읽음으로 표시"
+                    title="읽음으로 표시"
+                  >
+                    ✕
+                  </button>
+                )}
               </>
             )
             return (
