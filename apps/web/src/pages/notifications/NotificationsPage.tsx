@@ -25,9 +25,10 @@ const KIND_EMOJI: Record<string, string> = {
   match_made: '💌',
   host_review: '⭐',
   message: '💬',
+  new_follower: '👤',
 }
 
-type FilterKey = 'all' | 'party' | 'match' | 'message' | 'review'
+type FilterKey = 'all' | 'party' | 'match' | 'message' | 'review' | 'follow'
 
 const FILTER_KIND: Record<FilterKey, (kind: string) => boolean> = {
   all: () => true,
@@ -35,6 +36,7 @@ const FILTER_KIND: Record<FilterKey, (kind: string) => boolean> = {
   match: (k) => k === 'match_made',
   message: (k) => k === 'message',
   review: (k) => k === 'host_review',
+  follow: (k) => k === 'new_follower',
 }
 
 export default function NotificationsPage() {
@@ -65,6 +67,7 @@ export default function NotificationsPage() {
     match: all.filter((n) => FILTER_KIND.match(n.kind)).length,
     message: all.filter((n) => FILTER_KIND.message(n.kind)).length,
     review: all.filter((n) => FILTER_KIND.review(n.kind)).length,
+    follow: all.filter((n) => FILTER_KIND.follow(n.kind)).length,
   }
   const filtered = all.filter((n) => FILTER_KIND[filter](n.kind))
 
@@ -112,6 +115,7 @@ export default function NotificationsPage() {
               { value: 'all', label: `전체 (${counts.all})` },
               { value: 'party', label: `모임 (${counts.party})`, icon: '🎟️' },
               { value: 'match', label: `매칭 (${counts.match})`, icon: '💌' },
+              { value: 'follow', label: `팔로우 (${counts.follow})`, icon: '👤' },
               { value: 'message', label: `메시지 (${counts.message})`, icon: '💬' },
               { value: 'review', label: `후기 (${counts.review})`, icon: '⭐' },
             ]}
