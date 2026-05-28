@@ -97,6 +97,7 @@ export const handlers = [
   // Chat (empty by default)
   http.get(`${API}/chat/rooms`, async () => HttpResponse.json(await delay([]))),
   http.get(`${API}/chat/rooms/:id/messages`, async () => HttpResponse.json(await delay([]))),
+  http.get(`${API}/chat/unread-count`, async () => HttpResponse.json(await delay({ count: 0, rooms: 0 }))),
 
   // Orders / split
   http.get(`${API}/orders/party/:id/split`, async ({ request }) => {

@@ -28,10 +28,34 @@
   letter-spacing: -0.01em;
   transition: color var(--dur-fast) var(--ease-out-quart);
 }
+.iconWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .icon {
   font-size: 18px;
   line-height: 1;
   transition: transform var(--dur-fast) var(--ease-spring);
+}
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--brand-burgundy-700, #7A1F3D);
+  color: var(--brand-cream-50, #FCFAF5);
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 6px rgba(122, 31, 61, 0.45);
+  pointer-events: none;
 }
 .item:hover .icon { transform: translateY(-1px); }
 .active {
