@@ -49,6 +49,17 @@ class CommunityController {
     return items.map((f) => f.following)
   }
 
+  @Get('follows/me/followers')
+  @UseGuards(AuthGuard('jwt'))
+  async myFollowers(@CurrentUser() me: JwtUserPayload) {
+    const items = await this.prisma.follow.findMany({
+      where: { followingId: me.sub },
+      include: { follower: { select: { id: true, nickname: true, avatarId: true, role: true } } },
+      orderBy: { createdAt: 'desc' },
+    })
+    return items.map((f) => f.follower)
+  }
+
   /** 호스트 프로필 — 공개 정보 + 통계 + 팔로우 여부 */
   @Get('hosts/:id')
   async hostProfile(@Param('id') id: string, @Body() _b: unknown) {
