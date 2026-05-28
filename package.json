@@ -28,7 +28,7 @@
     "db:reset": "pnpm --filter @rotifolk/api run prisma:reset"
   },
   "devDependencies": {
-    "prettier": "^3.3.3",
-    "typescript": "^5.6.3"
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3"
   }
 }
