@@ -167,4 +167,46 @@ export const handlers = [
       explanation: '입력하신 분위기와 가장 잘 맞는 모임을 골라봤어요.',
     })),
   ),
+
+  // Host applications
+  http.get(`${API}/host-applications/mine`, async () =>
+    HttpResponse.json(await delay(null)),
+  ),
+  http.post(`${API}/host-applications`, async () =>
+    HttpResponse.json(await delay({
+      id: 'app-mock',
+      userId: mockUsers[0].id,
+      introduction: '',
+      hostingStyle: '',
+      plannedCategories: [],
+      experience: null,
+      status: 'pending',
+      reviewedById: null,
+      reviewedNote: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })),
+  ),
+
+  // Admin
+  http.get(`${API}/admin/reports`, async ({ request }) => {
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+    if (status === 'resolved') {
+      return HttpResponse.json(await delay([]))
+    }
+    return HttpResponse.json(await delay([]))
+  }),
+  http.patch(`${API}/admin/reports/:id`, async () =>
+    HttpResponse.json(await delay({ ok: true })),
+  ),
+
+  // Payments host summary (kakao quick create)
+  http.post(`${API}/auth/kakao`, async ({ request }) => {
+    const body = await request.json() as { kakaoId: string; nickname: string }
+    return HttpResponse.json(await delay({
+      token: MOCK_TOKEN,
+      user: { ...mockUsers[0], nickname: body.nickname },
+    }))
+  }),
 ]
