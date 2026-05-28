@@ -21,12 +21,13 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\"",
     "ci": "pnpm run db:generate && pnpm run typecheck && pnpm run test && pnpm run build",
-    "verify": "pnpm run ci",
+    "verify": "pnpm run validate:architecture && pnpm run ci",
     "verify:push": "pnpm run verify",
     "seed": "pnpm --filter @rotifolk/api run seed",
     "db:generate": "pnpm --filter @rotifolk/api run prisma:generate",
     "db:push": "pnpm --filter @rotifolk/api run prisma:push",
-    "db:reset": "pnpm --filter @rotifolk/api run prisma:reset"
+    "db:reset": "pnpm --filter @rotifolk/api run prisma:reset",
+    "validate:architecture": "node scripts/validate-architecture.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
