@@ -9,6 +9,7 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
+    "prepare": "husky",
     "dev": "pnpm -r --parallel --filter=./apps/* run dev",
     "dev:web": "pnpm --filter @rotifolk/web run dev",
     "dev:api": "pnpm --filter @rotifolk/api run dev",
@@ -28,7 +29,19 @@
     "db:reset": "pnpm --filter @rotifolk/api run prisma:reset"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,html}": [
+      "prettier --write"
+    ]
   }
 }
