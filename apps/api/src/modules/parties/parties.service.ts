@@ -8,6 +8,7 @@ import type { CreatePartyDto, PartyCategory, PartyQueryDto, UpdatePartyDto } fro
 import { PrismaService } from '@/prisma/prisma.service'
 import { toJsonString } from '@/common/json-utils'
 import { toParticipation, toParty, toPartySummary } from './party.mapper'
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
 
 const CATEGORY_LABEL: Record<PartyCategory, string> = {
   wine: '와인', coffee: '커피', tea: '차', whisky: '위스키',
@@ -17,7 +18,10 @@ const CATEGORY_LABEL: Record<PartyCategory, string> = {
 
 @Injectable()
 export class PartiesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifEmitter: NotificationsEmitter,
+  ) {}
 
   async list(q: PartyQueryDto) {
     const where: Record<string, unknown> = {}
@@ -366,6 +370,12 @@ export class PartiesService {
           link: `/host/parties/${partyId}`,
         },
       }).catch(() => undefined)
+      this.notifEmitter.toUser(party.hostId, {
+        kind: 'party_join',
+        title: '새 참가자',
+        body: `${created.user?.nickname ?? '참가자'}님이 참가 신청했어요.`,
+        link: `/host/parties/${partyId}`,
+      })
     }
 
     return toParticipation(created)
@@ -444,17 +454,19 @@ export class PartiesService {
         select: { userId: true },
       }),
     ])
+    const notifyParticipants = participants.filter((pp) => pp.userId !== hostId)
     await this.prisma.notification.createMany({
-      data: participants
-        .filter((pp) => pp.userId !== hostId)
-        .map((pp) => ({
-          userId: pp.userId,
-          kind: 'party_starting',
-          title: '🎉 파티가 시작됐어요!',
-          body: `${p.title} 파티가 지금 시작됩니다.`,
-          link: `/live/${partyId}`,
-        })),
+      data: notifyParticipants.map((pp) => ({
+        userId: pp.userId,
+        kind: 'party_starting',
+        title: '🎉 파티가 시작됐어요!',
+        body: `${p.title} 파티가 지금 시작됩니다.`,
+        link: `/live/${partyId}`,
+      })),
     })
+    for (const pp of notifyParticipants) {
+      this.notifEmitter.toUser(pp.userId, { kind: 'party_starting', title: '🎉 파티가 시작됐어요!', body: `${p.title}`, link: `/live/${partyId}` })
+    }
     return updated
   }
 

@@ -1,10 +1,14 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '@/prisma/prisma.service'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
 
 @Injectable()
 export class SafetyService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifEmitter: NotificationsEmitter,
+  ) {}
 
   /** 차단 (양방향 회피 — 같은 모임에 함께 못 들어감) */
   async block(blockerId: string, blockedId: string, reason?: string) {
@@ -97,15 +101,18 @@ export class SafetyService {
       },
     })
     if (input.targetUserId) {
+      const title = `별점 ${'★'.repeat(input.rating)} 후기가 달렸어요`
+      const body = input.body.slice(0, 60) + (input.body.length > 60 ? '…' : '')
       await this.prisma.notification.create({
         data: {
           userId: input.targetUserId,
           kind: 'host_review',
-          title: `별점 ${'★'.repeat(input.rating)} 후기가 달렸어요`,
-          body: input.body.slice(0, 60) + (input.body.length > 60 ? '…' : ''),
+          title,
+          body,
           link: `/hosts/${input.targetUserId}`,
         },
       }).catch(() => undefined)
+      this.notifEmitter.toUser(input.targetUserId, { kind: 'host_review', title, body, link: `/hosts/${input.targetUserId}` })
     }
     return review
   }

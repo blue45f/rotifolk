@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common'
+import { NotificationsEmitter } from './notifications.emitter'
 import { AuthGuard } from '@nestjs/passport'
 import { PrismaService } from '@/prisma/prisma.service'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
@@ -64,5 +65,5 @@ class NotificationsController {
   }
 }
 
-@Module({ controllers: [NotificationsController] })
+@Module({ controllers: [NotificationsController], providers: [NotificationsEmitter], exports: [NotificationsEmitter] })
 export class NotificationsModule {}

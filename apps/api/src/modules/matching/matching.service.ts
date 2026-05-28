@@ -10,10 +10,14 @@ import {
   shuffle,
 } from '@rotifolk/shared'
 import type { HeteroParticipant } from '@rotifolk/shared'
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
 
 @Injectable()
 export class MatchingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifEmitter: NotificationsEmitter,
+  ) {}
 
   /** 호스트가 처음 라운드를 생성. 기존 라운드 있으면 폐기. */
   async planRounds(hostId: string, partyId: string) {
@@ -236,6 +240,11 @@ export class MatchingService {
         },
       ]),
     })
+    for (const c of created) {
+      const payload = { kind: 'match_made', title: '💫 매칭됐어요!', body: `${party.title}에서 서로를 골랐어요.`, link: '/chats' }
+      this.notifEmitter.toUser(c.userAId, payload)
+      this.notifEmitter.toUser(c.userBId, payload)
+    }
     return created.map((c) => ({
       id: c.id,
       partyId: c.partyId,

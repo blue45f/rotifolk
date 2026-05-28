@@ -57,4 +57,5 @@ export interface ServerToClientEvents {
   'final-match:revealed': (payload: { matches: FinalMatch[] }) => void
   'toast': (payload: { kind: 'info' | 'success' | 'warning' | 'error'; message: string }) => void
   'error': (payload: { code: string; message: string }) => void
+  'notification:new': (payload: { kind: string; title: string; body?: string; link?: string }) => void
 }

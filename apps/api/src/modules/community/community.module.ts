@@ -12,10 +12,15 @@ import {
 import { AuthGuard } from '@nestjs/passport'
 import { PrismaService } from '@/prisma/prisma.service'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
+import { NotificationsModule } from '../notifications/notifications.module'
 
 @Controller()
 class CommunityController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifEmitter: NotificationsEmitter,
+  ) {}
 
   @Post('follows/:userId')
   @UseGuards(AuthGuard('jwt'))
@@ -30,15 +35,17 @@ class CommunityController {
       }),
       this.prisma.user.findUnique({ where: { id: me.sub }, select: { nickname: true } }),
     ])
+    const body = `${follower?.nickname ?? '누군가'}님이 팔로우를 시작했어요.`
     await this.prisma.notification.create({
       data: {
         userId,
         kind: 'new_follower',
         title: '새 팔로워',
-        body: `${follower?.nickname ?? '누군가'}님이 팔로우를 시작했어요.`,
+        body,
         link: '/me/follows',
       },
     }).catch(() => undefined)
+    this.notifEmitter.toUser(userId, { kind: 'new_follower', title: '새 팔로워', body, link: '/me/follows' })
     return follow
   }
 
@@ -155,5 +162,5 @@ class CommunityController {
   }
 }
 
-@Module({ controllers: [CommunityController] })
+@Module({ imports: [NotificationsModule], controllers: [CommunityController] })
 export class CommunityModule {}

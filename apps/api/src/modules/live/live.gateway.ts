@@ -5,6 +5,7 @@ import {
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -12,6 +13,7 @@ import {
 import type { Server, Socket } from 'socket.io'
 import {
   PARTY_ROOM,
+  USER_ROOM,
   type ClientToServerEvents,
   type ServerToClientEvents,
 } from '@rotifolk/shared'
@@ -21,6 +23,7 @@ import { parseJsonArray, parseJsonObject } from '@/common/json-utils'
 import { MatchingService } from '../matching/matching.service'
 import { QuizService } from '../quiz/quiz.service'
 import { OrdersService } from '../orders/orders.service'
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
 import { LiveOrchestrator } from './live.orchestrator'
 
 type AuthedSocket = Socket<ClientToServerEvents, ServerToClientEvents> & {
@@ -31,7 +34,7 @@ type AuthedSocket = Socket<ClientToServerEvents, ServerToClientEvents> & {
   cors: { origin: '*', credentials: false },
   transports: ['websocket', 'polling'],
 })
-export class LiveGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(LiveGateway.name)
 
   @WebSocketServer()
@@ -43,8 +46,13 @@ export class LiveGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly matching: MatchingService,
     private readonly quiz: QuizService,
     private readonly orders: OrdersService,
+    private readonly notifEmitter: NotificationsEmitter,
     private readonly orchestrator: LiveOrchestrator,
   ) {}
+
+  afterInit(server: Server<ClientToServerEvents, ServerToClientEvents>) {
+    this.notifEmitter.setServer(server)
+  }
 
   async handleConnection(client: AuthedSocket) {
     try {
@@ -57,6 +65,7 @@ export class LiveGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       const payload = this.jwt.verify<JwtUserPayload>(token)
       client.data.user = payload
+      client.join(USER_ROOM(payload.sub))
       this.logger.log(`socket connected: ${client.id} (${payload.email})`)
     } catch {
       client.disconnect()
