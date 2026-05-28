@@ -122,4 +122,49 @@ export const handlers = [
       }),
     )
   }),
+
+  // Orders (host management)
+  http.get(`${API}/orders/party/:id`, async () =>
+    HttpResponse.json(await delay([])),
+  ),
+  http.patch(`${API}/orders/:id/status`, async () =>
+    HttpResponse.json(await delay({ ok: true })),
+  ),
+
+  // Follows
+  http.get(`${API}/follows/me`, async () => HttpResponse.json(await delay([]))),
+  http.post(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.delete(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
+
+  // Saved parties
+  http.get(`${API}/saved`, async () => HttpResponse.json(await delay([]))),
+  http.post(`${API}/saved/:partyId`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.delete(`${API}/saved/:partyId`, async () => HttpResponse.json(await delay({ ok: true }))),
+
+  // Notifications
+  http.get(`${API}/notifications`, async () => HttpResponse.json(await delay([]))),
+  http.patch(`${API}/notifications/read-all`, async () => HttpResponse.json(await delay({ ok: true }))),
+
+  // Host profile (public)
+  http.get(`${API}/hosts/:id`, async () =>
+    HttpResponse.json(await delay({
+      user: { ...mockUsers[0], bio: null, mbti: 'ENFP', interestsJson: '[]', trustScore: 92, hostedCount: 3, isVerified: true, role: 'host' },
+      stats: { followerCount: 12, hostedCount: 3, averageRating: 4.7, reviewCount: 5 },
+      reviews: [],
+      recentParties: [mockParties[0]].map(toSummary),
+    })),
+  ),
+
+  // Host revenue summary
+  http.get(`${API}/payments/host/summary`, async () =>
+    HttpResponse.json(await delay({ totalKRW: 0, paidCount: 0, refundedKRW: 0, recent: [] })),
+  ),
+
+  // Vibe matching
+  http.post(`${API}/vibe`, async () =>
+    HttpResponse.json(await delay({
+      matches: mockParties.slice(0, 3).map(toSummary),
+      explanation: '입력하신 분위기와 가장 잘 맞는 모임을 골라봤어요.',
+    })),
+  ),
 ]
