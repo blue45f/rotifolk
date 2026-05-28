@@ -387,6 +387,20 @@ export default function PartyDetailPage() {
               {party.config.enableLiveOrders && <Badge tone="primary">🍷 라이브 주문</Badge>}
               {party.config.enableAvatarOnly && <Badge tone="primary">🎭 아바타 모드</Badge>}
             </div>
+
+            {party.tags && party.tags.length > 0 && (
+              <div className={styles.tagRow}>
+                {party.tags.map((t) => (
+                  <Link
+                    key={t}
+                    to={`/discover?tag=${encodeURIComponent(t)}`}
+                    className={styles.tagChip}
+                  >
+                    #{t.startsWith('#') ? t.slice(1) : t}
+                  </Link>
+                ))}
+              </div>
+            )}
           </Card>
 
           <Card padding="lg">

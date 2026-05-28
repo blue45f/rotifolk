@@ -30,6 +30,11 @@ export class PartiesService {
       next.setDate(d.getDate() + 1)
       where.startAt = { gte: d, lt: next }
     }
+    // Tags stored as JSON string in SQLite; substring match is good-enough
+    // (tags are short labels like "#한남" / "내추럴")
+    if (q.tag) {
+      where.tagsJson = { contains: q.tag }
+    }
     const skip = (q.page - 1) * q.pageSize
     const [items, total] = await Promise.all([
       this.prisma.party.findMany({

@@ -70,6 +70,7 @@ export const PartyQuerySchema = z.object({
   category: PartyCategoryEnum.optional(),
   area: z.string().optional(),
   date: z.string().date().optional(),
+  tag: z.string().min(1).max(40).optional(),
   status: z.enum(['open', 'live', 'ended']).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(50).default(20),
