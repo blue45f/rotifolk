@@ -115,6 +115,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-decoration: none;
+}
+.hostName:hover strong {
+  text-decoration: underline;
 }
 .hostMeta {
   font-size: var(--fs-xs);

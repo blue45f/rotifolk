@@ -170,6 +170,8 @@ export function toSummary(p: Party): PartySummary {
     basePriceKRW: p.pricing.basePriceKRW,
     drinkPackage: p.pricing.drinkPackage,
     snackPackage: p.pricing.snackPackage,
+    hostId: p.hostId,
+    hostNickname: '',
   }
 }
 

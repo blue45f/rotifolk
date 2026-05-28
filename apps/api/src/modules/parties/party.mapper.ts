@@ -18,8 +18,10 @@ import type {
 import { parseJsonArray } from '@/common/json-utils'
 import { toPublicSummary } from '../users/user.mapper'
 
+type HostShape = { id: string; nickname: string; avatarId?: string | null; avatar?: PrismaAvatar | null } & Partial<PrismaUser>
+
 type PartyRow = PrismaParty & {
-  host?: (PrismaUser & { avatar?: PrismaAvatar | null }) | null
+  host?: HostShape | null
   venue?: PrismaVenue | null
   _count?: { participations: number }
 }
@@ -85,6 +87,8 @@ export function toPartySummary(row: PartyRow): PartySummary {
     basePriceKRW: row.basePriceKRW,
     drinkPackage: row.drinkPackage as DrinkPackage,
     snackPackage: row.snackPackage as SnackPackage,
+    hostId: row.hostId,
+    hostNickname: row.host?.nickname ?? '',
   }
 }
 

@@ -104,6 +104,8 @@ export interface PartySummary
   basePriceKRW: number
   drinkPackage: DrinkPackage
   snackPackage: SnackPackage
+  hostId: ID
+  hostNickname: string
 }
 
 export type ParticipationStatus =

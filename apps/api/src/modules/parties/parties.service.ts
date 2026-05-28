@@ -39,7 +39,7 @@ export class PartiesService {
     const [items, total] = await Promise.all([
       this.prisma.party.findMany({
         where,
-        include: { venue: true, _count: { select: { participations: true } } },
+        include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
         orderBy: { startAt: 'asc' },
         skip,
         take: q.pageSize,
@@ -191,7 +191,7 @@ export class PartiesService {
         status: { in: ['open', 'live'] },
         venue: { area: { contains: area } },
       },
-      include: { venue: true, _count: { select: { participations: true } } },
+      include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
       orderBy: { startAt: 'asc' },
       take: 20,
     })
@@ -209,7 +209,7 @@ export class PartiesService {
           { status: 'open', startAt: { lte: in1h } },
         ],
       },
-      include: { venue: true, _count: { select: { participations: true } } },
+      include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
       orderBy: { startAt: 'asc' },
       take: 10,
     })
@@ -398,7 +398,7 @@ export class PartiesService {
     const participations = await this.prisma.participation.findMany({
       where: { userId, status: { not: 'cancelled' } },
       include: {
-        party: { include: { venue: true, _count: { select: { participations: true } } } },
+        party: { include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } } },
       },
       orderBy: { createdAt: 'desc' },
     })
@@ -411,7 +411,7 @@ export class PartiesService {
   async hostedParties(hostId: string) {
     const items = await this.prisma.party.findMany({
       where: { hostId },
-      include: { venue: true, _count: { select: { participations: true } } },
+      include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
       orderBy: { startAt: 'desc' },
     })
     return items.map(toPartySummary)

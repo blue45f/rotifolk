@@ -91,12 +91,12 @@ export default function DigestPage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  // 베스트 호스트 — PartySummary에는 host 정보가 없어서 venueName으로 대체 집계.
   const topHosts = useMemo<Rank[]>(() => {
-    const map = countBy(items, (p) => p.venueName)
+    const map = countBy(items, (p) => p.hostId)
+    const nicknameOf = new Map(items.map((p) => [p.hostId, p.hostNickname]))
     return topN(map, 3).map((r, i) => ({
       key: r.key,
-      label: r.key,
+      label: nicknameOf.get(r.key) ?? r.key,
       count: r.count,
       meta: `${['🥇', '🥈', '🥉'][i]} 이번 주 ${r.count}개 진행`,
     }))
@@ -190,7 +190,7 @@ export default function DigestPage() {
                 🏆 이번 주 베스트 호스트
               </h2>
               <p className={styles.sectionSub}>
-                같은 공간에서 가장 많은 모임이 열린 곳을 모았어요.
+                이번 주 가장 많은 모임을 연 호스트예요.
               </p>
             </header>
 
@@ -204,7 +204,9 @@ export default function DigestPage() {
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     <div className={styles.hostBody}>
-                      <strong className={styles.hostName}>{host.label}</strong>
+                      <Link to={`/hosts/${host.key}`} className={styles.hostName}>
+                        <strong>{host.label}</strong>
+                      </Link>
                       <span className={styles.hostMeta}>{host.meta}</span>
                     </div>
                     <span className={styles.hostCount}>
