@@ -20,3 +20,8 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-5);
 }
+.loadMore {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-6);
+}

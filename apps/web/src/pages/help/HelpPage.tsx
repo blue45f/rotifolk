@@ -1,8 +1,14 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
+import EmptyState from '@components/feedback/EmptyState'
 import styles from './Help.module.css'
+
+function norm(s: string): string {
+  return s.toLowerCase().replace(/\s+/g, '')
+}
 
 interface Faq { q: string; a: string }
 
@@ -27,7 +33,14 @@ const HOST: Faq[] = [
 export default function HelpPage() {
   const [tab, setTab] = useState<'guest' | 'host'>('guest')
   const [open, setOpen] = useState<number | null>(0)
-  const items = tab === 'guest' ? GUEST : HOST
+  const [query, setQuery] = useState('')
+  const source = tab === 'guest' ? GUEST : HOST
+
+  const items = useMemo(() => {
+    const q = norm(query)
+    if (!q) return source
+    return source.filter((it) => norm(it.q).includes(q) || norm(it.a).includes(q))
+  }, [source, query])
 
   return (
     <div className={`container ${styles.page}`}>
@@ -39,8 +52,8 @@ export default function HelpPage() {
 
       <Tabs
         tabs={[
-          { value: 'guest', label: '🎟️ 참가자' },
-          { value: 'host', label: '🎙️ 호스트' },
+          { value: 'guest', label: `🎟️ 참가자 (${GUEST.length})` },
+          { value: 'host', label: `🎙️ 호스트 (${HOST.length})` },
         ]}
         value={tab}
         onChange={(v) => {
@@ -49,25 +62,47 @@ export default function HelpPage() {
         }}
       />
 
-      <ul className={styles.list}>
-        {items.map((it, i) => {
-          const isOpen = open === i
-          return (
-            <li key={i} className={isOpen ? styles.open : ''}>
-              <button
-                type="button"
-                className={styles.q}
-                onClick={() => setOpen(isOpen ? null : i)}
-                aria-expanded={isOpen}
-              >
-                <span>{it.q}</span>
-                <span className={styles.chev} aria-hidden="true">{isOpen ? '–' : '+'}</span>
-              </button>
-              {isOpen && <p className={styles.a}>{it.a}</p>}
-            </li>
-          )
-        })}
-      </ul>
+      <div className={styles.searchRow}>
+        <Input
+          type="search"
+          placeholder="궁금한 키워드로 검색해 보세요"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setOpen(null)
+          }}
+          leftIcon={<span aria-hidden="true">🔎</span>}
+          aria-label="FAQ 검색"
+        />
+      </div>
+
+      {items.length === 0 ? (
+        <EmptyState
+          emoji="🤔"
+          title={`'${query.trim()}'에 대한 답을 찾지 못했어요`}
+          description="다른 키워드를 시도하거나, 아래 채팅으로 직접 물어봐 주세요."
+        />
+      ) : (
+        <ul className={styles.list}>
+          {items.map((it, i) => {
+            const isOpen = open === i
+            return (
+              <li key={`${tab}-${i}-${it.q}`} className={isOpen ? styles.open : ''}>
+                <button
+                  type="button"
+                  className={styles.q}
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  aria-expanded={isOpen}
+                >
+                  <span>{it.q}</span>
+                  <span className={styles.chev} aria-hidden="true">{isOpen ? '–' : '+'}</span>
+                </button>
+                {isOpen && <p className={styles.a}>{it.a}</p>}
+              </li>
+            )
+          })}
+        </ul>
+      )}
 
       <footer className={styles.foot}>
         <p>더 궁금한 점이 있다면 <Link to="/chats">채팅</Link>으로 알려주세요.</p>
