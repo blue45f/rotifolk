@@ -28,6 +28,7 @@ export const routes: RouteObject[] = [
       { path: 'quick', element: lazyPage(() => import('@pages/quick/QuickCreatePage')) },
       { path: 'parties/:partyId', element: lazyPage(() => import('@pages/party/PartyDetailPage')) },
       { path: 'venues', element: lazyPage(() => import('@pages/venues/VenuesPage')) },
+      { path: 'help', element: lazyPage(() => import('@pages/help/HelpPage')) },
       { path: 'hosts/:hostId', element: lazyPage(() => import('@pages/host-profile/HostProfilePage')) },
       { path: 'match-card/:userId', element: lazyPage(() => import('@pages/match-card/MatchCardPage')) },
       {

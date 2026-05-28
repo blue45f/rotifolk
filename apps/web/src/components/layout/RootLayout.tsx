@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Header } from './Header'
 import { BottomNav } from './BottomNav'
 import { useApplyTheme } from '@store/themeStore'
+import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
 import styles from './RootLayout.module.css'
 
 export default function RootLayout() {
@@ -21,6 +22,7 @@ export default function RootLayout() {
         본문 바로가기
       </a>
       {!isLive && <Header />}
+      {!isLive && <PwaInstallBanner />}
       <main id="main-content" role="main" className={styles.main}>
         <Outlet />
       </main>

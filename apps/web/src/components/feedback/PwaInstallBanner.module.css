@@ -1,0 +1,35 @@
+.bar {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px clamp(var(--space-3), 4vw, var(--space-8));
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--brand-burgundy-700) 96%, transparent),
+    color-mix(in oklab, var(--brand-burgundy-500) 90%, transparent));
+  color: var(--brand-cream-50);
+  box-shadow: 0 6px 20px color-mix(in oklab, var(--brand-burgundy-900) 25%, transparent);
+}
+.icon { font-size: 22px; }
+.body { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.body strong { font-weight: var(--fw-bold); }
+.body span { font-size: var(--fs-xs); opacity: 0.85; }
+.actions { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.dismiss {
+  background: transparent;
+  color: var(--brand-cream-50);
+  border: 1px solid color-mix(in oklab, white 30%, transparent);
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+}
+.install {
+  background: var(--brand-gold-500);
+  color: var(--color-accent-fg);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-xs);
+}
