@@ -212,6 +212,76 @@
   justify-content: center;
   margin-top: var(--space-6);
 }
+
+.achievementGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-3);
+}
+.achievement {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  opacity: 0.5;
+  position: relative;
+  transition: opacity var(--dur-fast) var(--ease-out-quart),
+              border-color var(--dur-fast) var(--ease-out-quart);
+}
+.achievementEarned {
+  opacity: 1;
+  border-color: color-mix(in oklab, var(--brand-gold-500, #D6A84E) 50%, var(--color-border));
+  background: linear-gradient(135deg,
+    color-mix(in oklab, var(--brand-gold-500, #D6A84E) 6%, var(--color-surface)) 0%,
+    var(--color-surface) 100%);
+}
+.achievementEmoji {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  background: var(--color-surface-soft);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.achievementEarned .achievementEmoji {
+  background: linear-gradient(135deg, color-mix(in oklab, var(--brand-gold-500, #D6A84E) 25%, var(--color-surface-soft)), color-mix(in oklab, var(--brand-burgundy-500, #C9627F) 18%, var(--color-surface-soft)));
+}
+.achievementBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.achievementBody strong {
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+}
+.achievementBody small {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+}
+.achievementMark {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--brand-gold-500, #D6A84E);
+  color: var(--brand-ink-900, #14101D);
+  font-size: 12px;
+  font-weight: var(--fw-black);
+  display: grid;
+  place-items: center;
+}
+
 .settingsLinks {
   display: flex;
   flex-direction: column;
