@@ -58,6 +58,15 @@ export default function InvitePage() {
     minute: '2-digit',
   })
 
+  const nowMs = Date.now()
+  const diffMs = start.getTime() - nowMs
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const countdownLabel =
+    diffMs < 0 ? '진행 중'
+    : diffMs < 2 * 60 * 60 * 1000 ? '곧 시작'
+    : diffDays === 0 ? '오늘 시작'
+    : `D-${diffDays}`
+
   const handleJoin = () => {
     if (!me) {
       toast.show('로그인하고 합류해요', 'info')
@@ -104,7 +113,10 @@ export default function InvitePage() {
               <div className={styles.emoji} aria-hidden="true">
                 {cat.emoji}
               </div>
-              <p className={styles.kicker}>친구가 모임에 초대했어요</p>
+              <div className={styles.kickerRow}>
+                <p className={styles.kicker}>친구가 모임에 초대했어요</p>
+                <span className={styles.countdown}>{countdownLabel}</span>
+              </div>
               <h1 className={styles.title}>{data.title}</h1>
               <div className={styles.metaRow}>
                 <span className={styles.metaItem}>

@@ -17,6 +17,8 @@
   font-size: var(--fs-sm);
   line-height: var(--lh-relaxed);
 }
+.count { font-size: var(--fs-sm); color: var(--color-text-muted); font-weight: var(--fw-normal); }
+.search { margin-bottom: var(--space-4); }
 .list {
   display: flex;
   flex-direction: column;
