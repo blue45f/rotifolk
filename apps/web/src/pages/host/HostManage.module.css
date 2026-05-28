@@ -167,3 +167,35 @@
   outline: none;
   border-color: var(--color-primary);
 }
+
+.ordersHead { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-5); }
+
+.orderSection { margin-top: var(--space-6); }
+.orderSectionHead { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
+.orderCount { font-size: var(--fs-xs); color: var(--color-text-muted); font-weight: var(--fw-semibold); }
+
+.orderList { display: flex; flex-direction: column; gap: var(--space-3); }
+
+.orderCard {
+  padding: var(--space-4);
+  background: var(--color-surface-soft);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.orderCardDone { opacity: 0.6; }
+
+.orderCardHead { display: flex; align-items: center; justify-content: space-between; }
+.orderSeat { font-weight: var(--fw-semibold); font-size: var(--fs-sm); }
+.orderTime { font-size: var(--fs-xs); color: var(--color-text-muted); font-family: var(--font-mono); }
+
+.orderItems { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.orderItem { display: flex; align-items: center; gap: var(--space-2); font-size: var(--fs-sm); }
+.orderItemQty { color: var(--color-text-muted); font-size: var(--fs-xs); }
+.orderItemPrice { margin-left: auto; font-weight: var(--fw-semibold); }
+
+.orderTotal { font-weight: var(--fw-bold); font-size: var(--fs-md); color: var(--color-text); text-align: right; }
+.orderNote { font-size: var(--fs-xs); color: var(--color-text-muted); font-style: italic; }
+.orderActions { display: flex; gap: var(--space-2); margin-top: var(--space-2); }
