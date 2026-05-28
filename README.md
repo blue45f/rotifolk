@@ -118,6 +118,17 @@ pnpm dev:mock        # web만 :5173, MSW로 /api/* 인터셉트
 
 Force-push와 브랜치 삭제는 차단되며, squash-merge 후 feature 브랜치는 자동 삭제됩니다.
 
+## ✅ PR 규칙
+
+- PR 제목은 Conventional Commits 규칙을 따릅니다.
+- PR 본문은 `.github/PULL_REQUEST_TEMPLATE.md`의 체크리스트와 함께 아래를 남깁니다.
+  - 핵심 변경 요약 및 영향 범위
+  - `pnpm run verify` 로그, 실패 시 재현 명령, 롤백 포인트
+  - API 계약/데이터 마이그레이션/시각적 변경에 대한 검증 증거
+- 동일 PR에서 필수 항목이 `skipped` 상태이면 병합을 보류하고 사유와 재실행 계획을 기록합니다.
+- CodeRabbit이 활성화된 PR은 최신 head SHA 기준 `APPROVED`가 필요합니다.
+- CodeRabbit이 없는 PR은 최소 1인 이상 사람 리뷰 승인 조건을 충족합니다.
+
 ## 📝 라이선스
 
 Private — 2026 Rotifolk.
