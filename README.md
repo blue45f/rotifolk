@@ -109,6 +109,15 @@ pnpm dev:mock        # web만 :5173, MSW로 /api/* 인터셉트
 - `apps/api` — NestJS 서버 ([README](apps/api/README.md))
 - `packages/shared` — 공유 타입/스키마/매칭 로직 ([README](packages/shared/README.md))
 
+## ✅ 머지 게이트
+
+`main` 브랜치는 다음 두 검사가 모두 통과해야 머지할 수 있어요:
+
+1. **Typecheck · Test · Build** — GitHub Actions에서 lint/typecheck/test/build를 일괄 검증
+2. **CodeRabbit** — AI 코드 리뷰가 결정적 이슈를 표시하지 않을 때만 통과
+
+Force-push와 브랜치 삭제는 차단되며, squash-merge 후 feature 브랜치는 자동 삭제됩니다.
+
 ## 📝 라이선스
 
 Private — 2026 Rotifolk.
