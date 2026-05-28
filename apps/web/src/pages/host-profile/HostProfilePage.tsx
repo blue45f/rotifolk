@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
 import { computeHostLevel } from '@rotifolk/shared'
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { Avatar } from '@components/ui/Avatar/Avatar'
@@ -109,14 +111,17 @@ export default function HostProfilePage() {
           </div>
         </div>
         {!isSelf && me && (
-          <Button
-            variant={isFollowing ? 'soft' : 'primary'}
-            size="lg"
-            onClick={() => toggleFollow.mutate()}
-            isLoading={toggleFollow.isPending}
-          >
-            {isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
-          </Button>
+          <div className={styles.headActions}>
+            <Button
+              variant={isFollowing ? 'soft' : 'primary'}
+              size="lg"
+              onClick={() => toggleFollow.mutate()}
+              isLoading={toggleFollow.isPending}
+            >
+              {isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
+            </Button>
+            <SafetyMenu targetUserId={user.id} targetNickname={user.nickname} />
+          </div>
         )}
       </header>
 
@@ -218,5 +223,177 @@ function HostIntroSlot({ hostId, isSelf }: { hostId: string; isSelf: boolean }) 
         )}
       </Card>
     </section>
+  )
+}
+
+type ReportKind = 'harassment' | 'spam' | 'inappropriate' | 'other'
+const REPORT_KINDS: { value: ReportKind; label: string }[] = [
+  { value: 'harassment', label: '괴롭힘 · 불쾌한 언동' },
+  { value: 'spam', label: '스팸 · 홍보' },
+  { value: 'inappropriate', label: '부적절한 콘텐츠' },
+  { value: 'other', label: '기타' },
+]
+
+function SafetyMenu({ targetUserId, targetNickname }: { targetUserId: string; targetNickname: string }) {
+  const qc = useQueryClient()
+  const toast = useToast()
+  const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState<'menu' | 'report'>('menu')
+  const [kind, setKind] = useState<ReportKind>('harassment')
+  const [reason, setReason] = useState('')
+
+  const { data: blocks } = useQuery({
+    queryKey: ['blocks', 'me'],
+    queryFn: () => api.get<Array<{ id: string }>>('blocks'),
+  })
+  const isBlocked = blocks?.some((b) => b.id === targetUserId) ?? false
+
+  const block = useMutation({
+    mutationFn: () => api.post(`blocks/${targetUserId}`, {}),
+    onSuccess: () => {
+      toast.show(`${targetNickname}님을 차단했어요`, 'success')
+      qc.invalidateQueries({ queryKey: ['blocks'] })
+      setOpen(false)
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
+
+  const unblock = useMutation({
+    mutationFn: () => api.delete(`blocks/${targetUserId}`),
+    onSuccess: () => {
+      toast.show(`차단을 해제했어요`, 'success')
+      qc.invalidateQueries({ queryKey: ['blocks'] })
+      setOpen(false)
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
+
+  const report = useMutation({
+    mutationFn: () =>
+      api.post('reports', {
+        targetUserId,
+        kind,
+        body: reason.trim(),
+      }),
+    onSuccess: () => {
+      toast.show('신고가 접수됐어요. 검토 후 처리할게요.', 'success')
+      setReason('')
+      setMode('menu')
+      setOpen(false)
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
+
+  const close = () => {
+    setOpen(false)
+    setMode('menu')
+    setReason('')
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className={styles.moreBtn}
+        onClick={() => setOpen(true)}
+        aria-label="더보기"
+        title="더보기"
+      >
+        ⋯
+      </button>
+      <Sheet
+        open={open}
+        onClose={close}
+        title={mode === 'menu' ? '안전 옵션' : '신고하기'}
+        description={mode === 'menu' ? `${targetNickname}님에 대해` : '관리자가 검토할 수 있도록 자세히 적어 주세요'}
+        size="sm"
+        variant={mode === 'menu' ? 'sheet' : 'modal'}
+      >
+        {mode === 'menu' ? (
+          <div className={styles.safetyList}>
+            {isBlocked ? (
+              <button
+                type="button"
+                className={styles.safetyAction}
+                onClick={() => unblock.mutate()}
+                disabled={unblock.isPending}
+              >
+                <span>✅</span>
+                <span className={styles.safetyBody}>
+                  <strong>차단 해제</strong>
+                  <small>다시 모임에서 만날 수 있게 돼요</small>
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.safetyAction}
+                onClick={() => {
+                  if (confirm(`${targetNickname}님을 차단할까요? 같은 모임에서 만나지 않게 됩니다.`)) block.mutate()
+                }}
+                disabled={block.isPending}
+              >
+                <span>🚫</span>
+                <span className={styles.safetyBody}>
+                  <strong>차단하기</strong>
+                  <small>같은 모임에서 만나지 않도록 양방향 회피</small>
+                </span>
+              </button>
+            )}
+            <button
+              type="button"
+              className={styles.safetyAction}
+              onClick={() => setMode('report')}
+            >
+              <span>🚨</span>
+              <span className={styles.safetyBody}>
+                <strong>신고하기</strong>
+                <small>괴롭힘 · 스팸 · 부적절한 콘텐츠</small>
+              </span>
+            </button>
+          </div>
+        ) : (
+          <div className={styles.safetyForm}>
+            <fieldset className={styles.kindRow}>
+              <legend className={styles.kindLegend}>신고 유형</legend>
+              {REPORT_KINDS.map((k) => (
+                <label key={k.value} className={`${styles.kindChip} ${kind === k.value ? styles.kindChipActive : ''}`}>
+                  <input
+                    type="radio"
+                    name="report-kind"
+                    value={k.value}
+                    checked={kind === k.value}
+                    onChange={() => setKind(k.value)}
+                  />
+                  {k.label}
+                </label>
+              ))}
+            </fieldset>
+            <label className={styles.reasonField}>
+              <span>자세한 내용</span>
+              <textarea
+                className={styles.reasonTextarea}
+                value={reason}
+                onChange={(e) => setReason(e.target.value.slice(0, 1000))}
+                placeholder="어떤 일이 있었는지 적어 주세요 (최대 1000자)"
+                rows={5}
+              />
+              <small>{reason.length} / 1000</small>
+            </label>
+            <div className={styles.safetyFormActions}>
+              <Button variant="ghost" onClick={() => setMode('menu')}>뒤로</Button>
+              <Button
+                variant="primary"
+                onClick={() => report.mutate()}
+                isLoading={report.isPending}
+                disabled={reason.trim().length < 5}
+              >
+                신고 접수
+              </Button>
+            </div>
+          </div>
+        )}
+      </Sheet>
+    </>
   )
 }

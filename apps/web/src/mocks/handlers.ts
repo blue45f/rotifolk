@@ -102,6 +102,12 @@ export const handlers = [
   // Payments (empty by default in mock mode)
   http.get(`${API}/payments/me`, async () => HttpResponse.json(await delay([]))),
 
+  // Safety (empty list of blocks by default; reports succeed)
+  http.get(`${API}/blocks`, async () => HttpResponse.json(await delay([]))),
+  http.post(`${API}/blocks/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.delete(`${API}/blocks/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.post(`${API}/reports`, async () => HttpResponse.json(await delay({ id: 'mock-report', status: 'open' }))),
+
   // Orders / split
   http.get(`${API}/orders/party/:id/split`, async ({ request }) => {
     const url = new URL(request.url)

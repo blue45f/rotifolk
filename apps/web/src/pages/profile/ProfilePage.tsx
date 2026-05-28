@@ -282,6 +282,10 @@ export default function ProfilePage() {
                   <span>👥 팔로잉</span>
                   <span aria-hidden="true">→</span>
                 </Link>
+                <Link to="/me/blocks" className={styles.settingsLink}>
+                  <span>🚫 차단한 사용자</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
               </div>
               <div className={styles.divider} />
               <Button variant="ghost" onClick={() => logout()}>
