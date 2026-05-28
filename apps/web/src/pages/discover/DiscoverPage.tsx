@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { PartyCategory } from '@rotifolk/shared'
 import { SEOUL_AREAS, haversineKm } from '@rotifolk/shared'
@@ -6,10 +6,14 @@ import { useParties } from '@features/parties/queries'
 import { PartyCard } from '@features/parties/PartyCard'
 import { ALL_CATEGORIES } from '@features/categories/meta'
 import { useGeolocation } from '@features/geo/useGeolocation'
+import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import styles from './DiscoverPage.module.css'
+
+const PAGE_INCREMENT = 20
+const MAX_PAGE_SIZE = 50
 
 type SortKey = 'soonest' | 'popular' | 'nearby'
 
@@ -28,6 +32,8 @@ export default function DiscoverPage() {
 
   const sort = (params.get('sort') as SortKey | null) ?? 'soonest'
 
+  const [pageSize, setPageSize] = useState(PAGE_INCREMENT)
+
   const query = useMemo(
     () => ({
       category: category ?? undefined,
@@ -35,10 +41,11 @@ export default function DiscoverPage() {
       date: date ?? undefined,
       tag: tag ?? undefined,
       status: 'open' as const,
+      pageSize,
     }),
-    [category, area, date, tag],
+    [category, area, date, tag, pageSize],
   )
-  const { data, isLoading } = useParties(query)
+  const { data, isLoading, isFetching } = useParties(query)
   const geo = useGeolocation()
 
   const sortedItems = useMemo(() => {
@@ -169,6 +176,18 @@ export default function DiscoverPage() {
                 <PartyCard key={p.id} party={p} />
               ))}
             </div>
+            {data.hasNext && pageSize < MAX_PAGE_SIZE && (
+              <div className={styles.loadMore}>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  isLoading={isFetching}
+                  onClick={() => setPageSize((n) => Math.min(MAX_PAGE_SIZE, n + PAGE_INCREMENT))}
+                >
+                  더 보기 ({data.total - data.items.length}개 남음)
+                </Button>
+              </div>
+            )}
           </>
         )}
       </section>
