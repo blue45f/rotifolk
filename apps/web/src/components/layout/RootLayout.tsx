@@ -4,6 +4,7 @@ import { Header } from './Header'
 import { BottomNav } from './BottomNav'
 import { useApplyTheme } from '@store/themeStore'
 import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
+import OnboardingSheet from '@features/onboard/OnboardingSheet'
 import styles from './RootLayout.module.css'
 
 export default function RootLayout() {
@@ -27,6 +28,7 @@ export default function RootLayout() {
         <Outlet />
       </main>
       {!isLive && <BottomNav />}
+      {!isLive && <OnboardingSheet />}
     </div>
   )
 }

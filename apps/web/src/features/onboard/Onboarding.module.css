@@ -1,0 +1,41 @@
+.slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+.emoji {
+  font-size: 4rem;
+  filter: drop-shadow(0 12px 24px color-mix(in oklab, var(--brand-burgundy-900) 30%, transparent));
+}
+.title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
+  white-space: pre-line;
+}
+.body {
+  color: var(--color-text-muted);
+  line-height: var(--lh-relaxed);
+  max-width: 36ch;
+}
+.dots {
+  display: inline-flex;
+  gap: 6px;
+  margin-top: var(--space-3);
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+  transition: background var(--dur-fast) var(--ease-out-quart),
+              width var(--dur-fast) var(--ease-spring);
+}
+.dotActive {
+  width: 22px;
+  background: var(--color-primary);
+}

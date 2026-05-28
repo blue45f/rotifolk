@@ -74,20 +74,36 @@ export default function HomePage() {
       </section>
 
       {nowParties && nowParties.length > 0 && (
-        <section className={`container ${styles.section}`} aria-labelledby="now-title">
-          <header className={styles.sectionHead}>
-            <h2 id="now-title" className={styles.sectionTitle}>
+        <>
+          <div className={styles.tickerStrip} role="status" aria-label="지금 진행 중인 파티">
+            <span className={styles.tickerLabel}>
               <span className={styles.liveDot} aria-hidden="true" />
-              지금 진행 중
-            </h2>
-            <Link to="/discover?status=live" className={styles.sectionAction}>전체 보기 →</Link>
-          </header>
-          <div className={styles.partyGrid}>
-            {nowParties.slice(0, 3).map((p) => (
-              <PartyCard key={p.id} party={p} />
-            ))}
+              LIVE
+            </span>
+            <div className={styles.tickerTrack}>
+              {[...nowParties, ...nowParties].map((p, i) => (
+                <Link to={`/parties/${p.id}`} key={`${p.id}-${i}`} className={styles.tickerItem}>
+                  <strong>{p.title}</strong>
+                  <span>· {p.venueArea} · {p.currentParticipants}/{p.maxParticipants}명</span>
+                </Link>
+              ))}
+            </div>
           </div>
-        </section>
+          <section className={`container ${styles.section}`} aria-labelledby="now-title">
+            <header className={styles.sectionHead}>
+              <h2 id="now-title" className={styles.sectionTitle}>
+                <span className={styles.liveDot} aria-hidden="true" />
+                지금 진행 중
+              </h2>
+              <Link to="/discover?status=live" className={styles.sectionAction}>전체 보기 →</Link>
+            </header>
+            <div className={styles.partyGrid}>
+              {nowParties.slice(0, 3).map((p) => (
+                <PartyCard key={p.id} party={p} />
+              ))}
+            </div>
+          </section>
+        </>
       )}
 
       <section className={`container ${styles.section}`} aria-labelledby="cats-title">
