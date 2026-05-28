@@ -60,6 +60,7 @@ model User {
   followers         Follow[]           @relation("FollowingRel")
   savedParties      SavedParty[]       @relation("SavedByUser")
   partyPhotos       PartyPhoto[]       @relation("PhotosUploaded")
+  photoLikes        PhotoLike[]        @relation("PhotoLikes")
   notifications     Notification[]     @relation("UserNotifications")
   hostApplications  HostApplication[]  @relation("HostApplications")
   payments          Payment[]          @relation("UserPayments")
@@ -488,7 +489,19 @@ model PartyPhoto {
   url       String
   caption   String?
   createdAt DateTime @default(now())
+  likes     PhotoLike[]
   @@index([partyId, createdAt])
+}
+
+model PhotoLike {
+  id      String @id @default(cuid())
+  photoId String
+  photo   PartyPhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User @relation("PhotoLikes", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([photoId, userId])
+  @@index([photoId])
 }
 
 // ======================== REFERRAL ========================

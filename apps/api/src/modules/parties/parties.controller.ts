@@ -70,6 +70,12 @@ export class PartiesController {
     return this.parties.hostedParties(me.sub)
   }
 
+  @Get('me/match-cards')
+  @UseGuards(AuthGuard('jwt'))
+  myMatchCards(@CurrentUser() me: JwtUserPayload) {
+    return this.parties.getMyMatchCards(me.sub)
+  }
+
   @Get('happening-now')
   happeningNow() {
     return this.parties.happeningNow()
