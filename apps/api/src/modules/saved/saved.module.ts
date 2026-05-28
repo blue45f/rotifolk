@@ -23,7 +23,7 @@ class SavedController {
       where: { userId: me.sub },
       include: {
         party: {
-          include: { venue: true, _count: { select: { participations: true } } },
+          include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
         },
       },
       orderBy: { createdAt: 'desc' },
