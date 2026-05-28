@@ -154,6 +154,7 @@ export default function ProfilePage() {
             { value: 'upcoming', label: `다가오는 (${upcoming?.length ?? 0})` },
             { value: 'saved', label: `저장 (${savedItems?.length ?? 0})` },
             { value: 'past', label: `지난 (${past?.length ?? 0})` },
+            { value: 'reviews', label: '받은 후기' },
             { value: 'settings', label: '설정' },
           ]}
           value={tab}
@@ -210,6 +211,8 @@ export default function ProfilePage() {
             <EmptyState emoji="🌙" title="아직 지난 파티가 없어요" />
           )
         )}
+
+        {tab === 'reviews' && <ReceivedReviews userId={user.id} />}
 
         {tab === 'settings' && (
           <>
@@ -330,5 +333,66 @@ export default function ProfilePage() {
         </div>
       </Sheet>
     </div>
+  )
+}
+
+interface HostReview {
+  id: string
+  rating: number
+  body: string
+  anonymous: boolean
+  tags: string[]
+  hostReply: string | null
+  hostRepliedAt: string | null
+  createdAt: string
+}
+
+function ReceivedReviews({ userId }: { userId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['user-reviews', userId],
+    queryFn: () =>
+      api.get<{ averageRating: number; count: number; reviews: HostReview[] }>(
+        `users/${userId}/reviews`,
+      ),
+  })
+  if (isLoading) return <Loading />
+  if (!data || data.count === 0)
+    return (
+      <EmptyState
+        emoji="⭐"
+        title="아직 받은 후기가 없어요"
+        description="모임을 호스팅하거나 참가하면 후기가 여기 모여요."
+      />
+    )
+  return (
+    <Card padding="lg">
+      <div className={styles.reviewSummary}>
+        <strong className={styles.reviewAvg}>{data.averageRating.toFixed(1)}</strong>
+        <span className={styles.reviewStars} aria-label={`${data.averageRating}점`}>
+          {'★'.repeat(Math.round(data.averageRating))}
+          {'☆'.repeat(5 - Math.round(data.averageRating))}
+        </span>
+        <span>총 {data.count}개 후기</span>
+      </div>
+      <ul className={styles.reviewList}>
+        {data.reviews.map((r) => (
+          <li key={r.id}>
+            <div className={styles.reviewHead}>
+              <span className={styles.reviewStars}>
+                {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+              </span>
+              <time>{new Date(r.createdAt).toLocaleDateString('ko-KR')}</time>
+            </div>
+            <p>{r.body}</p>
+            {r.hostReply && (
+              <div className={styles.reviewReply}>
+                <strong>🎙️ 내 답글</strong>
+                <p>{r.hostReply}</p>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Card>
   )
 }
