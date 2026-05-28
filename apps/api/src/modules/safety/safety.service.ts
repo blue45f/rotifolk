@@ -85,7 +85,7 @@ export class SafetyService {
   }) {
     if (input.rating < 1 || input.rating > 5)
       throw new BadRequestException({ code: 'invalid_rating', message: '별점은 1~5 사이' })
-    return this.prisma.review.create({
+    const review = await this.prisma.review.create({
       data: {
         fromUserId: input.fromUserId,
         partyId: input.partyId ?? null,
@@ -96,6 +96,18 @@ export class SafetyService {
         tagsJson: toJsonString(input.tags ?? []),
       },
     })
+    if (input.targetUserId) {
+      await this.prisma.notification.create({
+        data: {
+          userId: input.targetUserId,
+          kind: 'host_review',
+          title: `별점 ${'★'.repeat(input.rating)} 후기가 달렸어요`,
+          body: input.body.slice(0, 60) + (input.body.length > 60 ? '…' : ''),
+          link: `/hosts/${input.targetUserId}`,
+        },
+      }).catch(() => undefined)
+    }
+    return review
   }
 
   async listReviewsForParty(partyId: string) {

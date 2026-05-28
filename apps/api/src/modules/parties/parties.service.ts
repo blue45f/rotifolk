@@ -357,6 +357,15 @@ export class PartiesService {
       if (newCount >= party.maxParticipants) {
         await this.prisma.party.update({ where: { id: partyId }, data: { status: 'full' } })
       }
+      await this.prisma.notification.create({
+        data: {
+          userId: party.hostId,
+          kind: 'party_join',
+          title: '새 참가자',
+          body: `${created.user?.nickname ?? '참가자'}님이 ${party.title}에 참가 신청했어요.`,
+          link: `/host/parties/${partyId}`,
+        },
+      }).catch(() => undefined)
     }
 
     return toParticipation(created)
