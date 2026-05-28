@@ -33,6 +33,23 @@
   font-size: var(--fs-xs);
   white-space: nowrap;
 }
+.rowUnread {
+  background: color-mix(in oklab, var(--brand-burgundy-50, #FBEEF1) 60%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--brand-burgundy-700, #7A1F3D) 22%, var(--color-border));
+}
+.rowLastUnread {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+}
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-burgundy-700, #7A1F3D);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-burgundy-700, #7A1F3D) 18%, transparent);
+  flex-shrink: 0;
+  margin-left: auto;
+}
 
 .roomWrap {
   position: fixed;

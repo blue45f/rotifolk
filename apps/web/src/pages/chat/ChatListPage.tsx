@@ -39,15 +39,18 @@ export default function ChatListPage() {
               ? `💌 ${counterpart?.nickname ?? '매칭'}`
               : `🍷 ${room.title ?? '파티'}`
           const last = room.lastMessage
+          const lastAt = last ? new Date(last.createdAt) : null
+          const readAt = room.lastReadAt ? new Date(room.lastReadAt) : null
+          const isUnread = !!(lastAt && (!readAt || lastAt > readAt))
           return (
             <li key={room.id}>
-              <Link to={`/chats/${room.id}`} className={styles.row}>
+              <Link to={`/chats/${room.id}`} className={`${styles.row} ${isUnread ? styles.rowUnread : ''}`}>
                 <Avatar
                   size="lg"
                   hue={room.kind === 'pair' ? '#C9627F' : '#7A1F3D'}
                   pattern="gradient"
                   emoji={room.kind === 'pair' ? '💌' : '🍷'}
-                  ring="soft"
+                  ring={isUnread ? 'glow' : 'soft'}
                 />
                 <div className={styles.rowBody}>
                   <div className={styles.rowHead}>
@@ -57,8 +60,9 @@ export default function ChatListPage() {
                         {room.partyTitle}
                       </Badge>
                     )}
+                    {isUnread && <span className={styles.unreadDot} aria-label="안 읽음" />}
                   </div>
-                  <p className={styles.rowLast}>
+                  <p className={`${styles.rowLast} ${isUnread ? styles.rowLastUnread : ''}`}>
                     {last
                       ? last.body.length > 60
                         ? last.body.slice(0, 60) + '…'

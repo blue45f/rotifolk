@@ -13,6 +13,11 @@ export class ChatController {
     return this.chat.listMyRooms(me.sub)
   }
 
+  @Get('unread-count')
+  unreadCount(@CurrentUser() me: JwtUserPayload) {
+    return this.chat.unreadCount(me.sub)
+  }
+
   @Get('rooms/:roomId/messages')
   messages(
     @CurrentUser() me: JwtUserPayload,

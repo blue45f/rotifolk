@@ -157,6 +157,36 @@ export class ChatService {
     }
   }
 
+  async unreadCount(userId: string) {
+    const memberships = await this.prisma.chatMembership.findMany({
+      where: { userId },
+      select: {
+        roomId: true,
+        lastReadAt: true,
+        room: { select: { lastMessageAt: true } },
+      },
+    })
+    let rooms = 0
+    let count = 0
+    for (const m of memberships) {
+      const lastMsg = m.room.lastMessageAt
+      if (!lastMsg) continue
+      if (!m.lastReadAt || lastMsg > m.lastReadAt) {
+        rooms += 1
+        // Compute exact message count newer than lastReadAt
+        const c = await this.prisma.chatMessage.count({
+          where: {
+            roomId: m.roomId,
+            userId: { not: userId },
+            ...(m.lastReadAt ? { createdAt: { gt: m.lastReadAt } } : {}),
+          },
+        })
+        count += c
+      }
+    }
+    return { count, rooms }
+  }
+
   async markRead(userId: string, roomId: string) {
     await this.assertMember(userId, roomId)
     await this.prisma.chatMembership.update({
