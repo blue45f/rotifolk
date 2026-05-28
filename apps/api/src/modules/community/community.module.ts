@@ -79,6 +79,9 @@ class CommunityController {
       }),
       this.prisma.review.findMany({
         where: { targetUserId: id },
+        include: {
+          fromUser: { select: { id: true, nickname: true, avatarId: true } },
+        },
         orderBy: { createdAt: 'desc' },
         take: 20,
       }),
@@ -94,6 +97,20 @@ class CommunityController {
         averageRating: Math.round(avgRating * 10) / 10,
         reviewCount: reviews.length,
       },
+      reviews: reviews.map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        body: r.body,
+        anonymous: r.anonymous,
+        tagsJson: r.tagsJson,
+        hostReply: r.hostReply,
+        createdAt: r.createdAt.toISOString(),
+        fromUser: r.anonymous
+          ? null
+          : r.fromUser
+            ? { id: r.fromUser.id, nickname: r.fromUser.nickname, avatarId: r.fromUser.avatarId }
+            : null,
+      })),
       recentParties: hostedParties.map((p) => ({
         id: p.id,
         title: p.title,

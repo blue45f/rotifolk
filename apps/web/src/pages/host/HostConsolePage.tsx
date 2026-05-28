@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useHostedParties } from '@features/parties/queries'
@@ -5,10 +6,13 @@ import { useAuthStore } from '@store/authStore'
 import { PartyCard } from '@features/parties/PartyCard'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
+import { Chip } from '@components/ui/Chip/Chip'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { api } from '@services/api'
 import styles from './HostConsole.module.css'
+
+type StatusFilter = 'all' | 'live' | 'open' | 'ended'
 
 interface HostRevenueSummary {
   totalKRW: number
@@ -24,6 +28,7 @@ interface HostRevenueSummary {
 
 export default function HostConsolePage() {
   const user = useAuthStore((s) => s.user)
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const { data, isLoading } = useHostedParties()
   const { data: revenue } = useQuery({
     queryKey: ['payments', 'host', 'summary'],
@@ -35,6 +40,13 @@ export default function HostConsolePage() {
   const total = data?.length ?? 0
   const live = data?.filter((p) => p.status === 'live').length ?? 0
   const open = data?.filter((p) => p.status === 'open').length ?? 0
+
+  const filteredParties = statusFilter === 'all'
+    ? (data ?? [])
+    : (data ?? []).filter((p) => {
+        if (statusFilter === 'ended') return p.status !== 'live' && p.status !== 'open'
+        return p.status === statusFilter
+      })
 
   return (
     <div className={styles.page}>
@@ -128,13 +140,25 @@ export default function HostConsolePage() {
             }
           />
         ) : (
-          <div className={styles.grid}>
-            {data.map((p) => (
-              <Link key={p.id} to={`/host/parties/${p.id}`} className={styles.cardLink}>
-                <PartyCard party={p} />
-              </Link>
-            ))}
-          </div>
+          <>
+            <div className={styles.filterRow} role="group" aria-label="파티 상태 필터">
+              <Chip selected={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>전체</Chip>
+              <Chip selected={statusFilter === 'live'} onClick={() => setStatusFilter('live')} leadingEmoji="🔴">진행 중</Chip>
+              <Chip selected={statusFilter === 'open'} onClick={() => setStatusFilter('open')} leadingEmoji="🌙">모집 중</Chip>
+              <Chip selected={statusFilter === 'ended'} onClick={() => setStatusFilter('ended')} leadingEmoji="🏁">지난 파티</Chip>
+            </div>
+            {filteredParties.length === 0 ? (
+              <p className={styles.filterEmpty}>이 상태의 파티가 없어요.</p>
+            ) : (
+              <div className={styles.grid}>
+                {filteredParties.map((p) => (
+                  <Link key={p.id} to={`/host/parties/${p.id}`} className={styles.cardLink}>
+                    <PartyCard party={p} />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

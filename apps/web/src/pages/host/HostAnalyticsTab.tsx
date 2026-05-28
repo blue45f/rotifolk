@@ -45,6 +45,7 @@ export default function HostAnalyticsTab({ participants }: Props) {
     let mbtiE = 0
     let mbtiI = 0
     const nowYear = new Date().getFullYear()
+    const interestMap = new Map<string, number>()
 
     for (const p of participants) {
       const ext = readExtended(p.user)
@@ -58,7 +59,16 @@ export default function HostAnalyticsTab({ participants }: Props) {
         if (mbti[0] === 'E') mbtiE++
         else if (mbti[0] === 'I') mbtiI++
       }
+      const interests: string[] = p.user?.interests ?? []
+      for (const tag of interests) {
+        interestMap.set(tag, (interestMap.get(tag) ?? 0) + 1)
+      }
     }
+
+    const topInterests = [...interestMap.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([tag, count]) => ({ tag, count }))
 
     const genderKnown = male + female
     const malePct = genderKnown > 0 ? Math.round((male / genderKnown) * 100) : 0
@@ -92,6 +102,7 @@ export default function HostAnalyticsTab({ participants }: Props) {
       mbtiI,
       mbtiKnown,
       ePct,
+      topInterests,
     }
   }, [participants])
 
@@ -230,6 +241,26 @@ export default function HostAnalyticsTab({ participants }: Props) {
           )}
         </article>
       </div>
+
+      {stats.topInterests.length > 0 && (
+        <article className={styles.interestsCard} aria-label="참가자 관심사">
+          <span className={styles.label}>참가자 관심사 TOP {stats.topInterests.length}</span>
+          <ul className={styles.interestList}>
+            {stats.topInterests.map(({ tag, count }) => (
+              <li key={tag} className={styles.interestRow}>
+                <span className={styles.interestTag}>{tag}</span>
+                <div className={styles.barTrack} style={{ flex: 1 }}>
+                  <div
+                    className={`${styles.barFill} ${styles.gold}`}
+                    style={{ width: `${pct(count, stats.topInterests[0].count)}%` }}
+                  />
+                </div>
+                <span className={styles.interestCount}>{count}</span>
+              </li>
+            ))}
+          </ul>
+        </article>
+      )}
     </section>
   )
 }
