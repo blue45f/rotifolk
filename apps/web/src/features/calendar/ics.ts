@@ -1,5 +1,7 @@
 /** Minimal RFC 5545 VEVENT generator for "Add to Calendar" downloads. */
 
+const CRLF = '\r\n'
+
 interface IcsEvent {
   uid: string
   title: string
@@ -12,6 +14,9 @@ interface IcsEvent {
 
 function toUtc(d: string | Date): string {
   const date = typeof d === 'string' ? new Date(d) : d
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Invalid date passed to buildIcs: ${String(d)}`)
+  }
   const pad = (n: number) => String(n).padStart(2, '0')
   return (
     date.getUTCFullYear().toString() +
@@ -25,24 +30,33 @@ function toUtc(d: string | Date): string {
   )
 }
 
-function escape(text: string): string {
+function escapeText(text: string): string {
   return text
     .replace(/\\/g, '\\\\')
-    .replace(/\n/g, '\\n')
+    .replace(/\r\n|\r|\n/g, '\\n')
     .replace(/,/g, '\\,')
     .replace(/;/g, '\\;')
 }
 
 /** Fold long lines to ≤ 75 octets per RFC 5545 §3.1. */
 function fold(line: string): string {
-  if (line.length <= 75) return line
+  const encoder = new TextEncoder()
+  const bytes = encoder.encode(line)
+  if (bytes.length <= 75) return line
+
+  const decoder = new TextDecoder()
   const chunks: string[] = []
-  let i = 0
-  while (i < line.length) {
-    chunks.push(line.slice(i, i + 75))
-    i += 75
+  let start = 0
+  while (start < bytes.length) {
+    const limit = start === 0 ? 75 : 74
+    let end = Math.min(start + limit, bytes.length)
+    while (end > start && end < bytes.length && (bytes[end] & 0b1100_0000) === 0b1000_0000) {
+      end -= 1
+    }
+    chunks.push(decoder.decode(bytes.subarray(start, end)))
+    start = end
   }
-  return chunks.join('\r\n ')
+  return chunks.join(`${CRLF} `)
 }
 
 export function buildIcs(ev: IcsEvent): string {
@@ -57,13 +71,13 @@ export function buildIcs(ev: IcsEvent): string {
     `DTSTAMP:${toUtc(new Date())}`,
     `DTSTART:${toUtc(ev.startAt)}`,
     `DTEND:${toUtc(ev.endAt)}`,
-    fold(`SUMMARY:${escape(ev.title)}`),
+    fold(`SUMMARY:${escapeText(ev.title)}`),
   ]
-  if (ev.description) lines.push(fold(`DESCRIPTION:${escape(ev.description)}`))
-  if (ev.location) lines.push(fold(`LOCATION:${escape(ev.location)}`))
+  if (ev.description) lines.push(fold(`DESCRIPTION:${escapeText(ev.description)}`))
+  if (ev.location) lines.push(fold(`LOCATION:${escapeText(ev.location)}`))
   if (ev.url) lines.push(fold(`URL:${ev.url}`))
   lines.push('END:VEVENT', 'END:VCALENDAR')
-  return lines.join('\r\n')
+  return lines.join(CRLF) + CRLF
 }
 
 export function downloadIcs(filename: string, ics: string) {

@@ -28,7 +28,10 @@ export function usePwaInstall() {
       e.preventDefault()
       setEvent(e as BeforeInstallPromptEvent)
     }
-    const onInstalled = () => setInstalled(true)
+    const onInstalled = () => {
+      setInstalled(true)
+      setEvent(null)
+    }
     window.addEventListener('beforeinstallprompt', onPrompt)
     window.addEventListener('appinstalled', onInstalled)
     return () => {
@@ -40,13 +43,18 @@ export function usePwaInstall() {
   const canInstall = !!event && !installed && !dismissed
   const install = async () => {
     if (!event) return
-    await event.prompt()
-    const { outcome } = await event.userChoice
-    if (outcome === 'accepted') setInstalled(true)
-    setEvent(null)
+
+    try {
+      await event.prompt()
+      const { outcome } = await event.userChoice
+      if (outcome === 'accepted') setInstalled(true)
+    } finally {
+      setEvent(null)
+    }
   }
   const dismiss = () => {
     setDismissed(true)
+    setEvent(null)
     try { localStorage.setItem(DISMISSED_KEY, String(Date.now())) } catch {}
   }
   return { canInstall, install, dismiss }

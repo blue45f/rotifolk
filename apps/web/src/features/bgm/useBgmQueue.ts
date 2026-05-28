@@ -17,6 +17,28 @@ const STORAGE_PREFIX = 'rotifolk-bgm-'
 const storageKey = (partyId: string | undefined) =>
   partyId ? `${STORAGE_PREFIX}${partyId}` : `${STORAGE_PREFIX}_unknown`
 
+function isTrack(value: unknown): value is BgmTrack {
+  const candidate = value as Partial<BgmTrack>
+  return (
+    typeof candidate?.id === 'string' &&
+    candidate.id.trim().length > 0 &&
+    typeof candidate?.title === 'string' &&
+    candidate.title.trim().length > 0 &&
+    typeof candidate?.url === 'string' &&
+    candidate.url.trim().length > 0 &&
+    typeof candidate?.addedBy === 'string' &&
+    candidate.addedBy.trim().length > 0
+  )
+}
+
+function normalizeCurrent(value: unknown, length: number): number {
+  if (length <= 0) return 0
+  const idx = Number(value)
+  if (!Number.isFinite(idx)) return 0
+  const int = Number.isInteger(idx) ? idx : Math.trunc(idx)
+  return Math.max(1, Math.min(int, length))
+}
+
 function readCache(partyId: string | undefined): PersistedState {
   if (!partyId) return { tracks: [], current: 0 }
   try {
@@ -24,8 +46,14 @@ function readCache(partyId: string | undefined): PersistedState {
     if (!raw) return { tracks: [], current: 0 }
     const obj = JSON.parse(raw) as PersistedState
     if (!Array.isArray(obj?.tracks)) return { tracks: [], current: 0 }
-    const current = typeof obj.current === 'number' ? obj.current : 0
-    return { tracks: obj.tracks, current }
+
+    const tracks = obj.tracks.filter(isTrack)
+    if (tracks.length === 0) return { tracks: [], current: 0 }
+
+    return {
+      tracks,
+      current: normalizeCurrent(obj.current, tracks.length),
+    }
   } catch {
     return { tracks: [], current: 0 }
   }
@@ -100,7 +128,6 @@ export function useBgmQueue(
 ): UseBgmQueueResult {
   const [tracks, setTracks] = useState<BgmTrack[]>(() => readCache(partyId).tracks)
   const [current, setCurrent] = useState<number>(() => readCache(partyId).current)
-
   // Reload when partyId changes
   useEffect(() => {
     const cached = readCache(partyId)
@@ -132,7 +159,10 @@ export function useBgmQueue(
       }
       setTracks((prev) => {
         const next = [...prev, track]
-        setCurrent((c) => (prev.length === 0 ? 1 : c))
+        setCurrent((c) => {
+          const current = normalizeCurrent(c, prev.length)
+          return current === 0 ? 1 : current
+        })
         return next
       })
     },
@@ -144,30 +174,44 @@ export function useBgmQueue(
       const idx = prev.findIndex((t) => t.id === id)
       if (idx === -1) return prev
       const next = prev.filter((t) => t.id !== id)
+
       setCurrent((c) => {
         if (next.length === 0) return 0
-        // current is 1-based index
-        if (idx + 1 < c) return c - 1
-        if (idx + 1 === c) return Math.min(c, next.length)
-        return c
+
+        const current = normalizeCurrent(c, prev.length)
+        const nextCurrent = idx + 1 < current ? current - 1 : current
+        return normalizeCurrent(nextCurrent, next.length)
       })
+
       return next
     })
   }, [])
 
   const playNext = useCallback(() => {
-    setCurrent((c) => {
-      if (tracks.length === 0) return 0
-      return c >= tracks.length ? 1 : c + 1
+    setTracks((prev) => {
+      if (prev.length === 0) return prev
+
+      setCurrent((c) => {
+        const current = normalizeCurrent(c, prev.length)
+        return current >= prev.length ? 1 : current + 1
+      })
+
+      return prev
     })
-  }, [tracks.length])
+  }, [])
 
   const playPrev = useCallback(() => {
-    setCurrent((c) => {
-      if (tracks.length === 0) return 0
-      return c <= 1 ? tracks.length : c - 1
+    setTracks((prev) => {
+      if (prev.length === 0) return prev
+
+      setCurrent((c) => {
+        const current = normalizeCurrent(c, prev.length)
+        return current <= 1 ? prev.length : current - 1
+      })
+
+      return prev
     })
-  }, [tracks.length])
+  }, [])
 
   const currentTrack = useMemo<BgmTrack | null>(() => {
     if (current < 1 || current > tracks.length) return null

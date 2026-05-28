@@ -1,0 +1,75 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const mocks = vi.hoisted(() => ({
+  adapterConstructor: vi.fn(),
+  connect: vi.fn(),
+  disconnect: vi.fn(),
+  prismaClientConstructor: vi.fn(),
+}))
+
+vi.mock('@prisma/adapter-better-sqlite3', () => ({
+  PrismaBetterSqlite3: class PrismaBetterSqlite3 {
+    constructor(options: unknown) {
+      mocks.adapterConstructor(options)
+    }
+  },
+}))
+
+vi.mock('@prisma/client', () => ({
+  PrismaClient: class PrismaClient {
+    constructor(options: unknown) {
+      mocks.prismaClientConstructor(options)
+    }
+
+    $connect = mocks.connect
+    $disconnect = mocks.disconnect
+  },
+}))
+
+import { PrismaService } from './prisma.service'
+
+describe('PrismaService', () => {
+  const originalDatabaseUrl = process.env.DATABASE_URL
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    if (originalDatabaseUrl === undefined) {
+      delete process.env.DATABASE_URL
+    } else {
+      process.env.DATABASE_URL = originalDatabaseUrl
+    }
+  })
+
+  it('passes DATABASE_URL to the better-sqlite3 adapter', () => {
+    process.env.DATABASE_URL = 'file:/tmp/rotifolk-test.db'
+
+    new PrismaService()
+
+    expect(mocks.adapterConstructor).toHaveBeenCalledWith({
+      url: 'file:/tmp/rotifolk-test.db',
+    })
+    expect(mocks.prismaClientConstructor).toHaveBeenCalledWith({
+      adapter: expect.any(Object),
+    })
+  })
+
+  it('falls back to the local development database URL', () => {
+    delete process.env.DATABASE_URL
+
+    new PrismaService()
+
+    expect(mocks.adapterConstructor).toHaveBeenCalledWith({
+      url: 'file:./prisma/dev.db',
+    })
+  })
+
+  it('connects and disconnects through the Nest lifecycle hooks', async () => {
+    const service = new PrismaService()
+
+    await service.onModuleInit()
+    await service.onModuleDestroy()
+
+    expect(mocks.connect).toHaveBeenCalledTimes(1)
+    expect(mocks.disconnect).toHaveBeenCalledTimes(1)
+  })
+})

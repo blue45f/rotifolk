@@ -7,65 +7,64 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 // ======================== USER ========================
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  nickname     String
-  role         String   @default("host") // 누구나 모임 개설 가능 — participant | host | admin
-  bio          String?
-  gender       String?  // male | female | other | private
-  birthYear    Int?
+  id            String  @id @default(cuid())
+  email         String  @unique
+  passwordHash  String
+  nickname      String
+  role          String  @default("host") // 누구나 모임 개설 가능 — participant | host | admin
+  bio           String?
+  gender        String? // male | female | other | private
+  birthYear     Int?
   interestsJson String  @default("[]")
-  mbti         String?
-  trustScore   Float    @default(50)
-  hostedCount  Int      @default(0)
-  joinedCount  Int      @default(0)
-  isVerified   Boolean  @default(false)
-  homeArea     String?
-  homeLat      Float?
-  homeLng      Float?
+  mbti          String?
+  trustScore    Float   @default(50)
+  hostedCount   Int     @default(0)
+  joinedCount   Int     @default(0)
+  isVerified    Boolean @default(false)
+  homeArea      String?
+  homeLat       Float?
+  homeLng       Float?
 
-  referralCode String   @unique @default(cuid())
-  pointsKRW    Int      @default(0)
+  referralCode String @unique @default(cuid())
+  pointsKRW    Int    @default(0)
 
-  avatarId     String?  @unique
-  avatar       Avatar?  @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  avatarId String? @unique
+  avatar   Avatar? @relation(fields: [avatarId], references: [id], onDelete: SetNull)
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  hostedParties     Party[]            @relation("PartyHost")
+  hostedParties     Party[]           @relation("PartyHost")
   participations    Participation[]
-  ordersPlaced      Order[]            @relation("OrderUser")
+  ordersPlaced      Order[]           @relation("OrderUser")
   quizAnswers       QuizAnswer[]
-  midMatchVotes     MidMatchVote[]     @relation("MidVoteFrom")
-  midMatchVotesIn   MidMatchVote[]     @relation("MidVoteTo")
-  finalMatchVotes   FinalMatchVote[]   @relation("FinalVoteFrom")
-  finalMatchVotesIn FinalMatchVote[]   @relation("FinalVoteTo")
-  registeredVenues  Venue[]            @relation("VenueOwner")
+  midMatchVotes     MidMatchVote[]    @relation("MidVoteFrom")
+  midMatchVotesIn   MidMatchVote[]    @relation("MidVoteTo")
+  finalMatchVotes   FinalMatchVote[]  @relation("FinalVoteFrom")
+  finalMatchVotesIn FinalMatchVote[]  @relation("FinalVoteTo")
+  registeredVenues  Venue[]           @relation("VenueOwner")
   chatMemberships   ChatMembership[]
   chatMessages      ChatMessage[]
-  blocksMade        UserBlock[]        @relation("BlockerRel")
-  blocksAgainst     UserBlock[]        @relation("BlockedRel")
-  reviewsWritten    Review[]           @relation("ReviewFrom")
-  reviewsReceived   Review[]           @relation("ReviewTarget")
-  reportsFiled      Report[]           @relation("ReportFrom")
-  reportsAgainst    Report[]           @relation("ReportTarget")
-  following         Follow[]           @relation("FollowerRel")
-  followers         Follow[]           @relation("FollowingRel")
-  savedParties      SavedParty[]       @relation("SavedByUser")
-  partyPhotos       PartyPhoto[]       @relation("PhotosUploaded")
-  photoLikes        PhotoLike[]        @relation("PhotoLikes")
-  notifications     Notification[]     @relation("UserNotifications")
-  hostApplications  HostApplication[]  @relation("HostApplications")
-  payments          Payment[]          @relation("UserPayments")
-  referralsGiven    Referral[]         @relation("Referrer")
-  referralReceived  Referral?          @relation("Referred")
+  blocksMade        UserBlock[]       @relation("BlockerRel")
+  blocksAgainst     UserBlock[]       @relation("BlockedRel")
+  reviewsWritten    Review[]          @relation("ReviewFrom")
+  reviewsReceived   Review[]          @relation("ReviewTarget")
+  reportsFiled      Report[]          @relation("ReportFrom")
+  reportsAgainst    Report[]          @relation("ReportTarget")
+  following         Follow[]          @relation("FollowerRel")
+  followers         Follow[]          @relation("FollowingRel")
+  savedParties      SavedParty[]      @relation("SavedByUser")
+  partyPhotos       PartyPhoto[]      @relation("PhotosUploaded")
+  photoLikes        PhotoLike[]       @relation("PhotoLikes")
+  notifications     Notification[]    @relation("UserNotifications")
+  hostApplications  HostApplication[] @relation("HostApplications")
+  payments          Payment[]         @relation("UserPayments")
+  referralsGiven    Referral[]        @relation("Referrer")
+  referralReceived  Referral?         @relation("Referred")
 
   @@index([role])
   @@index([createdAt])
@@ -73,69 +72,69 @@ model User {
 
 // ======================== AVATAR ========================
 model Avatar {
-  id          String   @id @default(cuid())
-  ownerId     String   @unique
-  mood        String   // chill | sparkling | curious | witty | cozy | mystery
-  hue         String   // #RRGGBB
-  pattern     String   // solid | gradient | sparkle | wave
-  emojiBadge  String
-  faceSeed    String
+  id         String @id @default(cuid())
+  ownerId    String @unique
+  mood       String // chill | sparkling | curious | witty | cozy | mystery
+  hue        String // #RRGGBB
+  pattern    String // solid | gradient | sparkle | wave
+  emojiBadge String
+  faceSeed   String
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User?
 }
 
 // ======================== VENUE ========================
 model Venue {
-  id              String   @id @default(cuid())
+  id              String  @id @default(cuid())
   name            String
-  kind            String   // wine-bar | cafe | tea-house | whisky-bar | ...
+  kind            String // wine-bar | cafe | tea-house | whisky-bar | ...
   area            String
   address         String
   lat             Float?
   lng             Float?
   capacity        Int
   pricePerHourKRW Int
-  amenitiesJson   String   @default("[]")
-  partnered       Boolean  @default(false)
+  amenitiesJson   String  @default("[]")
+  partnered       Boolean @default(false)
   description     String?
-  photosJson      String   @default("[]")
+  photosJson      String  @default("[]")
   contactPhone    String?
-  rating          Float    @default(0)
-  reviewCount     Int      @default(0)
+  rating          Float   @default(0)
+  reviewCount     Int     @default(0)
 
-  ownerId         String?
-  owner           User?    @relation("VenueOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  ownerId String?
+  owner   User?   @relation("VenueOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
-  parties         Party[]
-  menuItems       MenuItem[]
+  parties   Party[]
+  menuItems MenuItem[]
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([kind, area])
   @@index([partnered])
 }
 
 model MenuItem {
-  id             String   @id @default(cuid())
+  id             String  @id @default(cuid())
   venueId        String
-  venue          Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  kind           String   // drink | snack | dessert | glassware | custom
+  venue          Venue   @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  kind           String // drink | snack | dessert | glassware | custom
   name           String
   description    String?
   priceKRW       Int
-  availability   String   @default("paid") // paid | included | unlimited | course
-  coursePosition Int?     // course일 때 진행 순서 (1부터)
-  perPersonLimit Int?     // 1인 한도 (없으면 null)
+  availability   String  @default("paid") // paid | included | unlimited | course
+  coursePosition Int? // course일 때 진행 순서 (1부터)
+  perPersonLimit Int? // 1인 한도 (없으면 null)
   imageUrl       String?
-  isAvailable    Boolean  @default(true)
+  isAvailable    Boolean @default(true)
 
-  orderItems  OrderItem[]
+  orderItems OrderItem[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([venueId])
   @@index([venueId, availability])
@@ -143,65 +142,65 @@ model MenuItem {
 
 // ======================== PARTY ========================
 model Party {
-  id                  String   @id @default(cuid())
-  title               String
-  description         String
-  hostId              String
-  host                User     @relation("PartyHost", fields: [hostId], references: [id], onDelete: Cascade)
-  venueId             String
-  venue               Venue    @relation(fields: [venueId], references: [id])
-  coverImageUrl       String?
-  startAt             DateTime
-  endAt               DateTime
-  minParticipants     Int
-  maxParticipants     Int
-  status              String   @default("open") // draft|open|full|locked|live|ended|cancelled
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  hostId          String
+  host            User     @relation("PartyHost", fields: [hostId], references: [id], onDelete: Cascade)
+  venueId         String
+  venue           Venue    @relation(fields: [venueId], references: [id])
+  coverImageUrl   String?
+  startAt         DateTime
+  endAt           DateTime
+  minParticipants Int
+  maxParticipants Int
+  status          String   @default("open") // draft|open|full|locked|live|ended|cancelled
 
-  category            String   // wine|coffee|tea|whisky|cocktail|beer|sake|natural-wine|dessert|custom
-  rotationMode        String
-  roundDurationSec    Int
-  totalRounds         Int
-  breakBetweenRoundsSec Int    @default(30)
-  enableMidMatching   Boolean  @default(true)
-  enableFinalMatching Boolean  @default(true)
-  enableQuiz          Boolean  @default(true)
-  enableQuestionCards Boolean  @default(true)
-  enableLiveOrders    Boolean  @default(true)
-  enableAvatarOnly    Boolean  @default(false)
+  category              String // wine|coffee|tea|whisky|cocktail|beer|sake|natural-wine|dessert|custom
+  rotationMode          String
+  roundDurationSec      Int
+  totalRounds           Int
+  breakBetweenRoundsSec Int     @default(30)
+  enableMidMatching     Boolean @default(true)
+  enableFinalMatching   Boolean @default(true)
+  enableQuiz            Boolean @default(true)
+  enableQuestionCards   Boolean @default(true)
+  enableLiveOrders      Boolean @default(true)
+  enableAvatarOnly      Boolean @default(false)
 
-  basePriceKRW        Int      @default(0)
-  drinkPackage        String   @default("per-glass") // none | per-glass | unlimited | paired
-  snackPackage        String   @default("none")      // none | per-plate | course | pairing-bites
-  refundDeadlineHours Int      @default(24)
+  basePriceKRW        Int    @default(0)
+  drinkPackage        String @default("per-glass") // none | per-glass | unlimited | paired
+  snackPackage        String @default("none") // none | per-plate | course | pairing-bites
+  refundDeadlineHours Int    @default(24)
 
-  tagsJson            String   @default("[]")
-  ageMin              Int?
-  ageMax              Int?
-  genderRatio         String?
+  tagsJson    String  @default("[]")
+  ageMin      Int?
+  ageMax      Int?
+  genderRatio String?
 
-  currentRoundIndex   Int      @default(0)
+  currentRoundIndex Int @default(0)
 
-  isInstant           Boolean  @default(false)
-  quickCode           String?  @unique
+  isInstant Boolean @default(false)
+  quickCode String? @unique
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  participations      Participation[]
-  rounds              Round[]
-  quizQuestions       QuizQuestion[]
-  questionCards       QuestionCard[]
-  orders              Order[]
-  events              LiveEvent[]
-  finalMatchVotes     FinalMatchVote[]
-  midMatchVotes       MidMatchVote[]
-  finalMatches        FinalMatch[]
-  chatRooms           ChatRoom[]
-  reviews             Review[]
-  reports             Report[]
-  savedBy             SavedParty[]
-  photos              PartyPhoto[]
-  payments            Payment[]
+  participations  Participation[]
+  rounds          Round[]
+  quizQuestions   QuizQuestion[]
+  questionCards   QuestionCard[]
+  orders          Order[]
+  events          LiveEvent[]
+  finalMatchVotes FinalMatchVote[]
+  midMatchVotes   MidMatchVote[]
+  finalMatches    FinalMatch[]
+  chatRooms       ChatRoom[]
+  reviews         Review[]
+  reports         Report[]
+  savedBy         SavedParty[]
+  photos          PartyPhoto[]
+  payments        Payment[]
 
   @@index([status, startAt])
   @@index([category])
@@ -209,18 +208,18 @@ model Party {
 }
 
 model Participation {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   partyId     String
-  party       Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  party       Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status      String   @default("pending") // pending|confirmed|waitlist|checked-in|cancelled|no-show
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      String    @default("pending") // pending|confirmed|waitlist|checked-in|cancelled|no-show
   seatNumber  Int?
   checkedInAt DateTime?
   note        String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([partyId, userId])
   @@index([userId])
@@ -229,78 +228,78 @@ model Participation {
 
 // ======================== ROUND / PAIR ========================
 model Round {
-  id           String   @id @default(cuid())
-  partyId      String
-  party        Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  index        Int
-  status       String   @default("queued") // queued|live|finished
-  durationSec  Int
-  startedAt    DateTime?
-  finishedAt   DateTime?
+  id          String    @id @default(cuid())
+  partyId     String
+  party       Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  index       Int
+  status      String    @default("queued") // queued|live|finished
+  durationSec Int
+  startedAt   DateTime?
+  finishedAt  DateTime?
 
-  pairs        Pair[]
+  pairs Pair[]
 
-  createdAt    DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([partyId, index])
   @@index([partyId, status])
 }
 
 model Pair {
-  id          String   @id @default(cuid())
-  roundId     String
-  round       Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
-  seatLabel   String
-  memberIdsJson String   // JSON array of userIds
+  id            String @id @default(cuid())
+  roundId       String
+  round         Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  seatLabel     String
+  memberIdsJson String // JSON array of userIds
 
   questionCardDraws QuestionCardDraw[]
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([roundId])
 }
 
 // ======================== MATCH ========================
 model MidMatchVote {
-  id          String   @id @default(cuid())
-  partyId     String
-  party       Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  fromUserId  String
-  fromUser    User     @relation("MidVoteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUserId    String
-  toUser      User     @relation("MidVoteTo", fields: [toUserId], references: [id], onDelete: Cascade)
-  roundIndex  Int
+  id         String @id @default(cuid())
+  partyId    String
+  party      Party  @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  fromUserId String
+  fromUser   User   @relation("MidVoteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User   @relation("MidVoteTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  roundIndex Int
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([partyId, fromUserId, toUserId, roundIndex])
   @@index([partyId, toUserId])
 }
 
 model FinalMatchVote {
-  id          String   @id @default(cuid())
-  partyId     String
-  party       Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  fromUserId  String
-  fromUser    User     @relation("FinalVoteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUserId    String
-  toUser      User     @relation("FinalVoteTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  id         String @id @default(cuid())
+  partyId    String
+  party      Party  @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  fromUserId String
+  fromUser   User   @relation("FinalVoteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  toUser     User   @relation("FinalVoteTo", fields: [toUserId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([partyId, fromUserId, toUserId])
   @@index([partyId, toUserId])
 }
 
 model FinalMatch {
-  id          String   @id @default(cuid())
-  partyId     String
-  party       Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  userAId     String
-  userBId     String
-  result      String   // mutual|pending|declined
-  matchedAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  partyId   String
+  party     Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  userAId   String
+  userBId   String
+  result    String // mutual|pending|declined
+  matchedAt DateTime @default(now())
 
   @@unique([partyId, userAId, userBId])
   @@index([partyId])
@@ -308,36 +307,36 @@ model FinalMatch {
 
 // ======================== QUIZ ========================
 model QuizQuestion {
-  id              String   @id @default(cuid())
-  partyId         String
-  party           Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  kind            String   // multiple-choice|true-false|open-text|image-pick
-  prompt          String
-  optionsJson     String   @default("[]")
+  id                 String    @id @default(cuid())
+  partyId            String
+  party              Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  kind               String // multiple-choice|true-false|open-text|image-pick
+  prompt             String
+  optionsJson        String    @default("[]")
   correctOptionIndex Int?
-  durationSec     Int      @default(20)
-  imageUrl        String?
-  launchedAt      DateTime?
+  durationSec        Int       @default(20)
+  imageUrl           String?
+  launchedAt         DateTime?
 
-  answers         QuizAnswer[]
+  answers QuizAnswer[]
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([partyId])
 }
 
 model QuizAnswer {
-  id            String   @id @default(cuid())
-  questionId    String
-  question      QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                  String       @id @default(cuid())
+  questionId          String
+  question            QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  userId              String
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   selectedOptionIndex Int?
-  freeText      String?
-  answeredAt    DateTime @default(now())
-  isCorrect     Boolean?
-  responseMs    Int?
+  freeText            String?
+  answeredAt          DateTime     @default(now())
+  isCorrect           Boolean?
+  responseMs          Int?
 
   @@unique([questionId, userId])
   @@index([userId])
@@ -345,53 +344,53 @@ model QuizAnswer {
 
 // ======================== QUESTION CARD ========================
 model QuestionCard {
-  id          String   @id @default(cuid())
-  partyId     String?
-  party       Party?   @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  depth       String   // icebreaker|casual|deeper|spicy
-  prompt      String
-  category    String?
-  language    String   @default("ko")
-  usedCount   Int      @default(0)
+  id        String  @id @default(cuid())
+  partyId   String?
+  party     Party?  @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  depth     String // icebreaker|casual|deeper|spicy
+  prompt    String
+  category  String?
+  language  String  @default("ko")
+  usedCount Int     @default(0)
 
-  draws       QuestionCardDraw[]
+  draws QuestionCardDraw[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([depth])
   @@index([partyId])
 }
 
 model QuestionCardDraw {
-  id          String   @id @default(cuid())
-  cardId      String
-  card        QuestionCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  pairId      String?
-  pair        Pair?    @relation(fields: [pairId], references: [id], onDelete: SetNull)
-  drawnAt     DateTime @default(now())
+  id      String       @id @default(cuid())
+  cardId  String
+  card    QuestionCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  pairId  String?
+  pair    Pair?        @relation(fields: [pairId], references: [id], onDelete: SetNull)
+  drawnAt DateTime     @default(now())
 
   @@index([cardId])
 }
 
 // ======================== ORDER ========================
 model Order {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   partyId     String
-  party       Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  party       Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
   userId      String
-  user        User     @relation("OrderUser", fields: [userId], references: [id], onDelete: Cascade)
+  user        User      @relation("OrderUser", fields: [userId], references: [id], onDelete: Cascade)
   seatLabel   String?
   totalKRW    Int
-  status      String   @default("requested") // requested|accepted|preparing|served|cancelled
-  requestedAt DateTime @default(now())
+  status      String    @default("requested") // requested|accepted|preparing|served|cancelled
+  requestedAt DateTime  @default(now())
   servedAt    DateTime?
   note        String?
 
-  items       OrderItem[]
+  items OrderItem[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([partyId, status])
   @@index([userId])
@@ -405,7 +404,7 @@ model OrderItem {
   menuItem     MenuItem @relation(fields: [menuItemId], references: [id])
   name         String
   quantity     Int
-  priceKRW     Int          // 단가 (무제한·코스는 0)
+  priceKRW     Int // 단가 (무제한·코스는 0)
   billable     Boolean  @default(true)
   availability String   @default("paid")
   note         String?
@@ -430,35 +429,37 @@ model SavedParty {
 
 // ======================== HOST APPLICATION ========================
 model HostApplication {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation("HostApplications", fields: [userId], references: [id], onDelete: Cascade)
-  introduction    String
-  hostingStyle    String   // "차분 / 따뜻 / 진지 / 발랄"
-  plannedCategories String  // JSON array
-  experience      String?
-  status          String   @default("pending") // pending | approved | rejected
-  reviewedById    String?
-  reviewedNote    String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation("HostApplications", fields: [userId], references: [id], onDelete: Cascade)
+  introduction      String
+  hostingStyle      String // "차분 / 따뜻 / 진지 / 발랄"
+  plannedCategories String // JSON array
+  experience        String?
+  status            String   @default("pending") // pending | approved | rejected
+  reviewedById      String?
+  reviewedNote      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
   @@index([status, createdAt])
   @@index([userId])
 }
 
 // ======================== PAYMENT ========================
 model Payment {
-  id        String   @id @default(cuid())
-  partyId   String
-  party     Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation("UserPayments", fields: [userId], references: [id], onDelete: Cascade)
-  amountKRW Int
-  status    String   @default("paid") // pending | paid | refunded | cancelled
-  method    String   @default("card") // card | kakao | toss | mock
-  paidAt    DateTime?
+  id         String    @id @default(cuid())
+  partyId    String
+  party      Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation("UserPayments", fields: [userId], references: [id], onDelete: Cascade)
+  amountKRW  Int
+  status     String    @default("paid") // pending | paid | refunded | cancelled
+  method     String    @default("card") // card | kakao | toss | mock
+  paidAt     DateTime?
   refundedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt  DateTime  @default(now())
+
   @@index([userId, createdAt])
   @@index([partyId])
 }
@@ -468,7 +469,7 @@ model Notification {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
-  kind      String    // party_join | party_starting | match_made | host_review | message
+  kind      String // party_join | party_starting | match_made | host_review | message
   title     String
   body      String?
   link      String?
@@ -481,50 +482,53 @@ model Notification {
 
 // ======================== PARTY PHOTO ========================
 model PartyPhoto {
-  id        String @id @default(cuid())
+  id        String      @id @default(cuid())
   partyId   String
-  party     Party  @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  party     Party       @relation(fields: [partyId], references: [id], onDelete: Cascade)
   userId    String
-  user      User   @relation("PhotosUploaded", fields: [userId], references: [id], onDelete: Cascade)
+  user      User        @relation("PhotosUploaded", fields: [userId], references: [id], onDelete: Cascade)
   url       String
   caption   String?
-  createdAt DateTime @default(now())
+  createdAt DateTime    @default(now())
   likes     PhotoLike[]
+
   @@index([partyId, createdAt])
 }
 
 model PhotoLike {
-  id      String @id @default(cuid())
-  photoId String
-  photo   PartyPhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
-  userId  String
-  user    User @relation("PhotoLikes", fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  id        String     @id @default(cuid())
+  photoId   String
+  photo     PartyPhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User       @relation("PhotoLikes", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
   @@unique([photoId, userId])
   @@index([photoId])
 }
 
 // ======================== REFERRAL ========================
 model Referral {
-  id          String   @id @default(cuid())
-  referrerId  String
-  referrer    User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
-  referredId  String   @unique
-  referred    User     @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
-  bonusKRW    Int      @default(3000)
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  referrerId String
+  referrer   User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId String   @unique
+  referred   User     @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+  bonusKRW   Int      @default(3000)
+  createdAt  DateTime @default(now())
+
   @@index([referrerId])
 }
 
 // ======================== FOLLOW ========================
 model Follow {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   followerId  String
-  follower    User     @relation("FollowerRel", fields: [followerId], references: [id], onDelete: Cascade)
+  follower    User   @relation("FollowerRel", fields: [followerId], references: [id], onDelete: Cascade)
   followingId String
-  following   User     @relation("FollowingRel", fields: [followingId], references: [id], onDelete: Cascade)
+  following   User   @relation("FollowingRel", fields: [followingId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@unique([followerId, followingId])
   @@index([followingId])
@@ -532,11 +536,11 @@ model Follow {
 
 // ======================== SAFETY / REVIEW ========================
 model UserBlock {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   blockerId String
-  blocker   User     @relation("BlockerRel", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocker   User    @relation("BlockerRel", fields: [blockerId], references: [id], onDelete: Cascade)
   blockedId String
-  blocked   User     @relation("BlockedRel", fields: [blockedId], references: [id], onDelete: Cascade)
+  blocked   User    @relation("BlockedRel", fields: [blockedId], references: [id], onDelete: Cascade)
   reason    String?
 
   createdAt DateTime @default(now())
@@ -546,71 +550,71 @@ model UserBlock {
 }
 
 model Review {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   partyId       String?
-  party         Party?   @relation(fields: [partyId], references: [id], onDelete: SetNull)
+  party         Party?    @relation(fields: [partyId], references: [id], onDelete: SetNull)
   fromUserId    String
-  fromUser      User     @relation("ReviewFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  fromUser      User      @relation("ReviewFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
   targetUserId  String?
-  targetUser    User?    @relation("ReviewTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  targetUser    User?     @relation("ReviewTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
   rating        Int
   body          String
-  anonymous     Boolean  @default(false)
-  tagsJson      String   @default("[]")
+  anonymous     Boolean   @default(false)
+  tagsJson      String    @default("[]")
   hostReply     String?
   hostRepliedAt DateTime?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([partyId])
   @@index([targetUserId])
 }
 
 model Report {
-  id            String   @id @default(cuid())
-  reporterId    String
-  reporter      User     @relation("ReportFrom", fields: [reporterId], references: [id], onDelete: Cascade)
-  targetUserId  String?
-  targetUser    User?    @relation("ReportTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
-  partyId       String?
-  party         Party?   @relation(fields: [partyId], references: [id], onDelete: SetNull)
-  kind          String
-  body          String
-  status        String   @default("open")
-  resolvedById  String?
-  resolvedNote  String?
+  id           String  @id @default(cuid())
+  reporterId   String
+  reporter     User    @relation("ReportFrom", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetUserId String?
+  targetUser   User?   @relation("ReportTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  partyId      String?
+  party        Party?  @relation(fields: [partyId], references: [id], onDelete: SetNull)
+  kind         String
+  body         String
+  status       String  @default("open")
+  resolvedById String?
+  resolvedNote String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status, createdAt])
 }
 
 // ======================== CHAT ========================
 model ChatRoom {
-  id          String   @id @default(cuid())
-  kind        String   // group | pair
-  partyId     String?
-  party       Party?   @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  title       String?
+  id            String    @id @default(cuid())
+  kind          String // group | pair
+  partyId       String?
+  party         Party?    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  title         String?
   lastMessageAt DateTime?
 
   memberships ChatMembership[]
   messages    ChatMessage[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([partyId, kind])
 }
 
 model ChatMembership {
-  id        String   @id @default(cuid())
-  roomId    String
-  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String    @id @default(cuid())
+  roomId     String
+  room       ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   lastReadAt DateTime?
 
   createdAt DateTime @default(now())
@@ -620,14 +624,14 @@ model ChatMembership {
 }
 
 model ChatMessage {
-  id        String   @id @default(cuid())
-  roomId    String
-  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  body      String
-  kind      String   @default("text") // text | system | split-bill
-  metaJson  String?  // 엔빵 정산 등 메타데이터
+  id       String   @id @default(cuid())
+  roomId   String
+  room     ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body     String
+  kind     String   @default("text") // text | system | split-bill
+  metaJson String? // 엔빵 정산 등 메타데이터
 
   createdAt DateTime @default(now())
 
@@ -636,14 +640,14 @@ model ChatMessage {
 
 // ======================== LIVE EVENT ========================
 model LiveEvent {
-  id           String   @id @default(cuid())
-  partyId      String
-  party        Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  kind         String   // cheers|reveal|mini-game|shuffle|photo-time|announcement|compliment-rain|gift-card
-  payloadJson  String   @default("{}")
-  triggeredBy  String
-  triggeredAt  DateTime @default(now())
-  expiresAt    DateTime?
+  id          String    @id @default(cuid())
+  partyId     String
+  party       Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  kind        String // cheers|reveal|mini-game|shuffle|photo-time|announcement|compliment-rain|gift-card
+  payloadJson String    @default("{}")
+  triggeredBy String
+  triggeredAt DateTime  @default(now())
+  expiresAt   DateTime?
 
   @@index([partyId, triggeredAt])
 }
