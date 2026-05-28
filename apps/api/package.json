@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "node --watch --require ts-node/register --require tsconfig-paths/register src/main.ts",
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/main.js",
+    "start": "node dist/apps/api/src/main.js",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'lint via root'",
     "test": "vitest run --passWithNoTests",
