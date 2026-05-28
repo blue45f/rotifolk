@@ -21,3 +21,38 @@
 .meta dt { color: var(--color-text-muted); font-size: var(--fs-xs); }
 .meta dd { font-weight: var(--fw-semibold); }
 .actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4); }
+
+.statsRow {
+  display: flex;
+  gap: var(--space-3);
+  margin-block: var(--space-5) var(--space-6);
+}
+.statCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+.statNum {
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: var(--fw-black);
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+.statLabel {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+.userLink {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--fw-semibold);
+}
+.userLink:hover { text-decoration: underline; }

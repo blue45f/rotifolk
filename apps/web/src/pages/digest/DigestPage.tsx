@@ -1,11 +1,14 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import type { PartyCategory, PartySummary } from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
 import { PartyCard } from '@features/parties/PartyCard'
 import { CATEGORY_META } from '@features/categories/meta'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/ToastProvider'
 import styles from './Digest.module.css'
 
 /**
@@ -68,6 +71,7 @@ function topN(map: Map<string, number>, n: number): Array<{ key: string; count: 
 
 export default function DigestPage() {
   const { data, isLoading } = useParties({ status: 'open', pageSize: 50 })
+  const { show: showToast } = useToast()
   const items = useMemo<PartySummary[]>(() => data?.items ?? [], [data])
 
   // 베스트 호스트 — PartySummary에는 host 정보가 없어서 venueName으로 대체 집계.
@@ -131,6 +135,22 @@ export default function DigestPage() {
           이번 주 <strong>{totalParties}</strong>개 모임 ·{' '}
           <strong>{newlyMatched}</strong>명이 새로 매칭됨
         </p>
+        <Button
+          variant="soft"
+          size="sm"
+          onClick={async () => {
+            const url = window.location.href
+            const title = '이번 주 Rotifolk 다이제스트'
+            if (navigator.share) {
+              await navigator.share({ title, url })
+            } else {
+              await navigator.clipboard.writeText(url)
+              showToast('링크가 복사됐어요', 'success')
+            }
+          }}
+        >
+          공유하기
+        </Button>
       </header>
 
       {isLoading ? (
@@ -193,26 +213,31 @@ export default function DigestPage() {
             ) : (
               <div className={styles.catGrid}>
                 {topCategories.map((entry, i) => (
-                  <article
+                  <Link
                     key={entry.meta.value}
-                    className={styles.catTile}
-                    style={{ ['--tile-bg' as never]: entry.meta.bgGradient } as never}
+                    to={`/discover?category=${entry.meta.value}`}
+                    className={styles.catTileLink}
                   >
-                    <span className={styles.tileSurface} aria-hidden="true" />
-                    <div className={styles.catTileHead}>
-                      <span className={styles.catEmoji} aria-hidden="true">
-                        {entry.meta.emoji}
-                      </span>
-                      <span className={styles.catPosition}>#{i + 1}</span>
-                    </div>
-                    <div className={styles.catTileBody}>
-                      <strong className={styles.catLabel}>{entry.meta.label}</strong>
-                      <p className={styles.catDesc}>{entry.meta.description}</p>
-                    </div>
-                    <div className={styles.catTileFoot}>
-                      <span>{entry.count}개 진행</span>
-                    </div>
-                  </article>
+                    <article
+                      className={styles.catTile}
+                      style={{ ['--tile-bg' as never]: entry.meta.bgGradient } as never}
+                    >
+                      <span className={styles.tileSurface} aria-hidden="true" />
+                      <div className={styles.catTileHead}>
+                        <span className={styles.catEmoji} aria-hidden="true">
+                          {entry.meta.emoji}
+                        </span>
+                        <span className={styles.catPosition}>#{i + 1}</span>
+                      </div>
+                      <div className={styles.catTileBody}>
+                        <strong className={styles.catLabel}>{entry.meta.label}</strong>
+                        <p className={styles.catDesc}>{entry.meta.description}</p>
+                      </div>
+                      <div className={styles.catTileFoot}>
+                        <span>{entry.count}개 진행</span>
+                      </div>
+                    </article>
+                  </Link>
                 ))}
               </div>
             )}
@@ -232,16 +257,21 @@ export default function DigestPage() {
               <ul className={styles.areaList}>
                 {topAreas.map((area, i) => (
                   <li key={area.key} className={styles.areaRow}>
-                    <span className={styles.areaPin} aria-hidden="true">
-                      📍
-                    </span>
-                    <div className={styles.areaBody}>
-                      <strong className={styles.areaName}>{area.label}</strong>
-                      <span className={styles.areaMeta}>{area.meta}</span>
-                    </div>
-                    <span className={styles.areaIndex} aria-hidden="true">
-                      {i + 1}
-                    </span>
+                    <Link
+                      to={`/discover?area=${encodeURIComponent(area.key)}`}
+                      className={styles.areaRowLink}
+                    >
+                      <span className={styles.areaPin} aria-hidden="true">
+                        📍
+                      </span>
+                      <div className={styles.areaBody}>
+                        <strong className={styles.areaName}>{area.label}</strong>
+                        <span className={styles.areaMeta}>{area.meta}</span>
+                      </div>
+                      <span className={styles.areaIndex} aria-hidden="true">
+                        {i + 1}
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>

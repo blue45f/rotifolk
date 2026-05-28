@@ -9,11 +9,16 @@
   margin-top: 6px;
   color: var(--color-text-muted);
 }
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
 .filters {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-bottom: var(--space-8);
 }
 .list { display: flex; flex-direction: column; gap: var(--space-4); }
 .grid {
@@ -79,3 +84,16 @@
 }
 .vPrice { color: var(--color-text-muted); font-size: var(--fs-sm); }
 .vPrice strong { color: var(--color-text); font-weight: var(--fw-bold); }
+
+.areaLink {
+  color: var(--brand-burgundy-700);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border: 1px solid var(--brand-burgundy-200);
+  border-radius: var(--radius-sm);
+  transition: background var(--dur-fast) var(--ease-out-quart);
+}
+.areaLink:hover { background: var(--brand-burgundy-50); }

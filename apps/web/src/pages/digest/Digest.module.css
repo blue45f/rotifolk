@@ -142,6 +142,20 @@
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: var(--space-5);
 }
+.catTileLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition:
+    transform var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart);
+}
+.catTileLink:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
 .catTile {
   position: relative;
   overflow: hidden;
@@ -224,14 +238,24 @@
   gap: var(--space-3);
 }
 .areaRow {
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.areaRowLink {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
-  background: var(--color-surface-soft);
-  border: 1px solid var(--color-border);
+  text-decoration: none;
+  color: inherit;
   border-radius: var(--radius-lg);
+  transition: background var(--dur-fast) var(--ease-out-quart);
+}
+.areaRowLink:hover {
+  background: var(--brand-burgundy-50);
 }
 .areaPin {
   font-size: var(--fs-lg);

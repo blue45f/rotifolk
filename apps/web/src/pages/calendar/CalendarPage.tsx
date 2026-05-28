@@ -82,6 +82,7 @@ function isSameDay(a: Date, b: Date): boolean {
 export default function CalendarPage() {
   const today = useMemo(() => new Date(), [])
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1))
+  const [view, setView] = useState<'grid' | 'list'>('grid')
   const navigate = useNavigate()
   const { data, isLoading } = useMyParties()
 
@@ -89,6 +90,24 @@ export default function CalendarPage() {
     () => (data ?? []).map((row) => row.party),
     [data],
   )
+
+  // Agenda view: upcoming parties sorted chronologically, grouped by date
+  const agendaGroups = useMemo(() => {
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const upcoming = parties
+      .filter((p) => new Date(p.startAt) >= todayStart)
+      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+
+    const grouped = new Map<string, PartySummary[]>()
+    for (const party of upcoming) {
+      const key = dateKey(new Date(party.startAt))
+      const bucket = grouped.get(key) ?? []
+      bucket.push(party)
+      grouped.set(key, bucket)
+    }
+    return Array.from(grouped.entries()).map(([key, list]) => ({ key, list }))
+  }, [parties, today])
+
   const cells = useMemo(
     () => buildMonthGrid(cursor.getFullYear(), cursor.getMonth(), parties),
     [cursor, parties],
@@ -122,6 +141,11 @@ export default function CalendarPage() {
             ‹
           </button>
           <Button variant="soft" size="sm" onClick={goToday}>오늘</Button>
+          {view === 'grid' ? (
+            <Button variant="soft" size="sm" onClick={() => setView('list')}>📋 목록</Button>
+          ) : (
+            <Button variant="soft" size="sm" onClick={() => setView('grid')}>📅 그리드</Button>
+          )}
           <button
             type="button"
             className={styles.navBtn}
@@ -144,6 +168,93 @@ export default function CalendarPage() {
             </Link>
           }
         />
+      ) : view === 'list' ? (
+        <div className={styles.agendaList}>
+          {agendaGroups.length === 0 ? (
+            <EmptyState
+              emoji="🗓️"
+              title="다가오는 파티가 없어요"
+              description="신청한 파티가 모두 지나갔거나 아직 예정된 파티가 없어요."
+              action={
+                <Link to="/discover">
+                  <Button variant="primary">파티 둘러보기</Button>
+                </Link>
+              }
+            />
+          ) : (
+            agendaGroups.map(({ key, list }) => {
+              const groupDate = new Date(key)
+              const dateLabel = groupDate.toLocaleDateString('ko-KR', {
+                month: 'long',
+                day: 'numeric',
+                weekday: 'short',
+              })
+
+              return (
+                <div key={key} className={styles.agendaGroup}>
+                  <p className={styles.agendaDateLabel}>{dateLabel}</p>
+                  <div className={styles.agendaEvents}>
+                    {list.map((party) => {
+                      const meta = CATEGORY_META[party.category]
+                      const start = new Date(party.startAt)
+                      const timeLabel = start.toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false,
+                      })
+
+                      const handleDownload = () => {
+                        const end = new Date(start.getTime() + DEFAULT_DURATION_MS)
+                        downloadIcs({
+                          id: party.id,
+                          title: party.title,
+                          startAt: start,
+                          endAt: end,
+                          venueName: party.venueName,
+                          venueArea: party.venueArea,
+                        })
+                      }
+
+                      return (
+                        <button
+                          key={party.id}
+                          type="button"
+                          className={styles.agendaEvent}
+                          onClick={() => navigate(`/parties/${party.id}`)}
+                          aria-label={`${meta.shortLabel} · ${party.title}`}
+                        >
+                          <span className={styles.agendaEventEmoji} aria-hidden="true">
+                            {meta.emoji}
+                          </span>
+                          <span className={styles.agendaEventBody}>
+                            <span className={styles.agendaEventTitle}>{party.title}</span>
+                            <span className={styles.agendaEventMeta}>{party.venueName}</span>
+                          </span>
+                          <span className={styles.agendaEventTime}>
+                            {timeLabel}
+                            <button
+                              type="button"
+                              className={styles.icsBtn}
+                              style={{ position: 'static', opacity: 1, marginLeft: '6px' }}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDownload()
+                              }}
+                              aria-label={`${party.title} 캘린더에 저장 (ICS 다운로드)`}
+                              title="캘린더에 저장 (.ics)"
+                            >
+                              <span aria-hidden="true">⤓</span>
+                            </button>
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
       ) : (
         <>
           <div className={styles.weekHeader} role="presentation">
