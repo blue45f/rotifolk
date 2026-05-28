@@ -31,10 +31,25 @@ export default function LivePartyPage() {
   const [orderCart, setOrderCart] = useState<Record<string, number>>({})
   const [orderTab, setOrderTab] = useState<'drink' | 'snack' | 'dessert'>('drink')
   const bgm = useBgmQueue(partyId, user?.nickname)
+  const [announcement, setAnnouncement] = useState<{ message: string; until: number } | null>(null)
 
   useEffect(() => {
     if (state.status === 'ended') setShowFinal(true)
   }, [state.status])
+
+  useEffect(() => {
+    if (state.lastEvent?.kind === 'announcement') {
+      const msg = String(state.lastEvent.payload?.message ?? '').trim()
+      if (msg) {
+        const until = Date.now() + 30_000
+        setAnnouncement({ message: msg, until })
+        const t = setTimeout(() => {
+          setAnnouncement((cur) => (cur && cur.until === until ? null : cur))
+        }, 30_000)
+        return () => clearTimeout(t)
+      }
+    }
+  }, [state.lastEvent])
 
   if (isLoading || !data) return <Loading />
   const { party, participants } = data
@@ -51,6 +66,31 @@ export default function LivePartyPage() {
   return (
     <div className={styles.page} style={{ background: cat.bgGradient }}>
       <div className={styles.glow} aria-hidden="true" />
+      <AnimatePresence>
+        {announcement && (
+          <motion.div
+            key={announcement.until}
+            className={styles.announceBanner}
+            initial={{ opacity: 0, y: -24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -24 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <span className={styles.announceIcon} aria-hidden="true">📣</span>
+            <span className={styles.announceMsg}>{announcement.message}</span>
+            {isHost && (
+              <button
+                type="button"
+                className={styles.announceDismiss}
+                onClick={() => setAnnouncement(null)}
+                aria-label="공지 닫기"
+              >
+                ✕
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <header className={styles.header}>
         <button className={styles.exit} onClick={() => navigate(`/parties/${party.id}`)} aria-label="나가기">
@@ -160,6 +200,13 @@ export default function LivePartyPage() {
             onLaunchQuiz={async () => {
               toast.show('퀴즈는 콘솔에서 미리 등록한 뒤 발사할 수 있어요', 'info')
             }}
+            onAnnounce={(message) =>
+              send('host:event:fire', {
+                partyId: party.id,
+                kind: 'announcement',
+                payload: { message },
+              })
+            }
           />
         ) : (
           <ParticipantBar
@@ -440,6 +487,7 @@ function HostBar({
   onComplimentRain,
   onEndParty,
   onLaunchQuiz,
+  onAnnounce,
 }: {
   onNextRound: () => void
   onEndRound: () => void
@@ -448,18 +496,55 @@ function HostBar({
   onComplimentRain: () => void
   onEndParty: () => void
   onLaunchQuiz: () => void
+  onAnnounce: (message: string) => void
 }) {
+  const [composing, setComposing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const submit = () => {
+    const msg = draft.trim()
+    if (!msg) return
+    onAnnounce(msg)
+    setDraft('')
+    setComposing(false)
+  }
   return (
     <div className={styles.barInner}>
       <span className={styles.barRole}>🎙️ 호스트 콘솔</span>
       <div className={styles.barActions}>
-        <Button variant="soft" size="sm" onClick={onCheers}>🥂 건배</Button>
-        <Button variant="soft" size="sm" onClick={onShuffle}>🔀 셔플</Button>
-        <Button variant="soft" size="sm" onClick={onComplimentRain}>💖 칭찬 폭우</Button>
-        <Button variant="soft" size="sm" onClick={onLaunchQuiz}>🎯 퀴즈 발사</Button>
-        <Button variant="ghost" size="sm" onClick={onEndRound}>⏸ 라운드 종료</Button>
-        <Button variant="primary" size="md" onClick={onNextRound}>▶ 다음 라운드</Button>
-        <Button variant="danger" size="sm" onClick={onEndParty}>🌹 파티 종료</Button>
+        {composing ? (
+          <div className={styles.announceCompose}>
+            <input
+              type="text"
+              className={styles.announceInput}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value.slice(0, 140))}
+              placeholder="모든 참가자에게 한 줄 공지 (최대 140자)"
+              maxLength={140}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); submit() }
+                else if (e.key === 'Escape') { setComposing(false); setDraft('') }
+              }}
+            />
+            <Button variant="primary" size="sm" onClick={submit} disabled={!draft.trim()}>
+              📣 발사
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => { setComposing(false); setDraft('') }}>
+              취소
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Button variant="soft" size="sm" onClick={() => setComposing(true)}>📣 공지</Button>
+            <Button variant="soft" size="sm" onClick={onCheers}>🥂 건배</Button>
+            <Button variant="soft" size="sm" onClick={onShuffle}>🔀 셔플</Button>
+            <Button variant="soft" size="sm" onClick={onComplimentRain}>💖 칭찬 폭우</Button>
+            <Button variant="soft" size="sm" onClick={onLaunchQuiz}>🎯 퀴즈 발사</Button>
+            <Button variant="ghost" size="sm" onClick={onEndRound}>⏸ 라운드 종료</Button>
+            <Button variant="primary" size="md" onClick={onNextRound}>▶ 다음 라운드</Button>
+            <Button variant="danger" size="sm" onClick={onEndParty}>🌹 파티 종료</Button>
+          </>
+        )}
       </div>
     </div>
   )
