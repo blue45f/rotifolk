@@ -186,11 +186,20 @@ export default function ProfilePage() {
 
         {tab === 'saved' && (
           savedItems && savedItems.length > 0 ? (
-            <div className={styles.grid}>
-              {savedItems.map((p) => (
-                <PartyCard key={p.id} party={p} />
-              ))}
-            </div>
+            <>
+              <div className={styles.grid}>
+                {savedItems.slice(0, 9).map((p) => (
+                  <PartyCard key={p.id} party={p} />
+                ))}
+              </div>
+              {savedItems.length > 9 && (
+                <div className={styles.savedFoot}>
+                  <Link to="/me/saved">
+                    <Button variant="outline">전체 {savedItems.length}개 보기 →</Button>
+                  </Link>
+                </div>
+              )}
+            </>
           ) : (
             <EmptyState
               emoji="★"

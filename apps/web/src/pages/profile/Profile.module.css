@@ -179,3 +179,9 @@
 }
 .reviewReply strong { display: block; font-size: var(--fs-xs); color: var(--brand-burgundy-800); margin-bottom: 4px; }
 .reviewReply p { font-size: var(--fs-sm); color: var(--brand-burgundy-900); }
+
+.savedFoot {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-6);
+}

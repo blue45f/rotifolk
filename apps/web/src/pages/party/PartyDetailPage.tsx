@@ -16,6 +16,7 @@ import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { useAuthStore } from '@store/authStore'
 import { useMyParties } from '@features/parties/queries'
 import { useRecents } from '@features/recents/useRecents'
+import { buildIcs, downloadIcs } from '@features/calendar/ics'
 import { api } from '@services/api'
 import styles from './PartyDetailPage.module.css'
 
@@ -193,6 +194,22 @@ export default function PartyDetailPage() {
     }
   }
 
+  const handleAddToCalendar = () => {
+    if (!data) return
+    const p = data.party
+    const ics = buildIcs({
+      uid: `rotifolk-${p.id}@rotifolk.app`,
+      title: p.title,
+      description: `${p.config.category} · ${p.config.totalRounds}라운드 · ${p.currentParticipants}/${p.maxParticipants}명\n${window.location.href}`,
+      startAt: p.startAt,
+      endAt: p.endAt,
+      url: window.location.href,
+    })
+    const safe = p.title.replace(/[^\w가-힣\- ]/g, '').slice(0, 40).trim() || 'rotifolk-party'
+    downloadIcs(safe, ics)
+    toast.show('캘린더 파일을 받았어요', 'success')
+  }
+
   if (isLoading) return <Loading />
   if (!data) return <EmptyState emoji="🌙" title="파티를 찾을 수 없어요" />
   const { party, participants } = data
@@ -296,6 +313,14 @@ export default function PartyDetailPage() {
                   aria-label="공유"
                 >
                   ↗ 공유
+                </button>
+                <button
+                  type="button"
+                  className={styles.iconBtn}
+                  onClick={handleAddToCalendar}
+                  aria-label="내 캘린더에 추가"
+                >
+                  📅 캘린더
                 </button>
                 {me && (
                   <button
