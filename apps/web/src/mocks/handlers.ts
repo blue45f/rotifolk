@@ -201,6 +201,11 @@ export const handlers = [
     HttpResponse.json(await delay({ ok: true })),
   ),
 
+  // Recent reviews (digest)
+  http.get(`${API}/reviews/recent`, async () =>
+    HttpResponse.json(await delay([])),
+  ),
+
   // Account deletion
   http.delete(`${API}/users/me`, async () =>
     HttpResponse.json(await delay({ ok: true })),

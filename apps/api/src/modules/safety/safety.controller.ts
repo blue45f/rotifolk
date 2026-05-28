@@ -58,6 +58,11 @@ export class SafetyController {
     return this.safety.createReview({ fromUserId: me.sub, ...body })
   }
 
+  @Get('reviews/recent')
+  recentReviews() {
+    return this.safety.listRecentReviews(6)
+  }
+
   @Get('parties/:partyId/reviews')
   partyReviews(@Param('partyId') partyId: string) {
     return this.safety.listReviewsForParty(partyId)

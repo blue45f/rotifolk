@@ -333,8 +333,16 @@
   font-weight: var(--fw-bold);
 }
 .reviewFoot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
+}
+.reviewStars {
+  color: #D6A84E;
+  letter-spacing: 1px;
+  font-size: var(--fs-xs);
 }
 
 /* ---------- Picks (re-use PartyCard grid, but lighter density) ---------- */

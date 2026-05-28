@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { PartyCategory, VenueKind } from '@rotifolk/shared'
 import { CATEGORY_META, ALL_CATEGORIES } from '@features/categories/meta'
 import { useParties } from '@features/parties/queries'
@@ -7,9 +7,12 @@ import { useVenues } from '@features/venues/queries'
 import { PartyCard } from '@features/parties/PartyCard'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Chip } from '@components/ui/Chip/Chip'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Category.module.css'
+
+type SortKey = 'soonest' | 'seats' | 'price'
 
 const VALID_CATEGORIES = new Set<PartyCategory>(
   ALL_CATEGORIES.map((c) => c.value),
@@ -55,6 +58,7 @@ function formatHostFallback(hostId: string): string {
 export default function CategoryPage() {
   const { value } = useParams<{ value: string }>()
   const validCategory = isValidCategory(value) ? value : null
+  const [sort, setSort] = useState<SortKey>('soonest')
 
   // 훅 순서 보존을 위해 항상 호출하되, 유효하지 않으면 enabled-effect 처럼 의미 없는 카테고리를 전달
   const partiesQuery = useParties(
@@ -64,7 +68,14 @@ export default function CategoryPage() {
     validCategory ? { kind: VENUE_KIND_BY_CATEGORY[validCategory] } : {},
   )
 
-  const parties = partiesQuery.data?.items ?? []
+  const parties = useMemo(() => {
+    const raw = partiesQuery.data?.items ?? []
+    const copy = [...raw]
+    if (sort === 'soonest') copy.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+    else if (sort === 'seats') copy.sort((a, b) => (a.maxParticipants - a.currentParticipants) - (b.maxParticipants - b.currentParticipants))
+    else if (sort === 'price') copy.sort((a, b) => a.basePriceKRW - b.basePriceKRW)
+    return copy
+  }, [partiesQuery.data, sort])
   const venues = venuesQuery.data ?? []
 
   const stats = useMemo(() => {
@@ -189,6 +200,13 @@ export default function CategoryPage() {
           </Link>
         </header>
 
+        {(partiesQuery.data?.items?.length ?? 0) > 0 && (
+          <div className={styles.sortRow} role="group" aria-label="정렬 기준">
+            <Chip selected={sort === 'soonest'} onClick={() => setSort('soonest')} leadingEmoji="⏰">빠른 시작순</Chip>
+            <Chip selected={sort === 'seats'} onClick={() => setSort('seats')} leadingEmoji="💺">자리 있는 순</Chip>
+            <Chip selected={sort === 'price'} onClick={() => setSort('price')} leadingEmoji="💰">가격 낮은 순</Chip>
+          </div>
+        )}
         {partiesQuery.isLoading ? (
           <Loading />
         ) : parties.length === 0 ? (

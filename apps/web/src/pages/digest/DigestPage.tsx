@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import type { PartyCategory, PartySummary } from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@services/api'
 import { PartyCard } from '@features/parties/PartyCard'
 import { CATEGORY_META } from '@features/categories/meta'
 import { Badge } from '@components/ui/Badge/Badge'
@@ -69,10 +71,25 @@ function topN(map: Map<string, number>, n: number): Array<{ key: string; count: 
     .map(([key, count]) => ({ key, count }))
 }
 
+interface RecentReview {
+  id: string
+  rating: number
+  body: string
+  partyTitle: string
+  category: string
+  reviewer: string
+  createdAt: string
+}
+
 export default function DigestPage() {
   const { data, isLoading } = useParties({ status: 'open', pageSize: 50 })
   const { show: showToast } = useToast()
   const items = useMemo<PartySummary[]>(() => data?.items ?? [], [data])
+  const { data: recentReviews } = useQuery({
+    queryKey: ['reviews', 'recent'],
+    queryFn: () => api.get<RecentReview[]>('reviews/recent'),
+    staleTime: 5 * 60 * 1000,
+  })
 
   // 베스트 호스트 — PartySummary에는 host 정보가 없어서 venueName으로 대체 집계.
   const topHosts = useMemo<Rank[]>(() => {
@@ -284,15 +301,17 @@ export default function DigestPage() {
                 💬 따끈한 후기
               </h2>
               <p className={styles.sectionSub}>
-                후기 API는 곧 만나봐요. 지금은 호스트가 직접 추려둔 코멘트만 보여드려요.
+                최근 모임에서 남겨진 이야기들
               </p>
             </header>
 
             <ul className={styles.reviewList}>
-              {REVIEW_STUBS.map((review) => {
-                const meta = CATEGORY_META[review.category]
+              {((recentReviews && recentReviews.length > 0) ? recentReviews : REVIEW_STUBS).map((review) => {
+                const catKey = (review.category ?? 'wine') as PartyCategory
+                const meta = CATEGORY_META[catKey] ?? CATEGORY_META['wine']
+                const stars = '★'.repeat(Math.min(5, Math.max(1, (review as RecentReview).rating ?? 5)))
                 return (
-                  <li key={review.partyTitle} className={styles.reviewCard}>
+                  <li key={'id' in review ? review.id : review.partyTitle} className={styles.reviewCard}>
                     <header className={styles.reviewHead}>
                       <Badge tone="wine" size="sm">
                         {meta.emoji} {meta.shortLabel}
@@ -300,14 +319,14 @@ export default function DigestPage() {
                       <span className={styles.reviewTitle}>{review.partyTitle}</span>
                     </header>
                     <blockquote className={styles.reviewBody}>{review.body}</blockquote>
-                    <footer className={styles.reviewFoot}>— {review.reviewer}</footer>
+                    <footer className={styles.reviewFoot}>
+                      <span className={styles.reviewStars}>{stars}</span>
+                      <span>— {review.reviewer}</span>
+                    </footer>
                   </li>
                 )
               })}
             </ul>
-            <p className={styles.softNote}>
-              후기 작성 기능은 정식 오픈 후 합류해요. 곧 만나봐요.
-            </p>
           </section>
 
           <section className={`container ${styles.section}`} aria-labelledby="picks-title">
