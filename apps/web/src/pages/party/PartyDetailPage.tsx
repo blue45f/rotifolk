@@ -14,6 +14,8 @@ import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { useAuthStore } from '@store/authStore'
+import { useMyParties } from '@features/parties/queries'
+import { useRecents } from '@features/recents/useRecents'
 import { api } from '@services/api'
 import styles from './PartyDetailPage.module.css'
 
@@ -67,6 +69,10 @@ export default function PartyDetailPage() {
   const cancel = useCancelJoin(partyId!)
   const toast = useToast()
   const queryClient = useQueryClient()
+
+  const { items: recentItems, track } = useRecents()
+  const { data: myParties } = useMyParties()
+  void recentItems
 
   const { data: saved } = useQuery({
     queryKey: ['saved', partyId],
@@ -192,8 +198,22 @@ export default function PartyDetailPage() {
   const { party, participants } = data
   const cat = CATEGORY_META[party.config.category]
   const start = new Date(party.startAt)
+  const end = new Date(party.endAt)
   const isHost = me?.id === party.hostId
   const joinedMe = participants.find((p) => p.userId === me?.id)
+
+  const conflict = me && myParties
+    ? myParties
+        .filter((m) => m.party.id !== party.id && ['confirmed','checked-in','waitlist'].includes(m.participation.status))
+        .find((m) => {
+          const s = new Date(m.party.startAt).getTime()
+          // 일단 시작 시각만 비교 (endAt 없음)
+          const myStart = start.getTime()
+          const myEnd = end.getTime()
+          // 다른 모임 시작이 내 모임 [start-2h, end+2h] 범위면 충돌
+          return s >= myStart - 7200_000 && s <= myEnd + 7200_000
+        })
+    : undefined
   const toneMap: Record<string, 'wine' | 'coffee' | 'tea' | 'whisky' | 'gold' | 'primary'> = {
     wine: 'wine',
     coffee: 'coffee',
@@ -209,8 +229,22 @@ export default function PartyDetailPage() {
   const hoursUntilStart = (start.getTime() - Date.now()) / 3_600_000
   const canRefund = !!paidPayment && hoursUntilStart >= 24
 
+  // track recent visit (one-shot per detail page mount)
+  if (party.id) {
+    queueMicrotask(() => {
+      try {
+        track({ id: party.id, title: party.title, category: party.config.category })
+      } catch {}
+    })
+  }
+
   return (
     <div className={styles.page}>
+      {conflict && !joinedMe && (
+        <div className={styles.clashBar} role="alert">
+          ⚠️ 같은 시간대에 이미 신청한 모임이 있어요 — <strong>{conflict.party.title}</strong>
+        </div>
+      )}
       <motion.section
         className={styles.hero}
         style={{ background: cat.bgGradient }}

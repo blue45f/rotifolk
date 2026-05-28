@@ -1,4 +1,12 @@
 .page { padding-bottom: var(--space-16); }
+.clashBar {
+  padding: 10px clamp(var(--space-3), 4vw, var(--space-8));
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: var(--fs-sm);
+  text-align: center;
+}
+.clashBar strong { color: var(--brand-burgundy-800); margin-left: 4px; }
 .hero {
   position: relative;
   color: #FCFAF5;
