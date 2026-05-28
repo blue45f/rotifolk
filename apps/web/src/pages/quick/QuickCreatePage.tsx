@@ -22,6 +22,8 @@ export default function QuickCreatePage() {
   const [startInMin, setStartInMin] = useState<number>(60)
   const [maxParticipants, setMax] = useState(8)
   const [creating, setCreating] = useState(false)
+  const [createdParty, setCreatedParty] = useState<{ id: string; quickCode: string } | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const cat = CATEGORY_META[category]
 
@@ -38,13 +40,90 @@ export default function QuickCreatePage() {
         startInMinutes: startInMin,
         maxParticipants,
       })
-      toast.show('즉석 모임이 열렸어요! ✨', 'success')
-      navigate(`/host/parties/${created.id}`)
+      setCreatedParty({ id: created.id, quickCode: created.quickCode })
     } catch (e) {
       toast.show((e as Error).message, 'error')
     } finally {
       setCreating(false)
     }
+  }
+
+  const handleCopyCode = async () => {
+    if (!createdParty) return
+    try {
+      await navigator.clipboard.writeText(createdParty.quickCode)
+      toast.show('초대 코드를 복사했어요', 'success')
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.show('복사에 실패했어요', 'error')
+    }
+  }
+
+  const handleShare = async () => {
+    if (!createdParty) return
+    const url = `${window.location.origin}/invite/${createdParty.quickCode}`
+    const shareText = `즉석 모임에 초대합니다!\n초대 코드: ${createdParty.quickCode}`
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: '즉석 모임 초대',
+          text: shareText,
+          url,
+        })
+      } else {
+        await navigator.clipboard.writeText(`${shareText}\n${url}`)
+        toast.show('초대 링크를 복사했어요', 'success')
+      }
+    } catch {
+      // user cancelled
+    }
+  }
+
+  if (createdParty !== null) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.success}>
+          <div className={styles.successEmoji} aria-hidden="true">{cat.emoji}</div>
+          <h1 className={styles.successTitle}>🎉 모임이 열렸어요!</h1>
+          <p className={styles.successLead}>
+            아래 초대 코드를 친구에게 공유하면 바로 참여할 수 있어요.
+          </p>
+
+          <button
+            type="button"
+            className={styles.codeBlock}
+            onClick={handleCopyCode}
+            aria-label={`초대 코드 ${createdParty.quickCode} 복사`}
+          >
+            <span className={styles.codeLabel}>초대 코드</span>
+            <span className={styles.codeValue}>{createdParty.quickCode}</span>
+            <span className={styles.codeHint}>
+              {copied ? '✓ 복사됨' : '탭하면 복사돼요'}
+            </span>
+          </button>
+
+          <div className={styles.successActions}>
+            <Button
+              size="xl"
+              variant="gold"
+              fullWidth
+              onClick={() => navigate(`/host/parties/${createdParty.id}`)}
+            >
+              호스트 콘솔로 이동 →
+            </Button>
+            <Button
+              variant="ghost"
+              size="md"
+              fullWidth
+              onClick={handleShare}
+            >
+              ↗ 친구에게 공유
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
