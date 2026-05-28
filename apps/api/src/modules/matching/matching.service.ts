@@ -218,6 +218,24 @@ export class MatchingService {
         }),
       ),
     )
+    await this.prisma.notification.createMany({
+      data: created.flatMap((c) => [
+        {
+          userId: c.userAId,
+          kind: 'match_made',
+          title: '💫 매칭됐어요!',
+          body: `${party.title}에서 서로를 골랐어요. 채팅을 시작해보세요.`,
+          link: '/chats',
+        },
+        {
+          userId: c.userBId,
+          kind: 'match_made',
+          title: '💫 매칭됐어요!',
+          body: `${party.title}에서 서로를 골랐어요. 채팅을 시작해보세요.`,
+          link: '/chats',
+        },
+      ]),
+    })
     return created.map((c) => ({
       id: c.id,
       partyId: c.partyId,

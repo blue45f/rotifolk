@@ -428,7 +428,25 @@ export class PartiesService {
     const p = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!p || p.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트 권한이 필요해요' })
-    return this.prisma.party.update({ where: { id: partyId }, data: { status: 'live' } })
+    const [updated, participants] = await Promise.all([
+      this.prisma.party.update({ where: { id: partyId }, data: { status: 'live' } }),
+      this.prisma.participation.findMany({
+        where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
+        select: { userId: true },
+      }),
+    ])
+    await this.prisma.notification.createMany({
+      data: participants
+        .filter((pp) => pp.userId !== hostId)
+        .map((pp) => ({
+          userId: pp.userId,
+          kind: 'party_starting',
+          title: '🎉 파티가 시작됐어요!',
+          body: `${p.title} 파티가 지금 시작됩니다.`,
+          link: `/live/${partyId}`,
+        })),
+    })
+    return updated
   }
 
   async end(hostId: string, partyId: string) {

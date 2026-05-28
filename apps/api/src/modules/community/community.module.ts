@@ -22,11 +22,24 @@ class CommunityController {
   async follow(@CurrentUser() me: JwtUserPayload, @Param('userId') userId: string) {
     if (me.sub === userId)
       throw new ForbiddenException({ code: 'cannot_follow_self', message: '본인은 팔로우할 수 없어요' })
-    return this.prisma.follow.upsert({
-      where: { followerId_followingId: { followerId: me.sub, followingId: userId } },
-      create: { followerId: me.sub, followingId: userId },
-      update: {},
-    })
+    const [follow, follower] = await Promise.all([
+      this.prisma.follow.upsert({
+        where: { followerId_followingId: { followerId: me.sub, followingId: userId } },
+        create: { followerId: me.sub, followingId: userId },
+        update: {},
+      }),
+      this.prisma.user.findUnique({ where: { id: me.sub }, select: { nickname: true } }),
+    ])
+    await this.prisma.notification.create({
+      data: {
+        userId,
+        kind: 'new_follower',
+        title: '새 팔로워',
+        body: `${follower?.nickname ?? '누군가'}님이 팔로우를 시작했어요.`,
+        link: '/me/follows',
+      },
+    }).catch(() => undefined)
+    return follow
   }
 
   @Delete('follows/:userId')
