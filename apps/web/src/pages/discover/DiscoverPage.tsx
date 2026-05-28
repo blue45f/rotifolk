@@ -14,15 +14,17 @@ export default function DiscoverPage() {
   const category = params.get('category') as PartyCategory | null
   const area = params.get('area')
   const date = params.get('date')
+  const tag = params.get('tag')
 
   const query = useMemo(
     () => ({
       category: category ?? undefined,
       area: area ?? undefined,
       date: date ?? undefined,
+      tag: tag ?? undefined,
       status: 'open' as const,
     }),
-    [category, area, date],
+    [category, area, date, tag],
   )
   const { data, isLoading } = useParties(query)
 
@@ -72,6 +74,18 @@ export default function DiscoverPage() {
             )
           })}
         </div>
+
+        {tag && (
+          <div className={styles.filterRow} role="group" aria-label="태그 필터">
+            <Chip
+              selected
+              onClick={() => setParam('tag', null)}
+              leadingEmoji="#"
+            >
+              {tag}  ✕
+            </Chip>
+          </div>
+        )}
       </section>
 
       <section className={`container ${styles.list}`}>
