@@ -16,11 +16,18 @@ const PAGE_INCREMENT = 20
 const MAX_PAGE_SIZE = 50
 
 type SortKey = 'soonest' | 'popular' | 'nearby'
+type StatusKey = 'open' | 'live' | 'ended'
 
 const SORTS: { value: SortKey; label: string; emoji: string }[] = [
   { value: 'soonest', label: '곧 시작', emoji: '⏰' },
   { value: 'popular', label: '인기', emoji: '🔥' },
   { value: 'nearby', label: '가까운', emoji: '📍' },
+]
+
+const STATUSES: { value: StatusKey; label: string; emoji: string }[] = [
+  { value: 'open', label: '모집 중', emoji: '🌙' },
+  { value: 'live', label: '진행 중', emoji: '🔴' },
+  { value: 'ended', label: '지난 모임', emoji: '📜' },
 ]
 
 export default function DiscoverPage() {
@@ -31,6 +38,7 @@ export default function DiscoverPage() {
   const tag = params.get('tag')
 
   const sort = (params.get('sort') as SortKey | null) ?? 'soonest'
+  const status = (params.get('status') as StatusKey | null) ?? 'open'
 
   const [pageSize, setPageSize] = useState(PAGE_INCREMENT)
 
@@ -40,10 +48,10 @@ export default function DiscoverPage() {
       area: area ?? undefined,
       date: date ?? undefined,
       tag: tag ?? undefined,
-      status: 'open' as const,
+      status,
       pageSize,
     }),
-    [category, area, date, tag, pageSize],
+    [category, area, date, tag, status, pageSize],
   )
   const { data, isLoading, isFetching } = useParties(query)
   const geo = useGeolocation()
@@ -130,6 +138,19 @@ export default function DiscoverPage() {
             </Chip>
           </div>
         )}
+
+        <div className={styles.filterRow} role="group" aria-label="상태 필터">
+          {STATUSES.map((s) => (
+            <Chip
+              key={s.value}
+              selected={status === s.value}
+              leadingEmoji={s.emoji}
+              onClick={() => setParam('status', s.value === 'open' ? null : s.value)}
+            >
+              {s.label}
+            </Chip>
+          ))}
+        </div>
 
         <div className={styles.filterRow} role="group" aria-label="정렬">
           {SORTS.map((s) => {
