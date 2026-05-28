@@ -20,6 +20,7 @@ import { PartyCard } from '@features/parties/PartyCard'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { computeAchievements, summarizeAchievements } from '@features/achievements/achievements'
 import { api } from '@services/api'
 import styles from './Profile.module.css'
 
@@ -86,6 +87,15 @@ export default function ProfilePage() {
     hostedCount: user.hostedCount,
     averageRating: 0,
   })
+
+  const achievements = computeAchievements({
+    hostedCount: user.hostedCount,
+    joinedCount: user.joinedCount,
+    trustScore: user.trustScore,
+    isVerified: user.isVerified,
+    hasReferred: referral?.referredCount ?? 0,
+  })
+  const { earned: earnedAchievements, total: totalAchievements } = summarizeAchievements(achievements)
 
   const upcoming = mine?.filter((m) =>
     ['confirmed', 'waitlist', 'checked-in'].includes(m.participation.status),
@@ -193,6 +203,7 @@ export default function ProfilePage() {
             { value: 'upcoming', label: `다가오는 (${upcoming?.length ?? 0})` },
             { value: 'saved', label: `저장 (${savedItems?.length ?? 0})` },
             { value: 'past', label: `지난 (${past?.length ?? 0})` },
+            { value: 'badges', label: `업적 (${earnedAchievements}/${totalAchievements})` },
             { value: 'reviews', label: '받은 후기' },
             { value: 'settings', label: '설정' },
           ]}
@@ -258,6 +269,25 @@ export default function ProfilePage() {
           ) : (
             <EmptyState emoji="🌙" title="아직 지난 파티가 없어요" />
           )
+        )}
+
+        {tab === 'badges' && (
+          <div className={styles.achievementGrid}>
+            {achievements.map((a) => (
+              <div
+                key={a.id}
+                className={`${styles.achievement} ${a.earned ? styles.achievementEarned : ''}`}
+                title={a.description}
+              >
+                <span className={styles.achievementEmoji} aria-hidden="true">{a.emoji}</span>
+                <div className={styles.achievementBody}>
+                  <strong>{a.label}</strong>
+                  <small>{a.description}</small>
+                </div>
+                {a.earned && <span className={styles.achievementMark} aria-label="획득">✓</span>}
+              </div>
+            ))}
+          </div>
         )}
 
         {tab === 'reviews' && <ReceivedReviews userId={user.id} />}
