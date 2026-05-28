@@ -22,7 +22,7 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.4.8",
-    "@nestjs/platform-socket.io": "^10.4.8",
+    "@nestjs/platform-socket.io": "^11.1.24",
     "@nestjs/websockets": "^10.4.8",
     "@prisma/client": "^5.22.0",
     "@rotifolk/shared": "workspace:*",
