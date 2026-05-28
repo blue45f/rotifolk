@@ -1,11 +1,48 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useChatMessages, useSendMessage, useMyChatRooms } from '@features/chat/queries'
 import { useAuthStore } from '@store/authStore'
 import { Button } from '@components/ui/Button/Button'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import Loading from '@components/feedback/Loading'
 import styles from './Chat.module.css'
+
+const IMAGE_EXT = /\.(jpe?g|png|gif|webp|avif|svg)(\?.*)?$/i
+
+function isImageUrl(s: string): boolean {
+  try {
+    const url = new URL(s)
+    return (url.protocol === 'https:' || url.protocol === 'http:') && IMAGE_EXT.test(url.pathname)
+  } catch {
+    return false
+  }
+}
+
+const URL_RE = /https?:\/\/[^\s]+/g
+
+function MessageBody({ body }: { body: string }) {
+  const urls = Array.from(body.matchAll(URL_RE), (m) => m[0])
+  if (urls.length === 0) return <p className={styles.msgText}>{body}</p>
+
+  const imageUrls = urls.filter(isImageUrl)
+  const plainText = body.replace(URL_RE, '').trim()
+
+  return (
+    <>
+      {plainText && <p className={styles.msgText}>{plainText}</p>}
+      {imageUrls.map((url) => (
+        <a key={url} href={url} target="_blank" rel="noreferrer noopener" className={styles.msgImgLink}>
+          <img src={url} alt="" className={styles.msgImg} loading="lazy" />
+        </a>
+      ))}
+      {urls.filter((u) => !isImageUrl(u)).map((url) => (
+        <a key={url} href={url} target="_blank" rel="noreferrer noopener" className={styles.msgLink}>
+          🔗 {url.length > 50 ? url.slice(0, 50) + '…' : url}
+        </a>
+      ))}
+    </>
+  )
+}
 
 export default function ChatRoomPage() {
   const { roomId } = useParams<{ roomId: string }>()
@@ -42,7 +79,14 @@ export default function ChatRoomPage() {
         <button className={styles.roomBack} onClick={() => navigate('/chats')} aria-label="뒤로">
           ←
         </button>
-        <h1 className={styles.roomTitle}>{title}</h1>
+        <div className={styles.roomHeaderBody}>
+          <h1 className={styles.roomTitle}>{title}</h1>
+          {room.partyId && room.kind !== 'pair' && (
+            <Link to={`/parties/${room.partyId}`} className={styles.roomPartyLink}>
+              파티 보기 →
+            </Link>
+          )}
+        </div>
         <span className={styles.roomSub}>{room.members.length}명</span>
       </header>
 
@@ -66,7 +110,7 @@ export default function ChatRoomPage() {
               )}
               <div className={styles.msgBubble}>
                 {!mine && <div className={styles.msgName}>{m.nickname}</div>}
-                <p>{m.body}</p>
+                <MessageBody body={m.body} />
                 <time>
                   {new Date(m.createdAt).toLocaleTimeString('ko-KR', {
                     hour: '2-digit',

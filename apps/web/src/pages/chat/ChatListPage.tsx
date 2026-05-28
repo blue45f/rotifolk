@@ -1,15 +1,36 @@
 import { Link } from 'react-router-dom'
+import { useState, useMemo } from 'react'
 import { useMyChatRooms } from '@features/chat/queries'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
+import { Input } from '@components/ui/Input/Input'
 import { useAuthStore } from '@store/authStore'
 import styles from './Chat.module.css'
 
 export default function ChatListPage() {
   const me = useAuthStore((s) => s.user)
   const { data, isLoading } = useMyChatRooms()
+  const [q, setQ] = useState('')
+
+  const filtered = useMemo(() => {
+    if (!data) return []
+    if (!q) return data
+    const term = q.toLowerCase()
+    return data.filter((room) => {
+      const counterpart =
+        room.kind === 'pair'
+          ? room.members.find((m) => m.userId !== me?.id) ?? room.members[0]
+          : null
+      const titleMatch = (room.title ?? '').toLowerCase().includes(term)
+      const nicknameMatch = counterpart
+        ? (counterpart.nickname ?? '').toLowerCase().includes(term)
+        : false
+      const lastBodyMatch = (room.lastMessage?.body ?? '').toLowerCase().includes(term)
+      return titleMatch || nicknameMatch || lastBodyMatch
+    })
+  }, [data, q, me?.id])
 
   if (isLoading) return <Loading />
   if (!data || data.length === 0) {
@@ -28,8 +49,21 @@ export default function ChatListPage() {
   return (
     <div className={`container ${styles.page}`}>
       <h1 className={styles.title}>채팅</h1>
+      <div className={styles.searchWrap}>
+        <Input
+          type="search"
+          placeholder="채팅 검색"
+          leftIcon={<span aria-hidden>🔍</span>}
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        {q && <p className={styles.count}>{filtered.length}개의 채팅방</p>}
+      </div>
+      {filtered.length === 0 ? (
+        <EmptyState emoji="🔎" title="검색 결과가 없어요" />
+      ) : (
       <ul className={styles.list}>
-        {data.map((room) => {
+        {filtered.map((room) => {
           const counterpart =
             room.kind === 'pair'
               ? room.members.find((m) => m.userId !== me?.id) ?? room.members[0]
@@ -85,6 +119,7 @@ export default function ChatListPage() {
           )
         })}
       </ul>
+      )}
     </div>
   )
 }
