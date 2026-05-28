@@ -241,6 +241,69 @@
   .tickerTrack { animation: none; }
 }
 
+/* ============ Recent rail ============ */
+.recentRail {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-inline: calc(var(--space-3) * -1);
+  padding-inline: var(--space-3);
+  padding-block: var(--space-1);
+}
+.recentRail::-webkit-scrollbar { display: none; }
+.recentChip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease-out-quart),
+              border-color var(--dur-fast) var(--ease-out-quart),
+              box-shadow var(--dur-fast) var(--ease-out-quart);
+  position: relative;
+  max-width: 320px;
+}
+.recentChip:hover {
+  transform: translateY(-2px);
+  border-color: var(--chip-accent, var(--color-primary));
+  box-shadow: 0 8px 22px color-mix(in oklab, var(--chip-accent, var(--color-primary)) 18%, transparent);
+}
+.recentEmoji {
+  font-size: 22px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--chip-accent, var(--color-primary)) 14%, var(--color-surface-soft));
+  flex-shrink: 0;
+}
+.recentBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.recentBody strong {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+.recentBody small {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+
 /* ============ Category rail ============ */
 .catRail {
   display: grid;

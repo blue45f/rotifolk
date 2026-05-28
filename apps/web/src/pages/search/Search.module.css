@@ -20,6 +20,117 @@
   font-size: var(--fs-lg);
 }
 
+.searchBlock {
+  position: relative;
+}
+
+.suggestPanel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 14px 30px rgba(20, 16, 29, 0.18);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.suggestGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.suggestGroup ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.suggestGroupHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--fw-semibold);
+}
+.suggestClear {
+  background: transparent;
+  border: 0;
+  color: var(--color-primary);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.suggestClear:hover { text-decoration: underline; }
+.suggestItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius-md);
+  transition: background var(--dur-fast) var(--ease-out-quart);
+}
+.suggestItem:hover { background: var(--color-surface-soft); }
+.suggestRow {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px var(--space-2);
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-text);
+  font-size: var(--fs-md);
+  min-width: 0;
+}
+.suggestText {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: var(--fw-medium);
+}
+.suggestKind {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-regular);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-soft);
+  flex-shrink: 0;
+}
+.suggestForget {
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.suggestForget:hover {
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+}
+
 .body {
   display: flex;
   flex-direction: column;

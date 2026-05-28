@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
@@ -119,6 +120,8 @@ export default function HostProfilePage() {
         )}
       </header>
 
+      <HostIntroSlot hostId={user.id} isSelf={isSelf} />
+
       <section className={styles.section}>
         <h2 className={styles.h2}>최근 모임</h2>
         {recentParties.length === 0 ? (
@@ -143,5 +146,77 @@ export default function HostProfilePage() {
         </Card>
       )}
     </div>
+  )
+}
+
+const INTRO_KEY = (hostId: string) => `rotifolk-host-intro-${hostId}`
+const INTRO_MAX = 400
+
+function HostIntroSlot({ hostId, isSelf }: { hostId: string; isSelf: boolean }) {
+  const [intro, setIntro] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+
+  useEffect(() => {
+    try { setIntro(localStorage.getItem(INTRO_KEY(hostId)) ?? '') } catch {}
+  }, [hostId])
+
+  if (!intro && !isSelf) return null
+
+  const start = () => {
+    setDraft(intro)
+    setEditing(true)
+  }
+  const save = () => {
+    const next = draft.trim().slice(0, INTRO_MAX)
+    setIntro(next)
+    try { localStorage.setItem(INTRO_KEY(hostId), next) } catch {}
+    setEditing(false)
+  }
+  const cancel = () => {
+    setEditing(false)
+    setDraft('')
+  }
+
+  return (
+    <section className={styles.section} aria-label="호스트 인사말">
+      <h2 className={styles.h2}>호스트 인사</h2>
+      <Card padding="lg" variant="soft">
+        {editing ? (
+          <div className={styles.introEdit}>
+            <textarea
+              className={styles.introTextarea}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value.slice(0, INTRO_MAX))}
+              placeholder="모임을 여는 이유, 좋아하는 잔, 어떤 손님을 만나고 싶은지 — 첫인사처럼 한두 문단으로."
+              rows={5}
+              autoFocus
+            />
+            <div className={styles.introFoot}>
+              <span className={styles.introCount}>{draft.length} / {INTRO_MAX}</span>
+              <div className={styles.introActions}>
+                <Button variant="ghost" size="sm" onClick={cancel}>취소</Button>
+                <Button variant="primary" size="sm" onClick={save}>저장</Button>
+              </div>
+            </div>
+            <p className={styles.introHint}>※ 이 기기에만 저장돼요 (브라우저 localStorage)</p>
+          </div>
+        ) : intro ? (
+          <div className={styles.introBlock}>
+            <p className={styles.introText}>{intro}</p>
+            {isSelf && (
+              <button type="button" className={styles.introEditBtn} onClick={start}>
+                ✎ 수정
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className={styles.introEmpty}>
+            <p className={styles.muted}>아직 인사말이 없어요. 첫인사로 손님 마음을 데워볼까요?</p>
+            <Button variant="gold" size="sm" onClick={start}>✨ 인사말 작성</Button>
+          </div>
+        )}
+      </Card>
+    </section>
   )
 }
