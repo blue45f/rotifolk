@@ -119,8 +119,30 @@ class PaymentsController {
       },
       orderBy: { createdAt: 'desc' },
       take: 100,
+      include: {
+        party: {
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            startAt: true,
+            coverImageUrl: true,
+          },
+        },
+      },
     })
-    return items.map((p) => this.shape(p))
+    return items.map((p) => ({
+      ...this.shape(p),
+      party: p.party
+        ? {
+            id: p.party.id,
+            title: p.party.title,
+            category: p.party.category,
+            startAt: p.party.startAt.toISOString(),
+            coverImageUrl: p.party.coverImageUrl ?? null,
+          }
+        : null,
+    }))
   }
 
   @Get('host/summary')
