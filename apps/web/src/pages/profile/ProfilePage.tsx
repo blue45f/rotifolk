@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import type { AvatarMood, PartySummary } from '@rotifolk/shared'
+import type { AvatarMood, PartySummary, User } from '@rotifolk/shared'
 import { computeHostLevel } from '@rotifolk/shared'
 import { useMyParties } from '@features/parties/queries'
 import { useLogout, useMe } from '@features/auth/queries'
@@ -15,6 +15,7 @@ import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Input } from '@components/ui/Input/Input'
 import { PartyCard } from '@features/parties/PartyCard'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
@@ -43,6 +44,10 @@ export default function ProfilePage() {
   const setTheme = useThemeStore((s) => s.setTheme)
   const [tab, setTab] = useState('upcoming')
   const [showAvatar, setShowAvatar] = useState(false)
+  const [showProfileEdit, setShowProfileEdit] = useState(false)
+  const [bioDraft, setBioDraft] = useState('')
+  const [mbtiDraft, setMbtiDraft] = useState('')
+  const [interestsDraft, setInterestsDraft] = useState('')
   const toast = useToast()
 
   const [draftMood, setDraftMood] = useState<AvatarMood>('sparkling')
@@ -102,6 +107,28 @@ export default function ProfilePage() {
     }
   }
 
+  const saveProfile = async () => {
+    const interests = interestsDraft
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .slice(0, 8)
+    const mbti = mbtiDraft.trim().toUpperCase()
+
+    try {
+      const updated = await api.patch<User>('users/me', {
+        bio: bioDraft.trim(),
+        interests,
+        ...(mbti ? { mbti } : {}),
+      })
+      updateLocal(updated)
+      setShowProfileEdit(false)
+      toast.show('프로필이 업데이트됐어요', 'success')
+    } catch (e) {
+      toast.show((e as Error).message, 'error')
+    }
+  }
+
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
@@ -128,6 +155,18 @@ export default function ProfilePage() {
             </span>
           </div>
           <div className={styles.actions}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setBioDraft(user.bio ?? '')
+                setMbtiDraft(user.mbti ?? '')
+                setInterestsDraft((user.interests ?? []).join(', '))
+                setShowProfileEdit(true)
+              }}
+            >
+              ✏️ 프로필 편집
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => setShowAvatar(true)}>
               아바타 편집
             </Button>
@@ -295,6 +334,50 @@ export default function ProfilePage() {
           </>
         )}
       </section>
+
+      <Sheet
+        open={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
+        title="프로필 편집"
+        description="소개와 관심사를 최신 상태로 유지해요"
+        variant="modal"
+        size="md"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowProfileEdit(false)}>
+              취소
+            </Button>
+            <Button variant="primary" onClick={saveProfile}>
+              저장
+            </Button>
+          </>
+        }
+      >
+        <label className={styles.editField}>
+          <span className={styles.editLabel}>한 줄 소개</span>
+          <textarea
+            className={styles.textarea}
+            value={bioDraft}
+            maxLength={200}
+            rows={4}
+            onChange={(e) => setBioDraft(e.target.value)}
+          />
+        </label>
+        <Input
+          label="MBTI"
+          value={mbtiDraft}
+          maxLength={4}
+          placeholder="ENFP"
+          onChange={(e) => setMbtiDraft(e.target.value.toUpperCase())}
+        />
+        <Input
+          label="관심사"
+          value={interestsDraft}
+          placeholder="와인, 커피, 전시"
+          hint="쉼표로 구분해 최대 8개까지 저장돼요."
+          onChange={(e) => setInterestsDraft(e.target.value)}
+        />
+      </Sheet>
 
       <Sheet
         open={showAvatar}
