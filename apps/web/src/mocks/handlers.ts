@@ -99,6 +99,9 @@ export const handlers = [
   http.get(`${API}/chat/rooms/:id/messages`, async () => HttpResponse.json(await delay([]))),
   http.get(`${API}/chat/unread-count`, async () => HttpResponse.json(await delay({ count: 0, rooms: 0 }))),
 
+  // Payments (empty by default in mock mode)
+  http.get(`${API}/payments/me`, async () => HttpResponse.json(await delay([]))),
+
   // Orders / split
   http.get(`${API}/orders/party/:id/split`, async ({ request }) => {
     const url = new URL(request.url)

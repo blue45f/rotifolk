@@ -269,6 +269,21 @@ export default function ProfilePage() {
                 ))}
               </div>
               <div className={styles.divider} />
+              <div className={styles.settingsLinks}>
+                <Link to="/me/saved" className={styles.settingsLink}>
+                  <span>☆ 저장한 모임</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+                <Link to="/me/payments" className={styles.settingsLink}>
+                  <span>🧾 결제 내역</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+                <Link to="/me/follows" className={styles.settingsLink}>
+                  <span>👥 팔로잉</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </div>
+              <div className={styles.divider} />
               <Button variant="ghost" onClick={() => logout()}>
                 로그아웃
               </Button>
