@@ -37,12 +37,13 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          query: ['@tanstack/react-query'],
-          motion: ['framer-motion'],
-          socket: ['socket.io-client'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('react-dom') || (id.includes('/react/') && !id.includes('react-router'))) return 'vendor'
+          if (id.includes('react-router-dom')) return 'router'
+          if (id.includes('@tanstack/react-query')) return 'query'
+          if (id.includes('framer-motion')) return 'motion'
+          if (id.includes('socket.io-client')) return 'socket'
         },
       },
     },

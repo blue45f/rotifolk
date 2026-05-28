@@ -16,18 +16,18 @@ export class ApiError extends Error {
 }
 
 export const apiClient: KyInstance = ky.create({
-  prefixUrl: API_BASE,
+  prefix: API_BASE,
   timeout: 20_000,
   retry: { limit: 1, methods: ['get'] },
   hooks: {
     beforeRequest: [
-      (request) => {
+      ({ request }) => {
         const token = useAuthStore.getState().token
         if (token) request.headers.set('authorization', `Bearer ${token}`)
       },
     ],
     afterResponse: [
-      async (_request, _options, response) => {
+      async ({ response }) => {
         if (response.status === 401) {
           useAuthStore.getState().clear()
         }
@@ -35,7 +35,7 @@ export const apiClient: KyInstance = ky.create({
       },
     ],
     beforeError: [
-      async (error) => {
+      async ({ error }) => {
         if (error instanceof HTTPError) {
           try {
             const body = (await error.response.clone().json()) as {
@@ -43,14 +43,14 @@ export const apiClient: KyInstance = ky.create({
               code?: string
               details?: unknown
             }
-            throw new ApiError(
+            return new ApiError(
               error.response.status,
               body.code ?? 'unknown',
               body.message ?? error.message,
               body.details,
             )
-          } catch (e) {
-            if (e instanceof ApiError) throw e
+          } catch {
+            // JSON parsing failed, return original error
           }
         }
         return error
