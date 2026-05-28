@@ -39,7 +39,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@nestjs/testing": "^10.4.8",
+    "@nestjs/testing": "^11.1.24",
     "@types/express": "^5.0.0",
     "@types/node": "^25.9.1",
     "@types/passport-jwt": "^4.0.1",
