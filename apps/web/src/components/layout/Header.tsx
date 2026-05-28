@@ -1,9 +1,11 @@
 import { Link, NavLink } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { useLocale, useT } from '@features/i18n/i18n'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
+import { api } from '@services/api'
 import styles from './Header.module.css'
 
 export function Header() {
@@ -12,6 +14,12 @@ export function Header() {
   const setTheme = useThemeStore((s) => s.setTheme)
   const t = useT()
   const [locale, setLocale] = useLocale()
+  const { data: unread } = useQuery({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: () => api.get<{ count: number }>('notifications/unread-count'),
+    enabled: !!user,
+    refetchInterval: 60_000,
+  })
   const isDark =
     theme === 'dark' ||
     (theme === 'system' &&
@@ -63,6 +71,16 @@ export function Header() {
           >
             {isDark ? '🌞' : '🌙'}
           </button>
+          {user && (
+            <Link to="/notifications" className={styles.bell} aria-label="알림">
+              <span aria-hidden="true">🔔</span>
+              {(unread?.count ?? 0) > 0 && (
+                <span className={styles.bellDot} aria-hidden="true">
+                  {unread!.count > 9 ? '9+' : unread!.count}
+                </span>
+              )}
+            </Link>
+          )}
           {user ? (
             <Link to="/me" aria-label="내 프로필">
               <Avatar size="sm" emoji={user.nickname[0]} hue="#7A1F3D" pattern="gradient" />
