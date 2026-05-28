@@ -150,6 +150,15 @@ export function PartyCard({ party }: Props) {
             {party.basePriceKRW === 0 ? '무료' : `${party.basePriceKRW.toLocaleString()}원`}
           </span>
         </div>
+        {party.hostNickname && (
+          <Link
+            to={`/hosts/${party.hostId}`}
+            className={styles.hostLink}
+            onClick={(e) => e.stopPropagation()}
+          >
+            🎙️ {party.hostNickname}
+          </Link>
+        )}
       </div>
     </Link>
   )

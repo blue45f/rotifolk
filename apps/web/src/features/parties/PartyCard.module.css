@@ -189,3 +189,14 @@
   font-size: var(--fs-md);
   letter-spacing: var(--tracking-tight);
 }
+.hostLink {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  margin-top: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hostLink:hover { color: var(--color-primary); text-decoration: underline; }
