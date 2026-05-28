@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParty, useJoinParty, useCancelJoin } from '@features/parties/queries'
+import { useEnsurePartyRoom } from '@features/chat/queries'
 import { CATEGORY_META } from '@features/categories/meta'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
@@ -191,6 +192,18 @@ export default function PartyDetailPage() {
       }
     } catch {
       // user cancelled
+    }
+  }
+
+  const ensureRoom = useEnsurePartyRoom()
+
+  const handleOpenGroupChat = async () => {
+    if (!partyId) return
+    try {
+      const room = await ensureRoom.mutateAsync(partyId)
+      navigate(`/chats/${room.id}`)
+    } catch (e) {
+      toast.show((e as Error).message, 'error')
     }
   }
 
@@ -630,17 +643,37 @@ export default function PartyDetailPage() {
             </ul>
 
             {isHost ? (
-              <Link to={`/host/parties/${party.id}`}>
-                <Button variant="primary" size="lg" fullWidth>
-                  호스트 콘솔로 가기
+              <div className={styles.stack}>
+                <Link to={`/host/parties/${party.id}`}>
+                  <Button variant="primary" size="lg" fullWidth>
+                    호스트 콘솔로 가기
+                  </Button>
+                </Link>
+                <Button
+                  variant="soft"
+                  size="lg"
+                  fullWidth
+                  onClick={handleOpenGroupChat}
+                  isLoading={ensureRoom.isPending}
+                >
+                  💬 단톡방 입장
                 </Button>
-              </Link>
+              </div>
             ) : joinedMe ? (
               <div className={styles.stack}>
                 <div className={styles.joinedBadges}>
                   <Badge tone="success">✅ 신청 완료 — {joinedMe.status === 'waitlist' ? '대기' : '확정'}</Badge>
                   {paidPayment && <Badge tone="gold">💳 결제 완료</Badge>}
                 </div>
+                <Button
+                  variant="soft"
+                  size="lg"
+                  fullWidth
+                  onClick={handleOpenGroupChat}
+                  isLoading={ensureRoom.isPending}
+                >
+                  💬 단톡방 입장
+                </Button>
                 {status === 'live' && (
                   <Link to={`/live/${party.id}`}>
                     <Button variant="gold" size="lg" fullWidth>
