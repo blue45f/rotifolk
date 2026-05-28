@@ -30,6 +30,16 @@ export const routes: RouteObject[] = [
       { path: 'venues', element: lazyPage(() => import('@pages/venues/VenuesPage')) },
       { path: 'hosts/:hostId', element: lazyPage(() => import('@pages/host-profile/HostProfilePage')) },
       { path: 'match-card/:userId', element: lazyPage(() => import('@pages/match-card/MatchCardPage')) },
+      {
+        path: 'me/cards',
+        element: <ProtectedRoute />,
+        children: [{ index: true, element: lazyPage(() => import('@pages/match-cards/MatchCardsPage')) }],
+      },
+      {
+        path: 'me/follows',
+        element: <ProtectedRoute />,
+        children: [{ index: true, element: lazyPage(() => import('@pages/follows/FollowsPage')) }],
+      },
       { path: 'login', element: lazyPage(() => import('@pages/auth/LoginPage')) },
       { path: 'signup', element: lazyPage(() => import('@pages/auth/SignUpPage')) },
       {

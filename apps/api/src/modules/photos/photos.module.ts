@@ -9,23 +9,43 @@ import {
   NotFoundException,
   Param,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
+import { JwtService } from '@nestjs/jwt'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { JwtModule } from '@nestjs/jwt'
 import { PrismaService } from '@/prisma/prisma.service'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 
 @Controller()
 class PhotosController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwt: JwtService,
+  ) {}
+
+  private viewerIdFromHeader(authHeader?: string): string | null {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) return null
+    try {
+      const payload = this.jwt.verify<JwtUserPayload>(authHeader.slice(7))
+      return payload.sub
+    } catch {
+      return null
+    }
+  }
 
   @Get('parties/:partyId/photos')
-  async list(@Param('partyId') partyId: string) {
+  async list(@Param('partyId') partyId: string, @Req() req: { headers: { authorization?: string } }) {
+    const viewerId = this.viewerIdFromHeader(req.headers.authorization)
     const photos = await this.prisma.partyPhoto.findMany({
       where: { partyId },
       orderBy: { createdAt: 'desc' },
       include: {
         user: { select: { id: true, nickname: true, avatarId: true } },
+        _count: { select: { likes: true } },
+        likes: viewerId ? { where: { userId: viewerId }, select: { id: true } } : false,
       },
     })
     return photos.map((p) => ({
@@ -35,7 +55,28 @@ class PhotosController {
       createdAt: p.createdAt.toISOString(),
       userId: p.userId,
       uploader: p.user,
+      likeCount: p._count.likes,
+      likedByMe: viewerId ? (p.likes?.length ?? 0) > 0 : false,
     }))
+  }
+
+  @Post('photos/:id/like')
+  @UseGuards(AuthGuard('jwt'))
+  async like(@CurrentUser() me: JwtUserPayload, @Param('id') id: string) {
+    const photo = await this.prisma.partyPhoto.findUnique({ where: { id } })
+    if (!photo) throw new NotFoundException({ code: 'photo_not_found', message: '사진을 찾을 수 없어요' })
+    return this.prisma.photoLike.upsert({
+      where: { photoId_userId: { photoId: id, userId: me.sub } },
+      create: { photoId: id, userId: me.sub },
+      update: {},
+    })
+  }
+
+  @Delete('photos/:id/like')
+  @UseGuards(AuthGuard('jwt'))
+  async unlike(@CurrentUser() me: JwtUserPayload, @Param('id') id: string) {
+    await this.prisma.photoLike.deleteMany({ where: { photoId: id, userId: me.sub } })
+    return { ok: true }
   }
 
   @Post('parties/:partyId/photos')
@@ -111,5 +152,16 @@ class PhotosController {
   }
 }
 
-@Module({ controllers: [PhotosController] })
+@Module({
+  imports: [
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (cfg: ConfigService) => ({
+        secret: cfg.get<string>('JWT_SECRET', 'dev-secret-change-me'),
+      }),
+    }),
+  ],
+  controllers: [PhotosController],
+})
 export class PhotosModule {}

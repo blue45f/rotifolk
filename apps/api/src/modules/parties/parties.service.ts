@@ -211,6 +211,40 @@ export class PartiesService {
     return items.map(toPartySummary)
   }
 
+  /** 내가 받은 mutual 매칭들의 명함 목록 */
+  async getMyMatchCards(userId: string) {
+    const matches = await this.prisma.finalMatch.findMany({
+      where: {
+        OR: [{ userAId: userId }, { userBId: userId }],
+        result: 'mutual',
+      },
+      orderBy: { matchedAt: 'desc' },
+      take: 100,
+      include: { party: { select: { id: true, title: true } } },
+    })
+    const partnerIds = matches.map((m) =>
+      m.userAId === userId ? m.userBId : m.userAId,
+    )
+    const partners = await this.prisma.user.findMany({
+      where: { id: { in: partnerIds } },
+      select: { id: true, nickname: true, avatarId: true },
+    })
+    const map = new Map(partners.map((p) => [p.id, p]))
+    return matches.map((m) => {
+      const pid = m.userAId === userId ? m.userBId : m.userAId
+      const partner = map.get(pid)
+      return {
+        id: m.id,
+        partnerUserId: pid,
+        partnerNickname: partner?.nickname ?? '익명',
+        partnerAvatarId: partner?.avatarId ?? null,
+        partyId: m.partyId,
+        partyTitle: m.party?.title ?? '',
+        matchedAt: m.matchedAt.toISOString(),
+      }
+    })
+  }
+
   /** 초대 코드(quickCode)로 단건 조회 — 미로그인 사용자에게도 일부 정보 공개 */
   async findByQuickCode(code: string) {
     const party = await this.prisma.party.findUnique({
