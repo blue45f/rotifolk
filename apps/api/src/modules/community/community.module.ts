@@ -156,6 +156,8 @@ class CommunityController {
         basePriceKRW: p.basePriceKRW,
         drinkPackage: p.drinkPackage,
         snackPackage: p.snackPackage,
+        hostId: id,
+        hostNickname: user.nickname,
         tags: [],
       })),
     }
