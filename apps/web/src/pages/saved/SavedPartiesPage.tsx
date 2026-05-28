@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
@@ -7,16 +8,26 @@ import { useAuthStore } from '@store/authStore'
 import { useParties } from '@features/parties/queries'
 import { PartyCard } from '@features/parties/PartyCard'
 import { Button } from '@components/ui/Button/Button'
+import { Chip } from '@components/ui/Chip/Chip'
 import Loading from '@components/feedback/Loading'
 import styles from './SavedParties.module.css'
 
+type SortKey = 'saved' | 'soonest'
+
 export default function SavedPartiesPage() {
   const me = useAuthStore((s) => s.user)
+  const [sort, setSort] = useState<SortKey>('saved')
   const { data, isLoading } = useQuery({
     queryKey: ['saved', 'me'],
     queryFn: () => api.get<PartySummary[]>('saved'),
   })
   const { data: openParties } = useParties({ status: 'open', pageSize: 12 })
+
+  const sortedItems = useMemo(() => {
+    const arr = [...(data ?? [])]
+    if (sort === 'soonest') arr.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+    return arr
+  }, [data, sort])
 
   if (isLoading) return <Loading />
 
@@ -60,11 +71,17 @@ export default function SavedPartiesPage() {
           </div>
         </>
       ) : (
-        <div className={styles.grid}>
-          {items.map((p) => (
-            <PartyCard key={p.id} party={p} />
-          ))}
-        </div>
+        <>
+          <div className={styles.sortRow}>
+            <Chip selected={sort === 'saved'} onClick={() => setSort('saved')}>저장한 순</Chip>
+            <Chip selected={sort === 'soonest'} onClick={() => setSort('soonest')} leadingEmoji="⏰">곧 시작순</Chip>
+          </div>
+          <div className={styles.grid}>
+            {sortedItems.map((p) => (
+              <PartyCard key={p.id} party={p} />
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

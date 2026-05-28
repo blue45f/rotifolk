@@ -110,12 +110,21 @@ export default function VibePage() {
       {committed && (
         <section className={styles.result}>
           <header className={styles.resultHead}>
-            <h2>이런 모임이 어울려요</h2>
-            {interests.length > 0 && (
-              <p className={styles.muted}>
-                감지한 키워드: {interests.map((t) => `#${t}`).join(' ')}
-              </p>
-            )}
+            <div>
+              <h2>이런 모임이 어울려요</h2>
+              {interests.length > 0 && (
+                <p className={styles.muted}>
+                  감지한 키워드: {interests.map((t) => `#${t}`).join(' ')}
+                </p>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setCommitted(null); setText('') }}
+            >
+              ↩ 다시 시도
+            </Button>
           </header>
           {isLoading ? (
             <Loading />

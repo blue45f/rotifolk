@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
@@ -23,15 +23,36 @@ interface HostProfileLite {
   stats: { followerCount: number; hostedCount: number; averageRating: number }
 }
 
+interface FollowedUser { id: string }
+
 export default function MatchCardPage() {
   const { userId } = useParams<{ userId: string }>()
   const me = useAuthStore((s) => s.user)
   const toast = useToast()
+  const qc = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['match-card', userId],
     queryFn: () => api.get<HostProfileLite>(`hosts/${userId}`),
     enabled: !!userId,
+  })
+
+  const { data: following } = useQuery({
+    queryKey: ['follows', 'me'],
+    queryFn: () => api.get<FollowedUser[]>('follows/me'),
+    enabled: !!me,
+  })
+  const isFollowing = following?.some((f) => f.id === userId) ?? false
+
+  const followMutation = useMutation({
+    mutationFn: () => isFollowing
+      ? api.delete(`follows/${userId}`)
+      : api.post(`follows/${userId}`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['follows', 'me'] })
+      toast.show(isFollowing ? '팔로우를 해제했어요' : '팔로우했어요', 'success')
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
   })
 
   if (isLoading) return <Loading />
@@ -107,9 +128,19 @@ export default function MatchCardPage() {
             ↗ 명함 공유
           </Button>
           {me && me.id !== userId && (
-            <Link to={`/chats`}>
-              <Button variant="soft" size="lg">💌 메시지 보내기</Button>
-            </Link>
+            <>
+              <Button
+                variant={isFollowing ? 'soft' : 'outline'}
+                size="lg"
+                isLoading={followMutation.isPending}
+                onClick={() => followMutation.mutate()}
+              >
+                {isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
+              </Button>
+              <Link to="/chats">
+                <Button variant="ghost" size="lg">💌 메시지</Button>
+              </Link>
+            </>
           )}
         </div>
       </motion.div>

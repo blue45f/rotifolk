@@ -11,11 +11,29 @@ import { Card } from '@components/ui/Card/Card'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import styles from './AuthPage.module.css'
 
+type StrengthLevel = 'weak' | 'medium' | 'strong'
+
+function passwordStrength(pw: string): { level: StrengthLevel; label: string } | null {
+  if (!pw) return null
+  const hasNum = /\d/.test(pw)
+  const hasSpecial = /[^a-zA-Z0-9]/.test(pw)
+  const long = pw.length >= 12
+  if (pw.length < 8) return { level: 'weak', label: '너무 짧아요' }
+  if (hasNum && hasSpecial && long) return { level: 'strong', label: '안전해요' }
+  if (hasNum || hasSpecial) return { level: 'medium', label: '조금 더 강하게' }
+  return { level: 'weak', label: '숫자나 특수문자를 추가해 보세요' }
+}
+
 export default function SignUpPage() {
   const signUp = useSignUp()
   const navigate = useNavigate()
   const toast = useToast()
   const [referralCode, setReferralCode] = useState('')
+  const [pwValue, setPwValue] = useState('')
+  const [agreed, setAgreed] = useState(false)
+  const [agreeError, setAgreeError] = useState(false)
+
+  const strength = passwordStrength(pwValue)
 
   const {
     register,
@@ -32,6 +50,10 @@ export default function SignUpPage() {
         <form
           className={styles.form}
           onSubmit={handleSubmit(async (data) => {
+            if (!agreed) {
+              setAgreeError(true)
+              return
+            }
             try {
               const trimmed = referralCode.trim()
               await signUp.mutateAsync({
@@ -59,20 +81,50 @@ export default function SignUpPage() {
             error={errors.nickname?.message}
             {...register('nickname')}
           />
-          <Input
-            type="password"
-            label="비밀번호"
-            placeholder="8자 이상"
-            autoComplete="new-password"
-            error={errors.password?.message}
-            {...register('password')}
-          />
+          <div>
+            <Input
+              type="password"
+              label="비밀번호"
+              placeholder="8자 이상"
+              autoComplete="new-password"
+              error={errors.password?.message}
+              {...register('password', {
+                onChange: (e) => setPwValue(e.target.value),
+              })}
+            />
+            {strength && (
+              <div className={styles.strengthRow} aria-live="polite">
+                <div className={styles.strengthBars}>
+                  <div className={`${styles.strengthBar} ${styles[strength.level]}`} />
+                  <div className={`${styles.strengthBar} ${strength.level !== 'weak' ? styles[strength.level] : ''}`} />
+                  <div className={`${styles.strengthBar} ${strength.level === 'strong' ? styles.strong : ''}`} />
+                </div>
+                <span className={`${styles.strengthLabel} ${styles[strength.level]}`}>{strength.label}</span>
+              </div>
+            )}
+          </div>
           <Input
             label="추천 코드 (선택)"
             placeholder="친구에게 받은 코드를 입력하면 3,000원 적립"
             value={referralCode}
             onChange={(e) => setReferralCode(e.target.value)}
           />
+          <label className={`${styles.agreeRow} ${agreeError ? styles.agreeError : ''}`}>
+            <input
+              type="checkbox"
+              checked={agreed}
+              onChange={(e) => {
+                setAgreed(e.target.checked)
+                if (e.target.checked) setAgreeError(false)
+              }}
+              className={styles.agreeCheck}
+            />
+            <span>
+              <Link to="/help" className={styles.link} target="_blank" rel="noopener noreferrer">이용약관</Link> 및{' '}
+              <Link to="/help" className={styles.link} target="_blank" rel="noopener noreferrer">개인정보 처리방침</Link>에 동의합니다
+            </span>
+          </label>
+          {agreeError && <p className={styles.agreeHint}>이용약관에 동의해 주세요.</p>}
           <Button type="submit" size="lg" fullWidth isLoading={signUp.isPending}>
             계정 만들기
           </Button>

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards, UsePipes } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, UsePipes } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { UpdateProfileSchema } from '@rotifolk/shared'
 import type { UpdateProfileDto } from '@rotifolk/shared'
@@ -30,5 +30,10 @@ export class UsersController {
   @Get('me/referral')
   myReferral(@CurrentUser() me: JwtUserPayload) {
     return this.users.getReferralSummary(me.sub)
+  }
+
+  @Delete('me')
+  deleteMe(@CurrentUser() me: JwtUserPayload) {
+    return this.users.deleteAccount(me.sub)
   }
 }

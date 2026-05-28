@@ -35,3 +35,44 @@
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--space-5);
 }
+
+.chipDist {
+  margin-left: 4px;
+  font-size: var(--fs-2xs);
+  color: var(--color-text-subtle);
+  font-weight: var(--fw-medium);
+}
+
+.geoStatus {
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+  margin-top: 4px;
+}
+
+.geoBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in oklab, var(--brand-burgundy-100) 50%, var(--color-surface));
+  border: 1px solid var(--brand-burgundy-200);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-6);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.geoBtn {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border: 1px solid var(--brand-burgundy-400);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--brand-burgundy-700);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out-quart);
+}
+.geoBtn:hover { background: var(--brand-burgundy-100); }

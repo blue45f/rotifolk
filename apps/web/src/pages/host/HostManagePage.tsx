@@ -11,8 +11,37 @@ import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { useState } from 'react'
 import { CATEGORY_META } from '@features/categories/meta'
 import { api } from '@services/api'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import type { QuestionCard } from '@rotifolk/shared'
 import HostAnalyticsTab from './HostAnalyticsTab'
 import styles from './HostManage.module.css'
+
+interface OrderRow {
+  id: string
+  userId: string
+  seatLabel: string | null
+  items: Array<{ menuItemId: string; name: string; quantity: number; priceKRW: number; billable: boolean }>
+  totalKRW: number
+  status: 'requested' | 'accepted' | 'preparing' | 'served' | 'cancelled'
+  requestedAt: string
+  note: string | null
+}
+
+const ORDER_STATUS_META: Record<string, { label: string; tone: 'warning' | 'primary' | 'success' | 'danger'; nextLabel: string | null; nextStatus: string | null }> = {
+  requested: { label: '주문됨', tone: 'warning', nextLabel: '수락', nextStatus: 'accepted' },
+  accepted:  { label: '수락됨', tone: 'primary', nextLabel: '준비 중', nextStatus: 'preparing' },
+  preparing: { label: '준비 중', tone: 'primary', nextLabel: '서빙 완료', nextStatus: 'served' },
+  served:    { label: '서빙됨', tone: 'success', nextLabel: null, nextStatus: null },
+  cancelled: { label: '취소됨', tone: 'danger',  nextLabel: null, nextStatus: null },
+}
+const ACTIVE_STATUSES = ['requested', 'accepted', 'preparing'] as const
+
+const DEPTH_META: Record<string, { label: string; tone: 'primary' | 'success' | 'wine' | 'danger' }> = {
+  icebreaker: { label: '아이스브레이커', tone: 'primary' },
+  casual: { label: '캐주얼', tone: 'success' },
+  deeper: { label: '깊은 대화', tone: 'wine' },
+  spicy: { label: '스파이시', tone: 'danger' },
+}
 
 export default function HostManagePage() {
   const { partyId } = useParams<{ partyId: string }>()
@@ -20,7 +49,42 @@ export default function HostManagePage() {
   const { data, isLoading, refetch } = useParty(partyId)
   const lifecycle = usePartyLifecycleActions(partyId!)
   const toast = useToast()
+  const queryClient = useQueryClient()
   const [tab, setTab] = useState('participants')
+  const [selectedDepth, setSelectedDepth] = useState<keyof typeof DEPTH_META>('icebreaker')
+  const [cardPrompt, setCardPrompt] = useState('')
+
+  const { data: globalCards, isLoading: cardsLoading } = useQuery({
+    queryKey: ['question-cards'],
+    queryFn: () => api.get<QuestionCard[]>('question-cards'),
+  })
+
+  const addCardMutation = useMutation({
+    mutationFn: (vars: { partyId: string; depth: string; prompt: string; language: string }) =>
+      api.post('question-cards', vars),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['question-cards'] })
+      setCardPrompt('')
+      toast.show('카드가 추가됐어요', 'success')
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
+
+  const { data: orders } = useQuery({
+    queryKey: ['orders', 'party', partyId],
+    queryFn: () => api.get<OrderRow[]>(`orders/party/${partyId}`),
+    refetchInterval: 15_000,
+    enabled: tab === 'orders',
+  })
+
+  const advanceOrder = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      api.patch(`orders/${id}/status`, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', 'party', partyId] })
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
 
   if (isLoading) return <Loading />
   if (!data) return <EmptyState emoji="🌙" title="파티를 찾을 수 없어요" />
@@ -161,17 +225,177 @@ export default function HostManagePage() {
 
         {tab === 'cards' && (
           <Card padding="lg">
-            <h2 className={styles.h2}>질문 카드</h2>
-            <p className={styles.muted}>글로벌 카드 풀에서 자동으로 추첨되거나, 파티 전용 카드를 추가할 수 있어요.</p>
+            <h2 className={styles.h2}>질문 카드 풀</h2>
+            <p className={styles.muted}>
+              파티에서 순서대로 뽑히는 대화 카드예요. 글로벌 풀에서 자동 선택되거나, 아래에서 직접 추가할 수 있어요.
+            </p>
+
+            {cardsLoading ? (
+              <Loading />
+            ) : !globalCards || globalCards.length === 0 ? (
+              <EmptyState emoji="🃏" title="아직 카드가 없어요" />
+            ) : (
+              <div className={styles.cardGrid}>
+                {globalCards.map((card) => {
+                  const meta = DEPTH_META[card.depth] ?? DEPTH_META['icebreaker']
+                  return (
+                    <div key={card.id} className={styles.cardItem}>
+                      <div className={styles.cardMeta}>
+                        <Badge tone={meta.tone}>{meta.label}</Badge>
+                        {card.partyId && <Badge tone="primary">전용 카드</Badge>}
+                      </div>
+                      <p className={styles.cardPrompt}>{card.prompt}</p>
+                      <span className={styles.cardUsed}>사용 {card.usedCount}회</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            <div className={styles.cardAddForm}>
+              <p className={styles.cardAddTitle}>커스텀 카드 추가</p>
+              <textarea
+                className={styles.cardTextarea}
+                placeholder="질문 프롬프트를 입력하세요"
+                value={cardPrompt}
+                onChange={(e) => setCardPrompt(e.target.value)}
+                rows={3}
+              />
+              <div className={styles.depthRow}>
+                {Object.entries(DEPTH_META).map(([key, { label }]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`${styles.depthBtn}${selectedDepth === key ? ` ${styles.depthBtnActive}` : ''}`}
+                    onClick={() => setSelectedDepth(key)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <Button
+                variant="primary"
+                isLoading={addCardMutation.isPending}
+                disabled={!cardPrompt.trim()}
+                onClick={() =>
+                  addCardMutation.mutate({
+                    partyId: party.id,
+                    depth: selectedDepth,
+                    prompt: cardPrompt.trim(),
+                    language: 'ko',
+                  })
+                }
+              >
+                카드 추가
+              </Button>
+            </div>
           </Card>
         )}
 
         {tab === 'orders' && (
           <Card padding="lg">
-            <h2 className={styles.h2}>실시간 주문 현황</h2>
-            <p className={styles.muted}>
-              파티 시작 후 라이브 콘솔에서 들어오는 주문을 처리할 수 있어요.
-            </p>
+            <div className={styles.ordersHead}>
+              <div>
+                <h2 className={styles.h2}>실시간 주문 현황</h2>
+                <p className={styles.muted}>15초마다 자동 새로고침돼요.</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['orders', 'party', partyId] })}>
+                새로고침
+              </Button>
+            </div>
+
+            {!orders || orders.length === 0 ? (
+              <EmptyState emoji="🍷" title="아직 주문이 없어요" description="파티 시작 후 참가자가 주문하면 여기서 확인할 수 있어요." />
+            ) : (
+              <>
+                {ACTIVE_STATUSES.map((status) => {
+                  const group = orders.filter((o) => o.status === status)
+                  if (group.length === 0) return null
+                  const meta = ORDER_STATUS_META[status]
+                  return (
+                    <section key={status} className={styles.orderSection}>
+                      <div className={styles.orderSectionHead}>
+                        <Badge tone={meta.tone}>{meta.label}</Badge>
+                        <span className={styles.orderCount}>{group.length}건</span>
+                      </div>
+                      <div className={styles.orderList}>
+                        {group.map((order) => (
+                          <div key={order.id} className={styles.orderCard}>
+                            <div className={styles.orderCardHead}>
+                              <span className={styles.orderSeat}>
+                                {order.seatLabel ? `좌석 ${order.seatLabel}` : '미확인 좌석'}
+                              </span>
+                              <time className={styles.orderTime}>
+                                {new Date(order.requestedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                              </time>
+                            </div>
+                            <ul className={styles.orderItems}>
+                              {order.items.map((item, i) => (
+                                <li key={`${item.menuItemId}-${i}`} className={styles.orderItem}>
+                                  <span>{item.name}</span>
+                                  <span className={styles.orderItemQty}>×{item.quantity}</span>
+                                  {item.billable && <span className={styles.orderItemPrice}>{(item.priceKRW * item.quantity).toLocaleString()}원</span>}
+                                </li>
+                              ))}
+                            </ul>
+                            {order.totalKRW > 0 && (
+                              <div className={styles.orderTotal}>{order.totalKRW.toLocaleString()}원</div>
+                            )}
+                            {order.note && <p className={styles.orderNote}>📝 {order.note}</p>}
+                            {meta.nextStatus && (
+                              <div className={styles.orderActions}>
+                                <Button
+                                  variant="primary"
+                                  size="sm"
+                                  isLoading={advanceOrder.isPending}
+                                  onClick={() => advanceOrder.mutate({ id: order.id, status: meta.nextStatus! })}
+                                >
+                                  {meta.nextLabel} →
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => advanceOrder.mutate({ id: order.id, status: 'cancelled' })}
+                                >
+                                  취소
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )
+                })}
+
+                {orders.some((o) => o.status === 'served') && (
+                  <section className={styles.orderSection}>
+                    <div className={styles.orderSectionHead}>
+                      <Badge tone="success">서빙됨</Badge>
+                      <span className={styles.orderCount}>{orders.filter((o) => o.status === 'served').length}건</span>
+                    </div>
+                    <div className={styles.orderList}>
+                      {orders.filter((o) => o.status === 'served').map((order) => (
+                        <div key={order.id} className={`${styles.orderCard} ${styles.orderCardDone}`}>
+                          <div className={styles.orderCardHead}>
+                            <span className={styles.orderSeat}>{order.seatLabel ? `좌석 ${order.seatLabel}` : '미확인 좌석'}</span>
+                            <span className={styles.orderTotal}>{order.totalKRW > 0 ? `${order.totalKRW.toLocaleString()}원` : '포함'}</span>
+                          </div>
+                          <ul className={styles.orderItems}>
+                            {order.items.map((item, i) => (
+                              <li key={`${item.menuItemId}-${i}`} className={styles.orderItem}>
+                                <span>{item.name}</span>
+                                <span className={styles.orderItemQty}>×{item.quantity}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
           </Card>
         )}
 

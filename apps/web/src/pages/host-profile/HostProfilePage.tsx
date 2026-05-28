@@ -17,6 +17,23 @@ import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './HostProfile.module.css'
 
+interface ReviewUser {
+  id: string
+  nickname: string
+  avatarId: string | null
+}
+
+interface HostReview {
+  id: string
+  rating: number
+  body: string
+  anonymous: boolean
+  tagsJson: string
+  hostReply: string | null
+  createdAt: string
+  fromUser: ReviewUser | null
+}
+
 interface HostProfile {
   user: {
     id: string
@@ -36,6 +53,7 @@ interface HostProfile {
     averageRating: number
     reviewCount: number
   }
+  reviews: HostReview[]
   recentParties: PartySummary[]
 }
 
@@ -71,7 +89,7 @@ export default function HostProfilePage() {
 
   if (isLoading) return <Loading />
   if (!data) return <EmptyState emoji="🌙" title="호스트를 찾을 수 없어요" />
-  const { user, stats, recentParties } = data
+  const { user, stats, reviews, recentParties } = data
   const isSelf = me?.id === user.id
   const hostLevel = computeHostLevel({
     hostedCount: user.hostedCount,
@@ -126,6 +144,42 @@ export default function HostProfilePage() {
       </header>
 
       <HostIntroSlot hostId={user.id} isSelf={isSelf} />
+
+      {(reviews ?? []).length > 0 && (
+        <section className={styles.section} aria-label="호스트 리뷰">
+          <h2 className={styles.h2}>
+            리뷰 <span className={styles.reviewCount}>{stats.reviewCount}개</span>
+            {stats.averageRating > 0 && (
+              <span className={styles.avgRating}>★ {stats.averageRating}</span>
+            )}
+          </h2>
+          <div className={styles.reviewList}>
+            {(reviews ?? []).map((r) => (
+              <div key={r.id} className={styles.reviewCard}>
+                <div className={styles.reviewHead}>
+                  <span className={styles.reviewRating}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                  <time className={styles.reviewDate}>
+                    {new Date(r.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}
+                  </time>
+                </div>
+                <p className={styles.reviewBody}>{r.body}</p>
+                {r.fromUser && !r.anonymous && (
+                  <p className={styles.reviewFrom}>— {r.fromUser.nickname}</p>
+                )}
+                {r.anonymous && (
+                  <p className={styles.reviewFrom}>— 익명</p>
+                )}
+                {r.hostReply && (
+                  <div className={styles.hostReply}>
+                    <span className={styles.hostReplyLabel}>호스트 답글</span>
+                    <p>{r.hostReply}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className={styles.section}>
         <h2 className={styles.h2}>최근 모임</h2>

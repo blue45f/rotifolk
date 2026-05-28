@@ -57,11 +57,28 @@
   font-size: 3.6rem;
   filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.28));
 }
+.kickerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
 .kicker {
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   letter-spacing: 0.02em;
   opacity: 0.92;
+}
+.countdown {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  font-family: var(--font-mono);
+  background: color-mix(in oklab, var(--brand-cream-50) 20%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-cream-50) 35%, transparent);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  letter-spacing: 0.04em;
 }
 .title {
   font-size: clamp(1.5rem, 4vw, 2rem);

@@ -122,4 +122,101 @@ export const handlers = [
       }),
     )
   }),
+
+  // Orders (host management)
+  http.get(`${API}/orders/party/:id`, async () =>
+    HttpResponse.json(await delay([])),
+  ),
+  http.patch(`${API}/orders/:id/status`, async () =>
+    HttpResponse.json(await delay({ ok: true })),
+  ),
+
+  // Follows
+  http.get(`${API}/follows/me`, async () => HttpResponse.json(await delay([]))),
+  http.post(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.delete(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
+
+  // Saved parties
+  http.get(`${API}/saved`, async () => HttpResponse.json(await delay([]))),
+  http.post(`${API}/saved/:partyId`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.delete(`${API}/saved/:partyId`, async () => HttpResponse.json(await delay({ ok: true }))),
+
+  // Notifications
+  http.get(`${API}/notifications`, async () => HttpResponse.json(await delay([]))),
+  http.patch(`${API}/notifications/read-all`, async () => HttpResponse.json(await delay({ ok: true }))),
+
+  // Host profile (public)
+  http.get(`${API}/hosts/:id`, async () =>
+    HttpResponse.json(await delay({
+      user: { ...mockUsers[0], bio: null, mbti: 'ENFP', interestsJson: '[]', trustScore: 92, hostedCount: 3, isVerified: true, role: 'host' },
+      stats: { followerCount: 12, hostedCount: 3, averageRating: 4.7, reviewCount: 5 },
+      reviews: [],
+      recentParties: [mockParties[0]].map(toSummary),
+    })),
+  ),
+
+  // Host revenue summary
+  http.get(`${API}/payments/host/summary`, async () =>
+    HttpResponse.json(await delay({ totalKRW: 0, paidCount: 0, refundedKRW: 0, recent: [] })),
+  ),
+
+  // Vibe matching
+  http.post(`${API}/vibe`, async () =>
+    HttpResponse.json(await delay({
+      matches: mockParties.slice(0, 3).map(toSummary),
+      explanation: '입력하신 분위기와 가장 잘 맞는 모임을 골라봤어요.',
+    })),
+  ),
+
+  // Host applications
+  http.get(`${API}/host-applications/mine`, async () =>
+    HttpResponse.json(await delay(null)),
+  ),
+  http.post(`${API}/host-applications`, async () =>
+    HttpResponse.json(await delay({
+      id: 'app-mock',
+      userId: mockUsers[0].id,
+      introduction: '',
+      hostingStyle: '',
+      plannedCategories: [],
+      experience: null,
+      status: 'pending',
+      reviewedById: null,
+      reviewedNote: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })),
+  ),
+
+  // Admin
+  http.get(`${API}/admin/reports`, async ({ request }) => {
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+    if (status === 'resolved') {
+      return HttpResponse.json(await delay([]))
+    }
+    return HttpResponse.json(await delay([]))
+  }),
+  http.patch(`${API}/admin/reports/:id`, async () =>
+    HttpResponse.json(await delay({ ok: true })),
+  ),
+
+  // Recent reviews (digest)
+  http.get(`${API}/reviews/recent`, async () =>
+    HttpResponse.json(await delay([])),
+  ),
+
+  // Account deletion
+  http.delete(`${API}/users/me`, async () =>
+    HttpResponse.json(await delay({ ok: true })),
+  ),
+
+  // Payments host summary (kakao quick create)
+  http.post(`${API}/auth/kakao`, async ({ request }) => {
+    const body = await request.json() as { kakaoId: string; nickname: string }
+    return HttpResponse.json(await delay({
+      token: MOCK_TOKEN,
+      user: { ...mockUsers[0], nickname: body.nickname },
+    }))
+  }),
 ]

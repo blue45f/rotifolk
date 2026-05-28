@@ -100,3 +100,57 @@
   padding: 2px 6px;
   border-radius: 4px;
 }
+
+/* Password strength */
+.strengthRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+.strengthBars {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+.strengthBar {
+  height: 4px;
+  width: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  transition: background 0.2s ease;
+}
+.strengthBar.weak   { background: var(--color-danger); }
+.strengthBar.medium { background: var(--brand-gold-500, #D6A84E); }
+.strengthBar.strong { background: var(--color-success); }
+.strengthLabel {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+.strengthLabel.weak   { color: var(--color-danger); }
+.strengthLabel.medium { color: var(--brand-gold-600, #B8891E); }
+.strengthLabel.strong { color: var(--color-success); }
+
+/* Terms agreement */
+.agreeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.agreeCheck {
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.agreeRow.agreeError { color: var(--color-danger); }
+.agreeHint {
+  font-size: var(--fs-xs);
+  color: var(--color-danger);
+  margin-top: calc(-1 * var(--space-3));
+}

@@ -1,11 +1,16 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import type { PartyCategory, PartySummary } from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@services/api'
 import { PartyCard } from '@features/parties/PartyCard'
 import { CATEGORY_META } from '@features/categories/meta'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/ToastProvider'
 import styles from './Digest.module.css'
 
 /**
@@ -66,9 +71,25 @@ function topN(map: Map<string, number>, n: number): Array<{ key: string; count: 
     .map(([key, count]) => ({ key, count }))
 }
 
+interface RecentReview {
+  id: string
+  rating: number
+  body: string
+  partyTitle: string
+  category: string
+  reviewer: string
+  createdAt: string
+}
+
 export default function DigestPage() {
   const { data, isLoading } = useParties({ status: 'open', pageSize: 50 })
+  const { show: showToast } = useToast()
   const items = useMemo<PartySummary[]>(() => data?.items ?? [], [data])
+  const { data: recentReviews } = useQuery({
+    queryKey: ['reviews', 'recent'],
+    queryFn: () => api.get<RecentReview[]>('reviews/recent'),
+    staleTime: 5 * 60 * 1000,
+  })
 
   // 베스트 호스트 — PartySummary에는 host 정보가 없어서 venueName으로 대체 집계.
   const topHosts = useMemo<Rank[]>(() => {
@@ -131,6 +152,22 @@ export default function DigestPage() {
           이번 주 <strong>{totalParties}</strong>개 모임 ·{' '}
           <strong>{newlyMatched}</strong>명이 새로 매칭됨
         </p>
+        <Button
+          variant="soft"
+          size="sm"
+          onClick={async () => {
+            const url = window.location.href
+            const title = '이번 주 Rotifolk 다이제스트'
+            if (navigator.share) {
+              await navigator.share({ title, url })
+            } else {
+              await navigator.clipboard.writeText(url)
+              showToast('링크가 복사됐어요', 'success')
+            }
+          }}
+        >
+          공유하기
+        </Button>
       </header>
 
       {isLoading ? (
@@ -193,26 +230,31 @@ export default function DigestPage() {
             ) : (
               <div className={styles.catGrid}>
                 {topCategories.map((entry, i) => (
-                  <article
+                  <Link
                     key={entry.meta.value}
-                    className={styles.catTile}
-                    style={{ ['--tile-bg' as never]: entry.meta.bgGradient } as never}
+                    to={`/discover?category=${entry.meta.value}`}
+                    className={styles.catTileLink}
                   >
-                    <span className={styles.tileSurface} aria-hidden="true" />
-                    <div className={styles.catTileHead}>
-                      <span className={styles.catEmoji} aria-hidden="true">
-                        {entry.meta.emoji}
-                      </span>
-                      <span className={styles.catPosition}>#{i + 1}</span>
-                    </div>
-                    <div className={styles.catTileBody}>
-                      <strong className={styles.catLabel}>{entry.meta.label}</strong>
-                      <p className={styles.catDesc}>{entry.meta.description}</p>
-                    </div>
-                    <div className={styles.catTileFoot}>
-                      <span>{entry.count}개 진행</span>
-                    </div>
-                  </article>
+                    <article
+                      className={styles.catTile}
+                      style={{ ['--tile-bg' as never]: entry.meta.bgGradient } as never}
+                    >
+                      <span className={styles.tileSurface} aria-hidden="true" />
+                      <div className={styles.catTileHead}>
+                        <span className={styles.catEmoji} aria-hidden="true">
+                          {entry.meta.emoji}
+                        </span>
+                        <span className={styles.catPosition}>#{i + 1}</span>
+                      </div>
+                      <div className={styles.catTileBody}>
+                        <strong className={styles.catLabel}>{entry.meta.label}</strong>
+                        <p className={styles.catDesc}>{entry.meta.description}</p>
+                      </div>
+                      <div className={styles.catTileFoot}>
+                        <span>{entry.count}개 진행</span>
+                      </div>
+                    </article>
+                  </Link>
                 ))}
               </div>
             )}
@@ -232,16 +274,21 @@ export default function DigestPage() {
               <ul className={styles.areaList}>
                 {topAreas.map((area, i) => (
                   <li key={area.key} className={styles.areaRow}>
-                    <span className={styles.areaPin} aria-hidden="true">
-                      📍
-                    </span>
-                    <div className={styles.areaBody}>
-                      <strong className={styles.areaName}>{area.label}</strong>
-                      <span className={styles.areaMeta}>{area.meta}</span>
-                    </div>
-                    <span className={styles.areaIndex} aria-hidden="true">
-                      {i + 1}
-                    </span>
+                    <Link
+                      to={`/discover?area=${encodeURIComponent(area.key)}`}
+                      className={styles.areaRowLink}
+                    >
+                      <span className={styles.areaPin} aria-hidden="true">
+                        📍
+                      </span>
+                      <div className={styles.areaBody}>
+                        <strong className={styles.areaName}>{area.label}</strong>
+                        <span className={styles.areaMeta}>{area.meta}</span>
+                      </div>
+                      <span className={styles.areaIndex} aria-hidden="true">
+                        {i + 1}
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -254,15 +301,17 @@ export default function DigestPage() {
                 💬 따끈한 후기
               </h2>
               <p className={styles.sectionSub}>
-                후기 API는 곧 만나봐요. 지금은 호스트가 직접 추려둔 코멘트만 보여드려요.
+                최근 모임에서 남겨진 이야기들
               </p>
             </header>
 
             <ul className={styles.reviewList}>
-              {REVIEW_STUBS.map((review) => {
-                const meta = CATEGORY_META[review.category]
+              {((recentReviews && recentReviews.length > 0) ? recentReviews : REVIEW_STUBS).map((review) => {
+                const catKey = (review.category ?? 'wine') as PartyCategory
+                const meta = CATEGORY_META[catKey] ?? CATEGORY_META['wine']
+                const stars = '★'.repeat(Math.min(5, Math.max(1, (review as RecentReview).rating ?? 5)))
                 return (
-                  <li key={review.partyTitle} className={styles.reviewCard}>
+                  <li key={'id' in review ? review.id : review.partyTitle} className={styles.reviewCard}>
                     <header className={styles.reviewHead}>
                       <Badge tone="wine" size="sm">
                         {meta.emoji} {meta.shortLabel}
@@ -270,14 +319,14 @@ export default function DigestPage() {
                       <span className={styles.reviewTitle}>{review.partyTitle}</span>
                     </header>
                     <blockquote className={styles.reviewBody}>{review.body}</blockquote>
-                    <footer className={styles.reviewFoot}>— {review.reviewer}</footer>
+                    <footer className={styles.reviewFoot}>
+                      <span className={styles.reviewStars}>{stars}</span>
+                      <span>— {review.reviewer}</span>
+                    </footer>
                   </li>
                 )
               })}
             </ul>
-            <p className={styles.softNote}>
-              후기 작성 기능은 정식 오픈 후 합류해요. 곧 만나봐요.
-            </p>
           </section>
 
           <section className={`container ${styles.section}`} aria-labelledby="picks-title">

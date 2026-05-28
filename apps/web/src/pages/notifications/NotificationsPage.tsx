@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@services/api'
@@ -68,6 +68,27 @@ export default function NotificationsPage() {
   }
   const filtered = all.filter((n) => FILTER_KIND[filter](n.kind))
 
+  const grouped = useMemo(() => {
+    const now = new Date()
+    const todayStr = now.toDateString()
+    const yesterdayStr = new Date(now.getTime() - 86_400_000).toDateString()
+    const weekAgo = new Date(now.getTime() - 7 * 86_400_000)
+    const groups: { label: string; items: typeof filtered }[] = [
+      { label: '오늘', items: [] },
+      { label: '어제', items: [] },
+      { label: '이번 주', items: [] },
+      { label: '그 이전', items: [] },
+    ]
+    for (const n of filtered) {
+      const d = new Date(n.createdAt)
+      if (d.toDateString() === todayStr) groups[0].items.push(n)
+      else if (d.toDateString() === yesterdayStr) groups[1].items.push(n)
+      else if (d >= weekAgo) groups[2].items.push(n)
+      else groups[3].items.push(n)
+    }
+    return groups.filter((g) => g.items.length > 0)
+  }, [filtered])
+
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
@@ -113,59 +134,66 @@ export default function NotificationsPage() {
           }
         />
       ) : (
-        <ul className={styles.list}>
-          {filtered.map((n) => {
-            const handleClick = () => !n.isRead && markOne.mutate(n.id)
-            const handleDismiss = (e: React.MouseEvent) => {
-              e.preventDefault()
-              e.stopPropagation()
-              if (!n.isRead) markOne.mutate(n.id)
-            }
-            const inner = (
-              <>
-                <span className={styles.kindIcon} aria-hidden="true">
-                  {KIND_EMOJI[n.kind] ?? '🔔'}
-                </span>
-                <div className={styles.body}>
-                  <strong>{n.title}</strong>
-                  {n.body && <p>{n.body}</p>}
-                  <time>
-                    {new Date(n.createdAt).toLocaleString('ko-KR', {
-                      month: 'numeric',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </time>
-                </div>
-                {!n.isRead && (
-                  <button
-                    type="button"
-                    className={styles.dismissBtn}
-                    onClick={handleDismiss}
-                    aria-label="읽음으로 표시"
-                    title="읽음으로 표시"
-                  >
-                    ✕
-                  </button>
-                )}
-              </>
-            )
-            return (
-              <li key={n.id} className={n.isRead ? '' : styles.unread}>
-                {n.link ? (
-                  <Link to={n.link} className={styles.row} onClick={handleClick}>
-                    {inner}
-                  </Link>
-                ) : (
-                  <div className={styles.row} onClick={handleClick}>
-                    {inner}
-                  </div>
-                )}
-              </li>
-            )
-          })}
-        </ul>
+        <div className={styles.groups}>
+          {grouped.map((group) => (
+            <section key={group.label} className={styles.group}>
+              <h3 className={styles.groupLabel}>{group.label}</h3>
+              <ul className={styles.list}>
+                {group.items.map((n) => {
+                  const handleClick = () => !n.isRead && markOne.mutate(n.id)
+                  const handleDismiss = (e: React.MouseEvent) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    if (!n.isRead) markOne.mutate(n.id)
+                  }
+                  const inner = (
+                    <>
+                      <span className={styles.kindIcon} aria-hidden="true">
+                        {KIND_EMOJI[n.kind] ?? '🔔'}
+                      </span>
+                      <div className={styles.body}>
+                        <strong>{n.title}</strong>
+                        {n.body && <p>{n.body}</p>}
+                        <time>
+                          {new Date(n.createdAt).toLocaleString('ko-KR', {
+                            month: 'numeric',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </time>
+                      </div>
+                      {!n.isRead && (
+                        <button
+                          type="button"
+                          className={styles.dismissBtn}
+                          onClick={handleDismiss}
+                          aria-label="읽음으로 표시"
+                          title="읽음으로 표시"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </>
+                  )
+                  return (
+                    <li key={n.id} className={n.isRead ? '' : styles.unread}>
+                      {n.link ? (
+                        <Link to={n.link} className={styles.row} onClick={handleClick}>
+                          {inner}
+                        </Link>
+                      ) : (
+                        <div className={styles.row} onClick={handleClick}>
+                          {inner}
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          ))}
+        </div>
       )}
 
       <Card padding="md" variant="soft" className={styles.permission}>

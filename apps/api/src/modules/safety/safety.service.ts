@@ -200,6 +200,27 @@ export class SafetyService {
     }))
   }
 
+  async listRecentReviews(take = 6) {
+    const items = await this.prisma.review.findMany({
+      where: { rating: { gte: 4 }, body: { not: '' } },
+      include: {
+        fromUser: { select: { nickname: true } },
+        party: { select: { title: true, category: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take,
+    })
+    return items.map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      body: r.body,
+      partyTitle: r.party?.title ?? '이전 모임',
+      category: r.party?.category ?? 'wine',
+      reviewer: r.anonymous ? '익명 참가자' : (r.fromUser?.nickname ?? '익명'),
+      createdAt: r.createdAt.toISOString(),
+    }))
+  }
+
   async resolveReport(adminId: string, reportId: string, status: 'resolved' | 'dismissed', note?: string) {
     return this.prisma.report.update({
       where: { id: reportId },
