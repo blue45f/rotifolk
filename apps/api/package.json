@@ -24,7 +24,7 @@
     "@nestjs/platform-express": "^10.4.8",
     "@nestjs/platform-socket.io": "^10.4.8",
     "@nestjs/websockets": "^10.4.8",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.8.0",
     "@rotifolk/shared": "workspace:*",
     "argon2": "^0.41.1",
     "class-transformer": "^0.5.1",
