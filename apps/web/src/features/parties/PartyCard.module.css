@@ -66,6 +66,46 @@
   left: var(--space-3);
   z-index: 2;
 }
+.saveBtn {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--brand-ink-900) 55%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in oklab, white 18%, transparent);
+  color: var(--brand-cream-50, #FCFAF5);
+  font-size: 16px;
+  font-weight: var(--fw-bold);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-spring),
+              background var(--dur-fast) var(--ease-out-quart);
+  opacity: 0;
+}
+.card:hover .saveBtn,
+.card:focus-within .saveBtn,
+.saveBtnActive {
+  opacity: 1;
+}
+.saveBtn:hover {
+  transform: scale(1.08);
+  background: color-mix(in oklab, var(--brand-ink-900) 75%, transparent);
+}
+.saveBtnActive {
+  background: var(--brand-gold-500, #D6A84E);
+  color: var(--brand-ink-900, #14101D);
+  border-color: transparent;
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--brand-gold-700, #B8893B) 38%, transparent);
+}
+@media (hover: none) {
+  .saveBtn { opacity: 1; }
+}
 .dateBadge {
   display: inline-flex;
   align-items: baseline;
