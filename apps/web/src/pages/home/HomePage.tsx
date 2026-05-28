@@ -4,13 +4,14 @@ import { useQuery } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
 import { recommendParties, userToContext } from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
-import { ALL_CATEGORIES } from '@features/categories/meta'
+import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
 import { PartyCard } from '@features/parties/PartyCard'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useAuthStore } from '@store/authStore'
+import { useRecents } from '@features/recents/useRecents'
 import { api } from '@services/api'
 import styles from './HomePage.module.css'
 
@@ -26,6 +27,8 @@ export default function HomePage() {
   const recommended = me && parties
     ? recommendParties(parties.items, userToContext(me), 3)
     : []
+  const { items: recents } = useRecents()
+  const recentTop = recents.slice(0, 6)
 
   return (
     <div>
@@ -169,6 +172,35 @@ export default function HomePage() {
           </header>
           <div className={styles.partyGrid}>
             {recommended.map((p) => <PartyCard key={p.id} party={p} />)}
+          </div>
+        </section>
+      )}
+
+      {recentTop.length > 0 && (
+        <section className={`container ${styles.section}`} aria-labelledby="recent-title">
+          <header className={styles.sectionHead}>
+            <h2 id="recent-title" className={styles.sectionTitle}>최근 본 모임</h2>
+            <p className={styles.sectionSub}>이 기기에만 저장되는 방문 기록</p>
+          </header>
+          <div className={styles.recentRail} role="list">
+            {recentTop.map((r) => {
+              const cat = CATEGORY_META[r.category as keyof typeof CATEGORY_META]
+              return (
+                <Link
+                  key={r.id}
+                  to={`/parties/${r.id}`}
+                  className={styles.recentChip}
+                  role="listitem"
+                  style={{ ['--chip-accent' as never]: cat?.accentHex ?? '#7A1F3D' } as never}
+                >
+                  <span className={styles.recentEmoji} aria-hidden="true">{cat?.emoji ?? '🍷'}</span>
+                  <span className={styles.recentBody}>
+                    <strong>{r.title}</strong>
+                    <small>{cat?.shortLabel ?? r.category}</small>
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}

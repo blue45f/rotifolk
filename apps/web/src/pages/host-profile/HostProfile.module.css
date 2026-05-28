@@ -55,3 +55,77 @@
   gap: var(--space-5);
 }
 .muted { color: var(--color-text-muted); }
+
+.introBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.introText {
+  white-space: pre-wrap;
+  line-height: var(--lh-relaxed);
+  color: var(--color-text);
+  font-size: var(--fs-md);
+  max-width: 64ch;
+}
+.introEditBtn {
+  align-self: flex-end;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out-quart);
+}
+.introEditBtn:hover { background: var(--color-surface-soft); }
+.introEmpty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+.introEdit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.introTextarea {
+  width: 100%;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 120px;
+  font: inherit;
+  font-size: var(--fs-md);
+  line-height: var(--lh-relaxed);
+}
+.introTextarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.introFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.introCount {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+.introActions {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+.introHint {
+  color: var(--color-text-subtle, var(--color-text-muted));
+  font-size: var(--fs-xs);
+  font-style: italic;
+}
