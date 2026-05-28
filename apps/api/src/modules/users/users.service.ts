@@ -38,6 +38,11 @@ export class UsersService {
     return toPublicUser(u)
   }
 
+  async deleteAccount(id: string) {
+    await this.prisma.user.delete({ where: { id } })
+    return { ok: true }
+  }
+
   async getReferralSummary(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

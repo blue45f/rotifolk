@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type { AvatarMood, PartySummary, User } from '@rotifolk/shared'
 import { computeHostLevel } from '@rotifolk/shared'
 import { useMyParties } from '@features/parties/queries'
@@ -52,6 +52,16 @@ export default function ProfilePage() {
   const toast = useToast()
 
   const [draftMood, setDraftMood] = useState<AvatarMood>('sparkling')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  const deleteAccount = useMutation({
+    mutationFn: () => api.delete('users/me'),
+    onSuccess: () => {
+      toast.show('계정이 삭제됐어요. 다음에 또 만나요.', 'success')
+      logout()
+    },
+    onError: (e) => toast.show((e as Error).message, 'error'),
+  })
   const [draftHue, setDraftHue] = useState(HUES[0])
   const [draftEmoji, setDraftEmoji] = useState(EMOJIS[0])
 
@@ -360,6 +370,35 @@ export default function ProfilePage() {
               <Button variant="ghost" onClick={() => logout()}>
                 로그아웃
               </Button>
+            </Card>
+
+            <Card padding="lg">
+              <h3 className={styles.h3}>계정 관리</h3>
+              <p className={styles.settingsDanger}>
+                계정을 삭제하면 모든 데이터(참가 내역, 명함, 저장 목록)가 영구적으로 삭제돼요.
+              </p>
+              {!showDeleteConfirm ? (
+                <Button variant="soft" size="sm" onClick={() => setShowDeleteConfirm(true)}>
+                  계정 삭제
+                </Button>
+              ) : (
+                <div className={styles.deleteConfirm}>
+                  <p className={styles.deleteConfirmText}>정말 삭제할까요? 이 작업은 되돌릴 수 없어요.</p>
+                  <div className={styles.deleteConfirmActions}>
+                    <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirm(false)}>
+                      취소
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => deleteAccount.mutate()}
+                      isLoading={deleteAccount.isPending}
+                    >
+                      네, 삭제할게요
+                    </Button>
+                  </div>
+                </div>
+              )}
             </Card>
           </>
         )}

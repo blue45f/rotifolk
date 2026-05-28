@@ -201,6 +201,11 @@ export const handlers = [
     HttpResponse.json(await delay({ ok: true })),
   ),
 
+  // Account deletion
+  http.delete(`${API}/users/me`, async () =>
+    HttpResponse.json(await delay({ ok: true })),
+  ),
+
   // Payments host summary (kakao quick create)
   http.post(`${API}/auth/kakao`, async ({ request }) => {
     const body = await request.json() as { kakaoId: string; nickname: string }
