@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
 import { SEOUL_AREAS, formatDistanceKm, haversineKm } from '@rotifolk/shared'
 import { Badge } from '@components/ui/Badge/Badge'
 import { CATEGORY_META } from '@features/categories/meta'
 import { useGeolocation } from '@features/geo/useGeolocation'
+import { useAuthStore } from '@store/authStore'
+import { api } from '@services/api'
 import styles from './PartyCard.module.css'
 
 interface Props {
@@ -42,6 +45,40 @@ export function PartyCard({ party }: Props) {
   const tone = TONE_BY_CATEGORY[party.category] ?? 'primary'
   const geo = useGeolocation()
   const distance = distanceLabel(party.venueArea, geo.coords)
+  const me = useAuthStore((s) => s.user)
+  const qc = useQueryClient()
+  const { data: saved } = useQuery({
+    queryKey: ['saved', 'me'],
+    queryFn: () => api.get<PartySummary[]>('saved'),
+    enabled: !!me,
+    staleTime: 30_000,
+  })
+  const isSaved = saved?.some((s) => s.id === party.id) ?? false
+  const toggleSave = useMutation({
+    mutationFn: () =>
+      isSaved ? api.delete(`saved/${party.id}`) : api.post(`saved/${party.id}`),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ['saved', 'me'] })
+      const prev = qc.getQueryData<PartySummary[]>(['saved', 'me'])
+      qc.setQueryData<PartySummary[]>(['saved', 'me'], (cur) => {
+        if (!cur) return cur
+        return isSaved ? cur.filter((s) => s.id !== party.id) : [party, ...cur]
+      })
+      return { prev }
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['saved', 'me'], ctx.prev)
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['saved'] })
+    },
+  })
+  const handleSaveClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!me || toggleSave.isPending) return
+    toggleSave.mutate()
+  }
 
   const datePart = start.toLocaleDateString('ko-KR', {
     month: 'long',
@@ -65,6 +102,18 @@ export function PartyCard({ party }: Props) {
           {!isLive && isFull && <Badge tone="warning" size="sm">마감</Badge>}
           {!isLive && isHot && <Badge tone="gold" size="sm">곧 마감</Badge>}
         </div>
+        {me && (
+          <button
+            type="button"
+            className={`${styles.saveBtn} ${isSaved ? styles.saveBtnActive : ''}`}
+            onClick={handleSaveClick}
+            aria-pressed={isSaved}
+            aria-label={isSaved ? '저장 취소' : '저장'}
+            title={isSaved ? '저장됨' : '저장'}
+          >
+            {isSaved ? '★' : '☆'}
+          </button>
+        )}
         <div className={styles.coverFoot}>
           <span className={styles.dateBadge}>
             <strong>{datePart}</strong>
