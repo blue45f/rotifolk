@@ -15,8 +15,19 @@ import styles from './DiscoverPage.module.css'
 const PAGE_INCREMENT = 20
 const MAX_PAGE_SIZE = 50
 
+function isoDate(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
 type SortKey = 'soonest' | 'popular' | 'nearby'
 type StatusKey = 'open' | 'live' | 'ended'
+
+const DATE_FILTERS = [
+  { label: '전체', value: null as string | null },
+  { label: '오늘', value: 'today' },
+  { label: '내일', value: 'tomorrow' },
+  { label: '이번 주말', value: 'weekend' },
+] as const
 
 const SORTS: { value: SortKey; label: string; emoji: string }[] = [
   { value: 'soonest', label: '곧 시작', emoji: '⏰' },
@@ -42,16 +53,34 @@ export default function DiscoverPage() {
 
   const [pageSize, setPageSize] = useState(PAGE_INCREMENT)
 
+  const today = isoDate(new Date())
+  const tomorrow = isoDate(new Date(Date.now() + 86_400_000))
+  const nextSaturday = (() => {
+    const d = new Date()
+    const day = d.getDay()
+    const diff = (6 - day + 7) % 7 || 7
+    d.setDate(d.getDate() + diff)
+    return isoDate(d)
+  })()
+  const dateIso =
+    date === 'today'
+      ? today
+      : date === 'tomorrow'
+        ? tomorrow
+        : date === 'weekend'
+          ? nextSaturday
+          : (date ?? undefined)
+
   const query = useMemo(
     () => ({
       category: category ?? undefined,
       area: area ?? undefined,
-      date: date ?? undefined,
+      date: dateIso,
       tag: tag ?? undefined,
       status,
       pageSize,
     }),
-    [category, area, date, tag, status, pageSize],
+    [category, area, dateIso, tag, status, pageSize],
   )
   const { data, isLoading, isFetching } = useParties(query)
   const geo = useGeolocation()
@@ -172,6 +201,21 @@ export default function DiscoverPage() {
               >
                 {s.label}
                 {disabled && ' (위치 허용 필요)'}
+              </Chip>
+            )
+          })}
+        </div>
+
+        <div className={styles.filterRow} role="group" aria-label="날짜 필터">
+          {DATE_FILTERS.map((entry) => {
+            const active = entry.value === null ? !date : date === entry.value
+            return (
+              <Chip
+                key={entry.value ?? '전체'}
+                selected={active}
+                onClick={() => setParam('date', entry.value)}
+              >
+                {entry.label}
               </Chip>
             )
           })}

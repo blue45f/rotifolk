@@ -65,6 +65,19 @@
   background: var(--color-surface-soft);
   color: var(--color-text);
 }
+.groups { display: flex; flex-direction: column; gap: var(--space-6); margin-bottom: var(--space-8); }
+.group {}
+.groupLabel {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+  padding-inline: var(--space-1);
+}
+.list { display: flex; flex-direction: column; gap: var(--space-2); }
+
 .permission {
   display: flex;
   align-items: center;
