@@ -27,6 +27,8 @@ export function toPublicUser(user: DbUser): User {
     instagram: user.instagram,
     shareInstagram: user.shareInstagram,
     avoidSameCompany: user.avoidSameCompany,
+    showLikesReceived: user.showLikesReceived,
+    joinPopularityRanking: user.joinPopularityRanking,
     profile: parseJsonObject(user.profileJson) as User['profile'],
     occupation: user.occupation,
     company: user.company,

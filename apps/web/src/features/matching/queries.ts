@@ -31,7 +31,8 @@ export interface PopularPerson {
   userId: string
   nickname: string
   avatarId: string | null
-  likes: number
+  /** 받은 호감 수. 본인이 호감 수 공개를 끄면 null. */
+  likes: number | null
 }
 
 export interface PopularToday {

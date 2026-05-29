@@ -194,7 +194,9 @@ function PopularBanner({
             />
             <span className={styles.popularLabel}>{label}</span>
             <strong className={styles.popularName}>{person.nickname}</strong>
-            <span className={styles.popularLikes}>{person.likes}명에게 호감</span>
+            <span className={styles.popularLikes}>
+              {person.likes == null ? '많은 호감을 받았어요' : `${person.likes}명에게 호감`}
+            </span>
           </div>
         ))}
       </div>

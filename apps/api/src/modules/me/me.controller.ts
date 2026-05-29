@@ -5,6 +5,7 @@ import {
   AddAvoidPersonSchema,
   AvoidPrefsSchema,
   PreProfileSchema,
+  PrivacyPrefsSchema,
   UpdateContactSchema,
   UpdateTrustProfileSchema,
   VerifyFieldSchema,
@@ -14,6 +15,7 @@ import type {
   AddAvoidPersonDto,
   AvoidPrefsDto,
   PreProfileDto,
+  PrivacyPrefsDto,
   UpdateContactDto,
   UpdateTrustProfileDto,
   VerifyFieldDto,
@@ -106,5 +108,13 @@ export class MeController {
   @Get('avoid-check')
   avoidCheck(@CurrentUser() me: JwtUserPayload, @Query('partyId') partyId: string) {
     return this.me.avoidCheck(me.sub, partyId)
+  }
+
+  @Patch('privacy')
+  updatePrivacy(
+    @CurrentUser() me: JwtUserPayload,
+    @Body(new ZodValidationPipe(PrivacyPrefsSchema)) dto: PrivacyPrefsDto,
+  ) {
+    return this.me.updatePrivacy(me.sub, dto)
   }
 }

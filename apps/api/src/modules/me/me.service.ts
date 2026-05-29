@@ -7,6 +7,7 @@ import type {
   AvoidPrefsDto,
   AvoidReason,
   PreProfileDto,
+  PrivacyPrefsDto,
   UpdateContactDto,
   UpdateTrustProfileDto,
   VerificationField,
@@ -103,6 +104,21 @@ export class MeService {
 
     await this.prisma.user.update({ where: { id: userId }, data })
     return { ok: true }
+  }
+
+  /** 민감 정보 노출 설정 — 받은 호감 수·인기 랭킹 참여. */
+  async updatePrivacy(userId: string, dto: PrivacyPrefsDto) {
+    const data: Prisma.UserUpdateInput = {}
+    if (dto.showLikesReceived !== undefined) data.showLikesReceived = dto.showLikesReceived
+    if (dto.joinPopularityRanking !== undefined)
+      data.joinPopularityRanking = dto.joinPopularityRanking
+
+    const u = await this.prisma.user.update({
+      where: { id: userId },
+      data,
+      select: { showLikesReceived: true, joinPopularityRanking: true },
+    })
+    return u
   }
 
   /** 내 회피 연락처 목록 (해시만 저장 — 원본 번호는 반환하지 않음). */
