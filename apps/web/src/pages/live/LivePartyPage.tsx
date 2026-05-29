@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { BALANCE_GAMES, IDEAL_TYPE_PROMPTS, MINI_GAMES, drawFortune } from '@rotifolk/shared'
+import {
+  BALANCE_GAMES,
+  IDEAL_TYPE_PROMPTS,
+  MINI_GAMES,
+  buildConversationCard,
+  drawFortune,
+  type PromptKind,
+} from '@rotifolk/shared'
+import { SendNoteSheet } from '@features/notes/SendNoteSheet'
 import { useParty } from '@features/parties/queries'
 import { useLiveParty } from '@features/live/useLiveParty'
 import { CATEGORY_META } from '@features/categories/meta'
@@ -29,6 +37,7 @@ export default function LivePartyPage() {
   const [showOrder, setShowOrder] = useState(false)
   const [showFinal, setShowFinal] = useState(false)
   const [showBgm, setShowBgm] = useState(false)
+  const [noteTarget, setNoteTarget] = useState<{ id: string; nickname: string } | null>(null)
   const [orderCart, setOrderCart] = useState<Record<string, number>>({})
   const [orderTab, setOrderTab] = useState<'drink' | 'snack' | 'dessert'>('drink')
   const bgm = useBgmQueue(partyId, user?.nickname)
@@ -178,6 +187,7 @@ export default function LivePartyPage() {
               send('participant:mid-match:like', { partyId: party.id, targetUserId: id })
             }
             onDrawCard={() => send('card:draw', { partyId: party.id, pairId: state.myPair?.id })}
+            onSendNote={(p) => setNoteTarget(p)}
           />
         ) : (
           <WaitPanel
@@ -209,6 +219,17 @@ export default function LivePartyPage() {
       <AnimatePresence>
         {rec && <RecreationOverlay key={rec.until} rec={rec} onClose={() => setRec(null)} />}
       </AnimatePresence>
+
+      {noteTarget && (
+        <SendNoteSheet
+          partyId={party.id}
+          toUserId={noteTarget.id}
+          toNickname={noteTarget.nickname}
+          open={!!noteTarget}
+          onClose={() => setNoteTarget(null)}
+          roundIndex={state.currentRoundIndex}
+        />
+      )}
 
       <footer className={styles.footer}>
         {isHost ? (
@@ -469,12 +490,14 @@ function PairPanel({
   lastCard,
   onLike,
   onDrawCard,
+  onSendNote,
 }: {
   partners: { id: string; nickname: string; mbti?: string | null; interests: string[] }[]
   seatLabel: string
   lastCard?: string
   onLike: (id: string) => void
   onDrawCard: () => void
+  onSendNote: (p: { id: string; nickname: string }) => void
 }) {
   return (
     <div className={styles.pair}>
@@ -502,9 +525,18 @@ function PairPanel({
                 </Badge>
               ))}
             </div>
-            <Button variant="gold" onClick={() => onLike(p.id)}>
-              ✨ 좋은 라운드였어요
-            </Button>
+            <div className={styles.partnerCtas}>
+              <Button variant="gold" size="sm" onClick={() => onLike(p.id)}>
+                ✨ 좋았어요
+              </Button>
+              <Button
+                variant="soft"
+                size="sm"
+                onClick={() => onSendNote({ id: p.id, nickname: p.nickname })}
+              >
+                💌 쪽지
+              </Button>
+            </div>
           </motion.div>
         ))}
       </div>
@@ -528,6 +560,60 @@ function PairPanel({
           🃏 다음 카드 뽑기
         </Button>
       </div>
+
+      <ConversationKit />
+    </div>
+  )
+}
+
+const KIT_KINDS: { value: PromptKind; label: string; emoji: string }[] = [
+  { value: 'icebreaker', label: '가볍게', emoji: '🫧' },
+  { value: 'deep', label: '깊게', emoji: '🌙' },
+  { value: 'balance', label: '밸런스', emoji: '⚖️' },
+  { value: 'ideal', label: '이상형', emoji: '💘' },
+  { value: 'game', label: '게임', emoji: '🎮' },
+]
+
+/** 참가자용 대화 도우미 — 라운드 중 대화가 끊기지 않게 덱에서 직접 주제를 꺼낸다. */
+function ConversationKit() {
+  const [kind, setKind] = useState<PromptKind>('icebreaker')
+  const [idx, setIdx] = useState(0)
+  const card = buildConversationCard(kind, idx)
+  return (
+    <div className={styles.kit}>
+      <div className={styles.kitHead}>
+        <h3 className={styles.cardLabel}>대화 도우미</h3>
+        <span className={styles.kitHint}>대화가 끊기면 눌러요</span>
+      </div>
+      <div className={styles.kitChips} role="group" aria-label="대화 주제 종류">
+        {KIT_KINDS.map((k) => (
+          <button
+            key={k.value}
+            type="button"
+            className={`${styles.kitChip} ${kind === k.value ? styles.kitChipOn : ''}`}
+            aria-pressed={kind === k.value}
+            onClick={() => {
+              setKind(k.value)
+              setIdx(0)
+            }}
+          >
+            <span aria-hidden="true">{k.emoji}</span> {k.label}
+          </button>
+        ))}
+      </div>
+      <motion.p
+        key={`${kind}-${idx}`}
+        className={styles.kitText}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {card.text}
+      </motion.p>
+      {card.hint && <p className={styles.kitSub}>{card.hint}</p>}
+      <Button variant="soft" onClick={() => setIdx((n) => n + 1)}>
+        🎲 다음 주제
+      </Button>
     </div>
   )
 }
