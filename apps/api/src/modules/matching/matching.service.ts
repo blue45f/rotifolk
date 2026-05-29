@@ -396,6 +396,8 @@ export class MatchingService {
       connectionChannels: offeredChannels,
       groupAfterParty: party.groupAfterParty,
       popularity,
+      // 내가 받은 호감 수 (최종 투표 기준) — 리빌에서 본인에게만 보여주는 요약
+      myLikesReceived: votes.filter((v) => v.toUserId === userId).length,
       matches,
     }
   }

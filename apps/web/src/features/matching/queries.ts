@@ -24,6 +24,8 @@ export interface MyPartyMatches {
   /** 호스트가 이 파티에서 제공한 연결 채널 (다중). */
   connectionChannels: ConnectionChannel[]
   groupAfterParty: boolean
+  /** 내가 받은 호감 수 (본인에게만 보여주는 요약). */
+  myLikesReceived?: number
   matches: PartyMatch[]
 }
 

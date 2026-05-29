@@ -108,6 +108,11 @@ export default function MatchRevealPage() {
             <p className={styles.count}>
               <strong>{matches.length}</strong>명과 이어졌어요
             </p>
+            {(data?.myLikesReceived ?? 0) > 0 && (
+              <p className={styles.count}>
+                오늘 당신은 <strong>{data?.myLikesReceived}</strong>명의 마음을 얻었어요 💗
+              </p>
+            )}
             <div className={styles.grid}>
               {matches.map((m, i) => (
                 <MatchCard

@@ -377,6 +377,7 @@ export const handlers = [
         connectionMode: 'both',
         connectionChannels: ['chat', 'instagram', 'kakao', 'phone'],
         groupAfterParty: true,
+        myLikesReceived: 3,
         matches: [
           {
             partnerId: 'u_w1',
