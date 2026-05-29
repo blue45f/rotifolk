@@ -4,9 +4,12 @@ import { motion } from 'framer-motion'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AVOID_REASON_LABEL,
+  CONNECTION_CHANNELS,
   PARTY_FORMAT_LABEL,
   ROTATION_FORMAT_LABEL,
+  channelsFromLegacyMode,
   type AvoidReason,
+  type ConnectionChannel,
 } from '@rotifolk/shared'
 import { ShareButton } from '@features/share/ShareButton'
 import { useParty, useJoinParty, useCancelJoin } from '@features/parties/queries'
@@ -451,7 +454,15 @@ export default function PartyDetailPage() {
                 <span className={styles.signalLabel}>매칭 · 연결</span>
                 <strong>{MATCH_SCOPE_LABEL[party.config.matchScope]}</strong>
                 <span className={styles.signalSub}>
-                  {CONNECTION_LABEL[party.config.connectionMode]}
+                  {(party.config.connectionChannels?.length
+                    ? party.config.connectionChannels
+                    : channelsFromLegacyMode(party.config.connectionMode)
+                  )
+                    .map(
+                      (c: ConnectionChannel) =>
+                        `${CONNECTION_CHANNELS[c].icon} ${CONNECTION_CHANNELS[c].short}`,
+                    )
+                    .join(' · ')}
                   {party.config.groupAfterParty && ' · 종료 후 그룹채팅'}
                 </span>
               </div>
@@ -928,11 +939,6 @@ const MATCH_SCOPE_LABEL: Record<string, string> = {
   'mutual-only': '상호 매칭만',
   'top-n': '상위 N명 연결',
   'all-participants': '참가자 전원 연결',
-}
-const CONNECTION_LABEL: Record<string, string> = {
-  chat: '채팅으로 연결',
-  phone: '전화번호 연결',
-  both: '채팅 + 전화',
 }
 
 function AutoCancelNote({ deadlineISO, met }: { deadlineISO: string; met: boolean }) {
