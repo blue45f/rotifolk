@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import type {
@@ -163,6 +163,7 @@ export default function HostCreatePage() {
   })
 
   const watched = watch()
+  const priceRules = useFieldArray({ control, name: 'pricing.pricingRules' })
   const [step, setStep] = useState<'concept' | 'venue' | 'rounds' | 'match' | 'price'>('concept')
 
   const STEP_ORDER = ['concept', 'venue', 'rounds', 'match', 'price'] as const
@@ -1016,6 +1017,64 @@ export default function HostCreatePage() {
                   {...register('pricing.refundDeadlineHours', { valueAsNumber: true })}
                 />
               </div>
+            </div>
+
+            <div className={styles.group}>
+              <div className={styles.groupHead}>
+                <label className={styles.fieldLabel}>성별·연령별 참가비 (선택)</label>
+                <p className={styles.fieldHelp}>
+                  예: 여성 30,000 · 남성 50,000, 또는 20~29세 30,000. 먼저 맞는 규칙이 적용돼요.
+                </p>
+              </div>
+              {priceRules.fields.map((f, i) => (
+                <div key={f.id} className={styles.fieldGroup}>
+                  <select
+                    className={styles.select}
+                    {...register(`pricing.pricingRules.${i}.gender`, {
+                      setValueAs: (v) => (v === '' ? null : v),
+                    })}
+                  >
+                    <option value="">전체</option>
+                    <option value="male">남성</option>
+                    <option value="female">여성</option>
+                  </select>
+                  <Input
+                    type="number"
+                    label="최소나이"
+                    placeholder="-"
+                    {...register(`pricing.pricingRules.${i}.ageMin`, { setValueAs: numOrNull })}
+                  />
+                  <Input
+                    type="number"
+                    label="최대나이"
+                    placeholder="-"
+                    {...register(`pricing.pricingRules.${i}.ageMax`, { setValueAs: numOrNull })}
+                  />
+                  <Input
+                    type="number"
+                    label="가격"
+                    {...register(`pricing.pricingRules.${i}.priceKRW`, { valueAsNumber: true })}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={() => priceRules.remove(i)}
+                  >
+                    삭제
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="soft"
+                size="sm"
+                type="button"
+                onClick={() =>
+                  priceRules.append({ gender: null, ageMin: null, ageMax: null, priceKRW: 30000 })
+                }
+              >
+                + 가격 규칙 추가
+              </Button>
             </div>
 
             <div className={styles.group}>
