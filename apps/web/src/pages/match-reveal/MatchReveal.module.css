@@ -106,11 +106,42 @@
 .actions {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
   width: 100%;
   margin-top: var(--space-2);
 }
-.phoneReveal {
+/* one connection channel block */
+.channel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+  width: 100%;
+}
+.commitTag {
+  align-self: center;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.02em;
+  color: var(--color-text-subtle);
+}
+.channelNote {
+  font-size: var(--fs-2xs);
+  line-height: var(--lh-snug);
+  color: color-mix(in oklab, var(--brand-burgundy-700) 78%, transparent);
+  text-align: center;
+}
+.channelLocked {
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+  text-align: center;
+  padding: 8px 0;
+}
+/* tap-to-copy handle pill (mono) */
+.handleReveal {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   width: 100%;
   padding: 10px 14px;
   border-radius: var(--radius-pill);
@@ -118,18 +149,96 @@
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
   color: var(--brand-burgundy-800);
-  background: color-mix(in oklab, var(--brand-gold-500) 16%, transparent);
-  border: 1px solid color-mix(in oklab, var(--brand-gold-500) 40%, transparent);
+  background: color-mix(in oklab, var(--brand-burgundy-400) 10%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--brand-burgundy-400) 28%, transparent);
   cursor: pointer;
-  transition: background var(--dur-base) var(--ease-out);
+  transition:
+    background var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
 }
-.phoneReveal:hover {
-  background: color-mix(in oklab, var(--brand-gold-500) 24%, transparent);
+.handleReveal:hover {
+  background: color-mix(in oklab, var(--brand-burgundy-400) 16%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--brand-burgundy-400) 40%, transparent);
 }
-.phoneLocked {
-  font-size: var(--fs-xs);
+.handleIcon {
+  font-family: var(--font-sans);
+}
+.handleValue {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.handleCopy {
+  font-family: var(--font-sans);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
   color: var(--color-text-subtle);
-  padding: 8px 0;
+}
+
+/* 오늘의 인기남/인기녀 — celebratory, gold used sparingly */
+.popular {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.popularKicker {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.2em;
+  font-weight: var(--fw-semibold);
+  color: var(--brand-gold-600);
+}
+.popularRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: var(--max-content);
+}
+.popularCard {
+  position: relative;
+  flex: 0 1 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  text-align: center;
+  padding: var(--space-6) var(--space-5) var(--space-4);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--brand-gold-500) 10%, var(--color-surface)),
+    var(--color-surface) 70%
+  );
+  border: 1px solid color-mix(in oklab, var(--brand-gold-500) 38%, transparent);
+  box-shadow: var(--shadow-glow);
+}
+.crown {
+  position: absolute;
+  top: calc(-1 * var(--space-3));
+  font-size: 1.6rem;
+  filter: drop-shadow(0 2px 6px color-mix(in oklab, var(--brand-gold-600) 45%, transparent));
+}
+.popularLabel {
+  margin-top: var(--space-1);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.04em;
+  color: var(--brand-gold-700);
+}
+.popularName {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+}
+.popularLikes {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
 }
 
 .groupCard {

@@ -1,15 +1,16 @@
 import { createHash } from 'node:crypto'
 import { Injectable } from '@nestjs/common'
-import {
-  detectAvoidOverlaps,
-  normalizePhoneKR,
-  type AddAvoidContactsDto,
-  type AvoidReason,
-  type PreProfileDto,
-  type UpdateContactDto,
-  type UpdateTrustProfileDto,
-  type VerificationField,
-  type VerifyFieldDto,
+import { detectAvoidOverlaps, normalizePhoneKR } from '@rotifolk/shared'
+import type {
+  AddAvoidContactsDto,
+  AddAvoidPersonDto,
+  AvoidPrefsDto,
+  AvoidReason,
+  PreProfileDto,
+  UpdateContactDto,
+  UpdateTrustProfileDto,
+  VerificationField,
+  VerifyFieldDto,
 } from '@rotifolk/shared'
 import type { Prisma } from '@prisma/client'
 import { PrismaService } from '@/prisma/prisma.service'
@@ -84,7 +85,10 @@ export class MeService {
     return { verifiedFields }
   }
 
-  /** 연락처 저장 — 원본 번호와 함께 해시도 보관해 회피 대조에 사용. */
+  /**
+   * 연결 채널 저장 — 번호/카톡/인스타 핸들 + 채널별 공개 동의.
+   * 번호는 원본과 함께 해시도 보관해 회피 대조에 사용.
+   */
   async updateContact(userId: string, dto: UpdateContactDto) {
     const data: Prisma.UserUpdateInput = {}
     if (dto.phone !== undefined) {
@@ -92,6 +96,10 @@ export class MeService {
       data.phoneHash = dto.phone ? hashPhone(dto.phone) : null
     }
     if (dto.shareContact !== undefined) data.shareContact = dto.shareContact
+    if (dto.kakaoId !== undefined) data.kakaoId = dto.kakaoId
+    if (dto.shareKakao !== undefined) data.shareKakao = dto.shareKakao
+    if (dto.instagram !== undefined) data.instagram = dto.instagram
+    if (dto.shareInstagram !== undefined) data.shareInstagram = dto.shareInstagram
 
     await this.prisma.user.update({ where: { id: userId }, data })
     return { ok: true }
@@ -127,10 +135,41 @@ export class MeService {
     return { added }
   }
 
-  /** 회피 연락처 삭제. */
+  /**
+   * 마주치기 싫은 사람 1명 추가 — 번호는 해시로만 저장(원본 미보관).
+   * 이미 등록된 번호면 라벨만 갱신(upsert). 해시는 절대 반환하지 않음.
+   */
+  async addAvoidPerson(userId: string, dto: AddAvoidPersonDto): Promise<AvoidContactDto> {
+    const phoneHash = hashPhone(dto.phone)
+    const label = dto.label ?? null
+    const row = await this.prisma.avoidContact.upsert({
+      where: { userId_phoneHash: { userId, phoneHash } },
+      create: { userId, phoneHash, label },
+      update: { label },
+    })
+    return {
+      id: row.id,
+      label: row.label,
+      createdAt: row.createdAt.toISOString(),
+    }
+  }
+
+  /** 회피 연락처 삭제 (본인 소유 항목만). */
   async removeAvoid(userId: string, id: string) {
     await this.prisma.avoidContact.deleteMany({ where: { id, userId } })
     return { ok: true }
+  }
+
+  /** 회피 선호 저장 — 같은 회사 자동 회피 토글. */
+  async updateAvoidPrefs(userId: string, dto: AvoidPrefsDto) {
+    const data: Prisma.UserUpdateInput = {}
+    if (dto.avoidSameCompany !== undefined) data.avoidSameCompany = dto.avoidSameCompany
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data,
+      select: { avoidSameCompany: true },
+    })
+    return { avoidSameCompany: user.avoidSameCompany }
   }
 
   /**

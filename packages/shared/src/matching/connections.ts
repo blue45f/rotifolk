@@ -1,4 +1,5 @@
-import type { MatchScope } from '../domain/party'
+import type { ConnectionChannel, MatchScope } from '../domain/party'
+import { CONNECTION_CHANNEL_ORDER } from '../domain/party'
 import { findMutualMatches, type RawVote } from './final-match'
 
 export type ConnectionResult = 'mutual' | 'top-pick' | 'all'
@@ -56,7 +57,12 @@ export function computeConnections(input: ComputeConnectionsInput): Connection[]
     return out
   }
 
-  // top-n: 각 사용자의 호감 상위 N명
+  // top-n: 각 사용자의 호감 상위 N명 (아래 함수와 분리)
+  return computeTopN(input)
+}
+
+function computeTopN(input: ComputeConnectionsInput): Connection[] {
+  const { votes } = input
   const max = Math.max(1, input.maxPerPerson ?? 3)
   const byFrom = new Map<string, Map<string, number>>()
   for (const v of votes) {
@@ -80,4 +86,75 @@ export function computeConnections(input: ComputeConnectionsInput): Connection[]
     }
   }
   return out
+}
+
+// ──────────────────────── 연결 채널 공개 (상호 동의) ────────────────────────
+
+/** 한 사용자의 채널별 공개 동의 + 핸들 값. */
+export interface UserContact {
+  shareKakao?: boolean
+  kakaoId?: string | null
+  shareInstagram?: boolean
+  instagram?: string | null
+  shareContact?: boolean
+  phone?: string | null
+}
+
+export interface RevealedChannel {
+  channel: ConnectionChannel
+  /** chat은 앱 내에서 바로 열리므로 null. 그 외는 상대 핸들(양쪽 동의 시에만). */
+  handle: string | null
+}
+
+function handleFor(channel: ConnectionChannel, them: UserContact): string | null {
+  if (channel === 'kakao') return them.kakaoId ?? null
+  if (channel === 'instagram') return them.instagram ?? null
+  if (channel === 'phone') return them.phone ?? null
+  return null
+}
+
+function bothConsent(channel: ConnectionChannel, me: UserContact, them: UserContact): boolean {
+  if (channel === 'chat') return true // 인앱 채팅은 항상 안전 — 동의 불필요
+  if (channel === 'kakao') return !!me.shareKakao && !!them.shareKakao
+  if (channel === 'instagram') return !!me.shareInstagram && !!them.shareInstagram
+  if (channel === 'phone') return !!me.shareContact && !!them.shareContact
+  return false
+}
+
+/**
+ * 매칭된 상대에게 실제로 열리는 연결 채널을 계산.
+ * 호스트가 제공한 채널(offered) 중, 양쪽이 공개 동의한 채널만 (double opt-in).
+ * 핸들이 필요한 채널(kakao/instagram/phone)은 상대 핸들이 있을 때만 노출.
+ */
+export function resolveSharedChannels(
+  offered: readonly ConnectionChannel[],
+  me: UserContact,
+  them: UserContact,
+): RevealedChannel[] {
+  const offeredSet = new Set(offered)
+  const out: RevealedChannel[] = []
+  for (const channel of CONNECTION_CHANNEL_ORDER) {
+    if (!offeredSet.has(channel)) continue
+    if (!bothConsent(channel, me, them)) continue
+    const handle = handleFor(channel, them)
+    if (channel !== 'chat' && !handle) continue // 핸들 없으면 노출 불가
+    out.push({ channel, handle })
+  }
+  return out
+}
+
+// ──────────────────────── 회피 제외 ────────────────────────
+
+function pairKeyOf(a: string, b: string): string {
+  return a < b ? `${a}|${b}` : `${b}|${a}`
+}
+
+/** 마주치면 안 되는 쌍(forbidden pairs)을 최종 연결에서 제거 — 회피 하드 보장. */
+export function filterConnectionsExcluding(
+  connections: readonly Connection[],
+  forbiddenPairs: readonly (readonly [string, string])[],
+): Connection[] {
+  if (forbiddenPairs.length === 0) return [...connections]
+  const blocked = new Set(forbiddenPairs.map(([a, b]) => pairKeyOf(a, b)))
+  return connections.filter((c) => !blocked.has(pairKeyOf(c.userAId, c.userBId)))
 }

@@ -52,8 +52,83 @@ export type MatchScope =
   | 'top-n' // 누적 호감 상위 N명까지 연결(상호 아니어도)
   | 'all-participants' // 참가자 전원 연결
 
-/** 연결 매체. */
+/** 연결 매체 (레거시 단일 선택). */
 export type ConnectionMode = 'chat' | 'phone' | 'both'
+
+/**
+ * 연결 채널 (다중 선택). 부담 낮음 → 높음 순.
+ * 리서치: 오픈채팅<인스타<카톡<번호. 인앱 채팅을 안전 기본값으로, 나머지는 단계적 공개.
+ */
+export type ConnectionChannel = 'chat' | 'instagram' | 'kakao' | 'phone'
+
+export interface ConnectionChannelMeta {
+  key: ConnectionChannel
+  /** 풀 라벨 */
+  label: string
+  /** 칩/짧은 라벨 */
+  short: string
+  icon: string
+  /** 부담 수준 1(낮음)~4(높음) */
+  commitment: 1 | 2 | 3 | 4
+  commitmentLabel: string
+  /** 공개 시 안내/경고 */
+  note?: string
+  /** 채팅은 인앱이라 핸들이 없음(앱 내에서 바로 열림). 나머지는 핸들 값 필요. */
+  hasHandle: boolean
+}
+
+/** 부담 낮음 → 높음 순서 (UI 정렬·리빌 우선순위 공용). */
+export const CONNECTION_CHANNEL_ORDER: ConnectionChannel[] = ['chat', 'instagram', 'kakao', 'phone']
+
+export const CONNECTION_CHANNELS: Record<ConnectionChannel, ConnectionChannelMeta> = {
+  chat: {
+    key: 'chat',
+    label: '앱 내 채팅',
+    short: '채팅',
+    icon: '💬',
+    commitment: 1,
+    commitmentLabel: '부담 낮음',
+    note: '번호·실명 노출 없이 앱 안에서 안전하게 시작해요.',
+    hasHandle: false,
+  },
+  instagram: {
+    key: 'instagram',
+    label: '인스타그램',
+    short: '인스타',
+    icon: '📷',
+    commitment: 2,
+    commitmentLabel: '가벼운 호감',
+    note: '서로 팔로우로 가볍게 이어져요.',
+    hasHandle: true,
+  },
+  kakao: {
+    key: 'kakao',
+    label: '카카오톡 ID',
+    short: '카톡',
+    icon: '💛',
+    commitment: 3,
+    commitmentLabel: '편하게 대화',
+    note: '카톡 ID를 공개하면 프로필 사진·상태메시지도 함께 보여요.',
+    hasHandle: true,
+  },
+  phone: {
+    key: 'phone',
+    label: '전화번호',
+    short: '번호',
+    icon: '📞',
+    commitment: 4,
+    commitmentLabel: '가장 긴밀',
+    note: '번호는 한번 공개하면 되돌릴 수 없고, 카카오톡과 연동돼요.',
+    hasHandle: true,
+  },
+}
+
+/** 레거시 connectionMode → 채널 배열 (하위호환). */
+export function channelsFromLegacyMode(mode: ConnectionMode): ConnectionChannel[] {
+  if (mode === 'phone') return ['phone']
+  if (mode === 'both') return ['chat', 'phone']
+  return ['chat']
+}
 
 /** 쪽지 도착 시점. */
 export type NoteDelivery = 'instant' | 'party-end'
@@ -85,12 +160,19 @@ export interface PartyConfig {
   // ── 매칭 결과 정책 ──
   matchScope: MatchScope
   maxMatchesPerPerson: number
+  /** @deprecated connectionChannels 사용. 하위호환 위해 유지. */
   connectionMode: ConnectionMode
+  /** 호스트가 이 파티에서 제공하는 연결 채널 (다중). 미지정 시 connectionMode에서 유도. */
+  connectionChannels?: ConnectionChannel[]
   groupAfterParty: boolean
+  /** 종료 후 오늘의 인기남/인기녀 공개. */
+  revealPopular?: boolean
 
   // ── 쪽지 & 대화 도우미 ──
   enableNotes: boolean
   noteDelivery: NoteDelivery
+  /** 1인당 보낼 수 있는 쪽지 상한 (신중한 선택 유도). */
+  noteQuota?: number
   enableConversationKit: boolean
 }
 

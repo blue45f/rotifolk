@@ -40,9 +40,12 @@ const DEFAULTS: Partial<CreatePartyDto> = {
     matchScope: 'mutual-only',
     maxMatchesPerPerson: 3,
     connectionMode: 'chat',
+    connectionChannels: ['chat'],
     groupAfterParty: false,
     enableNotes: true,
     noteDelivery: 'party-end',
+    revealPopular: true,
+    noteQuota: 5,
     enableConversationKit: true,
   },
   pricing: {

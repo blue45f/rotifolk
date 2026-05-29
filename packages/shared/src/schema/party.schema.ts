@@ -25,6 +25,7 @@ export const PartyFormatEnum = z.enum(['rotation', 'note-ting', 'mixer'])
 export const RotationFormatEnum = z.enum(['one-on-one', 'many-to-one', 'many-to-many'])
 export const MatchScopeEnum = z.enum(['mutual-only', 'top-n', 'all-participants'])
 export const ConnectionModeEnum = z.enum(['chat', 'phone', 'both'])
+export const ConnectionChannelEnum = z.enum(['chat', 'instagram', 'kakao', 'phone'])
 export const NoteDeliveryEnum = z.enum(['instant', 'party-end'])
 export const DrinkPackageEnum = z.enum(['none', 'per-glass', 'unlimited', 'paired'])
 export const SnackPackageEnum = z.enum(['none', 'per-plate', 'course', 'pairing-bites'])
@@ -47,9 +48,12 @@ export const PartyConfigSchema = z.object({
   matchScope: MatchScopeEnum.default('mutual-only'),
   maxMatchesPerPerson: z.number().int().min(1).max(20).default(3),
   connectionMode: ConnectionModeEnum.default('chat'),
+  connectionChannels: z.array(ConnectionChannelEnum).min(1).max(4).default(['chat']),
   groupAfterParty: z.boolean().default(false),
+  revealPopular: z.boolean().default(true),
   enableNotes: z.boolean().default(true),
   noteDelivery: NoteDeliveryEnum.default('party-end'),
+  noteQuota: z.number().int().min(1).max(50).default(5),
   enableConversationKit: z.boolean().default(true),
 })
 

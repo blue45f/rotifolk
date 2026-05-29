@@ -18,8 +18,10 @@ import type {
   RotationFormat,
   MatchScope,
   ConnectionMode,
+  ConnectionChannel,
   NoteDelivery,
 } from '@rotifolk/shared'
+import { channelsFromLegacyMode } from '@rotifolk/shared'
 import { parseJsonArray } from '@/common/json-utils'
 import { toPublicSummary } from '../users/user.mapper'
 
@@ -38,6 +40,10 @@ type PartyRow = PrismaParty & {
 
 export function toParty(row: PartyRow, participationCount?: number): Party {
   const count = participationCount ?? row._count?.participations ?? 0
+  const connectionMode = row.connectionMode as ConnectionMode
+  const parsedChannels = parseJsonArray<ConnectionChannel>(row.connectionChannelsJson)
+  const connectionChannels =
+    parsedChannels.length > 0 ? parsedChannels : channelsFromLegacyMode(connectionMode)
   return {
     id: row.id,
     title: row.title,
@@ -73,10 +79,13 @@ export function toParty(row: PartyRow, participationCount?: number): Party {
       groupSize: row.groupSize,
       matchScope: row.matchScope as MatchScope,
       maxMatchesPerPerson: row.maxMatchesPerPerson,
-      connectionMode: row.connectionMode as ConnectionMode,
+      connectionMode,
+      connectionChannels,
+      revealPopular: row.revealPopular,
       groupAfterParty: row.groupAfterParty,
       enableNotes: row.enableNotes,
       noteDelivery: row.noteDelivery as NoteDelivery,
+      noteQuota: row.noteQuota,
       enableConversationKit: row.enableConversationKit,
     },
     pricing: {

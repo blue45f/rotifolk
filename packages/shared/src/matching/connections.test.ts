@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { computeConnections } from './connections'
+import {
+  computeConnections,
+  filterConnectionsExcluding,
+  resolveSharedChannels,
+  type Connection,
+} from './connections'
 
 describe('computeConnections', () => {
   it('mutual-only: 서로 지목한 쌍만 연결', () => {
@@ -37,5 +42,60 @@ describe('computeConnections', () => {
     })
     expect(out).toHaveLength(3) // ab, ac, bc
     expect(out.every((c) => c.result === 'all')).toBe(true)
+  })
+})
+
+describe('resolveSharedChannels', () => {
+  it('chat은 동의 없이 항상 열리고 핸들이 없다', () => {
+    const out = resolveSharedChannels(['chat'], {}, {})
+    expect(out).toEqual([{ channel: 'chat', handle: null }])
+  })
+
+  it('카톡은 양쪽 동의 + 상대 핸들이 있을 때만 노출', () => {
+    const me = { shareKakao: true }
+    const them = { shareKakao: true, kakaoId: 'wine_lover' }
+    expect(resolveSharedChannels(['chat', 'kakao'], me, them)).toEqual([
+      { channel: 'chat', handle: null },
+      { channel: 'kakao', handle: 'wine_lover' },
+    ])
+    // 한쪽만 동의하면 미노출
+    expect(resolveSharedChannels(['kakao'], { shareKakao: false }, them)).toEqual([])
+    // 상대 핸들 없으면 미노출
+    expect(resolveSharedChannels(['kakao'], me, { shareKakao: true })).toEqual([])
+  })
+
+  it('호스트가 제공하지 않은 채널은 동의해도 미노출', () => {
+    const out = resolveSharedChannels(
+      ['chat'],
+      { shareContact: true },
+      { shareContact: true, phone: '01012345678' },
+    )
+    expect(out).toEqual([{ channel: 'chat', handle: null }])
+  })
+
+  it('부담 낮음→높음 순서로 정렬된다', () => {
+    const me = { shareKakao: true, shareInstagram: true, shareContact: true }
+    const them = {
+      shareKakao: true,
+      kakaoId: 'k',
+      shareInstagram: true,
+      instagram: 'ig',
+      shareContact: true,
+      phone: '01000000000',
+    }
+    const out = resolveSharedChannels(['phone', 'kakao', 'instagram', 'chat'], me, them)
+    expect(out.map((c) => c.channel)).toEqual(['chat', 'instagram', 'kakao', 'phone'])
+  })
+})
+
+describe('filterConnectionsExcluding', () => {
+  it('금지쌍을 최종 연결에서 제거(순서 무관)', () => {
+    const conns: Connection[] = [
+      { userAId: 'a', userBId: 'b', result: 'mutual' },
+      { userAId: 'a', userBId: 'c', result: 'mutual' },
+    ]
+    const out = filterConnectionsExcluding(conns, [['b', 'a']])
+    expect(out).toHaveLength(1)
+    expect(out[0].userBId).toBe('c')
   })
 })

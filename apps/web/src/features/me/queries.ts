@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type {
   AddAvoidContactsDto,
+  AddAvoidPersonDto,
+  AvoidPrefsDto,
   AvoidReason,
   PreProfileDto,
   UpdateContactDto,
@@ -18,6 +20,13 @@ export interface AvoidContact {
   createdAt: string
 }
 
+/** 마주치기 싫은 사람 1명 (번호는 해시로만 저장, 원본 미보관) */
+export interface AvoidPerson {
+  id: string
+  label: string | null
+  createdAt: string
+}
+
 /** 같은 모임 내 회피/차단 대상 */
 export interface AvoidMatch {
   userId: string
@@ -27,6 +36,7 @@ export interface AvoidMatch {
 
 export const meKeys = {
   avoidContacts: () => ['me', 'avoid-contacts'] as const,
+  avoidPeople: () => ['me', 'avoid-people'] as const,
   avoidCheck: (partyId: string) => ['me', 'avoid-check', partyId] as const,
 }
 
@@ -71,15 +81,19 @@ export function useVerifyField() {
   })
 }
 
-/** 연락처 저장 → 로컬 user 동기화 */
+/** 연결 채널(번호/카톡/인스타) 핸들 + 공개 동의 저장 → 로컬 user 동기화 */
 export function useUpdateContact() {
   const updateUser = useAuthStore((s) => s.updateUser)
   return useMutation({
-    mutationFn: (dto: UpdateContactDto) => api.patch<{ ok: true }>('me/contact', dto),
+    mutationFn: (dto: UpdateContactDto) => api.patch<UpdateContactDto>('me/contact', dto),
     onSuccess: (_res, dto) => {
       const patch: Parameters<typeof updateUser>[0] = {}
       if (dto.phone !== undefined) patch.phone = dto.phone
       if (dto.shareContact !== undefined) patch.shareContact = dto.shareContact
+      if (dto.kakaoId !== undefined) patch.kakaoId = dto.kakaoId
+      if (dto.shareKakao !== undefined) patch.shareKakao = dto.shareKakao
+      if (dto.instagram !== undefined) patch.instagram = dto.instagram
+      if (dto.shareInstagram !== undefined) patch.shareInstagram = dto.shareInstagram
       updateUser(patch)
     },
   })
@@ -108,6 +122,43 @@ export function useRemoveAvoidContact() {
   return useMutation({
     mutationFn: (id: string) => api.delete<{ ok: true }>(`me/avoid-contacts/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: meKeys.avoidContacts() }),
+  })
+}
+
+/** 마주치기 싫은 사람 목록 (라벨/등록일만 — 번호는 해시로만 저장) */
+export function useAvoidPeople() {
+  return useQuery({
+    queryKey: meKeys.avoidPeople(),
+    queryFn: () => api.get<AvoidPerson[]>('me/avoid-people'),
+  })
+}
+
+/** 마주치기 싫은 사람 1명 추가 (번호는 서버에서 해시 후 저장) */
+export function useAddAvoidPerson() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (dto: AddAvoidPersonDto) => api.post<AvoidPerson>('me/avoid-people', dto),
+    onSuccess: () => qc.invalidateQueries({ queryKey: meKeys.avoidPeople() }),
+  })
+}
+
+/** 마주치기 싫은 사람 삭제 */
+export function useRemoveAvoidPerson() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.delete<{ ok: true }>(`me/avoid-people/${id}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: meKeys.avoidPeople() }),
+  })
+}
+
+/** 회피 환경설정(같은 회사 자동 회피) 저장 → 로컬 user 동기화 */
+export function useUpdateAvoidPrefs() {
+  const updateUser = useAuthStore((s) => s.updateUser)
+  return useMutation({
+    mutationFn: (dto: AvoidPrefsDto) => api.patch<AvoidPrefsDto>('me/avoid-prefs', dto),
+    onSuccess: (_res, dto) => {
+      if (dto.avoidSameCompany !== undefined) updateUser({ avoidSameCompany: dto.avoidSameCompany })
+    },
   })
 }
 

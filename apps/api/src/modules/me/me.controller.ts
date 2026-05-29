@@ -2,6 +2,8 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } f
 import { AuthGuard } from '@nestjs/passport'
 import {
   AddAvoidContactsSchema,
+  AddAvoidPersonSchema,
+  AvoidPrefsSchema,
   PreProfileSchema,
   UpdateContactSchema,
   UpdateTrustProfileSchema,
@@ -9,6 +11,8 @@ import {
 } from '@rotifolk/shared'
 import type {
   AddAvoidContactsDto,
+  AddAvoidPersonDto,
+  AvoidPrefsDto,
   PreProfileDto,
   UpdateContactDto,
   UpdateTrustProfileDto,
@@ -71,6 +75,32 @@ export class MeController {
   @Delete('avoid-contacts/:id')
   removeAvoid(@CurrentUser() me: JwtUserPayload, @Param('id') id: string) {
     return this.me.removeAvoid(me.sub, id)
+  }
+
+  @Get('avoid-people')
+  listAvoidPeople(@CurrentUser() me: JwtUserPayload) {
+    return this.me.listAvoid(me.sub)
+  }
+
+  @Post('avoid-people')
+  addAvoidPerson(
+    @CurrentUser() me: JwtUserPayload,
+    @Body(new ZodValidationPipe(AddAvoidPersonSchema)) dto: AddAvoidPersonDto,
+  ) {
+    return this.me.addAvoidPerson(me.sub, dto)
+  }
+
+  @Delete('avoid-people/:id')
+  removeAvoidPerson(@CurrentUser() me: JwtUserPayload, @Param('id') id: string) {
+    return this.me.removeAvoid(me.sub, id)
+  }
+
+  @Patch('avoid-prefs')
+  updateAvoidPrefs(
+    @CurrentUser() me: JwtUserPayload,
+    @Body(new ZodValidationPipe(AvoidPrefsSchema)) dto: AvoidPrefsDto,
+  ) {
+    return this.me.updateAvoidPrefs(me.sub, dto)
   }
 
   @Get('avoid-check')

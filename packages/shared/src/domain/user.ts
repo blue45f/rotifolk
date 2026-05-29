@@ -28,9 +28,14 @@ export interface User extends Timestamps {
   joinedCount: number
   isVerified: boolean
 
-  // 연락처 (매칭 + 상호 동의 시에만 공개)
+  // 연결 채널 (매칭 + 상호 동의한 채널만 단계적 공개)
   phone?: string | null
-  shareContact: boolean
+  shareContact: boolean // 전화번호 공개 동의
+  kakaoId?: string | null
+  shareKakao: boolean
+  instagram?: string | null
+  shareInstagram: boolean
+  avoidSameCompany?: boolean // 같은 회사 사람 자동 회피
 
   // 사전 프로필
   profile?: PreProfile | null

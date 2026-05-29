@@ -7,15 +7,31 @@ import {
 import { PrismaService } from '@/prisma/prisma.service'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
 import {
+  buildGroupRotation,
   buildHeteroRotation,
+  buildHubRotation,
   buildRoundRobin,
   buildTrioRotation,
+  channelsFromLegacyMode,
   computeConnections,
+  computeForbiddenPairs,
+  computePopularity,
+  filterConnectionsExcluding,
   findMutualMatches,
   groupByN,
+  repairForbiddenPairs,
+  resolveSharedChannels,
   shuffle,
 } from '@rotifolk/shared'
-import type { HeteroParticipant, MatchScope } from '@rotifolk/shared'
+import type {
+  ConnectionChannel,
+  ConnectionMode,
+  ForbiddenParticipant,
+  Gender,
+  HeteroParticipant,
+  MatchScope,
+  UserContact,
+} from '@rotifolk/shared'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
 
 @Injectable()
@@ -58,6 +74,7 @@ export class MatchingService {
       heteroPool.length === participants.length &&
       heteroPool.some((p) => p.gender === 'male') &&
       heteroPool.some((p) => p.gender === 'female')
+    const forbiddenPairs = await this.forbiddenPairsForParty(partyId)
 
     if (heteroPreferred && party.rotationMode !== 'host-curated') {
       const rounds = buildHeteroRotation(heteroPool, party.totalRounds)
@@ -86,6 +103,17 @@ export class MatchingService {
           pairs: r.pairs.map((pair) => pair as unknown as string[]),
         }),
       )
+    } else if (party.rotationFormat === 'many-to-many') {
+      const rounds = buildGroupRotation(ids, party.groupSize, party.totalRounds)
+      rounds.forEach((r) => created.push({ index: r.roundIndex, pairs: r.groups }))
+    } else if (party.rotationFormat === 'many-to-one') {
+      const rounds = buildHubRotation(ids, party.groupSize, party.totalRounds)
+      rounds.forEach((r) =>
+        created.push({
+          index: r.roundIndex,
+          pairs: [[r.hubId, ...r.groupIds]],
+        }),
+      )
     } else if (party.rotationMode === 'random-shuffle') {
       for (let i = 1; i <= party.totalRounds; i++) {
         const groups = groupByN(shuffle(ids), 2, i)
@@ -96,7 +124,9 @@ export class MatchingService {
       for (let i = 1; i <= party.totalRounds; i++) created.push({ index: i, pairs: [] })
     }
 
-    for (const r of created) {
+    const planned = repairForbiddenPairs(created, forbiddenPairs)
+
+    for (const r of planned) {
       await this.prisma.round.create({
         data: {
           partyId,
@@ -272,62 +302,147 @@ export class MatchingService {
 
   /**
    * 종료 후 매칭 리빌 — 현재 사용자의 인연을 파티 정책(matchScope)대로 계산.
-   * connectionMode가 phone/both이고 양쪽이 연락처 공개에 동의했을 때만 전화번호를 노출한다.
+   * 호스트가 제공한 연결 채널 중 양쪽이 공개 동의한 채널만 노출한다.
    */
   async myPartyMatches(userId: string, partyId: string) {
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!party)
       throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
 
-    const [votes, participants, me] = await Promise.all([
+    const [votes, participants, me, forbiddenPairs] = await Promise.all([
       this.prisma.finalMatchVote.findMany({
         where: { partyId },
         select: { fromUserId: true, toUserId: true },
       }),
       this.prisma.participation.findMany({
         where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
-        select: { userId: true },
+        select: { userId: true, user: { select: { gender: true } } },
       }),
-      this.prisma.user.findUnique({ where: { id: userId }, select: { shareContact: true } }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { shareContact: true, shareKakao: true, shareInstagram: true },
+      }),
+      this.forbiddenPairsForParty(partyId),
     ])
 
-    const connections = computeConnections({
-      scope: party.matchScope as MatchScope,
-      votes,
-      allUserIds: participants.map((p) => p.userId),
-      maxPerPerson: party.maxMatchesPerPerson,
-    })
+    const connections = filterConnectionsExcluding(
+      computeConnections({
+        scope: party.matchScope as MatchScope,
+        votes,
+        allUserIds: participants.map((p) => p.userId),
+        maxPerPerson: party.maxMatchesPerPerson,
+      }),
+      forbiddenPairs,
+    )
     const mine = connections.filter((c) => c.userAId === userId || c.userBId === userId)
     const partnerIds = [
       ...new Set(mine.map((c) => (c.userAId === userId ? c.userBId : c.userAId))),
     ].filter((id) => id !== userId)
 
+    const parsedChannels = parseJsonArray<ConnectionChannel>(party.connectionChannelsJson)
+    const offeredChannels =
+      parsedChannels.length > 0
+        ? parsedChannels
+        : channelsFromLegacyMode(party.connectionMode as ConnectionMode)
+    const meContact: UserContact = {
+      shareContact: me?.shareContact ?? false,
+      shareKakao: me?.shareKakao ?? false,
+      shareInstagram: me?.shareInstagram ?? false,
+    }
+
     const partners = await this.prisma.user.findMany({
       where: { id: { in: partnerIds } },
-      select: { id: true, nickname: true, avatarId: true, phone: true, shareContact: true },
+      select: {
+        id: true,
+        nickname: true,
+        avatarId: true,
+        phone: true,
+        shareContact: true,
+        kakaoId: true,
+        shareKakao: true,
+        instagram: true,
+        shareInstagram: true,
+      },
     })
     const pmap = new Map(partners.map((p) => [p.id, p]))
-    const wantsPhone = party.connectionMode === 'phone' || party.connectionMode === 'both'
+    const popularity = party.revealPopular
+      ? computePopularity(
+          votes.map((v) => ({ toUserId: v.toUserId })),
+          participants.map((p) => ({
+            userId: p.userId,
+            gender: p.user.gender as Gender | null,
+          })),
+        )
+      : { popularMale: null, popularFemale: null }
 
     const matches = partnerIds.map((pid) => {
       const p = pmap.get(pid)
       const conn = mine.find((c) => c.userAId === pid || c.userBId === pid)
-      const phone = wantsPhone && me?.shareContact && p?.shareContact ? (p?.phone ?? null) : null
+      const channels = resolveSharedChannels(offeredChannels, meContact, p ?? {})
+      const phone = channels.find((c) => c.channel === 'phone')?.handle ?? null
       return {
         partnerId: pid,
         nickname: p?.nickname ?? '익명',
         avatarId: p?.avatarId ?? null,
         result: conn?.result ?? 'mutual',
         phone,
+        channels,
       }
     })
 
     return {
       scope: party.matchScope,
       connectionMode: party.connectionMode,
+      connectionChannels: offeredChannels,
       groupAfterParty: party.groupAfterParty,
+      popularity,
       matches,
     }
+  }
+
+  /**
+   * 파티의 확정/체크인 참가자 전원 중 마주치면 안 되는 쌍을 산출.
+   * 차단(UserBlock) + 회피 연락처(AvoidContact, 양방향 해시 대조) + 같은 회사(옵션) 기반.
+   */
+  private async forbiddenPairsForParty(partyId: string): Promise<Array<[string, string]>> {
+    const participants = await this.prisma.participation.findMany({
+      where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            phoneHash: true,
+            company: true,
+            avoidSameCompany: true,
+            avoidContacts: { select: { phoneHash: true } },
+          },
+        },
+      },
+    })
+    const ids = participants.map((p) => p.userId)
+    if (ids.length < 2) return []
+
+    // 참가자들 사이의 차단 관계 (양방향은 computeForbiddenPairs가 처리하므로 blockerId만 수집).
+    const blocks = await this.prisma.userBlock.findMany({
+      where: { blockerId: { in: ids }, blockedId: { in: ids } },
+      select: { blockerId: true, blockedId: true },
+    })
+    const blockedByUser = new Map<string, string[]>()
+    for (const b of blocks) {
+      const arr = blockedByUser.get(b.blockerId) ?? []
+      arr.push(b.blockedId)
+      blockedByUser.set(b.blockerId, arr)
+    }
+
+    const forbiddenInput: ForbiddenParticipant[] = participants.map((p) => ({
+      userId: p.userId,
+      phoneHash: p.user?.phoneHash ?? null,
+      avoidHashes: (p.user?.avoidContacts ?? []).map((a) => a.phoneHash),
+      blockedUserIds: blockedByUser.get(p.userId) ?? [],
+      company: p.user?.company ?? null,
+      avoidSameCompany: p.user?.avoidSameCompany ?? false,
+    }))
+    return computeForbiddenPairs(forbiddenInput)
   }
 
   private seatLabel(i: number): string {

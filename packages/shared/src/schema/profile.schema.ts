@@ -53,9 +53,14 @@ export const VerifyFieldSchema = z.object({
 })
 export type VerifyFieldDto = z.infer<typeof VerifyFieldSchema>
 
+/** 연결 채널 — 채널별 핸들 + 공개 동의. 매칭 후 상호 동의한 채널만 노출. */
 export const UpdateContactSchema = z.object({
   phone: z.string().min(9).max(20).optional().nullable(),
   shareContact: z.boolean().optional(),
+  kakaoId: z.string().max(40).optional().nullable(),
+  shareKakao: z.boolean().optional(),
+  instagram: z.string().max(40).optional().nullable(),
+  shareInstagram: z.boolean().optional(),
 })
 export type UpdateContactDto = z.infer<typeof UpdateContactSchema>
 
@@ -65,6 +70,13 @@ export const AddAvoidContactsSchema = z.object({
   label: z.string().max(40).optional(),
 })
 export type AddAvoidContactsDto = z.infer<typeof AddAvoidContactsSchema>
+
+/** 마주치기 싫은 사람 1명 추가 — 이름/메모 + 번호(해시 저장). */
+export const AddAvoidPersonSchema = z.object({
+  phone: z.string().min(9).max(20),
+  label: z.string().max(40).optional(),
+})
+export type AddAvoidPersonDto = z.infer<typeof AddAvoidPersonSchema>
 
 export const AvoidPrefsSchema = z.object({
   avoidSameCompany: z.boolean().optional(),

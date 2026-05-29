@@ -29,10 +29,15 @@ model User {
   homeLat       Float?
   homeLng       Float?
 
-  // 연락처 연결 — 매칭 성사 시 상호 동의한 상대에게만 공개
-  phone        String?
-  phoneHash    String? // 정규화 번호의 해시 — 지인 회피 대조용(원본 미저장)
-  shareContact Boolean @default(false)
+  // 연락처 연결 — 매칭 성사 시 상호 동의한 채널만 단계적으로 공개 (부담 낮음→높음)
+  phone          String?
+  phoneHash      String? // 정규화 번호의 해시 — 지인 회피 대조용(원본 미저장)
+  shareContact   Boolean @default(false) // 전화번호 공개 동의 (가장 긴밀)
+  kakaoId        String? // 카카오톡 ID (공개 동의 시 상대에게)
+  shareKakao     Boolean @default(false)
+  instagram      String? // 인스타그램 핸들
+  shareInstagram Boolean @default(false)
+  avoidSameCompany Boolean @default(false) // 같은 회사 사람 자동 회피
 
   // 사전 프로필 — 이상형/대화 프롬프트/찾는 관계/한 줄 등 (아이스브레이커·매칭 활용)
   profileJson String @default("{}")
@@ -211,14 +216,17 @@ model Party {
   enableAvatarOnly      Boolean @default(false)
 
   // ── 매칭 결과 정책 (차별화) ──
-  matchScope          String  @default("mutual-only") // mutual-only | top-n | all-participants
-  maxMatchesPerPerson Int     @default(3) // top-n일 때 1인당 최대 연결 수
-  connectionMode      String  @default("chat") // chat | phone | both
-  groupAfterParty     Boolean @default(false) // 종료 후 전원 그룹 채팅 개설
+  matchScope             String  @default("mutual-only") // mutual-only | top-n | all-participants
+  maxMatchesPerPerson    Int     @default(3) // top-n일 때 1인당 최대 연결 수
+  connectionMode         String  @default("chat") // (레거시) chat | phone | both
+  connectionChannelsJson String  @default("[\"chat\"]") // 제공 연결 채널 ["chat","instagram","kakao","phone"]
+  groupAfterParty        Boolean @default(false) // 종료 후 전원 그룹 채팅 개설
+  revealPopular          Boolean @default(true) // 종료 후 오늘의 인기남/인기녀 공개
 
   // ── 쪽지 교환 (커피 모임 오프라인 의식) ──
   enableNotes  Boolean @default(true)
   noteDelivery String  @default("party-end") // instant | party-end
+  noteQuota    Int     @default(5) // 1인당 보낼 수 있는 쪽지 상한 (신중한 선택 유도)
 
   // ── 라운드 대화 도우미 (게임/질문/운세/이상형) ──
   enableConversationKit Boolean @default(true)

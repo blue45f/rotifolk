@@ -13,6 +13,8 @@ interface SendNoteSheetProps {
   open: boolean
   onClose: () => void
   roundIndex?: number | null
+  /** 남은 쪽지 장수 (config.noteQuota - 이미 보낸 수). 미지정 시 제한 없음. */
+  remainingQuota?: number | null
 }
 
 const MAX = 300

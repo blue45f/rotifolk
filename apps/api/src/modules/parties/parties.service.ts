@@ -4,8 +4,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import type { CreatePartyDto, PartyCategory, PartyQueryDto, UpdatePartyDto } from '@rotifolk/shared'
-import { canAcceptGender } from '@rotifolk/shared'
+import { canAcceptGender, channelsFromLegacyMode } from '@rotifolk/shared'
+import type {
+  ConnectionChannel,
+  CreatePartyDto,
+  PartyCategory,
+  PartyConfig,
+  PartyQueryDto,
+  UpdatePartyDto,
+} from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
 import { toJsonString } from '@/common/json-utils'
 import { toParticipation, toParty, toPartySummary } from './party.mapper'
@@ -30,6 +37,15 @@ export class PartiesService {
     private readonly prisma: PrismaService,
     private readonly notifEmitter: NotificationsEmitter,
   ) {}
+
+  /** config.connectionChannels(있으면) 또는 레거시 connectionMode에서 유도한 채널 JSON. */
+  private connectionChannelsJsonFrom(config: PartyConfig): string {
+    const channels: ConnectionChannel[] =
+      config.connectionChannels && config.connectionChannels.length > 0
+        ? config.connectionChannels
+        : channelsFromLegacyMode(config.connectionMode)
+    return toJsonString(channels)
+  }
 
   async list(q: PartyQueryDto) {
     const where: Record<string, unknown> = {}
@@ -139,9 +155,12 @@ export class PartiesService {
         matchScope: dto.config.matchScope,
         maxMatchesPerPerson: dto.config.maxMatchesPerPerson,
         connectionMode: dto.config.connectionMode,
+        connectionChannelsJson: this.connectionChannelsJsonFrom(dto.config),
+        revealPopular: dto.config.revealPopular ?? true,
         groupAfterParty: dto.config.groupAfterParty,
         enableNotes: dto.config.enableNotes,
         noteDelivery: dto.config.noteDelivery,
+        noteQuota: dto.config.noteQuota ?? 5,
         enableConversationKit: dto.config.enableConversationKit,
         basePriceKRW: dto.pricing.basePriceKRW,
         drinkPackage: dto.pricing.drinkPackage,
@@ -357,9 +376,12 @@ export class PartiesService {
         matchScope: dto.config.matchScope,
         maxMatchesPerPerson: dto.config.maxMatchesPerPerson,
         connectionMode: dto.config.connectionMode,
+        connectionChannelsJson: this.connectionChannelsJsonFrom(dto.config),
+        revealPopular: dto.config.revealPopular ?? true,
         groupAfterParty: dto.config.groupAfterParty,
         enableNotes: dto.config.enableNotes,
         noteDelivery: dto.config.noteDelivery,
+        noteQuota: dto.config.noteQuota ?? 5,
         enableConversationKit: dto.config.enableConversationKit,
       })
     }

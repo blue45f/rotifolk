@@ -1,15 +1,25 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import { CONNECTION_CHANNELS, type ConnectionChannel } from '@rotifolk/shared'
 import { useParty } from '@features/parties/queries'
 import { useEnsurePartyRoom } from '@features/chat/queries'
-import { useMyPartyMatches, type MatchResult, type PartyMatch } from '@features/matching/queries'
+import {
+  useMyPartyMatches,
+  usePartyPopular,
+  type MatchChannel,
+  type MatchResult,
+  type PartyMatch,
+  type PopularPerson,
+} from '@features/matching/queries'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import styles from './MatchReveal.module.css'
+
+const EASE = [0.19, 1, 0.22, 1] as const
 
 const RESULT_LABEL: Record<MatchResult, string> = {
   mutual: '서로 골랐어요',
@@ -29,12 +39,22 @@ export default function MatchRevealPage() {
   const reduce = useReducedMotion() ?? false
   const { data: party } = useParty(partyId)
   const { data, isLoading } = useMyPartyMatches(partyId)
+  const { data: popular } = usePartyPopular(partyId)
   const ensureRoom = useEnsurePartyRoom()
 
   if (isLoading) return <Loading />
 
   const matches = data?.matches ?? []
   const title = party?.party.title ?? '오늘의 모임'
+
+  const copyHandle = async (handle: string) => {
+    try {
+      await navigator.clipboard.writeText(handle)
+      toast.show('복사했어요', 'success')
+    } catch {
+      toast.show('복사에 실패했어요', 'error')
+    }
+  }
 
   const openGroup = async () => {
     if (!partyId) return
@@ -55,7 +75,7 @@ export default function MatchRevealPage() {
           className={styles.title}
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
+          transition={{ duration: 0.6, ease: EASE }}
         >
           🌹 오늘의 인연
         </motion.h1>
@@ -63,6 +83,8 @@ export default function MatchRevealPage() {
           {title} · {data ? (SCOPE_LEAD[data.scope] ?? '오늘의 인연이에요.') : ''}
         </p>
       </header>
+
+      <PopularBanner popular={popular} reduce={reduce} />
 
       <section className={`container ${styles.body}`}>
         {matches.length === 0 ? (
@@ -91,18 +113,10 @@ export default function MatchRevealPage() {
                 <MatchCard
                   key={m.partnerId}
                   match={m}
-                  connectionMode={data?.connectionMode ?? 'chat'}
                   index={i}
                   reduce={reduce}
                   onChat={() => navigate('/chats')}
-                  onCopyPhone={async (phone) => {
-                    try {
-                      await navigator.clipboard.writeText(phone)
-                      toast.show('연락처를 복사했어요', 'success')
-                    } catch {
-                      toast.show('복사에 실패했어요', 'error')
-                    }
-                  }}
+                  onCopyHandle={copyHandle}
                 />
               ))}
             </div>
@@ -139,30 +153,74 @@ export default function MatchRevealPage() {
   )
 }
 
+function PopularBanner({
+  popular,
+  reduce,
+}: {
+  popular?: {
+    revealPopular: boolean
+    popularMale: PopularPerson | null
+    popularFemale: PopularPerson | null
+  }
+  reduce: boolean
+}) {
+  if (!popular?.revealPopular) return null
+  const winners: Array<{ person: PopularPerson; label: string }> = []
+  if (popular.popularMale) winners.push({ person: popular.popularMale, label: '오늘의 인기남' })
+  if (popular.popularFemale) winners.push({ person: popular.popularFemale, label: '오늘의 인기녀' })
+  if (winners.length === 0) return null
+
+  return (
+    <motion.section
+      className={`container ${styles.popular}`}
+      initial={reduce ? false : { opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, delay: 0.15, ease: EASE }}
+      aria-label="오늘의 인기 멤버"
+    >
+      <span className={styles.popularKicker}>👑 오늘 가장 사랑받은</span>
+      <div className={styles.popularRow}>
+        {winners.map(({ person, label }) => (
+          <div key={person.userId} className={styles.popularCard}>
+            <div className={styles.crown} aria-hidden="true">
+              👑
+            </div>
+            <Avatar
+              size="lg"
+              hue="#7A1F3D"
+              pattern="sparkle"
+              emoji={person.nickname[0]}
+              ring="gold"
+            />
+            <span className={styles.popularLabel}>{label}</span>
+            <strong className={styles.popularName}>{person.nickname}</strong>
+            <span className={styles.popularLikes}>{person.likes}명에게 호감</span>
+          </div>
+        ))}
+      </div>
+    </motion.section>
+  )
+}
+
 function MatchCard({
   match,
-  connectionMode,
   index,
   reduce,
   onChat,
-  onCopyPhone,
+  onCopyHandle,
 }: {
   match: PartyMatch
-  connectionMode: string
   index: number
   reduce: boolean
   onChat: () => void
-  onCopyPhone: (phone: string) => void
+  onCopyHandle: (handle: string) => void
 }) {
-  const [showPhone, setShowPhone] = useState(false)
-  const wantsChat = connectionMode === 'chat' || connectionMode === 'both'
-  const wantsPhone = connectionMode === 'phone' || connectionMode === 'both'
   return (
     <motion.article
       className={`${styles.card} ${match.result === 'mutual' ? styles.cardMutual : ''}`}
       initial={reduce ? false : { opacity: 0, y: 24, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, delay: Math.min(index * 0.09, 0.6), ease: [0.19, 1, 0.22, 1] }}
+      transition={{ duration: 0.5, delay: Math.min(index * 0.09, 0.6), ease: EASE }}
     >
       <Avatar
         size="xl"
@@ -177,31 +235,75 @@ function MatchCard({
       </Badge>
 
       <div className={styles.actions}>
-        {wantsChat && (
-          <Button variant="primary" size="sm" fullWidth onClick={onChat}>
-            💬 채팅으로 이어가기
-          </Button>
+        {match.channels.length === 0 ? (
+          <span className={styles.channelLocked}>아직 열린 연결 채널이 없어요</span>
+        ) : (
+          match.channels.map((ch) => (
+            <ChannelRow key={ch.channel} channel={ch} onChat={onChat} onCopyHandle={onCopyHandle} />
+          ))
         )}
-        {wantsPhone &&
-          (match.phone ? (
-            showPhone ? (
-              <button
-                type="button"
-                className={styles.phoneReveal}
-                onClick={() => onCopyPhone(match.phone!)}
-                title="탭하면 복사돼요"
-              >
-                📞 {match.phone}
-              </button>
-            ) : (
-              <Button variant="soft" size="sm" fullWidth onClick={() => setShowPhone(true)}>
-                📞 연락처 보기
-              </Button>
-            )
-          ) : (
-            <span className={styles.phoneLocked}>상대가 연락처를 비공개했어요</span>
-          ))}
       </div>
     </motion.article>
+  )
+}
+
+function ChannelRow({
+  channel,
+  onChat,
+  onCopyHandle,
+}: {
+  channel: MatchChannel
+  onChat: () => void
+  onCopyHandle: (handle: string) => void
+}) {
+  const meta = CONNECTION_CHANNELS[channel.channel as ConnectionChannel]
+  const [revealed, setRevealed] = useState(false)
+
+  // 앱 내 채팅: 핸들 없이 바로 채팅으로 이어짐
+  if (channel.channel === 'chat') {
+    return (
+      <div className={styles.channel}>
+        <Button variant="primary" size="sm" fullWidth onClick={onChat}>
+          {meta.icon} 채팅으로 이어가기
+        </Button>
+        <span className={styles.commitTag}>{meta.commitmentLabel}</span>
+      </div>
+    )
+  }
+
+  // 외부 채널인데 상대가 아직 공개하지 않은 경우
+  if (channel.handle == null) {
+    return (
+      <div className={styles.channel}>
+        <span className={styles.channelLocked}>
+          {meta.icon} {meta.label} · 상대가 아직 공개하지 않았어요
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.channel}>
+      {revealed ? (
+        <button
+          type="button"
+          className={styles.handleReveal}
+          onClick={() => onCopyHandle(channel.handle as string)}
+          title="탭하면 복사돼요"
+        >
+          <span className={styles.handleIcon}>{meta.icon}</span>
+          <span className={styles.handleValue}>{channel.handle}</span>
+          <span className={styles.handleCopy}>복사</span>
+        </button>
+      ) : (
+        <Button variant="soft" size="sm" fullWidth onClick={() => setRevealed(true)}>
+          {meta.icon} {meta.label} 보기
+        </Button>
+      )}
+      <span className={styles.commitTag}>{meta.commitmentLabel}</span>
+      {channel.channel === 'phone' && meta.note && (
+        <span className={styles.channelNote}>⚠️ {meta.note}</span>
+      )}
+    </div>
   )
 }

@@ -37,6 +37,18 @@ export function useSendNote() {
   })
 }
 
+/** 쪽지 일괄 전달 (호스트) — 파티 종료 시 대기 중인 쪽지를 한꺼번에 도착시킨다. */
+export function useDeliverNotes(partyId: string | undefined) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.post<{ delivered: number }>(`parties/${partyId}/notes/deliver`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: noteKeys.mine })
+      if (partyId) qc.invalidateQueries({ queryKey: noteKeys.party(partyId) })
+    },
+  })
+}
+
 /** 쪽지 읽음 처리 */
 export function useMarkNoteRead() {
   const qc = useQueryClient()

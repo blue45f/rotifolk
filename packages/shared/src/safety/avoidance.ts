@@ -69,3 +69,47 @@ export function detectAvoidOverlaps(
   }
   return out
 }
+
+/** 한 참가자의 회피 관련 정보 (양방향 금지쌍 산출용). */
+export interface ForbiddenParticipant {
+  userId: string
+  phoneHash?: string | null
+  /** 이 사람이 등록한 회피 해시 */
+  avoidHashes?: readonly string[]
+  /** 이 사람이 차단한 사용자 id */
+  blockedUserIds?: readonly string[]
+  company?: string | null
+  /** 같은 회사 회피 on */
+  avoidSameCompany?: boolean
+}
+
+function isForbidden(a: ForbiddenParticipant, b: ForbiddenParticipant): boolean {
+  if ((a.blockedUserIds ?? []).includes(b.userId)) return true
+  if ((b.blockedUserIds ?? []).includes(a.userId)) return true
+  if (b.phoneHash && (a.avoidHashes ?? []).includes(b.phoneHash)) return true
+  if (a.phoneHash && (b.avoidHashes ?? []).includes(a.phoneHash)) return true
+  const sameCompany =
+    !!a.company && !!b.company && a.company.trim().toLowerCase() === b.company.trim().toLowerCase()
+  if (sameCompany && (a.avoidSameCompany || b.avoidSameCompany)) return true
+  return false
+}
+
+/**
+ * 같은 모임 참가자 전원 중 서로 마주치면 안 되는 쌍을 양방향으로 산출.
+ * 로테이션 스케줄러의 금지 제약 + 최종 매칭/리빌 제외에 사용.
+ */
+export function computeForbiddenPairs(
+  participants: readonly ForbiddenParticipant[],
+): Array<[string, string]> {
+  const out: Array<[string, string]> = []
+  for (let i = 0; i < participants.length; i++) {
+    for (let j = i + 1; j < participants.length; j++) {
+      const a = participants[i]
+      const b = participants[j]
+      if (isForbidden(a, b)) {
+        out.push(a.userId < b.userId ? [a.userId, b.userId] : [b.userId, a.userId])
+      }
+    }
+  }
+  return out
+}
