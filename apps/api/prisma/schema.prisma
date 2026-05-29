@@ -31,6 +31,7 @@ model User {
 
   // 연락처 연결 — 매칭 성사 시 상호 동의한 상대에게만 공개
   phone        String?
+  phoneHash    String? // 정규화 번호의 해시 — 지인 회피 대조용(원본 미저장)
   shareContact Boolean @default(false)
 
   // 사전 프로필 — 이상형/대화 프롬프트/찾는 관계/한 줄 등 (아이스브레이커·매칭 활용)
@@ -84,6 +85,7 @@ model User {
   venueBookingsMade VenueBooking[]    @relation("VenueBookingRequester")
   notesSent         PartyNote[]       @relation("NoteFrom")
   notesReceived     PartyNote[]       @relation("NoteTo")
+  avoidContacts     AvoidContact[]    @relation("AvoidOwner")
 
   @@index([role])
   @@index([createdAt])
@@ -783,4 +785,19 @@ model PartyNote {
 
   @@index([partyId, toUserId])
   @@index([toUserId, deliveredAt])
+}
+
+// ======================== AVOID CONTACT (지인 회피) ========================
+// 마주치고 싶지 않은 사람의 전화번호 해시. 원본 번호는 저장하지 않는다.
+// 같은 모임에 해시가 일치하는 참가자가 있으면 사전 경고.
+model AvoidContact {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("AvoidOwner", fields: [userId], references: [id], onDelete: Cascade)
+  phoneHash String // sha256(정규화 번호)
+  label     String? // 사용자 메모 (선택)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, phoneHash])
+  @@index([phoneHash])
 }
