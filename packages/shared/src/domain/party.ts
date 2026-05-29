@@ -1,5 +1,15 @@
 import type { ID, ISODateString, Timestamps } from './common'
 import type { PublicUser } from './user'
+import type { MaritalStatus, VerificationField } from './profile'
+
+/** 아이 유무 대상 정책. */
+export type ChildrenPolicy = 'any' | 'has' | 'none'
+
+export const CHILDREN_POLICY_LABEL: Record<ChildrenPolicy, string> = {
+  any: '무관',
+  has: '아이 있음',
+  none: '아이 없음',
+}
 
 export type PartyCategory =
   | 'wine'
@@ -176,11 +186,26 @@ export interface PartyConfig {
   enableConversationKit: boolean
 }
 
+/** 성별·연령별 참여 비용 규칙. 먼저 매칭되는 규칙의 가격 적용. */
+export interface PricingRule {
+  /** 적용 성별. 미지정이면 모든 성별. */
+  gender?: 'male' | 'female' | null
+  /** 적용 나이 하한(포함). */
+  ageMin?: number | null
+  /** 적용 나이 상한(포함). */
+  ageMax?: number | null
+  priceKRW: number
+  /** 표시용 라벨 (예: "여성 20대"). */
+  label?: string
+}
+
 export interface PartyPricing {
   basePriceKRW: number
   drinkPackage: DrinkPackage
   snackPackage: SnackPackage
   refundDeadlineHours: number
+  /** 성별·연령별 가격 규칙 (없으면 basePriceKRW 일괄). */
+  pricingRules?: PricingRule[]
 }
 
 /** 모집 규모 · 성비 · 자동 취소 정책. */
@@ -216,7 +241,18 @@ export interface Party extends Timestamps {
   tags: string[]
   ageMin?: number | null
   ageMax?: number | null
+  /** 성별별 나이 제한 (없으면 ageMin/ageMax 공통값 적용). */
+  maleAgeMin?: number | null
+  maleAgeMax?: number | null
+  femaleAgeMin?: number | null
+  femaleAgeMax?: number | null
   genderRatio?: '5:5' | 'any' | null
+  /** 참가 필수 인증 (제출/검증 완료해야 참가 가능). */
+  requiredVerifications?: VerificationField[]
+  /** 허용 혼인상태 (빈 배열/미지정=무관, 예 ["divorced"]=돌싱 전용). */
+  maritalRequirement?: MaritalStatus[]
+  /** 아이 유무 대상. */
+  childrenPolicy?: ChildrenPolicy
 }
 
 export interface PartySummary extends Pick<

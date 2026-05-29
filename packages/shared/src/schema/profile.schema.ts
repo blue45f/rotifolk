@@ -39,6 +39,7 @@ export const UpdateTrustProfileSchema = z.object({
   company: z.string().max(60).optional().nullable(),
   incomeBand: IncomeBandEnum.optional().nullable(),
   maritalStatus: MaritalStatusEnum.optional().nullable(),
+  hasChildren: z.boolean().optional().nullable(),
   education: EducationEnum.optional().nullable(),
   visibility: z.record(z.string(), FieldVisibilityEnum).optional(),
 })

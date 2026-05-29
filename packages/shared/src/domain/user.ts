@@ -45,6 +45,7 @@ export interface User extends Timestamps {
   company?: string | null
   incomeBand?: IncomeBand | null
   maritalStatus?: MaritalStatus | null
+  hasChildren?: boolean | null
   education?: Education | null
   verifiedFields: VerificationField[]
   visibility: Partial<Record<VerifiableDetailField, FieldVisibility>>

@@ -47,6 +47,7 @@ model User {
   company           String? // 회사명 (비공개 가능)
   incomeBand        String? // none | u3000 | b3000_5000 | b5000_7000 | b7000_10000 | o10000 (만원)
   maritalStatus     String? // single | married | divorced | widowed | private
+  hasChildren       Boolean? // 아이 유무 (돌싱 모임 등 대상 필터용)
   education         String? // highschool | college | bachelor | master | doctorate | private
   verifiedFieldsJson String @default("[]") // 인증 완료 필드 ["identity","job","company","income","marital","education"]
   visibilityJson     String @default("{}") // 필드별 공개범위 { income: "matched", company: "hidden", ... }
@@ -239,11 +240,24 @@ model Party {
   drinkPackage        String @default("per-glass") // none | per-glass | unlimited | paired
   snackPackage        String @default("none") // none | per-plate | course | pairing-bites
   refundDeadlineHours Int    @default(24)
+  // 성별·연령별 참여 비용 규칙 (먼저 매칭되는 규칙 적용, 없으면 basePriceKRW)
+  // [{ gender?: "male"|"female", ageMin?, ageMax?, priceKRW, label? }]
+  pricingRulesJson String @default("[]")
 
   tagsJson    String  @default("[]")
   ageMin      Int?
   ageMax      Int?
-  genderRatio String?
+  // 성별별 나이 제한 (없으면 ageMin/ageMax 공통값 적용)
+  maleAgeMin   Int?
+  maleAgeMax   Int?
+  femaleAgeMin Int?
+  femaleAgeMax Int?
+  genderRatio  String?
+  // 참가에 필요한 인증 (제출/검증 완료 필수) — ["identity","marital","company","job","education","income"]
+  requiredVerificationsJson String @default("[]")
+  // 대상 설정 — 허용 혼인상태(빈 배열=무관, 예 ["divorced"]=돌싱 전용), 아이 유무 정책
+  maritalRequirementJson String @default("[]") // ["single","divorced","widowed",...]
+  childrenPolicy         String @default("any") // any | has | none
 
   // ── 모임 포맷 & 로테이션 구조 ──
   format         String @default("rotation") // rotation | note-ting | mixer

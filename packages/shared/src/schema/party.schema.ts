@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MaritalStatusEnum, VerificationFieldEnum } from './profile.schema'
 
 export const PartyCategoryEnum = z.enum([
   'wine',
@@ -29,6 +30,17 @@ export const ConnectionChannelEnum = z.enum(['chat', 'instagram', 'kakao', 'phon
 export const NoteDeliveryEnum = z.enum(['instant', 'party-end'])
 export const DrinkPackageEnum = z.enum(['none', 'per-glass', 'unlimited', 'paired'])
 export const SnackPackageEnum = z.enum(['none', 'per-plate', 'course', 'pairing-bites'])
+export const ChildrenPolicyEnum = z.enum(['any', 'has', 'none'])
+
+/** 성별·연령별 참여 비용 규칙. */
+export const PricingRuleSchema = z.object({
+  gender: z.enum(['male', 'female']).optional().nullable(),
+  ageMin: z.number().int().min(18).max(80).optional().nullable(),
+  ageMax: z.number().int().min(18).max(80).optional().nullable(),
+  priceKRW: z.number().int().min(0).max(1_000_000),
+  label: z.string().max(40).optional(),
+})
+export type PricingRuleDto = z.infer<typeof PricingRuleSchema>
 
 export const PartyConfigSchema = z.object({
   category: PartyCategoryEnum,
@@ -62,6 +74,7 @@ export const PartyPricingSchema = z.object({
   drinkPackage: DrinkPackageEnum.default('per-glass'),
   snackPackage: SnackPackageEnum.default('none'),
   refundDeadlineHours: z.number().int().min(0).max(168).default(24),
+  pricingRules: z.array(PricingRuleSchema).max(20).default([]),
 })
 
 export const PartyRecruitmentSchema = z.object({
@@ -93,6 +106,13 @@ export const CreatePartySchema = z.object({
   tags: z.array(z.string().min(1).max(20)).max(10).default([]),
   ageMin: z.number().int().min(18).max(80).optional().nullable(),
   ageMax: z.number().int().min(18).max(80).optional().nullable(),
+  maleAgeMin: z.number().int().min(18).max(80).optional().nullable(),
+  maleAgeMax: z.number().int().min(18).max(80).optional().nullable(),
+  femaleAgeMin: z.number().int().min(18).max(80).optional().nullable(),
+  femaleAgeMax: z.number().int().min(18).max(80).optional().nullable(),
+  requiredVerifications: z.array(VerificationFieldEnum).max(6).default([]),
+  maritalRequirement: z.array(MaritalStatusEnum).max(5).default([]),
+  childrenPolicy: ChildrenPolicyEnum.default('any'),
   genderRatio: z.enum(['5:5', 'any']).optional().nullable(),
 })
 export type CreatePartyDto = z.infer<typeof CreatePartySchema>
