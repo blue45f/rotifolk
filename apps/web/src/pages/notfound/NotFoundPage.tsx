@@ -16,24 +16,40 @@ const POPULAR: Suggestion[] = [
   { to: '/quick', emoji: '⚡', label: '즉석 파티 열기', hint: '5분 만에 한 잔 모임을 시작해요' },
   { to: '/neighborhood', emoji: '📍', label: '내 동네', hint: '걸어갈 수 있는 거리의 모임' },
   { to: '/help', emoji: '💡', label: 'FAQ', hint: '처음이라면 여기부터' },
+  { to: '/policies', emoji: '📜', label: '정책', hint: '환불/개인정보/안전 정책 보기' },
 ]
 
 function pathHint(pathname: string): { hint: string; cta?: Suggestion } {
   const lower = pathname.toLowerCase()
   if (lower.includes('chat')) {
-    return { hint: '채팅을 찾고 있었나요?', cta: { to: '/chats', emoji: '💌', label: '채팅 목록', hint: '내가 속한 채팅방' } }
+    return {
+      hint: '채팅을 찾고 있었나요?',
+      cta: { to: '/chats', emoji: '💌', label: '채팅 목록', hint: '내가 속한 채팅방' },
+    }
   }
   if (lower.includes('host') || lower.includes('console')) {
-    return { hint: '호스트 페이지를 찾고 있었나요?', cta: { to: '/host', emoji: '🎙️', label: '호스트 콘솔', hint: '내가 연 모임 관리' } }
+    return {
+      hint: '호스트 페이지를 찾고 있었나요?',
+      cta: { to: '/host', emoji: '🎙️', label: '호스트 콘솔', hint: '내가 연 모임 관리' },
+    }
   }
   if (lower.includes('payment') || lower.includes('order')) {
-    return { hint: '결제 페이지를 찾고 있었나요?', cta: { to: '/me/payments', emoji: '🧾', label: '결제 내역', hint: '최근 100건' } }
+    return {
+      hint: '결제 페이지를 찾고 있었나요?',
+      cta: { to: '/me/payments', emoji: '🧾', label: '결제 내역', hint: '최근 100건' },
+    }
   }
   if (lower.includes('part')) {
-    return { hint: '특정 파티 페이지가 더 이상 없거나 URL이 잘못된 것 같아요.', cta: { to: '/discover', emoji: '🔎', label: '파티 검색', hint: '비슷한 모임 찾기' } }
+    return {
+      hint: '특정 파티 페이지가 더 이상 없거나 URL이 잘못된 것 같아요.',
+      cta: { to: '/discover', emoji: '🔎', label: '파티 검색', hint: '비슷한 모임 찾기' },
+    }
   }
   if (lower.includes('me') || lower.includes('profile')) {
-    return { hint: '프로필을 찾고 있었나요?', cta: { to: '/me', emoji: '🌙', label: '내 프로필', hint: '아바타·관심사·후기' } }
+    return {
+      hint: '프로필을 찾고 있었나요?',
+      cta: { to: '/me', emoji: '🌙', label: '내 프로필', hint: '아바타·관심사·후기' },
+    }
   }
   return { hint: '아래에서 가던 길을 다시 골라보세요.' }
 }
@@ -47,7 +63,9 @@ export default function NotFoundPage() {
   return (
     <div className={styles.page}>
       <div className={styles.hero}>
-        <div className={styles.moon} aria-hidden="true">🌙</div>
+        <div className={styles.moon} aria-hidden="true">
+          🌙
+        </div>
         <h1 className={styles.title}>여기엔 잔이 없어요</h1>
         <p className={styles.path}>
           <code>{pathname}</code>
@@ -96,10 +114,7 @@ export default function NotFoundPage() {
               const cat = CATEGORY_META[r.category as keyof typeof CATEGORY_META]
               return (
                 <Link key={r.id} to={`/parties/${r.id}`} className={styles.suggestionCard}>
-                  <span
-                    className={styles.suggestionEmoji}
-                    style={{ background: cat?.bgGradient }}
-                  >
+                  <span className={styles.suggestionEmoji} style={{ background: cat?.bgGradient }}>
                     {cat?.emoji ?? '🍷'}
                   </span>
                   <span className={styles.suggestionBody}>

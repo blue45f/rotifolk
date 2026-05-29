@@ -96,10 +96,16 @@ export default function SignUpPage() {
               <div className={styles.strengthRow} aria-live="polite">
                 <div className={styles.strengthBars}>
                   <div className={`${styles.strengthBar} ${styles[strength.level]}`} />
-                  <div className={`${styles.strengthBar} ${strength.level !== 'weak' ? styles[strength.level] : ''}`} />
-                  <div className={`${styles.strengthBar} ${strength.level === 'strong' ? styles.strong : ''}`} />
+                  <div
+                    className={`${styles.strengthBar} ${strength.level !== 'weak' ? styles[strength.level] : ''}`}
+                  />
+                  <div
+                    className={`${styles.strengthBar} ${strength.level === 'strong' ? styles.strong : ''}`}
+                  />
                 </div>
-                <span className={`${styles.strengthLabel} ${styles[strength.level]}`}>{strength.label}</span>
+                <span className={`${styles.strengthLabel} ${styles[strength.level]}`}>
+                  {strength.label}
+                </span>
               </div>
             )}
           </div>
@@ -120,8 +126,24 @@ export default function SignUpPage() {
               className={styles.agreeCheck}
             />
             <span>
-              <Link to="/help" className={styles.link} target="_blank" rel="noopener noreferrer">이용약관</Link> 및{' '}
-              <Link to="/help" className={styles.link} target="_blank" rel="noopener noreferrer">개인정보 처리방침</Link>에 동의합니다
+              <Link
+                to="/policies"
+                className={styles.link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                이용약관
+              </Link>{' '}
+              및{' '}
+              <Link
+                to="/policies#privacy"
+                className={styles.link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                개인정보 처리방침
+              </Link>
+              에 동의합니다
             </span>
           </label>
           {agreeError && <p className={styles.agreeHint}>이용약관에 동의해 주세요.</p>}

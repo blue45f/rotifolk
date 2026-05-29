@@ -31,7 +31,9 @@ export function Header() {
       qc.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
     }
     socket.on('notification:new', handler)
-    return () => { socket.off('notification:new', handler) }
+    return () => {
+      socket.off('notification:new', handler)
+    }
   }, [user, qc])
   const isDark =
     theme === 'dark' ||
@@ -57,6 +59,9 @@ export function Header() {
           </NavLink>
           <NavLink to="/digest" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.digest')}
+          </NavLink>
+          <NavLink to="/policies" className={({ isActive }) => (isActive ? styles.active : '')}>
+            {t('nav.policies')}
           </NavLink>
           {user && (
             <NavLink to="/host" className={({ isActive }) => (isActive ? styles.active : '')}>
