@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { refundSchedule } from '@rotifolk/shared'
 import styles from './Policies.module.css'
 
@@ -125,6 +126,12 @@ export default function PoliciesPage() {
       </div>
 
       <p className={styles.footer}>마지막 업데이트 2026년 5월 · 문의는 고객센터로 보내주세요.</p>
+
+      <div className={styles.footerLinks}>
+        <Link to="/help">FAQ</Link>
+        <span aria-hidden="true">·</span>
+        <Link to="/discover">파티 탐색하러 가기</Link>
+      </div>
     </div>
   )
 }

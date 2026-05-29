@@ -55,3 +55,7 @@
   color: var(--color-text-muted);
 }
 .foot a { color: var(--color-primary); font-weight: var(--fw-semibold); }
+.footLinks {
+  margin-top: var(--space-2);
+  color: var(--color-text-subtle);
+}
