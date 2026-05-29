@@ -368,4 +368,35 @@ export const handlers = [
       }),
     )
   }),
+
+  // Notes (쪽지)
+  http.get(`${API}/notes/mine`, async () => HttpResponse.json(await delay([]))),
+  http.get(`${API}/notes/party/:partyId`, async () =>
+    HttpResponse.json(await delay({ received: [], sent: [] })),
+  ),
+  http.post(`${API}/notes`, async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>
+    return HttpResponse.json(
+      await delay({ id: `note_${Date.now()}`, ...body, deliveredAt: null, readAt: null }),
+    )
+  }),
+  http.patch(`${API}/notes/:id/read`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.post(`${API}/notes/party/:partyId/deliver`, async () =>
+    HttpResponse.json(await delay({ delivered: 0 })),
+  ),
+
+  // Me (사전 프로필 · 신상 인증 · 지인 회피)
+  http.patch(`${API}/me/profile`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.patch(`${API}/me/trust`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.post(`${API}/me/verify`, async ({ request }) => {
+    const body = (await request.json()) as { field?: string }
+    return HttpResponse.json(await delay({ verifiedFields: body.field ? [body.field] : [] }))
+  }),
+  http.patch(`${API}/me/contact`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.get(`${API}/me/avoid-contacts`, async () => HttpResponse.json(await delay([]))),
+  http.post(`${API}/me/avoid-contacts`, async () => HttpResponse.json(await delay({ count: 1 }))),
+  http.delete(`${API}/me/avoid-contacts/:id`, async () =>
+    HttpResponse.json(await delay({ ok: true })),
+  ),
+  http.get(`${API}/me/avoid-check`, async () => HttpResponse.json(await delay([]))),
 ]

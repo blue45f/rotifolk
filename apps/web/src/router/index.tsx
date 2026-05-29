@@ -73,6 +73,18 @@ export const routes: RouteObject[] = [
           { index: true, element: lazyPage(() => import('@pages/blocks/BlockedUsersPage')) },
         ],
       },
+      {
+        path: 'me/notes',
+        element: <ProtectedRoute />,
+        children: [{ index: true, element: lazyPage(() => import('@pages/notes/NotesInboxPage')) }],
+      },
+      {
+        path: 'me/profile-studio',
+        element: <ProtectedRoute />,
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/profile/ProfileStudioPage')) },
+        ],
+      },
       { path: 'login', element: lazyPage(() => import('@pages/auth/LoginPage')) },
       { path: 'signup', element: lazyPage(() => import('@pages/auth/SignUpPage')) },
       {

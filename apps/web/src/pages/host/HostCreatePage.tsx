@@ -2,8 +2,15 @@ import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
-import type { CreatePartyDto } from '@rotifolk/shared'
-import { CreatePartySchema } from '@rotifolk/shared'
+import type {
+  CreatePartyDto,
+  PartyFormat,
+  RotationFormat,
+  MatchScope,
+  ConnectionMode,
+  NoteDelivery,
+} from '@rotifolk/shared'
+import { CreatePartySchema, PARTY_FORMAT_LABEL, ROTATION_FORMAT_LABEL } from '@rotifolk/shared'
 import { useCreateParty } from '@features/parties/queries'
 import { useVenues } from '@features/venues/queries'
 import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
@@ -66,6 +73,53 @@ const ROTATION_OPTIONS = [
   { value: 'random-shuffle', label: '랜덤 셔플', desc: '예측 불가, 매번 다르게' },
   { value: 'host-curated', label: '호스트 큐레이션', desc: '내가 매칭을 직접 짤게요' },
 ] as const
+
+const FORMAT_OPTIONS: { value: PartyFormat; desc: string }[] = [
+  { value: 'rotation', desc: '5분 라운드로 모두와 짧게 회전' },
+  { value: 'note-ting', desc: '자유롭게 어울리며 쪽지를 주고받아요' },
+  { value: 'mixer', desc: '정해진 매칭 없이 느슨한 소셜 믹서' },
+]
+
+const ROTATION_FORMAT_OPTIONS: { value: RotationFormat; desc: string }[] = [
+  { value: 'one-on-one', desc: '한 번에 한 명씩, 가장 집중도 높은 대화' },
+  { value: 'many-to-one', desc: '한 명을 그룹이 둘러싸는 핫시트' },
+  { value: 'many-to-many', desc: '그룹 테이블이 통째로 회전' },
+]
+
+const MATCH_SCOPE_OPTIONS: { value: MatchScope; label: string; desc: string }[] = [
+  { value: 'mutual-only', label: '상호 매칭만', desc: '서로 지목한 사이만 연결돼요' },
+  { value: 'top-n', label: '상위 N명', desc: '누적 호감 상위 N명까지 연결' },
+  { value: 'all-participants', label: '전원 연결', desc: '참가자 모두를 연결' },
+]
+
+const CONNECTION_OPTIONS: { value: ConnectionMode; label: string; desc: string }[] = [
+  { value: 'chat', label: '채팅', desc: '앱 안에서 메시지로 대화' },
+  { value: 'phone', label: '전화', desc: '연락처를 교환해 직접 연결' },
+  { value: 'both', label: '둘 다', desc: '채팅과 연락처 모두 열어둬요' },
+]
+
+const NOTE_DELIVERY_OPTIONS: { value: NoteDelivery; label: string; desc: string }[] = [
+  { value: 'instant', label: '즉시', desc: '쓰는 즉시 상대에게 도착' },
+  { value: 'party-end', label: '파티 종료 후', desc: '여운을 남기게 종료 후 한꺼번에' },
+]
+
+const RATIO_PRESETS: { value: string; label: string }[] = [
+  { value: 'any', label: '상관없음' },
+  { value: '1:1', label: '1:1' },
+  { value: '2:3', label: '2:3' },
+  { value: '5:3', label: '5:3' },
+]
+
+/** ISO 문자열을 datetime-local 입력 값(로컬 시각)으로 변환. */
+function toLocalInput(iso?: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
+    d.getMinutes(),
+  )}`
+}
 
 export default function HostCreatePage() {
   const navigate = useNavigate()
@@ -351,9 +405,283 @@ export default function HostCreatePage() {
           </Card>
         )}
 
+        {step === 'match' && (
+          <Card padding="lg" className={styles.card}>
+            <h2 className={styles.h2}>4. 매칭 & 대화</h2>
+            <p className={styles.sectionLead}>
+              어떤 방식으로 만나고 어떻게 연결될지, 그리고 모집 성비를 여기서 정해요.
+            </p>
+
+            <label className={styles.fieldLabel}>모임 포맷</label>
+            <Controller
+              control={control}
+              name="config.format"
+              render={({ field }) => (
+                <div className={styles.modeList}>
+                  {FORMAT_OPTIONS.map((o) => (
+                    <button
+                      type="button"
+                      key={o.value}
+                      className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
+                      onClick={() => field.onChange(o.value)}
+                    >
+                      <strong>{PARTY_FORMAT_LABEL[o.value]}</strong>
+                      <span>{o.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            />
+
+            <label className={styles.fieldLabel}>대화 구조</label>
+            <Controller
+              control={control}
+              name="config.rotationFormat"
+              render={({ field }) => (
+                <div className={styles.modeList}>
+                  {ROTATION_FORMAT_OPTIONS.map((o) => (
+                    <button
+                      type="button"
+                      key={o.value}
+                      className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
+                      onClick={() => field.onChange(o.value)}
+                    >
+                      <strong>{ROTATION_FORMAT_LABEL[o.value]}</strong>
+                      <span>{o.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            />
+            {watched.config?.rotationFormat !== 'one-on-one' && (
+              <div className={styles.subField}>
+                <Input
+                  type="number"
+                  label="그룹 크기"
+                  hint="한 테이블에 함께 앉는 인원 (2~12명)"
+                  {...register('config.groupSize', { valueAsNumber: true })}
+                />
+              </div>
+            )}
+
+            <label className={styles.fieldLabel}>매칭 범위</label>
+            <Controller
+              control={control}
+              name="config.matchScope"
+              render={({ field }) => (
+                <div className={styles.modeList}>
+                  {MATCH_SCOPE_OPTIONS.map((o) => (
+                    <button
+                      type="button"
+                      key={o.value}
+                      className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
+                      onClick={() => field.onChange(o.value)}
+                    >
+                      <strong>{o.label}</strong>
+                      <span>{o.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            />
+            {watched.config?.matchScope === 'top-n' && (
+              <div className={styles.subField}>
+                <Input
+                  type="number"
+                  label="연결할 인원 수 (N)"
+                  hint="한 사람당 최대 몇 명까지 연결할지 (1~20명)"
+                  {...register('config.maxMatchesPerPerson', { valueAsNumber: true })}
+                />
+              </div>
+            )}
+
+            <label className={styles.fieldLabel}>연결 매체</label>
+            <Controller
+              control={control}
+              name="config.connectionMode"
+              render={({ field }) => (
+                <div className={styles.modeList}>
+                  {CONNECTION_OPTIONS.map((o) => (
+                    <button
+                      type="button"
+                      key={o.value}
+                      className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
+                      onClick={() => field.onChange(o.value)}
+                    >
+                      <strong>{o.label}</strong>
+                      <span>{o.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            />
+
+            <h3 className={styles.h3}>대화 옵션</h3>
+            <div className={styles.toggleGrid}>
+              <Toggle
+                checked={watched.config?.groupAfterParty}
+                onChange={(v) => setValue('config.groupAfterParty', v)}
+                label="종료 후 그룹채팅"
+                desc="파티가 끝나면 참가자 단체방을 열어요"
+              />
+              <Toggle
+                checked={watched.config?.enableNotes}
+                onChange={(v) => setValue('config.enableNotes', v)}
+                label="쪽지"
+                desc="라운드 파트너에게 손글씨 같은 쪽지를"
+              />
+              <Toggle
+                checked={watched.config?.enableConversationKit}
+                onChange={(v) => setValue('config.enableConversationKit', v)}
+                label="대화 도우미"
+                desc="어색할 때 꺼내 쓰는 질문·미션 덱"
+              />
+            </div>
+
+            {watched.config?.enableNotes && (
+              <>
+                <label className={styles.fieldLabel}>쪽지 도착</label>
+                <Controller
+                  control={control}
+                  name="config.noteDelivery"
+                  render={({ field }) => (
+                    <div className={styles.modeList}>
+                      {NOTE_DELIVERY_OPTIONS.map((o) => (
+                        <button
+                          type="button"
+                          key={o.value}
+                          className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
+                          onClick={() => field.onChange(o.value)}
+                        >
+                          <strong>{o.label}</strong>
+                          <span>{o.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
+              </>
+            )}
+
+            <h3 className={styles.h3}>성비 맞추기</h3>
+            <label className={styles.fieldLabel}>목표 성비</label>
+            <Controller
+              control={control}
+              name="recruitment.genderRatioTarget"
+              render={({ field }) => (
+                <>
+                  <div className={styles.chipRow}>
+                    {RATIO_PRESETS.map((p) => (
+                      <button
+                        type="button"
+                        key={p.value}
+                        className={`${styles.ratioChip} ${field.value === p.value ? styles.ratioChipActive : ''}`}
+                        onClick={() => field.onChange(p.value)}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                  <Input
+                    label="직접 입력 (남:여)"
+                    hint="예) 5:3 · 상관없으면 any"
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                </>
+              )}
+            />
+
+            <div className={styles.fieldGroup}>
+              <Controller
+                control={control}
+                name="recruitment.maleCap"
+                render={({ field }) => (
+                  <Input
+                    type="number"
+                    label="남성 정원 (선택)"
+                    placeholder="제한 없음"
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === '' ? null : Number(e.target.value))
+                    }
+                  />
+                )}
+              />
+              <Controller
+                control={control}
+                name="recruitment.femaleCap"
+                render={({ field }) => (
+                  <Input
+                    type="number"
+                    label="여성 정원 (선택)"
+                    placeholder="제한 없음"
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === '' ? null : Number(e.target.value))
+                    }
+                  />
+                )}
+              />
+              <Controller
+                control={control}
+                name="recruitment.minMale"
+                render={({ field }) => (
+                  <Input
+                    type="number"
+                    label="남성 최소 (선택)"
+                    placeholder="제한 없음"
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === '' ? null : Number(e.target.value))
+                    }
+                  />
+                )}
+              />
+              <Controller
+                control={control}
+                name="recruitment.minFemale"
+                render={({ field }) => (
+                  <Input
+                    type="number"
+                    label="여성 최소 (선택)"
+                    placeholder="제한 없음"
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === '' ? null : Number(e.target.value))
+                    }
+                  />
+                )}
+              />
+            </div>
+
+            <Controller
+              control={control}
+              name="recruitment.autoCancelAt"
+              render={({ field }) => (
+                <div className={styles.subField}>
+                  <Input
+                    type="datetime-local"
+                    label="자동 취소 마감 (선택)"
+                    value={toLocalInput(field.value)}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === '' ? null : new Date(e.target.value).toISOString(),
+                      )
+                    }
+                  />
+                  <p className={styles.helperLine}>
+                    이 시각까지 최소 인원·성비를 못 채우면 파티가 자동으로 취소되고 전액 환불돼요.
+                  </p>
+                </div>
+              )}
+            />
+          </Card>
+        )}
+
         {step === 'price' && (
           <Card padding="lg" className={styles.card}>
-            <h2 className={styles.h2}>4. 가격 & 환불</h2>
+            <h2 className={styles.h2}>5. 가격 & 환불</h2>
             <div className={styles.fieldGroup}>
               <Input
                 type="number"
@@ -517,6 +845,14 @@ function Summary({ watched }: { watched: Partial<CreatePartyDto> }) {
         <strong>{watched.title || '-'}</strong>
       </li>
       <li>
+        <span>대화 구조</span>
+        <strong>
+          {watched.config?.rotationFormat
+            ? ROTATION_FORMAT_LABEL[watched.config.rotationFormat]
+            : '-'}
+        </strong>
+      </li>
+      <li>
         <span>라운드</span>
         <strong>
           {watched.config?.totalRounds ?? '-'} ×{' '}
@@ -528,6 +864,10 @@ function Summary({ watched }: { watched: Partial<CreatePartyDto> }) {
         <strong>
           {watched.minParticipants ?? '-'} ~ {watched.maxParticipants ?? '-'} 명
         </strong>
+      </li>
+      <li>
+        <span>성비</span>
+        <strong>{watched.recruitment?.genderRatioTarget ?? '-'}</strong>
       </li>
       <li>
         <span>참가비</span>

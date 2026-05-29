@@ -105,7 +105,8 @@ export default function ProfilePage() {
     isVerified: user.isVerified,
     hasReferred: referral?.referredCount ?? 0,
   })
-  const { earned: earnedAchievements, total: totalAchievements } = summarizeAchievements(achievements)
+  const { earned: earnedAchievements, total: totalAchievements } =
+    summarizeAchievements(achievements)
 
   const upcoming = mine?.filter((m) =>
     ['confirmed', 'waitlist', 'checked-in'].includes(m.participation.status),
@@ -223,8 +224,8 @@ export default function ProfilePage() {
       </div>
 
       <section className={`container ${styles.section}`}>
-        {tab === 'upcoming' && (
-          upcoming && upcoming.length > 0 ? (
+        {tab === 'upcoming' &&
+          (upcoming && upcoming.length > 0 ? (
             <div className={styles.grid}>
               {upcoming.map((m) => (
                 <PartyCard key={m.party.id} party={m.party} />
@@ -241,11 +242,10 @@ export default function ProfilePage() {
                 </Link>
               }
             />
-          )
-        )}
+          ))}
 
-        {tab === 'saved' && (
-          savedItems && savedItems.length > 0 ? (
+        {tab === 'saved' &&
+          (savedItems && savedItems.length > 0 ? (
             <>
               <div className={styles.grid}>
                 {savedItems.slice(0, 9).map((p) => (
@@ -266,11 +266,10 @@ export default function ProfilePage() {
               title="저장한 모임이 없어요"
               description="파티 상세에서 ☆를 누르면 여기 모여요."
             />
-          )
-        )}
+          ))}
 
-        {tab === 'past' && (
-          past && past.length > 0 ? (
+        {tab === 'past' &&
+          (past && past.length > 0 ? (
             <div className={styles.grid}>
               {past.map((m) => (
                 <PartyCard key={m.party.id} party={m.party} />
@@ -278,8 +277,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <EmptyState emoji="🌙" title="아직 지난 파티가 없어요" />
-          )
-        )}
+          ))}
 
         {tab === 'badges' && (
           <div className={styles.achievementGrid}>
@@ -289,12 +287,18 @@ export default function ProfilePage() {
                 className={`${styles.achievement} ${a.earned ? styles.achievementEarned : ''}`}
                 title={a.description}
               >
-                <span className={styles.achievementEmoji} aria-hidden="true">{a.emoji}</span>
+                <span className={styles.achievementEmoji} aria-hidden="true">
+                  {a.emoji}
+                </span>
                 <div className={styles.achievementBody}>
                   <strong>{a.label}</strong>
                   <small>{a.description}</small>
                 </div>
-                {a.earned && <span className={styles.achievementMark} aria-label="획득">✓</span>}
+                {a.earned && (
+                  <span className={styles.achievementMark} aria-label="획득">
+                    ✓
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -307,7 +311,8 @@ export default function ProfilePage() {
             <Card padding="lg">
               <h3 className={styles.h3}>친구 초대 코드</h3>
               <p className={styles.referralLead}>
-                친구가 이 코드로 가입하면 <strong>둘 다 3,000원</strong>이 적립돼요. 다음 모임 결제에 사용할 수 있어요.
+                친구가 이 코드로 가입하면 <strong>둘 다 3,000원</strong>이 적립돼요. 다음 모임
+                결제에 사용할 수 있어요.
               </p>
               <div className={styles.referralCode}>
                 <code className={styles.referralCodeText}>
@@ -349,6 +354,14 @@ export default function ProfilePage() {
               </div>
               <div className={styles.divider} />
               <div className={styles.settingsLinks}>
+                <Link to="/me/profile-studio" className={styles.settingsLink}>
+                  <span>🪪 사전 프로필 · 신상 인증 · 지인 회피</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+                <Link to="/me/notes" className={styles.settingsLink}>
+                  <span>💌 쪽지함</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
                 <Link to="/me/saved" className={styles.settingsLink}>
                   <span>☆ 저장한 모임</span>
                   <span aria-hidden="true">→</span>
@@ -383,7 +396,9 @@ export default function ProfilePage() {
                 </Button>
               ) : (
                 <div className={styles.deleteConfirm}>
-                  <p className={styles.deleteConfirmText}>정말 삭제할까요? 이 작업은 되돌릴 수 없어요.</p>
+                  <p className={styles.deleteConfirmText}>
+                    정말 삭제할까요? 이 작업은 되돌릴 수 없어요.
+                  </p>
                   <div className={styles.deleteConfirmActions}>
                     <Button variant="ghost" size="sm" onClick={() => setShowDeleteConfirm(false)}>
                       취소
@@ -559,7 +574,8 @@ function ReceivedReviews({ userId }: { userId: string }) {
           <li key={r.id}>
             <div className={styles.reviewHead}>
               <span className={styles.reviewStars}>
-                {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                {'★'.repeat(r.rating)}
+                {'☆'.repeat(5 - r.rating)}
               </span>
               <time>{new Date(r.createdAt).toLocaleDateString('ko-KR')}</time>
             </div>
