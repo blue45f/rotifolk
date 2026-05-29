@@ -19,6 +19,8 @@ export interface PartyMatch {
   channels: MatchChannel[]
   /** 서로 간의 궁합 (MBTI·관심사·띠 기반). */
   compatibility?: { score: number; title: string; blurb: string }
+  /** 본인인증 완료 여부 (신뢰 신호). */
+  verified?: boolean
 }
 
 export interface MyPartyMatches {

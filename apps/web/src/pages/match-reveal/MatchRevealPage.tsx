@@ -237,9 +237,23 @@ function MatchCard({
         ring={match.result === 'mutual' ? 'glow' : 'gold'}
       />
       <h3 className={styles.name}>{match.nickname}</h3>
-      <Badge tone={match.result === 'mutual' ? 'gold' : 'wine'} size="sm">
-        {RESULT_LABEL[match.result]}
-      </Badge>
+      <div
+        style={{
+          display: 'flex',
+          gap: 'var(--space-1)',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+        }}
+      >
+        <Badge tone={match.result === 'mutual' ? 'gold' : 'wine'} size="sm">
+          {RESULT_LABEL[match.result]}
+        </Badge>
+        {match.verified && (
+          <Badge tone="info" size="sm">
+            ✓ 본인인증
+          </Badge>
+        )}
+      </div>
 
       {match.compatibility && (
         <div className={styles.compat} title={match.compatibility.blurb}>

@@ -373,6 +373,7 @@ export class MatchingService {
         mbti: true,
         interestsJson: true,
         birthYear: true,
+        verifiedFieldsJson: true,
       },
     })
     const pmap = new Map(partners.map((p) => [p.id, p]))
@@ -413,6 +414,7 @@ export class MatchingService {
         phone,
         channels,
         compatibility: { score: compat.score, title: compat.title, blurb: compat.blurb },
+        verified: parseJsonArray<string>(p?.verifiedFieldsJson ?? '[]').includes('identity'),
       }
     })
 

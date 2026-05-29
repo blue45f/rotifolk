@@ -390,6 +390,7 @@ export const handlers = [
               title: '천생연분 ✨',
               blurb: '오늘 같은 흐름, 흔치 않아요.',
             },
+            verified: true,
             channels: [
               { channel: 'chat', handle: null },
               { channel: 'kakao', handle: 'yoonseul_wine' },
