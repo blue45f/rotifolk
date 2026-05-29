@@ -4,12 +4,21 @@ import { motion } from 'framer-motion'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AVOID_REASON_LABEL,
+  CHILDREN_POLICY_LABEL,
   CONNECTION_CHANNELS,
+  ELIGIBILITY_REASON_LABEL,
+  MARITAL_STATUS_LABEL,
   PARTY_FORMAT_LABEL,
   ROTATION_FORMAT_LABEL,
+  VERIFICATION_FIELD_LABEL,
+  ageFromBirthYear,
   channelsFromLegacyMode,
+  checkEligibility,
+  formatKRW,
+  resolveParticipantPrice,
   type AvoidReason,
   type ConnectionChannel,
+  type Party,
 } from '@rotifolk/shared'
 import { ShareButton } from '@features/share/ShareButton'
 import { useParty, useJoinParty, useCancelJoin } from '@features/parties/queries'
@@ -518,6 +527,8 @@ export default function PartyDetailPage() {
             </div>
           </Card>
 
+          <EligibilityPriceCard party={party} />
+
           <Card padding="lg">
             <h2 className={styles.h2}>참가자 ({participants.length})</h2>
             {participants.length === 0 ? (
@@ -939,6 +950,116 @@ const MATCH_SCOPE_LABEL: Record<string, string> = {
   'mutual-only': '상호 매칭만',
   'top-n': '상위 N명 연결',
   'all-participants': '참가자 전원 연결',
+}
+
+function EligibilityPriceCard({ party }: { party: Party }) {
+  const me = useAuthStore((s) => s.user)
+  const reqV = party.requiredVerifications ?? []
+  const marital = party.maritalRequirement ?? []
+  const childrenPolicy = party.childrenPolicy ?? 'any'
+  const ageFields = {
+    ageMin: party.ageMin,
+    ageMax: party.ageMax,
+    maleAgeMin: party.maleAgeMin,
+    maleAgeMax: party.maleAgeMax,
+    femaleAgeMin: party.femaleAgeMin,
+    femaleAgeMax: party.femaleAgeMax,
+  }
+  const hasAge = Object.values(ageFields).some((x) => x != null)
+  const rules = party.pricing.pricingRules ?? []
+  const hasConditions = reqV.length > 0 || marital.length > 0 || childrenPolicy !== 'any' || hasAge
+
+  const myAge = me ? ageFromBirthYear(me.birthYear ?? null, new Date().getFullYear()) : null
+  const myPrice = me
+    ? resolveParticipantPrice(party.pricing.basePriceKRW, rules, { gender: me.gender, age: myAge })
+    : null
+  const showMyPrice = !!me && rules.length > 0 && myPrice !== party.pricing.basePriceKRW
+
+  const elig =
+    me && hasConditions
+      ? checkEligibility(
+          {
+            ...ageFields,
+            requiredVerifications: reqV,
+            maritalRequirement: marital,
+            childrenPolicy,
+          },
+          {
+            gender: me.gender,
+            age: myAge,
+            maritalStatus: me.maritalStatus,
+            hasChildren: me.hasChildren,
+            verifiedFields: me.verifiedFields,
+          },
+        )
+      : null
+
+  if (!hasConditions && !showMyPrice) return null
+
+  const ageRange = (lo?: number | null, hi?: number | null) =>
+    lo != null || hi != null ? `${lo ?? ''}~${hi ?? ''}세` : null
+  const ageParts: string[] = []
+  const m = ageRange(party.maleAgeMin, party.maleAgeMax)
+  const f = ageRange(party.femaleAgeMin, party.femaleAgeMax)
+  const common = ageRange(party.ageMin, party.ageMax)
+  if (m) ageParts.push(`남 ${m}`)
+  if (f) ageParts.push(`여 ${f}`)
+  if (!m && !f && common) ageParts.push(common)
+
+  return (
+    <Card padding="lg">
+      <h2 className={styles.h2}>참가 자격{showMyPrice ? ' · 내 참가비' : ''}</h2>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 'var(--space-2)',
+          margin: 'var(--space-3) 0',
+        }}
+      >
+        {ageParts.length > 0 && (
+          <Badge tone="wine" outlined>
+            🎂 {ageParts.join(' · ')}
+          </Badge>
+        )}
+        {marital.length > 0 && (
+          <Badge tone="wine" outlined>
+            💍 {marital.map((x) => MARITAL_STATUS_LABEL[x]).join('·')}
+          </Badge>
+        )}
+        {childrenPolicy !== 'any' && (
+          <Badge tone="wine" outlined>
+            👶 {CHILDREN_POLICY_LABEL[childrenPolicy]}
+          </Badge>
+        )}
+        {reqV.map((v) => (
+          <Badge key={v} tone="gold" outlined>
+            ✓ {VERIFICATION_FIELD_LABEL[v]} 인증
+          </Badge>
+        ))}
+      </div>
+      {showMyPrice && (
+        <p className={styles.muted}>
+          내 참가비{' '}
+          <strong style={{ color: 'var(--color-primary)' }}>{formatKRW(myPrice ?? 0)}</strong> (기본{' '}
+          {formatKRW(party.pricing.basePriceKRW)})
+        </p>
+      )}
+      {elig && !elig.ok && (
+        <p
+          style={{
+            marginTop: 'var(--space-2)',
+            fontSize: 'var(--fs-sm)',
+            color: 'var(--brand-burgundy-700)',
+          }}
+        >
+          ⚠️ 지금은 참가 조건을 충족하지 않아요 (
+          {elig.reasons.map((r) => ELIGIBILITY_REASON_LABEL[r]).join(', ')}). 프로필·인증을 채우면
+          참가할 수 있어요.
+        </p>
+      )}
+    </Card>
+  )
 }
 
 function AutoCancelNote({ deadlineISO, met }: { deadlineISO: string; met: boolean }) {
