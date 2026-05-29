@@ -2,16 +2,27 @@
   padding-block: var(--space-8) var(--space-16);
 }
 
+/* ── 헤더 ── */
 .head {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   margin-bottom: var(--space-8);
+  max-width: var(--max-prose);
+}
+.kicker {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--brand-gold-700);
 }
 .title {
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
 }
 .sub {
   color: var(--color-text-muted);
@@ -26,33 +37,101 @@
   font-weight: var(--fw-semibold);
 }
 
+/* ── 목록 ──
+   같은 크기 카드 무한 그리드를 피한다: 모바일은 친밀한 한 줄,
+   넓은 화면은 두 칸이되 첫 쪽지(가장 최근 도착)는 전폭으로 펼쳐 위계를 만든다. */
 .list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+@media (min-width: 720px) {
+  .list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+    align-items: start;
+  }
+  .list > .card:first-child {
+    grid-column: 1 / -1;
+  }
 }
 
+/* ── 쪽지 카드 (keepsake) ── */
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-5);
+  gap: var(--space-4);
+  padding: var(--space-6);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
   transition:
     transform var(--dur-base) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out);
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+/* warm paper grain: a faint cream wash from the top edge, like a card pulled from an envelope */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 96px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--brand-cream-100) 60%, transparent),
+    transparent
+  );
+  pointer-events: none;
+}
+.card > * {
+  position: relative;
 }
 .card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-md);
+  border-color: var(--brand-burgundy-200);
 }
+
+/* Unread = "alive": gold-warmed paper + the sacred glow ring. */
 .cardUnread {
   cursor: pointer;
-  background: color-mix(in oklab, var(--brand-gold-500) 6%, var(--color-surface));
-  border-color: color-mix(in oklab, var(--brand-gold-500) 38%, var(--color-border));
+  background: color-mix(in oklab, var(--brand-gold-500) 7%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--brand-gold-500) 42%, var(--color-border));
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--brand-gold-400) 22%, transparent),
+    var(--shadow-sm);
+}
+.cardUnread::before {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--brand-gold-300) 38%, transparent),
+    transparent
+  );
+}
+.cardUnread:hover {
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--brand-gold-400) 28%, transparent),
+    var(--shadow-md);
+}
+
+/* wax-seal style tag, tucked into the top-right corner */
+.seal {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 1;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-gold-500);
+  color: var(--color-accent-fg);
+  font-family: var(--font-mono);
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  box-shadow: var(--shadow-xs);
 }
 
 .cardHead {
@@ -60,17 +139,16 @@
   align-items: center;
   gap: var(--space-3);
 }
+/* only reserve room for the seal on unread cards, so read cards stay tight */
+.cardUnread .cardHead {
+  padding-right: var(--space-12);
+}
 .who {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   flex: 1;
   min-width: 0;
-}
-.nameRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 .name {
   font-weight: var(--fw-bold);
@@ -80,33 +158,137 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary);
-  flex-shrink: 0;
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 18%, transparent);
-}
 .time {
   font-size: var(--fs-xs);
   color: var(--color-text-subtle);
 }
+/* emoji sticker peels up off the card like a real sticker */
 .sticker {
-  font-size: var(--fs-2xl);
+  font-size: var(--fs-3xl);
   line-height: 1;
   flex-shrink: 0;
+  transform: rotate(6deg);
+  filter: drop-shadow(0 4px 6px color-mix(in oklab, var(--brand-burgundy-900) 18%, transparent));
+  transition: transform var(--dur-base) var(--ease-spring);
+}
+.card:hover .sticker {
+  transform: rotate(-4deg) scale(1.08);
 }
 
+/* the message itself, set like a handwritten quote opened by a burgundy mark */
 .body {
+  position: relative;
+  margin: 0;
+  padding-top: var(--space-4);
   color: var(--color-text);
+  font-size: var(--fs-lg);
   line-height: var(--lh-relaxed);
+  letter-spacing: var(--tracking-tight);
   white-space: pre-wrap;
   word-break: break-word;
+  max-width: 60ch;
+}
+.body::before {
+  content: '\201C';
+  position: absolute;
+  top: -0.18em;
+  left: -0.04em;
+  font-size: 2.4em;
+  line-height: 1;
+  font-weight: var(--fw-black);
+  color: color-mix(in oklab, var(--brand-burgundy-400) 50%, transparent);
+  pointer-events: none;
+}
+/* on the featured (first) note, give the message room to breathe */
+@media (min-width: 720px) {
+  .list > .card:first-child .body {
+    font-size: var(--fs-xl);
+  }
 }
 
 .badges {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+.contactBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ── 빈 상태 (keepsake) ── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-16) var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      130% 90% at 50% -10%,
+      color-mix(in oklab, var(--brand-cream-200) 55%, transparent),
+      transparent 70%
+    ),
+    var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+.emptyMark {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--brand-gold-100) 70%, var(--color-surface));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 28%, transparent),
+    var(--shadow-xs);
+}
+.emptyEnvelope {
+  display: block;
+  font-size: 2.75rem;
+  line-height: 1;
+  filter: drop-shadow(0 8px 14px color-mix(in oklab, var(--brand-burgundy-900) 16%, transparent));
+  animation: noteFloat 4.5s var(--ease-in-out) infinite;
+}
+.emptyTitle {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: var(--space-2);
+}
+.emptyDesc {
+  color: var(--color-text-muted);
+  line-height: var(--lh-relaxed);
+  max-width: 42ch;
+}
+
+@keyframes noteFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(2deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .sticker {
+    transition: none;
+  }
+  .card:hover {
+    transform: none;
+  }
+  .card:hover .sticker {
+    transform: rotate(6deg);
+  }
+  .emptyEnvelope {
+    animation: none;
+  }
 }

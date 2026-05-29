@@ -70,6 +70,7 @@ export default function ProfileStudioPage() {
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
+        <span className={styles.kicker}>PROFILE STUDIO</span>
         <h1 className={styles.title}>프로필 · 인증 · 회피</h1>
         <p className={styles.lede}>나를 더 잘 보여주고, 신뢰는 더하고, 불편한 만남은 피해요.</p>
       </header>
@@ -86,7 +87,7 @@ export default function ProfileStudioPage() {
         />
       </div>
 
-      <div className={`container ${styles.body}`}>
+      <div className={`container ${styles.body}`} key={tab}>
         {tab === 'profile' && <ProfileTab />}
         {tab === 'trust' && <TrustTab />}
         {tab === 'avoid' && <AvoidTab />}
@@ -141,9 +142,12 @@ function ProfileTab() {
   }
 
   return (
-    <Card padding="lg">
+    <Card padding="lg" className={styles.tabCard}>
       <section className={styles.section}>
-        <h2 className={styles.h2}>한 줄 소개</h2>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionIndex}>01</span>
+          <h2 className={styles.h2}>한 줄 소개</h2>
+        </div>
         <Input
           placeholder="예: 주말엔 산, 평일엔 와인 한 잔"
           value={oneLiner}
@@ -153,15 +157,29 @@ function ProfileTab() {
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.h2}>이상형 키워드</h2>
-        <p className={styles.muted}>최대 8개까지. 매칭과 대화 소재로 쓰여요.</p>
-        <div className={styles.chipRow}>
-          {idealType.map((kw) => (
-            <Chip key={kw} selected onClick={() => setIdealType((p) => p.filter((x) => x !== kw))}>
-              {kw} ✕
-            </Chip>
-          ))}
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionIndex}>02</span>
+          <div>
+            <h2 className={styles.h2}>이상형 키워드</h2>
+            <p className={styles.muted}>최대 8개까지. 매칭과 대화 소재로 쓰여요.</p>
+          </div>
         </div>
+        {idealType.length > 0 && (
+          <div className={styles.chipRow}>
+            {idealType.map((kw) => (
+              <Chip
+                key={kw}
+                selected
+                onClick={() => setIdealType((p) => p.filter((x) => x !== kw))}
+              >
+                {kw}
+                <span className={styles.chipRemove} aria-hidden="true">
+                  ✕
+                </span>
+              </Chip>
+            ))}
+          </div>
+        )}
         <div className={styles.inlineForm}>
           <Input
             placeholder="키워드 입력 후 추가"
@@ -182,7 +200,10 @@ function ProfileTab() {
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.h2}>찾는 관계</h2>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionIndex}>03</span>
+          <h2 className={styles.h2}>찾는 관계</h2>
+        </div>
         <Input
           placeholder="예: 취미를 함께할 친구, 진지한 만남"
           value={lookingFor}
@@ -192,11 +213,19 @@ function ProfileTab() {
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.h2}>대화 프롬프트</h2>
-        <p className={styles.muted}>질문과 답을 미리 채워두면 첫 대화가 쉬워져요.</p>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionIndex}>04</span>
+          <div>
+            <h2 className={styles.h2}>대화 프롬프트</h2>
+            <p className={styles.muted}>질문과 답을 미리 채워두면 첫 대화가 쉬워져요.</p>
+          </div>
+        </div>
         <div className={styles.promptList}>
           {prompts.map((p, i) => (
             <div key={i} className={styles.promptItem}>
+              <span className={styles.promptBadge} aria-hidden="true">
+                Q{i + 1}
+              </span>
               <Input
                 placeholder="질문 (예: 인생 영화는?)"
                 value={p.q}
@@ -294,24 +323,44 @@ function TrustTab() {
     }
   }
 
+  const verifiedCount = verified.size
+
   return (
     <div className={styles.stack}>
-      <Card padding="lg">
-        <h2 className={styles.h2}>내 인증 배지</h2>
-        <p className={styles.muted}>인증한 항목은 골드 배지로 다른 사람에게 보여요.</p>
+      <Card padding="lg" className={styles.trustShelf}>
+        <div className={styles.shelfHead}>
+          <div>
+            <span className={styles.kickerGold}>VERIFIED</span>
+            <h2 className={styles.h2}>내 인증 배지</h2>
+            <p className={styles.muted}>인증한 항목은 골드 배지로 다른 사람에게 보여요.</p>
+          </div>
+          <span className={styles.shelfCount} aria-hidden="true">
+            <strong>{verifiedCount}</strong>개 인증됨
+          </span>
+        </div>
         <div className={styles.badgeArea}>
           <VerifiedBadges fields={[...verified]} size="md" showEmpty />
         </div>
         <p className={styles.privacyNote}>
-          🔒 원본 서류는 저장하지 않고 인증 배지만 남깁니다. 소득은 구간만 노출돼요.
+          <span className={styles.noteIcon} aria-hidden="true">
+            🔒
+          </span>
+          <span>
+            원본 서류는 저장하지 않고 <strong>인증 배지만</strong> 남깁니다. 소득은 구간만 노출돼요.
+          </span>
         </p>
       </Card>
 
-      <Card padding="lg">
-        <h2 className={styles.h2}>신상 정보 · 공개범위</h2>
-        <p className={styles.muted}>
-          항목별로 입력하고 “인증하기”를 누르세요. 공개범위는 필드마다 따로 정할 수 있어요.
-        </p>
+      <Card padding="lg" className={styles.tabCard}>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionIndex}>🛡️</span>
+          <div>
+            <h2 className={styles.h2}>신상 정보 · 공개범위</h2>
+            <p className={styles.muted}>
+              항목별로 입력하고 “인증하기”를 누르세요. 공개범위는 필드마다 따로 정할 수 있어요.
+            </p>
+          </div>
+        </div>
 
         <div className={styles.trustList}>
           <TrustRow
@@ -422,8 +471,13 @@ function TrustTab() {
             </select>
           </TrustRow>
 
-          <div className={styles.identityRow}>
-            <div>
+          <div
+            className={`${styles.identityRow} ${verified.has('identity') ? styles.identityDone : ''}`}
+          >
+            <span className={styles.identityIcon} aria-hidden="true">
+              {verified.has('identity') ? '✓' : '🪪'}
+            </span>
+            <div className={styles.identityCopy}>
               <strong>본인(성인) 인증</strong>
               <p className={styles.muted}>휴대폰 본인인증으로 한 번에 끝나요.</p>
             </div>
@@ -478,7 +532,7 @@ function TrustRow({
   children,
 }: TrustRowProps) {
   return (
-    <div className={styles.trustRow}>
+    <div className={`${styles.trustRow} ${verified ? styles.trustRowDone : ''}`}>
       <div className={styles.trustHead}>
         <span className={styles.trustLabel}>{label}</span>
         {verified ? (
@@ -491,7 +545,12 @@ function TrustRow({
       </div>
       <div className={styles.trustBody}>{children}</div>
       <label className={styles.visRow}>
-        <span>공개범위</span>
+        <span className={styles.visLabel}>
+          <span className={styles.visEye} aria-hidden="true">
+            👁
+          </span>
+          공개범위
+        </span>
         <select
           className={styles.selectSm}
           value={visibility[visKey] ?? 'matched'}
@@ -548,11 +607,22 @@ function AvoidTab() {
 
   return (
     <div className={styles.stack}>
-      <Card padding="lg">
-        <h2 className={styles.h2}>회피 연락처 추가</h2>
+      <Card padding="lg" className={styles.tabCard}>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionIndex}>🙈</span>
+          <div>
+            <h2 className={styles.h2}>회피 연락처 추가</h2>
+            <p className={styles.muted}>아는 사람과 마주치지 않도록 미리 일러둘 수 있어요.</p>
+          </div>
+        </div>
         <p className={styles.privacyNote}>
-          🔒 원본 번호는 저장하지 않고 해시로만 대조해요. 같은 모임에 등록한 사람이 있으면 미리
-          알려드려요.
+          <span className={styles.noteIcon} aria-hidden="true">
+            🔒
+          </span>
+          <span>
+            원본 번호는 저장하지 않고 <strong>해시로만</strong> 대조해요. 같은 모임에 등록한 사람이
+            있으면 미리 알려드려요.
+          </span>
         </p>
         <div className={styles.avoidForm}>
           <Input
@@ -576,10 +646,9 @@ function AvoidTab() {
         </div>
       </Card>
 
-      <Card padding="lg">
-        <h2 className={styles.h2}>회사 회피</h2>
+      <Card padding="lg" className={styles.tabCard}>
         <label className={styles.toggleRow}>
-          <div>
+          <div className={styles.toggleCopy}>
             <strong>같은 회사 사람 피하기</strong>
             <p className={styles.muted}>
               {user.company
@@ -597,19 +666,35 @@ function AvoidTab() {
         </label>
       </Card>
 
-      <Card padding="lg">
-        <h2 className={styles.h2}>내 회피 목록</h2>
+      <Card padding="lg" className={styles.tabCard}>
+        <div className={styles.listHead}>
+          <h2 className={styles.h2}>내 회피 목록</h2>
+          {contacts && contacts.length > 0 && (
+            <span className={styles.listCount}>{contacts.length}명</span>
+          )}
+        </div>
         {isLoading ? (
           <Loading />
         ) : !contacts || contacts.length === 0 ? (
-          <EmptyState emoji="🙈" title="등록한 회피 연락처가 없어요" />
+          <div className={styles.avoidEmpty}>
+            <span className={styles.avoidEmptyIcon} aria-hidden="true">
+              🙈
+            </span>
+            <p>아직 등록한 회피 연락처가 없어요. 위에서 한 명씩 더해 보세요.</p>
+          </div>
         ) : (
           <div className={styles.avoidList}>
             {contacts.map((c) => (
               <div key={c.id} className={styles.avoidItem}>
-                <div>
+                <span className={styles.avoidAvatar} aria-hidden="true">
+                  {(c.label || '?').trim().slice(0, 1).toUpperCase()}
+                </span>
+                <div className={styles.avoidMeta}>
                   <strong>{c.label || '메모 없음'}</strong>
-                  <span className={styles.hashHint}>해시로만 저장됨</span>
+                  <span className={styles.hashHint}>
+                    <span className={styles.hashDot} aria-hidden="true" />
+                    해시로만 저장됨
+                  </span>
                 </div>
                 <Button
                   variant="ghost"
@@ -629,10 +714,9 @@ function AvoidTab() {
         )}
       </Card>
 
-      <Card padding="lg">
-        <h2 className={styles.h2}>연락처 공개</h2>
+      <Card padding="lg" className={styles.tabCard}>
         <label className={styles.toggleRow}>
-          <div>
+          <div className={styles.toggleCopy}>
             <strong>매칭된 상대에게 연락처 공유</strong>
             <p className={styles.muted}>상호 동의한 매칭 상대에게만 공개돼요.</p>
           </div>

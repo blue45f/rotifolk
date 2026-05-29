@@ -13,12 +13,17 @@ interface Props {
 export function VerifiedBadges({ fields, size = 'sm', showEmpty = false }: Props) {
   if (fields.length === 0) {
     if (!showEmpty) return null
-    return <span className={styles.empty}>아직 인증한 항목이 없어요</span>
+    return (
+      <span className={styles.empty}>
+        <span aria-hidden="true">🪞</span>
+        아직 인증한 항목이 없어요
+      </span>
+    )
   }
   return (
     <div className={styles.row}>
       {fields.map((field) => (
-        <Badge key={field} tone="gold" size={size}>
+        <Badge key={field} tone="gold" size={size} className={styles.badge}>
           <span aria-hidden="true" className={styles.check}>
             ✓
           </span>

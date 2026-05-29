@@ -1,7 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  AVOID_REASON_LABEL,
+  PARTY_FORMAT_LABEL,
+  ROTATION_FORMAT_LABEL,
+  type AvoidReason,
+} from '@rotifolk/shared'
+import { ShareButton } from '@features/share/ShareButton'
 import { useParty, useJoinParty, useCancelJoin } from '@features/parties/queries'
 import { useEnsurePartyRoom } from '@features/chat/queries'
 import { CATEGORY_META } from '@features/categories/meta'
@@ -82,9 +89,18 @@ export default function PartyDetailPage() {
     enabled: !!me && !!partyId,
   })
   const isSaved = saved?.some((s) => s.id === partyId) ?? false
+
+  // 지인 회피 — 같은 모임에 차단/회피/같은 회사 대상이 있으면 사전 경고 (해시 대조, 이름 비노출)
+  const { data: avoidOverlaps } = useQuery({
+    queryKey: ['avoid-check', partyId],
+    queryFn: () =>
+      api.get<Array<{ userId: string; nickname?: string; reasons: AvoidReason[] }>>(
+        `me/avoid-check?partyId=${partyId}`,
+      ),
+    enabled: !!me && !!partyId,
+  })
   const toggleSave = useMutation({
-    mutationFn: () =>
-      isSaved ? api.delete(`saved/${partyId}`) : api.post(`saved/${partyId}`),
+    mutationFn: () => (isSaved ? api.delete(`saved/${partyId}`) : api.post(`saved/${partyId}`)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['saved', partyId] }),
   })
 
@@ -137,8 +153,7 @@ export default function PartyDetailPage() {
     onError: (e) => toast.show((e as Error).message, 'error'),
   })
   const refundMutation = useMutation({
-    mutationFn: (paymentId: string) =>
-      api.post<PaymentRow>(`payments/${paymentId}/refund`),
+    mutationFn: (paymentId: string) => api.post<PaymentRow>(`payments/${paymentId}/refund`),
     onSuccess: () => {
       toast.show('환불이 완료됐어요', 'info')
       queryClient.invalidateQueries({ queryKey: ['payments', 'me', partyId] })
@@ -218,7 +233,11 @@ export default function PartyDetailPage() {
       endAt: p.endAt,
       url: window.location.href,
     })
-    const safe = p.title.replace(/[^\w가-힣\- ]/g, '').slice(0, 40).trim() || 'rotifolk-party'
+    const safe =
+      p.title
+        .replace(/[^\w가-힣\- ]/g, '')
+        .slice(0, 40)
+        .trim() || 'rotifolk-party'
     downloadIcs(safe, ics)
     toast.show('캘린더 파일을 받았어요', 'success')
   }
@@ -232,18 +251,23 @@ export default function PartyDetailPage() {
   const isHost = me?.id === party.hostId
   const joinedMe = participants.find((p) => p.userId === me?.id)
 
-  const conflict = me && myParties
-    ? myParties
-        .filter((m) => m.party.id !== party.id && ['confirmed','checked-in','waitlist'].includes(m.participation.status))
-        .find((m) => {
-          const s = new Date(m.party.startAt).getTime()
-          // 일단 시작 시각만 비교 (endAt 없음)
-          const myStart = start.getTime()
-          const myEnd = end.getTime()
-          // 다른 모임 시작이 내 모임 [start-2h, end+2h] 범위면 충돌
-          return s >= myStart - 7200_000 && s <= myEnd + 7200_000
-        })
-    : undefined
+  const conflict =
+    me && myParties
+      ? myParties
+          .filter(
+            (m) =>
+              m.party.id !== party.id &&
+              ['confirmed', 'checked-in', 'waitlist'].includes(m.participation.status),
+          )
+          .find((m) => {
+            const s = new Date(m.party.startAt).getTime()
+            // 일단 시작 시각만 비교 (endAt 없음)
+            const myStart = start.getTime()
+            const myEnd = end.getTime()
+            // 다른 모임 시작이 내 모임 [start-2h, end+2h] 범위면 충돌
+            return s >= myStart - 7200_000 && s <= myEnd + 7200_000
+          })
+      : undefined
   const toneMap: Record<string, 'wine' | 'coffee' | 'tea' | 'whisky' | 'gold' | 'primary'> = {
     wine: 'wine',
     coffee: 'coffee',
@@ -273,6 +297,15 @@ export default function PartyDetailPage() {
       {conflict && !joinedMe && (
         <div className={styles.clashBar} role="alert">
           ⚠️ 같은 시간대에 이미 신청한 모임이 있어요 — <strong>{conflict.party.title}</strong>
+        </div>
+      )}
+      {avoidOverlaps && avoidOverlaps.length > 0 && !isHost && !joinedMe && (
+        <div className={styles.avoidBar} role="alert">
+          🛡️ <strong>{avoidOverlaps.length}명</strong>이 회피·차단 목록과 일치해요 (
+          {[...new Set(avoidOverlaps.flatMap((o) => o.reasons))]
+            .map((r) => AVOID_REASON_LABEL[r])
+            .join(' · ')}
+          ). 신중히 결정하세요.
         </div>
       )}
       <motion.section
@@ -404,6 +437,77 @@ export default function PartyDetailPage() {
           </Card>
 
           <Card padding="lg">
+            <h2 className={styles.h2}>참가 전에 확인해요</h2>
+            <div className={styles.signalGrid}>
+              <div className={styles.signal}>
+                <span className={styles.signalLabel}>모임 포맷</span>
+                <strong>{PARTY_FORMAT_LABEL[party.config.format]}</strong>
+                <span className={styles.signalSub}>
+                  {ROTATION_FORMAT_LABEL[party.config.rotationFormat]}
+                  {party.config.rotationFormat !== 'one-on-one' && ` · ${party.config.groupSize}인`}
+                </span>
+              </div>
+              <div className={styles.signal}>
+                <span className={styles.signalLabel}>매칭 · 연결</span>
+                <strong>{MATCH_SCOPE_LABEL[party.config.matchScope]}</strong>
+                <span className={styles.signalSub}>
+                  {CONNECTION_LABEL[party.config.connectionMode]}
+                  {party.config.groupAfterParty && ' · 종료 후 그룹채팅'}
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.recruit}>
+              <div className={styles.recruitHead}>
+                <span className={styles.signalLabel}>모집 현황</span>
+                {party.recruitment.genderRatioTarget !== 'any' && (
+                  <Badge tone="gold" size="sm" outlined>
+                    목표 성비 {party.recruitment.genderRatioTarget}
+                  </Badge>
+                )}
+              </div>
+              <div className={styles.fillBar} aria-hidden="true">
+                <div
+                  className={styles.fillBarOn}
+                  style={{
+                    width: `${Math.min(100, Math.round((party.currentParticipants / Math.max(1, party.maxParticipants)) * 100))}%`,
+                  }}
+                />
+              </div>
+              <p className={styles.recruitMeta}>
+                현재 <strong>{party.currentParticipants}</strong> / 최대 {party.maxParticipants}명 ·
+                최소 {party.minParticipants}명
+              </p>
+              {party.recruitment.autoCancelAt && (
+                <AutoCancelNote
+                  deadlineISO={party.recruitment.autoCancelAt}
+                  met={party.currentParticipants >= party.minParticipants}
+                />
+              )}
+            </div>
+
+            <div className={styles.shareRow}>
+              <ShareButton
+                title={party.title}
+                category={party.config.category}
+                venueArea=""
+                startAtISO={party.startAt}
+                currentParticipants={party.currentParticipants}
+                maxParticipants={party.maxParticipants}
+                inviteUrl={
+                  typeof window !== 'undefined'
+                    ? `${window.location.origin}/parties/${party.id}`
+                    : `/parties/${party.id}`
+                }
+                gradient={cat.bgGradient}
+                label="이 모임 공유하기"
+                variant="soft"
+                fullWidth
+              />
+            </div>
+          </Card>
+
+          <Card padding="lg">
             <h2 className={styles.h2}>참가자 ({participants.length})</h2>
             {participants.length === 0 ? (
               <p className={styles.muted}>아직 첫 참가자를 기다리고 있어요.</p>
@@ -497,17 +601,13 @@ export default function PartyDetailPage() {
                             alt={p.caption ?? `${p.uploader?.nickname ?? '참가자'}의 사진`}
                             loading="lazy"
                           />
-                          {p.caption && (
-                            <span className={styles.photoCaption}>{p.caption}</span>
-                          )}
+                          {p.caption && <span className={styles.photoCaption}>{p.caption}</span>}
                         </a>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className={styles.muted}>
-                    아직 사진이 없어요. 참가자만 추가할 수 있어요.
-                  </p>
+                  <p className={styles.muted}>아직 사진이 없어요. 참가자만 추가할 수 있어요.</p>
                 )}
               </Card>
             )
@@ -566,7 +666,8 @@ export default function PartyDetailPage() {
                       <div className={styles.reviewHead}>
                         <strong>{r.author.nickname}</strong>
                         <span className={styles.reviewStars} aria-label={`${r.rating}점`}>
-                          {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                          {'★'.repeat(r.rating)}
+                          {'☆'.repeat(5 - r.rating)}
                         </span>
                         <time className={styles.muted}>
                           {new Date(r.createdAt).toLocaleDateString('ko-KR')}
@@ -676,7 +777,9 @@ export default function PartyDetailPage() {
             ) : joinedMe ? (
               <div className={styles.stack}>
                 <div className={styles.joinedBadges}>
-                  <Badge tone="success">✅ 신청 완료 — {joinedMe.status === 'waitlist' ? '대기' : '확정'}</Badge>
+                  <Badge tone="success">
+                    ✅ 신청 완료 — {joinedMe.status === 'waitlist' ? '대기' : '확정'}
+                  </Badge>
                   {paidPayment && <Badge tone="gold">💳 결제 완료</Badge>}
                 </div>
                 <Button
@@ -723,9 +826,11 @@ export default function PartyDetailPage() {
                   variant="ghost"
                   size="md"
                   fullWidth
-                  onClick={() => cancel.mutate(undefined, {
-                    onSuccess: () => toast.show('신청을 취소했어요', 'info'),
-                  })}
+                  onClick={() =>
+                    cancel.mutate(undefined, {
+                      onSuccess: () => toast.show('신청을 취소했어요', 'info'),
+                    })
+                  }
                 >
                   신청 취소
                 </Button>
@@ -810,11 +915,39 @@ export default function PartyDetailPage() {
             </Chip>
           ))}
         </div>
-        <p className={styles.payNote}>
-          ※ 실제 결제는 발생하지 않는 시뮬레이션이에요.
-        </p>
+        <p className={styles.payNote}>※ 실제 결제는 발생하지 않는 시뮬레이션이에요.</p>
       </Sheet>
     </div>
+  )
+}
+
+const MATCH_SCOPE_LABEL: Record<string, string> = {
+  'mutual-only': '상호 매칭만',
+  'top-n': '상위 N명 연결',
+  'all-participants': '참가자 전원 연결',
+}
+const CONNECTION_LABEL: Record<string, string> = {
+  chat: '채팅으로 연결',
+  phone: '전화번호 연결',
+  both: '채팅 + 전화',
+}
+
+function AutoCancelNote({ deadlineISO, met }: { deadlineISO: string; met: boolean }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  const ms = new Date(deadlineISO).getTime() - now
+  if (ms <= 0) return null
+  const h = Math.floor(ms / 3_600_000)
+  const m = Math.floor((ms % 3_600_000) / 60_000)
+  const s = Math.floor((ms % 60_000) / 1000)
+  const fmt = h > 0 ? `${h}시간 ${m}분` : `${m}분 ${s}초`
+  return (
+    <p className={`${styles.autoCancel} ${met ? '' : styles.autoCancelRisk}`}>
+      {met ? '⏳' : '⚠️'} 마감까지 {fmt} · 이때까지 인원·성비가 차지 않으면 자동 취소돼요
+    </p>
   )
 }
 

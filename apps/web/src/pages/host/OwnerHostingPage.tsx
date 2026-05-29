@@ -26,14 +26,14 @@ export default function OwnerHostingPage() {
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
-        <div>
+        <div className={styles.headText}>
           <span className={styles.kicker}>OWNER HOSTING</span>
           <h1 className={styles.title}>내 가게로 호스팅</h1>
           <p className={styles.lead}>
             비어 있던 시간을, 사람으로 채우세요. 메뉴·가격은 가게 정보 그대로.
           </p>
         </div>
-        <Link to="/host/venues/new">
+        <Link to="/host/venues/new" className={styles.headCta}>
           <Button variant="gold" size="lg">
             + 공간 등록
           </Button>
@@ -43,10 +43,7 @@ export default function OwnerHostingPage() {
       {pending.length > 0 && (
         <section className={`container ${styles.section}`}>
           <h2 className={styles.h2}>
-            섭외 요청{' '}
-            <Badge tone="gold" size="sm">
-              {pending.length}
-            </Badge>
+            섭외 요청 <span className={styles.count}>{pending.length}건 대기</span>
           </h2>
           <div className={styles.inbox}>
             {pending.map((b) => (
@@ -101,9 +98,18 @@ function RequestRow({ booking }: { booking: VenueBooking }) {
   return (
     <article className={styles.req}>
       <div className={styles.reqInfo}>
-        <strong>{booking.requesterNickname ?? '호스트'}님의 섭외</strong>
+        <div className={styles.reqTop}>
+          <strong>{booking.requesterNickname ?? '호스트'}님의 섭외</strong>
+          <span className={styles.reqNew}>NEW</span>
+        </div>
         <p className={styles.reqMeta}>
-          {booking.venueName} · {when} · {booking.partySize}명 · {formatKRW(booking.totalKRW)}
+          <span>{booking.venueName}</span>
+          <span className={styles.dot}>·</span>
+          <span>{when}</span>
+          <span className={styles.dot}>·</span>
+          <span>{booking.partySize}명</span>
+          <span className={styles.dot}>·</span>
+          <span className={styles.price}>{formatKRW(booking.totalKRW)}</span>
         </p>
         {booking.noteToOwner && <p className={styles.reqNote}>💬 {booking.noteToOwner}</p>}
       </div>
@@ -128,37 +134,46 @@ function OwnedVenueCard({ venue }: { venue: OwnedVenue }) {
   const [open, setOpen] = useState(false)
   return (
     <article className={styles.vCard}>
-      <div className={styles.vThumb}>
-        {venue.photos[0] ? <img src={venue.photos[0]} alt="" loading="lazy" /> : '🏛️'}
+      <div className={styles.vMain}>
+        <div className={styles.vThumb}>
+          {venue.photos[0] ? <img src={venue.photos[0]} alt="" loading="lazy" /> : '🏛️'}
+        </div>
+        <div className={styles.vBody}>
+          <div className={styles.vHead}>
+            <strong>{venue.name}</strong>
+            {venue.instantBook && (
+              <Badge tone="gold" size="sm">
+                즉시예약
+              </Badge>
+            )}
+          </div>
+          <p className={styles.vMeta}>
+            {venue.area} · 최대 {venue.capacity}명 · 시간당 {formatKRW(venue.pricePerHourKRW)}
+          </p>
+          <div className={styles.vStats}>
+            <div className={styles.stat}>
+              <span className={styles.statLabel}>예정 파티</span>
+              <span className={styles.statValue}>{venue.upcomingParties}</span>
+            </div>
+            <div className={`${styles.stat} ${venue.pendingRequests > 0 ? styles.statHot : ''}`}>
+              <span className={styles.statLabel}>대기 요청</span>
+              <span className={styles.statValue}>{venue.pendingRequests}</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className={styles.vBody}>
-        <div className={styles.vHead}>
-          <strong>{venue.name}</strong>
-          {venue.instantBook && (
-            <Badge tone="gold" size="sm">
-              즉시예약
-            </Badge>
-          )}
-        </div>
-        <p className={styles.vMeta}>
-          {venue.area} · 최대 {venue.capacity}명 · 시간당 {formatKRW(venue.pricePerHourKRW)}
-        </p>
-        <div className={styles.vStats}>
-          <span>📅 예정 파티 {venue.upcomingParties}</span>
-          <span>📨 대기 요청 {venue.pendingRequests}</span>
-        </div>
-        <div className={styles.vActions}>
-          <Button size="sm" variant={open ? 'primary' : 'soft'} onClick={() => setOpen((o) => !o)}>
-            {open ? '닫기' : '유휴 시간 → 파티'}
+      <div className={styles.vActions}>
+        <Button size="sm" variant={open ? 'primary' : 'soft'} onClick={() => setOpen((o) => !o)}>
+          {open ? '닫기' : '유휴 시간 → 파티'}
+        </Button>
+        <span className={styles.vSpacer} />
+        <Link to={`/host/venues/new?edit=${venue.id}`}>
+          <Button size="sm" variant="ghost">
+            수정
           </Button>
-          <Link to={`/host/venues/new?edit=${venue.id}`}>
-            <Button size="sm" variant="ghost">
-              수정
-            </Button>
-          </Link>
-        </div>
-        {open && <OffHoursList venueId={venue.id} venueName={venue.name} cap={venue.capacity} />}
+        </Link>
       </div>
+      {open && <OffHoursList venueId={venue.id} venueName={venue.name} cap={venue.capacity} />}
     </article>
   )
 }
@@ -179,7 +194,7 @@ function OffHoursList({
   return (
     <div className={styles.offHours}>
       <p className={styles.offHint}>
-        비는 시간을 원탭으로 파티로 — 카테고리·정원·메뉴가 자동 채워져요.
+        ✨ 비는 시간을 원탭으로 파티로. 카테고리·정원·메뉴가 자동 채워져요.
       </p>
       {slots.slice(0, 4).map((s) => (
         <OffHoursRow key={s.startAt} slot={s} venueId={venueId} venueName={venueName} cap={cap} />
@@ -204,10 +219,11 @@ function OffHoursRow({
   const href = `/host/create?venueId=${venueId}&startAt=${encodeURIComponent(slot.startAt)}&endAt=${encodeURIComponent(slot.endAt)}&maxParticipants=${Math.min(cap, slot.suggestedCapacity)}`
   return (
     <div className={styles.ohRow}>
-      <div>
+      <div className={styles.ohInfo}>
         <strong>{slot.label}</strong>
         <span className={styles.ohWhen}>
-          {when} · 추천 {slot.suggestedCapacity}명 · {formatKRW(slot.quote.totalKRW)}
+          {when} · 추천 {slot.suggestedCapacity}명 ·{' '}
+          <span className={styles.ohPrice}>{formatKRW(slot.quote.totalKRW)}</span>
         </span>
       </div>
       <Link to={href}>

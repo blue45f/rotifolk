@@ -128,33 +128,39 @@ export default function VenueRegisterPage() {
 
       <div className={`container ${styles.body}`}>
         <Card padding="lg" className={styles.card}>
-          <h2 className={styles.h2}>기본 정보</h2>
+          <h2 className={styles.h2}>
+            <span className={styles.h2idx}>01</span>기본 정보
+          </h2>
           <Input
             label="공간 이름"
             placeholder="루즈 셀러"
             value={f.name}
             onChange={(e) => set('name', e.target.value)}
           />
-          <label className={styles.fl}>종류</label>
-          <div className={styles.chips}>
-            {KINDS.map((k) => (
-              <Chip
-                key={k.value}
-                selected={f.kind === k.value}
-                leadingEmoji={k.emoji}
-                onClick={() => set('kind', k.value)}
-              >
-                {k.label}
-              </Chip>
-            ))}
+          <div className={styles.field}>
+            <label className={styles.fl}>종류</label>
+            <div className={styles.chips}>
+              {KINDS.map((k) => (
+                <Chip
+                  key={k.value}
+                  selected={f.kind === k.value}
+                  leadingEmoji={k.emoji}
+                  onClick={() => set('kind', k.value)}
+                >
+                  {k.label}
+                </Chip>
+              ))}
+            </div>
           </div>
-          <label className={styles.fl}>동네</label>
-          <div className={styles.chips}>
-            {AREAS.map((a) => (
-              <Chip key={a} selected={f.area === a} onClick={() => set('area', a)}>
-                {a}
-              </Chip>
-            ))}
+          <div className={styles.field}>
+            <label className={styles.fl}>동네</label>
+            <div className={styles.chips}>
+              {AREAS.map((a) => (
+                <Chip key={a} selected={f.area === a} onClick={() => set('area', a)}>
+                  {a}
+                </Chip>
+              ))}
+            </div>
           </div>
           <Input
             label="주소"
@@ -165,7 +171,9 @@ export default function VenueRegisterPage() {
         </Card>
 
         <Card padding="lg" className={styles.card}>
-          <h2 className={styles.h2}>정원 & 가격</h2>
+          <h2 className={styles.h2}>
+            <span className={styles.h2idx}>02</span>정원 & 가격
+          </h2>
           <div className={styles.grid2}>
             <Input
               type="number"
@@ -209,7 +217,9 @@ export default function VenueRegisterPage() {
         </Card>
 
         <Card padding="lg" className={styles.card}>
-          <h2 className={styles.h2}>영업 시간 & 휴무</h2>
+          <h2 className={styles.h2}>
+            <span className={styles.h2idx}>03</span>영업 시간 & 휴무
+          </h2>
           <div className={styles.grid2}>
             <Input
               type="time"
@@ -224,19 +234,21 @@ export default function VenueRegisterPage() {
               onChange={(e) => set('close', e.target.value)}
             />
           </div>
-          <label className={styles.fl}>정기 휴무</label>
-          <div className={styles.chips}>
-            {WEEKDAYS.map((w, i) => (
-              <Chip
-                key={i}
-                selected={closedWeekdays.includes(i)}
-                onClick={() =>
-                  setClosed((c) => (c.includes(i) ? c.filter((x) => x !== i) : [...c, i]))
-                }
-              >
-                {w}
-              </Chip>
-            ))}
+          <div className={styles.field}>
+            <label className={styles.fl}>정기 휴무</label>
+            <div className={styles.chips}>
+              {WEEKDAYS.map((w, i) => (
+                <Chip
+                  key={i}
+                  selected={closedWeekdays.includes(i)}
+                  onClick={() =>
+                    setClosed((c) => (c.includes(i) ? c.filter((x) => x !== i) : [...c, i]))
+                  }
+                >
+                  {w}
+                </Chip>
+              ))}
+            </div>
           </div>
           <p className={styles.hint}>
             휴무일·마감 후 시간이 자동으로 “유휴 시간 → 파티” 후보가 돼요.
@@ -244,7 +256,9 @@ export default function VenueRegisterPage() {
         </Card>
 
         <Card padding="lg" className={styles.card}>
-          <h2 className={styles.h2}>예약 정책 & 무드</h2>
+          <h2 className={styles.h2}>
+            <span className={styles.h2idx}>04</span>예약 정책 & 무드
+          </h2>
           <div className={styles.toggles}>
             <Toggle
               label="즉시 예약 허용"
@@ -289,7 +303,7 @@ export default function VenueRegisterPage() {
             value={f.photo2}
             onChange={(e) => set('photo2', e.target.value)}
           />
-          <div>
+          <div className={styles.field}>
             <label className={styles.fl}>사장님 한마디</label>
             <textarea
               className={styles.textarea}
@@ -303,7 +317,8 @@ export default function VenueRegisterPage() {
 
         <Card padding="lg" className={styles.card}>
           <h2 className={styles.h2}>
-            도착 가이드 <span className={styles.h2sub}>확정 후에만 게스트에게 공개</span>
+            <span className={styles.h2idx}>05</span>도착 가이드
+            <span className={styles.h2sub}>확정 후에만 게스트에게 공개</span>
           </h2>
           <Input
             label="주차 안내"

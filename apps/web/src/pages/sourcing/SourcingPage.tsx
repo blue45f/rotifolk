@@ -63,7 +63,11 @@ export default function SourcingPage() {
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
-        <span className={styles.kicker}>VENUE SOURCING STUDIO</span>
+        <div className={styles.headVeil} aria-hidden="true" />
+        <span className={styles.kicker}>
+          <span className={styles.kickerTick} aria-hidden="true" />
+          VENUE SOURCING STUDIO
+        </span>
         <h1 className={styles.title}>
           동네에서 3탭,
           <br />딱 맞는 공간을 섭외하세요
@@ -122,8 +126,12 @@ export default function SourcingPage() {
                   type="button"
                   className={`${styles.geoBtn} ${geo.status === 'granted' ? styles.geoOn : ''}`}
                   onClick={() => geo.request()}
+                  aria-pressed={geo.status === 'granted'}
                 >
-                  📍 {geo.status === 'granted' ? '내 주변 정렬됨' : '내 주변'}
+                  <span className={styles.geoPin} aria-hidden="true">
+                    📍
+                  </span>
+                  {geo.status === 'granted' ? '내 주변 정렬됨' : '내 주변'}
                 </button>
               </div>
             </div>
@@ -223,6 +231,10 @@ function FitRing({ score, grade }: { score: number; grade: VenueRecommendation['
   )
 }
 
+function bestMatchLabel(grade: VenueRecommendation['fit']['grade']): string {
+  return grade === 'perfect' || grade === 'great' ? '추천 1순위' : '가장 가까운 후보'
+}
+
 function VenueRecCard({
   rec,
   index,
@@ -237,19 +249,33 @@ function VenueRecCard({
   onPick: () => void
 }) {
   const { venue, fit, quote, distanceKm, available } = rec
+  const isBest = index === 0
   return (
     <motion.article
-      className={styles.recCard}
+      className={`${styles.recCard} ${isBest ? styles.recCardBest : ''}`}
       initial={reduce ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3) }}
+      transition={{
+        duration: reduce ? 0 : 0.42,
+        delay: reduce ? 0 : Math.min(index * 0.05, 0.3),
+        ease: [0.22, 1, 0.36, 1],
+      }}
     >
+      {isBest && (
+        <div className={styles.bestRibbon}>
+          <span className={styles.bestStar} aria-hidden="true">
+            ★
+          </span>
+          {bestMatchLabel(fit.grade)}
+        </div>
+      )}
       <div className={styles.recCover}>
         {venue.photos[0] ? (
           <img src={venue.photos[0]} alt="" loading="lazy" />
         ) : (
           <div className={styles.recCoverPh}>🏛️</div>
         )}
+        <div className={styles.recCoverScrim} aria-hidden="true" />
         <div className={styles.recCoverTop}>
           {venue.instantBook && (
             <Badge tone="gold" size="sm">
@@ -268,7 +294,9 @@ function VenueRecCard({
       <div className={styles.recBody}>
         <div className={styles.recHead}>
           <h3>{venue.name}</h3>
-          <span className={styles.recGrade}>{gradeLabel(fit.grade)} 매치</span>
+          <span className={`${styles.recGrade} ${styles[`grade_${fit.grade}`]}`}>
+            {gradeLabel(fit.grade)} 매치
+          </span>
         </div>
         <p className={styles.recMeta}>
           {venue.area}
@@ -283,8 +311,11 @@ function VenueRecCard({
 
         <ul className={styles.reasons}>
           {fit.reasons.slice(0, 3).map((r, i) => (
-            <li key={i} className={styles[`tone_${r.tone}`]}>
-              <span aria-hidden="true">{r.icon}</span> {r.text}
+            <li key={i} className={`${styles.reason} ${styles[`tone_${r.tone}`]}`}>
+              <span className={styles.reasonIcon} aria-hidden="true">
+                {r.icon}
+              </span>
+              <span className={styles.reasonText}>{r.text}</span>
             </li>
           ))}
         </ul>
@@ -359,6 +390,7 @@ function BookingConfirm({
       <button className={styles.sheetScrim} aria-label="닫기" onClick={onClose} />
       <div className={styles.sheet}>
         <div className={styles.sheetHandle} />
+        {venue.instantBook && <span className={styles.sheetKicker}>⚡ INSTANT BOOK</span>}
         <h2 className={styles.sheetTitle}>{venue.name} 섭외</h2>
         <p className={styles.sheetMeta}>
           {venue.area} · {partySize}명 · {CATEGORY_META[category]?.label}
@@ -366,6 +398,7 @@ function BookingConfirm({
 
         {quote && (
           <div className={styles.quote}>
+            <span className={styles.quoteCap}>견적 내역</span>
             <div className={styles.qRow}>
               <span>
                 {formatKRW(venue.pricePerHourKRW)} × {quote.hours}시간

@@ -4,7 +4,6 @@ import { useMyNotes, useMarkNoteRead } from '@features/notes/queries'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
 import styles from './Notes.module.css'
 
 function initialsOf(nickname?: string): string {
@@ -33,6 +32,12 @@ function NoteCard({ note, onRead }: { note: PartyNote; onRead: (id: string) => v
       className={`${styles.card} ${unread ? styles.cardUnread : ''}`}
       onClick={() => unread && onRead(note.id)}
     >
+      {unread && (
+        <span className={styles.seal} aria-hidden="true">
+          새 쪽지
+        </span>
+      )}
+
       <div className={styles.cardHead}>
         <Avatar
           size="md"
@@ -40,11 +45,8 @@ function NoteCard({ note, onRead }: { note: PartyNote; onRead: (id: string) => v
           ring={unread ? 'gold' : 'soft'}
         />
         <div className={styles.who}>
-          <div className={styles.nameRow}>
-            <span className={styles.name}>{note.fromNickname ?? '익명'}</span>
-            {unread && <span className={styles.dot} aria-label="안 읽음" />}
-          </div>
-          <span className={styles.time}>{formatArrival(note.deliveredAt)}</span>
+          <span className={styles.name}>{note.fromNickname ?? '익명'}</span>
+          <span className={styles.time}>{formatArrival(note.deliveredAt)} 도착</span>
         </div>
         {note.emoji && (
           <span className={styles.sticker} aria-hidden="true">
@@ -53,12 +55,12 @@ function NoteCard({ note, onRead }: { note: PartyNote; onRead: (id: string) => v
         )}
       </div>
 
-      <p className={styles.body}>{note.body}</p>
+      <blockquote className={styles.body}>{note.body}</blockquote>
 
       {note.shareContact && (
         <div className={styles.badges}>
-          <Badge tone="gold" outlined>
-            📇 연락처 동봉
+          <Badge tone="gold" outlined className={styles.contactBadge}>
+            <span aria-hidden="true">📇</span> 연락처 동봉
           </Badge>
         </div>
       )}
@@ -78,13 +80,14 @@ export default function NotesInboxPage() {
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
-        <h1 className={styles.title}>💌 쪽지함</h1>
+        <span className={styles.kicker}>ROUND KEEPSAKES</span>
+        <h1 className={styles.title}>쪽지함</h1>
         <p className={styles.sub}>
           {notes.length > 0 ? (
             <>
-              라운드에서 받은 마음 <strong>{notes.length}</strong>통
+              라운드에서 받은 마음 <strong>{notes.length}</strong>통이 도착했어요
               {unreadCount > 0 && (
-                <span className={styles.subUnread}> · 새 쪽지 {unreadCount}</span>
+                <span className={styles.subUnread}> · 아직 안 읽은 쪽지 {unreadCount}통</span>
               )}
             </>
           ) : (
@@ -94,11 +97,17 @@ export default function NotesInboxPage() {
       </header>
 
       {notes.length === 0 ? (
-        <EmptyState
-          emoji="💌"
-          title="아직 도착한 쪽지가 없어요"
-          description="모임이 끝나면 라운드에서 만난 사람들의 쪽지가 이곳으로 배달돼요."
-        />
+        <section className={styles.empty}>
+          <div className={styles.emptyMark} aria-hidden="true">
+            <span className={styles.emptyEnvelope}>💌</span>
+          </div>
+          <h2 className={styles.emptyTitle}>아직 도착한 쪽지가 없어요</h2>
+          <p className={styles.emptyDesc}>
+            모임이 끝나면, 라운드에서 마주 앉았던 사람들이 남긴 한마디가
+            <br />
+            이곳으로 한 통씩 배달돼요.
+          </p>
+        </section>
       ) : (
         <div className={styles.list}>
           {notes.map((note) => (
