@@ -663,32 +663,48 @@ export default function HostCreatePage() {
                     label="대화 도우미"
                     desc="어색할 때 꺼내 쓰는 질문·미션 덱"
                   />
+                  <Toggle
+                    checked={watched.config?.revealPopular}
+                    onChange={(v) => setValue('config.revealPopular', v)}
+                    label="오늘의 인기남/인기녀"
+                    desc="종료 후 가장 호감받은 멤버를 공개해요"
+                  />
                 </div>
               </div>
 
               {watched.config?.enableNotes && (
-                <div className={styles.group}>
-                  <label className={styles.fieldLabel}>쪽지 도착</label>
-                  <Controller
-                    control={control}
-                    name="config.noteDelivery"
-                    render={({ field }) => (
-                      <div className={styles.modeList}>
-                        {NOTE_DELIVERY_OPTIONS.map((o) => (
-                          <button
-                            type="button"
-                            key={o.value}
-                            className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
-                            onClick={() => field.onChange(o.value)}
-                          >
-                            <strong>{o.label}</strong>
-                            <span>{o.desc}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  />
-                </div>
+                <>
+                  <div className={styles.group}>
+                    <label className={styles.fieldLabel}>쪽지 도착</label>
+                    <Controller
+                      control={control}
+                      name="config.noteDelivery"
+                      render={({ field }) => (
+                        <div className={styles.modeList}>
+                          {NOTE_DELIVERY_OPTIONS.map((o) => (
+                            <button
+                              type="button"
+                              key={o.value}
+                              className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
+                              onClick={() => field.onChange(o.value)}
+                            >
+                              <strong>{o.label}</strong>
+                              <span>{o.desc}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    />
+                  </div>
+                  <div className={styles.subField}>
+                    <Input
+                      type="number"
+                      label="1인당 쪽지 수"
+                      hint="한 사람이 보낼 쪽지를 제한해 신중한 선택을 유도해요 (1~20장)"
+                      {...register('config.noteQuota', { valueAsNumber: true })}
+                    />
+                  </div>
+                </>
               )}
             </div>
 
