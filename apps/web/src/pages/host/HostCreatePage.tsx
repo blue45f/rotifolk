@@ -7,10 +7,17 @@ import type {
   PartyFormat,
   RotationFormat,
   MatchScope,
+  ConnectionChannel,
   ConnectionMode,
   NoteDelivery,
 } from '@rotifolk/shared'
-import { CreatePartySchema, PARTY_FORMAT_LABEL, ROTATION_FORMAT_LABEL } from '@rotifolk/shared'
+import {
+  CreatePartySchema,
+  CONNECTION_CHANNELS,
+  CONNECTION_CHANNEL_ORDER,
+  PARTY_FORMAT_LABEL,
+  ROTATION_FORMAT_LABEL,
+} from '@rotifolk/shared'
 import { useCreateParty } from '@features/parties/queries'
 import { useVenues } from '@features/venues/queries'
 import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
@@ -93,12 +100,6 @@ const MATCH_SCOPE_OPTIONS: { value: MatchScope; label: string; desc: string }[] 
   { value: 'mutual-only', label: '상호 매칭만', desc: '서로 지목한 사이만 연결돼요' },
   { value: 'top-n', label: '상위 N명', desc: '누적 호감 상위 N명까지 연결' },
   { value: 'all-participants', label: '전원 연결', desc: '참가자 모두를 연결' },
-]
-
-const CONNECTION_OPTIONS: { value: ConnectionMode; label: string; desc: string }[] = [
-  { value: 'chat', label: '채팅', desc: '앱 안에서 메시지로 대화' },
-  { value: 'phone', label: '전화', desc: '연락처를 교환해 직접 연결' },
-  { value: 'both', label: '둘 다', desc: '채팅과 연락처 모두 열어둬요' },
 ]
 
 const NOTE_DELIVERY_OPTIONS: { value: NoteDelivery; label: string; desc: string }[] = [
@@ -582,25 +583,59 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>연결 매체</label>
+                <div className={styles.groupHead}>
+                  <label className={styles.fieldLabel}>연결 매체</label>
+                  <p className={styles.fieldHelp}>
+                    매칭되면 양쪽이 동의한 채널만 단계적으로 열려요. 채팅은 늘 켜져요(가장 안전).
+                  </p>
+                </div>
                 <Controller
                   control={control}
-                  name="config.connectionMode"
-                  render={({ field }) => (
-                    <div className={styles.modeList}>
-                      {CONNECTION_OPTIONS.map((o) => (
-                        <button
-                          type="button"
-                          key={o.value}
-                          className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
-                          onClick={() => field.onChange(o.value)}
-                        >
-                          <strong>{o.label}</strong>
-                          <span>{o.desc}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  name="config.connectionChannels"
+                  render={({ field }) => {
+                    const selected: ConnectionChannel[] = field.value ?? ['chat']
+                    const toggle = (ch: ConnectionChannel) => {
+                      if (ch === 'chat') return // 항상 켜짐
+                      const next = selected.includes(ch)
+                        ? selected.filter((c) => c !== ch)
+                        : [...selected, ch]
+                      if (!next.includes('chat')) next.push('chat')
+                      next.sort(
+                        (a, b) =>
+                          CONNECTION_CHANNEL_ORDER.indexOf(a) - CONNECTION_CHANNEL_ORDER.indexOf(b),
+                      )
+                      field.onChange(next)
+                      const mode: ConnectionMode = next.includes('phone')
+                        ? next.includes('chat')
+                          ? 'both'
+                          : 'phone'
+                        : 'chat'
+                      setValue('config.connectionMode', mode)
+                    }
+                    return (
+                      <div className={styles.modeList}>
+                        {CONNECTION_CHANNEL_ORDER.map((ch) => {
+                          const meta = CONNECTION_CHANNELS[ch]
+                          const on = selected.includes(ch)
+                          return (
+                            <button
+                              type="button"
+                              key={ch}
+                              aria-pressed={on}
+                              className={`${styles.modeBtn} ${on ? styles.modeActive : ''}`}
+                              onClick={() => toggle(ch)}
+                            >
+                              <strong>
+                                {meta.icon} {meta.label}
+                                {ch === 'chat' ? ' · 항상' : ''}
+                              </strong>
+                              <span>{meta.commitmentLabel}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )
+                  }}
                 />
               </div>
 
