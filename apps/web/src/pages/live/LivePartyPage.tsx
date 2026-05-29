@@ -95,6 +95,10 @@ export default function LivePartyPage() {
 
   const partnerIds = state.myPair?.memberIds.filter((id) => id !== user?.id) ?? []
   const partners = partnerIds.map((id) => participants.find((p) => p.userId === id)).filter(Boolean)
+  // N:1 핫시트 — memberIds[0]가 hub(스포트라이트 받는 사람)
+  const hubId =
+    party.config.rotationFormat === 'many-to-one' ? (state.myPair?.memberIds?.[0] ?? null) : null
+  const iAmHub = !!hubId && hubId === user?.id
 
   return (
     <div className={styles.page} style={{ background: cat.bgGradient }}>
@@ -194,6 +198,8 @@ export default function LivePartyPage() {
             }
             onDrawCard={() => send('card:draw', { partyId: party.id, pairId: state.myPair?.id })}
             onSendNote={(p) => setNoteTarget(p)}
+            hubId={hubId}
+            iAmHub={iAmHub}
           />
         ) : (
           <WaitPanel
@@ -505,6 +511,8 @@ function PairPanel({
   onLike,
   onDrawCard,
   onSendNote,
+  hubId,
+  iAmHub,
 }: {
   partners: { id: string; nickname: string; mbti?: string | null; interests: string[] }[]
   seatLabel: string
@@ -512,12 +520,20 @@ function PairPanel({
   onLike: (id: string) => void
   onDrawCard: () => void
   onSendNote: (p: { id: string; nickname: string }) => void
+  hubId?: string | null
+  iAmHub?: boolean
 }) {
   return (
     <div className={styles.pair}>
       <div className={styles.seatLabel}>
-        좌석 {seatLabel} · {partners.length <= 1 ? '1:1 대화' : `그룹 ${partners.length + 1}명`}
+        좌석 {seatLabel} ·{' '}
+        {hubId ? 'N:1 핫시트' : partners.length <= 1 ? '1:1 대화' : `그룹 ${partners.length + 1}명`}
       </div>
+      {iAmHub && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-3)' }}>
+          <Badge tone="gold">🔥 당신이 핫시트예요 · 모두의 질문에 답해보세요</Badge>
+        </div>
+      )}
       <div className={styles.partners}>
         {partners.map((p, i) => (
           <motion.div
@@ -530,6 +546,7 @@ function PairPanel({
             <Avatar size="xl" hue="#FCFAF5" pattern="gradient" emoji={p.nickname[0]} ring="glow" />
             <h2 className={styles.partnerName}>{p.nickname}</h2>
             <div className={styles.partnerMeta}>
+              {hubId === p.id && <Badge tone="gold">🔥 핫시트</Badge>}
               {p.mbti && (
                 <Badge tone="gold" outlined>
                   {p.mbti}
