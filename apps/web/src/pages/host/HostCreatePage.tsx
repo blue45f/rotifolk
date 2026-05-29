@@ -9,12 +9,18 @@ import type {
   MatchScope,
   ConnectionChannel,
   ConnectionMode,
+  MaritalStatus,
+  VerificationField,
+  ChildrenPolicy,
   NoteDelivery,
 } from '@rotifolk/shared'
 import {
   CreatePartySchema,
   CONNECTION_CHANNELS,
   CONNECTION_CHANNEL_ORDER,
+  CHILDREN_POLICY_LABEL,
+  MARITAL_STATUS_LABEL,
+  VERIFICATION_FIELD_LABEL,
   PARTY_FORMAT_LABEL,
   ROTATION_FORMAT_LABEL,
 } from '@rotifolk/shared'
@@ -114,6 +120,18 @@ const RATIO_PRESETS: { value: string; label: string }[] = [
   { value: '2:3', label: '2:3' },
   { value: '5:3', label: '5:3' },
 ]
+
+const MARITAL_REQ_OPTIONS: MaritalStatus[] = ['single', 'divorced', 'widowed']
+const VERIFY_OPTIONS: VerificationField[] = [
+  'identity',
+  'job',
+  'company',
+  'income',
+  'marital',
+  'education',
+]
+const CHILDREN_OPTS: ChildrenPolicy[] = ['any', 'has', 'none']
+const numOrNull = (v: string) => (v === '' ? null : Number(v))
 
 /** ISO 문자열을 datetime-local 입력 값(로컬 시각)으로 변환. */
 function toLocalInput(iso?: string | null): string {
@@ -840,6 +858,136 @@ export default function HostCreatePage() {
                   </div>
                 )}
               />
+            </div>
+
+            {/* —— Sub-section D: 참가 자격 —— */}
+            <div className={styles.section}>
+              <div className={styles.groupHead}>
+                <h3 className={styles.sectionTitle}>
+                  <span className={styles.num}>D</span> 참가 자격 (선택)
+                </h3>
+                <p className={styles.sectionNote}>
+                  나이·혼인상태·아이 유무·인증을 조건으로 걸 수 있어요. 비우면 누구나 참가 가능해요.
+                </p>
+              </div>
+
+              <div className={styles.group}>
+                <label className={styles.fieldLabel}>성별 나이 제한</label>
+                <div className={styles.fieldGroup}>
+                  <Input
+                    type="number"
+                    label="남성 최소"
+                    placeholder="제한 없음"
+                    {...register('maleAgeMin', { setValueAs: numOrNull })}
+                  />
+                  <Input
+                    type="number"
+                    label="남성 최대"
+                    placeholder="제한 없음"
+                    {...register('maleAgeMax', { setValueAs: numOrNull })}
+                  />
+                </div>
+                <div className={styles.fieldGroup}>
+                  <Input
+                    type="number"
+                    label="여성 최소"
+                    placeholder="제한 없음"
+                    {...register('femaleAgeMin', { setValueAs: numOrNull })}
+                  />
+                  <Input
+                    type="number"
+                    label="여성 최대"
+                    placeholder="제한 없음"
+                    {...register('femaleAgeMax', { setValueAs: numOrNull })}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.group}>
+                <label className={styles.fieldLabel}>혼인 상태 (복수 선택 · 비우면 무관)</label>
+                <p className={styles.fieldHelp}>돌싱(이혼·사별)만 받는 모임 등에 사용해요.</p>
+                <Controller
+                  control={control}
+                  name="maritalRequirement"
+                  render={({ field }) => {
+                    const val = field.value ?? []
+                    return (
+                      <div className={styles.chipRow}>
+                        {MARITAL_REQ_OPTIONS.map((m) => {
+                          const on = val.includes(m)
+                          return (
+                            <button
+                              type="button"
+                              key={m}
+                              className={`${styles.ratioChip} ${on ? styles.ratioChipActive : ''}`}
+                              onClick={() =>
+                                field.onChange(on ? val.filter((x) => x !== m) : [...val, m])
+                              }
+                            >
+                              {MARITAL_STATUS_LABEL[m]}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )
+                  }}
+                />
+              </div>
+
+              <div className={styles.group}>
+                <label className={styles.fieldLabel}>아이 유무</label>
+                <Controller
+                  control={control}
+                  name="childrenPolicy"
+                  render={({ field }) => (
+                    <div className={styles.chipRow}>
+                      {CHILDREN_OPTS.map((c) => (
+                        <button
+                          type="button"
+                          key={c}
+                          className={`${styles.ratioChip} ${(field.value ?? 'any') === c ? styles.ratioChipActive : ''}`}
+                          onClick={() => field.onChange(c)}
+                        >
+                          {CHILDREN_POLICY_LABEL[c]}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
+              </div>
+
+              <div className={styles.group}>
+                <label className={styles.fieldLabel}>필수 인증 (복수 선택)</label>
+                <p className={styles.fieldHelp}>
+                  신원·명함·재직·졸업 등을 제출/검증한 사람만 참가할 수 있어요.
+                </p>
+                <Controller
+                  control={control}
+                  name="requiredVerifications"
+                  render={({ field }) => {
+                    const val = field.value ?? []
+                    return (
+                      <div className={styles.chipRow}>
+                        {VERIFY_OPTIONS.map((v) => {
+                          const on = val.includes(v)
+                          return (
+                            <button
+                              type="button"
+                              key={v}
+                              className={`${styles.ratioChip} ${on ? styles.ratioChipActive : ''}`}
+                              onClick={() =>
+                                field.onChange(on ? val.filter((x) => x !== v) : [...val, v])
+                              }
+                            >
+                              {VERIFICATION_FIELD_LABEL[v]}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )
+                  }}
+                />
+              </div>
             </div>
           </Card>
         )}
