@@ -6,7 +6,9 @@ import {
   IDEAL_TYPE_PROMPTS,
   MINI_GAMES,
   buildConversationCard,
+  computeCompatibility,
   drawFortune,
+  type CompatInput,
   type PromptKind,
 } from '@rotifolk/shared'
 import { SendNoteSheet } from '@features/notes/SendNoteSheet'
@@ -202,6 +204,8 @@ export default function LivePartyPage() {
             iAmHub={iAmHub}
             roundIndex={state.currentRoundIndex}
             totalRounds={party.config.totalRounds}
+            me={{ mbti: user?.mbti, interests: user?.interests, birthYear: user?.birthYear }}
+            meId={user?.id ?? ''}
           />
         ) : (
           <WaitPanel
@@ -517,6 +521,8 @@ function PairPanel({
   iAmHub,
   roundIndex,
   totalRounds,
+  me,
+  meId,
 }: {
   partners: { id: string; nickname: string; mbti?: string | null; interests: string[] }[]
   seatLabel: string
@@ -528,6 +534,8 @@ function PairPanel({
   iAmHub?: boolean
   roundIndex: number | null
   totalRounds: number
+  me: CompatInput
+  meId: string
 }) {
   return (
     <div className={styles.pair}>
@@ -576,6 +584,7 @@ function PairPanel({
                 💌 쪽지
               </Button>
             </div>
+            <CompatChip me={me} meId={meId} partner={p} />
           </motion.div>
         ))}
       </div>
@@ -601,6 +610,63 @@ function PairPanel({
       </div>
 
       <ConversationKit roundIndex={roundIndex} totalRounds={totalRounds} />
+    </div>
+  )
+}
+
+/** 서로 간의 궁합 운세 — 탭하면 점수+한 줄 운세를 펼친다. */
+function CompatChip({
+  me,
+  meId,
+  partner,
+}: {
+  me: CompatInput
+  meId: string
+  partner: { id: string; mbti?: string | null; interests: string[] }
+}) {
+  const [open, setOpen] = useState(false)
+  if (!open) {
+    return (
+      <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        💞 궁합 보기
+      </Button>
+    )
+  }
+  const c = computeCompatibility(me, partner, `${meId}-${partner.id}`)
+  return (
+    <div
+      style={{
+        textAlign: 'center',
+        marginTop: 'var(--space-1)',
+        padding: 'var(--space-3)',
+        borderRadius: 'var(--radius-lg)',
+        background: 'color-mix(in oklab, var(--brand-gold-500) 12%, var(--color-surface))',
+        border: '1px solid color-mix(in oklab, var(--brand-gold-500) 32%, transparent)',
+      }}
+    >
+      <strong style={{ fontSize: 'var(--fs-lg)', color: 'var(--brand-burgundy-700)' }}>
+        💞 {c.score}점 · {c.title}
+      </strong>
+      <p
+        style={{
+          fontSize: 'var(--fs-sm)',
+          color: 'var(--color-text-muted)',
+          marginTop: 'var(--space-1)',
+        }}
+      >
+        {c.blurb}
+      </p>
+      {c.factors.length > 0 && (
+        <p
+          style={{
+            fontSize: 'var(--fs-2xs)',
+            color: 'var(--color-text-subtle)',
+            marginTop: 'var(--space-1)',
+          }}
+        >
+          {c.factors.join(' · ')}
+        </p>
+      )}
     </div>
   )
 }
