@@ -220,8 +220,8 @@ export default function ProfilePage() {
               gap: 'var(--space-3)',
               padding: 'var(--space-4) var(--space-5)',
               borderRadius: 'var(--radius-xl)',
-              background: 'color-mix(in oklab, var(--brand-gold-500) 10%, var(--color-surface))',
-              border: '1px solid color-mix(in oklab, var(--brand-gold-500) 28%, transparent)',
+              background: 'color-mix(in oklab, var(--brand-burgundy-400) 8%, var(--color-surface))',
+              border: '1px solid color-mix(in oklab, var(--brand-burgundy-400) 22%, transparent)',
             }}
           >
             <span aria-hidden="true" style={{ fontSize: '1.5rem' }}>

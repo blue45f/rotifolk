@@ -109,6 +109,8 @@ export default function LivePartyPage() {
         {announcement && (
           <motion.div
             key={announcement.until}
+            role="status"
+            aria-live="polite"
             className={styles.announceBanner}
             initial={{ opacity: 0, y: -24 }}
             animate={{ opacity: 1, y: 0 }}

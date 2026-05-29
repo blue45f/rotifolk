@@ -633,7 +633,7 @@ export default function HostCreatePage() {
                       setValue('config.connectionMode', mode)
                     }
                     return (
-                      <div className={styles.modeList}>
+                      <div className={styles.modeList} role="group" aria-label="연결 매체">
                         {CONNECTION_CHANNEL_ORDER.map((ch) => {
                           const meta = CONNECTION_CHANNELS[ch]
                           const on = selected.includes(ch)
@@ -751,6 +751,7 @@ export default function HostCreatePage() {
                           <button
                             type="button"
                             key={p.value}
+                            aria-pressed={field.value === p.value}
                             className={`${styles.ratioChip} ${field.value === p.value ? styles.ratioChipActive : ''}`}
                             onClick={() => field.onChange(p.value)}
                           >
@@ -920,6 +921,7 @@ export default function HostCreatePage() {
                             <button
                               type="button"
                               key={m}
+                              aria-pressed={on}
                               className={`${styles.ratioChip} ${on ? styles.ratioChipActive : ''}`}
                               onClick={() =>
                                 field.onChange(on ? val.filter((x) => x !== m) : [...val, m])
@@ -946,6 +948,7 @@ export default function HostCreatePage() {
                         <button
                           type="button"
                           key={c}
+                          aria-pressed={(field.value ?? 'any') === c}
                           className={`${styles.ratioChip} ${(field.value ?? 'any') === c ? styles.ratioChipActive : ''}`}
                           onClick={() => field.onChange(c)}
                         >
@@ -975,6 +978,7 @@ export default function HostCreatePage() {
                             <button
                               type="button"
                               key={v}
+                              aria-pressed={on}
                               className={`${styles.ratioChip} ${on ? styles.ratioChipActive : ''}`}
                               onClick={() =>
                                 field.onChange(on ? val.filter((x) => x !== v) : [...val, v])
@@ -1030,6 +1034,7 @@ export default function HostCreatePage() {
                 <div key={f.id} className={styles.fieldGroup}>
                   <select
                     className={styles.select}
+                    aria-label={`가격 규칙 ${i + 1} 적용 성별`}
                     {...register(`pricing.pricingRules.${i}.gender`, {
                       setValueAs: (v) => (v === '' ? null : v),
                     })}
