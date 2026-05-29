@@ -508,7 +508,9 @@ function PairPanel({
 }) {
   return (
     <div className={styles.pair}>
-      <div className={styles.seatLabel}>좌석 {seatLabel}</div>
+      <div className={styles.seatLabel}>
+        좌석 {seatLabel} · {partners.length <= 1 ? '1:1 대화' : `그룹 ${partners.length + 1}명`}
+      </div>
       <div className={styles.partners}>
         {partners.map((p, i) => (
           <motion.div
