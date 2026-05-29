@@ -754,8 +754,11 @@ export default function PartyDetailPage() {
             <ul className={styles.included}>
               <li>🍷 {DRINK_PACKAGE_LABEL[party.pricing.drinkPackage]}</li>
               <li>🍴 {SNACK_PACKAGE_LABEL[party.pricing.snackPackage]}</li>
-              <li>🔄 환불: {party.pricing.refundDeadlineHours}시간 전까지</li>
+              <li>🔄 환불: 시작 {party.pricing.refundDeadlineHours}시간 전까지 전액</li>
             </ul>
+            <Link to="/policies" className={styles.policyLink}>
+              환불·취소·노쇼 정책 자세히 보기 →
+            </Link>
 
             {isHost ? (
               <div className={styles.stack}>

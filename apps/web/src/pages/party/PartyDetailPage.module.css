@@ -294,6 +294,17 @@
   margin: var(--space-4) 0;
 }
 .included li { color: var(--color-text-muted); font-size: var(--fs-sm); }
+.policyLink {
+  display: inline-block;
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--brand-burgundy-600);
+  transition: color var(--dur-base) var(--ease-out);
+}
+.policyLink:hover {
+  color: var(--brand-burgundy-800);
+}
 .stack {
   display: flex;
   flex-direction: column;
