@@ -39,6 +39,9 @@ export default function ProfilePage() {
   useMe()
   const user = useAuthStore((s) => s.user)
   const updateLocal = useAuthStore((s) => s.updateUser)
+  const [verifyNudgeOff, setVerifyNudgeOff] = useState(
+    () => localStorage.getItem('rotifolk-verify-nudge') === 'off',
+  )
   const logout = useLogout()
   const { data: mine, isLoading } = useMyParties()
   const theme = useThemeStore((s) => s.theme)
@@ -207,6 +210,54 @@ export default function ProfilePage() {
           </div>
         </div>
       </header>
+
+      {!user.verifiedFields?.includes('identity') && !verifyNudgeOff && (
+        <div className="container">
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--space-3)',
+              padding: 'var(--space-4) var(--space-5)',
+              borderRadius: 'var(--radius-xl)',
+              background: 'color-mix(in oklab, var(--brand-gold-500) 10%, var(--color-surface))',
+              border: '1px solid color-mix(in oklab, var(--brand-gold-500) 28%, transparent)',
+            }}
+          >
+            <span aria-hidden="true" style={{ fontSize: '1.5rem' }}>
+              🪪
+            </span>
+            <div style={{ flex: 1 }}>
+              <strong style={{ display: 'block' }}>본인인증으로 신뢰를 더해보세요</strong>
+              <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--color-text-muted)' }}>
+                선택이에요. 인증하면 매칭 상대·참가자에게 ✓ 배지로 신뢰를 줄 수 있어요.
+              </span>
+            </div>
+            <Link to="/me/profile-studio">
+              <Button variant="gold" size="sm">
+                인증하기
+              </Button>
+            </Link>
+            <button
+              type="button"
+              aria-label="닫기"
+              onClick={() => {
+                localStorage.setItem('rotifolk-verify-nudge', 'off')
+                setVerifyNudgeOff(true)
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--color-text-subtle)',
+                fontSize: 'var(--fs-lg)',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className={`container ${styles.tabsRow}`}>
         <Tabs
