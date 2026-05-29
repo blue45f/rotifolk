@@ -1,0 +1,224 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-29T00:00:00.000Z",
+  "title": "Design System: Rotifolk",
+  "extensions": {
+    "colorMeta": {
+      "burgundy-700": {
+        "role": "primary",
+        "displayName": "Cellar Burgundy",
+        "canonical": "oklch(36% 0.13 10)",
+        "tonalRamp": [
+          "oklch(25% 0.10 10)",
+          "oklch(30% 0.115 10)",
+          "oklch(36% 0.13 10)",
+          "oklch(43% 0.13 10)",
+          "oklch(53% 0.13 10)",
+          "oklch(63% 0.115 10)",
+          "oklch(73% 0.085 10)",
+          "oklch(94% 0.025 10)"
+        ]
+      },
+      "gold-500": {
+        "role": "secondary",
+        "displayName": "Label Gold",
+        "canonical": "oklch(74% 0.125 80)",
+        "tonalRamp": [
+          "oklch(55% 0.105 78)",
+          "oklch(63% 0.115 80)",
+          "oklch(74% 0.125 80)",
+          "oklch(82% 0.105 82)",
+          "oklch(88% 0.070 82)",
+          "oklch(96% 0.030 82)"
+        ]
+      },
+      "cream-100": {
+        "role": "neutral",
+        "displayName": "Warm Cream Canvas",
+        "canonical": "oklch(97% 0.02 80)",
+        "tonalRamp": [
+          "oklch(93% 0.045 82)",
+          "oklch(97% 0.02 80)",
+          "oklch(98.5% 0.008 80)",
+          "oklch(99% 0.008 80)"
+        ]
+      },
+      "ink-900": {
+        "role": "neutral",
+        "displayName": "Late-Night Ink",
+        "canonical": "oklch(15% 0.025 290)",
+        "tonalRamp": [
+          "oklch(15% 0.025 290)",
+          "oklch(20% 0.030 290)",
+          "oklch(26% 0.035 290)",
+          "oklch(32% 0.040 290)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "랜딩 hero·페이지 타이틀. 800 weight, -0.022em."
+      },
+      "label": {
+        "displayName": "Mono Label",
+        "purpose": "kicker·타이머. JetBrains Mono, 0.18em uppercase."
+      }
+    },
+    "shadows": [
+      {
+        "name": "xs",
+        "value": "0 1px 2px color-mix(in oklab, oklch(25% 0.10 10) 8%, transparent)",
+        "purpose": "칩·작은 버튼 미세 부상."
+      },
+      {
+        "name": "sm",
+        "value": "0 2px 6px color-mix(in oklab, oklch(25% 0.10 10) 10%, transparent)",
+        "purpose": "카드 기본."
+      },
+      {
+        "name": "md",
+        "value": "0 10px 24px color-mix(in oklab, oklch(25% 0.10 10) 12%, transparent)",
+        "purpose": "추천 카드 hover·떠 있는 패널."
+      },
+      {
+        "name": "lg",
+        "value": "0 22px 48px color-mix(in oklab, oklch(25% 0.10 10) 16%, transparent)",
+        "purpose": "바텀 시트·상위 오버레이."
+      },
+      {
+        "name": "glow",
+        "value": "0 0 0 4px color-mix(in oklab, oklch(63% 0.115 10) 22%, transparent), 0 14px 36px color-mix(in oklab, oklch(36% 0.13 10) 32%, transparent)",
+        "purpose": "라이브·매칭·핏 스코어 링 전용 (Glow-Is-Sacred)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "기본 상태 전환."
+      },
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.19, 1, 0.22, 1)",
+        "purpose": "hero·시트 진입."
+      },
+      {
+        "name": "spring",
+        "value": "cubic-bezier(0.34, 1.45, 0.64, 1)",
+        "purpose": "버튼 press scale·칩 토글 (미세 탄성)."
+      },
+      { "name": "dur-base", "value": "200ms", "purpose": "기본 전환 시간 (140–320ms 범위)." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "600px" },
+      { "name": "tablet", "value": "768px" },
+      { "name": "desktop", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "1차 액션. 알약형 burgundy 채움, press 시 스프링 scale.",
+      "html": "<button class=\"ds-btn-primary\">오늘의 파티</button>",
+      "css": ".ds-btn-primary{height:44px;padding:0 18px;border:none;border-radius:999px;background:var(--color-primary,oklch(36% 0.13 10));color:var(--color-primary-fg,oklch(98% 0.005 80));font-weight:600;font-size:1rem;cursor:pointer;box-shadow:0 10px 24px color-mix(in oklab,oklch(25% 0.10 10) 12%,transparent);transition:background .2s cubic-bezier(.22,1,.36,1),transform .14s cubic-bezier(.34,1.45,.64,1)}.ds-btn-primary:hover{background:var(--color-primary-hover,oklch(30% 0.115 10))}.ds-btn-primary:active{transform:scale(.98)}.ds-btn-primary:focus-visible{outline:2px solid oklch(63% 0.115 10);outline-offset:3px}"
+    },
+    {
+      "name": "Gold Accent Button",
+      "kind": "button",
+      "refersTo": "button-gold",
+      "description": "즉시예약·핵심 CTA 전용 (골드 희소 규칙, ≤10%).",
+      "html": "<button class=\"ds-btn-gold\">⚡ 바로 섭외</button>",
+      "css": ".ds-btn-gold{height:44px;padding:0 18px;border:none;border-radius:999px;background:var(--color-accent,oklch(74% 0.125 80));color:var(--color-accent-fg,oklch(20% 0.03 60));font-weight:600;font-size:1rem;cursor:pointer;transition:filter .2s,transform .14s cubic-bezier(.34,1.45,.64,1)}.ds-btn-gold:hover{filter:brightness(1.04)}.ds-btn-gold:active{transform:scale(.98)}"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "chip-selected",
+      "description": "필터·카테고리·동네 토글. 선택 시 burgundy 채움.",
+      "html": "<button class=\"ds-chip\" aria-pressed=\"true\">🍷 와인</button>",
+      "css": ".ds-chip{padding:7px 14px;border-radius:999px;border:1px solid color-mix(in oklab,oklch(15% 0.025 290) 10%,transparent);background:var(--color-surface,oklch(100% 0 80));color:var(--color-text-muted,oklch(45% 0.02 290));font-size:.875rem;font-weight:600;cursor:pointer;transition:all .2s cubic-bezier(.22,1,.36,1)}.ds-chip[aria-pressed=\"true\"]{background:var(--color-primary,oklch(36% 0.13 10));color:oklch(97% 0.02 80);border-color:transparent}"
+    },
+    {
+      "name": "Surface Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "cover가 있는 객체(공간·파티)에만. hover 시 살짝 부상.",
+      "html": "<article class=\"ds-card\"><strong>루즈 셀러</strong><p>한남동 · 최대 18명</p></article>",
+      "css": ".ds-card{padding:24px;border-radius:24px;background:var(--color-surface,oklch(100% 0 80));border:1px solid color-mix(in oklab,oklch(15% 0.025 290) 10%,transparent);box-shadow:0 2px 6px color-mix(in oklab,oklch(25% 0.10 10) 10%,transparent);transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s}.ds-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px color-mix(in oklab,oklch(25% 0.10 10) 12%,transparent)}.ds-card strong{font-size:1.125rem;font-weight:700}.ds-card p{color:oklch(60% 0.012 290);font-size:.875rem;margin-top:4px}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "폼 필드. focus 시 rose outline.",
+      "html": "<input class=\"ds-input\" placeholder=\"한남 루프탑 와인 vol.13\" />",
+      "css": ".ds-input{height:44px;padding:0 12px;width:100%;border-radius:12px;border:1px solid color-mix(in oklab,oklch(15% 0.025 290) 10%,transparent);background:var(--color-surface,oklch(100% 0 80));color:var(--color-text,oklch(20% 0.025 290));font-size:.875rem}.ds-input::placeholder{color:oklch(60% 0.012 290)}.ds-input:focus-visible{outline:2px solid oklch(63% 0.115 10);outline-offset:2px;border-color:transparent}"
+    },
+    {
+      "name": "Fit Score Ring",
+      "kind": "custom",
+      "refersTo": "fit-ring",
+      "description": "섭외 스튜디오 시그니처. 적합도 0–100을 conic-gradient 도넛 + 중앙 점수로.",
+      "html": "<div class=\"ds-ring\" style=\"--deg:306deg\"><div class=\"ds-ring-in\"><strong>85</strong><small>FIT</small></div></div>",
+      "css": ".ds-ring{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(oklch(74% 0.125 80) var(--deg),color-mix(in oklab,oklch(15% 0.025 290) 14%,transparent) 0);box-shadow:0 10px 24px color-mix(in oklab,oklch(25% 0.10 10) 12%,transparent)}.ds-ring-in{width:46px;height:46px;border-radius:50%;background:var(--color-surface,oklch(100% 0 80));display:grid;place-items:center;line-height:1}.ds-ring-in strong{font-size:1rem;font-weight:800}.ds-ring-in small{font-size:8px;letter-spacing:.1em;color:oklch(60% 0.012 290)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Wine Cellar at Twilight",
+    "overview": "Rotifolk는 어스름이 내린 와인 셀러에 들어선 첫 순간을 인터페이스로 옮긴다. 어둠 속의 한 잔, 따뜻한 크림 빛, 골드 라벨. 차분하지만 한 잔의 무게가 있는 '차분한 사치'가 기준이다. 소셜은 따뜻하게(크림·카테고리 그라데이션), 매칭·라이브는 또렷하게(골드). 디자인은 과업을 SERVE하고 라이브 라운드만 풀스크린 몰입형이 된다.",
+    "keyCharacteristics": [
+      "어스름 와인 셀러: burgundy 30–60% + cream canvas + gold ≤10% 강조",
+      "카테고리가 정체성: 같은 화면도 카테고리 그라데이션이 무드를 바꾼다",
+      "product 우선, 라이브만 몰입형 풀스크린",
+      "모든 중성색은 burgundy/ink hue로 미세 틴트, #000·#fff 금지",
+      "카드 남발 금지 — 텍스트 + divider가 기본"
+    ],
+    "rules": [
+      {
+        "name": "The Gold Scarcity Rule",
+        "body": "골드는 어느 화면에서도 ≤10%. 라이브·매칭·즉시예약·단 하나의 핵심 CTA에만.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tinted Neutral Rule",
+        "body": "#000·#fff 금지. 모든 중성색은 burgundy(10)/ink(290) hue로 미세 틴트.",
+        "section": "colors"
+      },
+      {
+        "name": "The Fixed-Scale Rule",
+        "body": "product 화면은 고정 rem 스케일. clamp 디스플레이는 hero 외 금지.",
+        "section": "typography"
+      },
+      {
+        "name": "The Warm-Shadow Rule",
+        "body": "모든 그림자는 burgundy/ink alpha 기반. 회색 그림자 금지(다크 제외).",
+        "section": "elevation"
+      },
+      {
+        "name": "The Glow-Is-Sacred Rule",
+        "body": "--shadow-glow는 라이브·매칭·핏 링 등 '지금 살아있는' 요소에만.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do burgundy로 면적의 30–60%를 채워 정체성을 만든다. cream은 캔버스, gold는 ≤10% 강조.",
+      "Do 카테고리 그라데이션으로 같은 레이아웃에 다른 무드를 입힌다.",
+      "Do 모든 중성색을 burgundy/ink hue로 미세 틴트한다.",
+      "Do 그림자는 warm(burgundy alpha). glow는 라이브·매칭·핏 링에만.",
+      "Do 카드는 cover가 있는 객체에만. 그 외엔 텍스트 + divider.",
+      "Do ease-out 곡선으로 140–320ms 전환. prefers-reduced-motion 존중."
+    ],
+    "donts": [
+      "Don't 문토·프립식 같은 크기 카드 무한 그리드를 만들지 않는다.",
+      "Don't Tinder·Bumble식 외모 우선 스와이프 UI를 쓰지 않는다.",
+      "Don't 호스트 콘솔을 통계 차트 SaaS 대시보드로 만들지 않는다.",
+      "Don't 카지노식 적색+황금으로 자극하지 않는다.",
+      "Don't hero-metric 템플릿·AI 슬롭 카피를 쓰지 않는다.",
+      "Don't border-left>1px 스트라이프, gradient text, 기본 glassmorphism, nested card, modal-first.",
+      "Don't #000·#fff, 회색 그림자, em dash를 쓰지 않는다."
+    ]
+  }
+}

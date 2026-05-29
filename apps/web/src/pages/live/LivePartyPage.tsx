@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { BALANCE_GAMES, IDEAL_TYPE_PROMPTS, MINI_GAMES, drawFortune } from '@rotifolk/shared'
 import { useParty } from '@features/parties/queries'
 import { useLiveParty } from '@features/live/useLiveParty'
 import { CATEGORY_META } from '@features/categories/meta'
@@ -32,6 +33,11 @@ export default function LivePartyPage() {
   const [orderTab, setOrderTab] = useState<'drink' | 'snack' | 'dessert'>('drink')
   const bgm = useBgmQueue(partyId, user?.nickname)
   const [announcement, setAnnouncement] = useState<{ message: string; until: number } | null>(null)
+  const [rec, setRec] = useState<{
+    kind: string
+    payload?: Record<string, unknown>
+    until: number
+  } | null>(null)
 
   useEffect(() => {
     if (state.status === 'ended') setShowFinal(true)
@@ -51,17 +57,29 @@ export default function LivePartyPage() {
     }
   }, [state.lastEvent])
 
+  useEffect(() => {
+    const k = state.lastEvent?.kind
+    if (k && REC_KINDS.has(k)) {
+      const until = Date.now() + 40_000
+      setRec({ kind: k, payload: state.lastEvent?.payload, until })
+      const t = setTimeout(() => {
+        setRec((cur) => (cur && cur.until === until ? null : cur))
+      }, 40_000)
+      return () => clearTimeout(t)
+    }
+  }, [state.lastEvent])
+
   if (isLoading || !data) return <Loading />
   const { party, participants } = data
   const cat = CATEGORY_META[party.config.category]
   const isHost = user?.id === party.hostId
-  const mm = Math.floor(state.remainingSec / 60).toString().padStart(2, '0')
+  const mm = Math.floor(state.remainingSec / 60)
+    .toString()
+    .padStart(2, '0')
   const ss = (state.remainingSec % 60).toString().padStart(2, '0')
 
   const partnerIds = state.myPair?.memberIds.filter((id) => id !== user?.id) ?? []
-  const partners = partnerIds
-    .map((id) => participants.find((p) => p.userId === id))
-    .filter(Boolean)
+  const partners = partnerIds.map((id) => participants.find((p) => p.userId === id)).filter(Boolean)
 
   return (
     <div className={styles.page} style={{ background: cat.bgGradient }}>
@@ -76,7 +94,9 @@ export default function LivePartyPage() {
             exit={{ opacity: 0, y: -24 }}
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
-            <span className={styles.announceIcon} aria-hidden="true">📣</span>
+            <span className={styles.announceIcon} aria-hidden="true">
+              📣
+            </span>
             <span className={styles.announceMsg}>{announcement.message}</span>
             {isHost && (
               <button
@@ -93,7 +113,11 @@ export default function LivePartyPage() {
       </AnimatePresence>
 
       <header className={styles.header}>
-        <button className={styles.exit} onClick={() => navigate(`/parties/${party.id}`)} aria-label="나가기">
+        <button
+          className={styles.exit}
+          onClick={() => navigate(`/parties/${party.id}`)}
+          aria-label="나가기"
+        >
           ✕
         </button>
         <div className={styles.headBody}>
@@ -123,9 +147,7 @@ export default function LivePartyPage() {
             aria-label="BGM 큐 열기"
           >
             🎵
-            {bgm.tracks.length > 0 && (
-              <span className={styles.bgmBadge}>{bgm.tracks.length}</span>
-            )}
+            {bgm.tracks.length > 0 && <span className={styles.bgmBadge}>{bgm.tracks.length}</span>}
           </button>
         </div>
       </header>
@@ -152,7 +174,9 @@ export default function LivePartyPage() {
             }))}
             seatLabel={state.myPair.seatLabel}
             lastCard={state.lastCard?.prompt}
-            onLike={(id) => send('participant:mid-match:like', { partyId: party.id, targetUserId: id })}
+            onLike={(id) =>
+              send('participant:mid-match:like', { partyId: party.id, targetUserId: id })
+            }
             onDrawCard={() => send('card:draw', { partyId: party.id, pairId: state.myPair?.id })}
           />
         ) : (
@@ -165,29 +189,33 @@ export default function LivePartyPage() {
         )}
 
         <AnimatePresence>
-          {state.lastEvent && (
-            <motion.div
-              key={state.lastEvent.kind}
-              className={styles.eventBurst}
-              initial={{ opacity: 0, scale: 0.4, y: 40 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, y: -40 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <span>{EVENT_LABEL[state.lastEvent.kind] ?? '✨ 이벤트'}</span>
-            </motion.div>
-          )}
+          {state.lastEvent &&
+            !REC_KINDS.has(state.lastEvent.kind) &&
+            state.lastEvent.kind !== 'announcement' && (
+              <motion.div
+                key={state.lastEvent.kind}
+                className={styles.eventBurst}
+                initial={{ opacity: 0, scale: 0.4, y: 40 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, y: -40 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <span>{EVENT_LABEL[state.lastEvent.kind] ?? '✨ 이벤트'}</span>
+              </motion.div>
+            )}
         </AnimatePresence>
       </main>
+
+      <AnimatePresence>
+        {rec && <RecreationOverlay key={rec.until} rec={rec} onClose={() => setRec(null)} />}
+      </AnimatePresence>
 
       <footer className={styles.footer}>
         {isHost ? (
           <HostBar
             onNextRound={() => send('host:round:start', { partyId: party.id })}
             onEndRound={() => send('host:round:end', { partyId: party.id })}
-            onCheers={() =>
-              send('host:event:fire', { partyId: party.id, kind: 'cheers' })
-            }
+            onCheers={() => send('host:event:fire', { partyId: party.id, kind: 'cheers' })}
             onShuffle={() => send('host:event:fire', { partyId: party.id, kind: 'shuffle' })}
             onComplimentRain={() =>
               send('host:event:fire', { partyId: party.id, kind: 'compliment-rain' })
@@ -206,6 +234,9 @@ export default function LivePartyPage() {
                 kind: 'announcement',
                 payload: { message },
               })
+            }
+            onFire={(kind, payload) =>
+              send('host:event:fire', { partyId: party.id, kind, payload })
             }
           />
         ) : (
@@ -270,15 +301,17 @@ export default function LivePartyPage() {
           ]}
         />
         <div className={styles.menuList}>
-          {(menu ?? []).filter((m) => m.kind === orderTab).map((m) => (
-            <MenuRow
-              key={m.id}
-              name={m.name}
-              priceKRW={m.priceKRW}
-              quantity={orderCart[m.id] ?? 0}
-              onChange={(q) => setOrderCart((c) => ({ ...c, [m.id]: q }))}
-            />
-          ))}
+          {(menu ?? [])
+            .filter((m) => m.kind === orderTab)
+            .map((m) => (
+              <MenuRow
+                key={m.id}
+                name={m.name}
+                priceKRW={m.priceKRW}
+                quantity={orderCart[m.id] ?? 0}
+                onChange={(q) => setOrderCart((c) => ({ ...c, [m.id]: q }))}
+              />
+            ))}
           {(menu ?? []).filter((m) => m.kind === orderTab).length === 0 && (
             <p className={styles.muted}>이 카테고리에는 메뉴가 없어요.</p>
           )}
@@ -318,7 +351,11 @@ export default function LivePartyPage() {
         open={showBgm}
         onClose={() => setShowBgm(false)}
         title="🎵 BGM 큐"
-        description={isHost ? '트랙을 큐에 등록해 분위기를 만들어 보세요' : '호스트가 등록한 트랙을 함께 즐겨요'}
+        description={
+          isHost
+            ? '트랙을 큐에 등록해 분위기를 만들어 보세요'
+            : '호스트가 등록한 트랙을 함께 즐겨요'
+        }
       >
         <BgmPanel
           tracks={bgm.tracks}
@@ -339,11 +376,91 @@ const EVENT_LABEL: Record<string, string> = {
   cheers: '🥂 다 같이 건배!',
   shuffle: '🔀 좌석 셔플 시작!',
   'photo-time': '📸 단체 사진 타임',
-  'mini-game': '🎲 미니 게임 시작',
   reveal: '🎭 정체 공개',
-  announcement: '📣 호스트 공지',
   'compliment-rain': '💖 칭찬 폭우',
   'gift-card': '🎁 즉석 선물 카드',
+}
+
+/** 풀스크린 레크 카드로 받는 이벤트 종류 (덱 기반) */
+const REC_KINDS = new Set(['balance-game', 'ideal-type', 'fortune', 'mini-game'])
+
+function RecreationOverlay({
+  rec,
+  onClose,
+}: {
+  rec: { kind: string; payload?: Record<string, unknown> }
+  onClose: () => void
+}) {
+  const [pick, setPick] = useState<'a' | 'b' | null>(null)
+  const p = rec.payload ?? {}
+  return (
+    <motion.div
+      className={styles.recOverlay}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className={styles.recCard}
+        initial={{ scale: 0.85, y: 30 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20, opacity: 0 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button className={styles.recClose} onClick={onClose} aria-label="닫기">
+          ✕
+        </button>
+        {rec.kind === 'balance-game' && (
+          <>
+            <span className={styles.recKicker}>⚖️ 밸런스 게임</span>
+            <p className={styles.recSub}>둘 중 하나, 이유와 함께 말해봐요</p>
+            <div className={styles.recChoices}>
+              {(['a', 'b'] as const).map((side) => (
+                <button
+                  key={side}
+                  className={`${styles.recChoice} ${pick === side ? styles.recChoiceOn : ''}`}
+                  onClick={() => setPick(side)}
+                >
+                  {String(p[side] ?? '')}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+        {rec.kind === 'ideal-type' && (
+          <>
+            <span className={styles.recKicker}>💘 이상형 토크</span>
+            <p className={styles.recBig}>“{String(p.prompt ?? '')}”</p>
+          </>
+        )}
+        {rec.kind === 'mini-game' && (
+          <>
+            <span className={styles.recKicker}>🎮 미니 게임</span>
+            <p className={styles.recBig}>
+              {String(p.emoji ?? '🎲')} {String(p.title ?? '')}
+            </p>
+            <p className={styles.recSub}>{String(p.rule ?? '')}</p>
+          </>
+        )}
+        {rec.kind === 'fortune' && (
+          <>
+            <span className={styles.recKicker}>🔮 오늘의 인연운</span>
+            <div className={styles.recFortuneEmoji} aria-hidden="true">
+              {String(p.emoji ?? '✨')}
+            </div>
+            <p className={styles.recBig}>{String(p.title ?? '')}</p>
+            <p className={styles.recSub}>{String(p.body ?? '')}</p>
+            <div className={styles.recFortuneMeta}>
+              <span className={styles.recChip}>행운 키워드 · {String(p.luckyKeyword ?? '')}</span>
+              <span className={styles.recScore}>인연력 {Number(p.loveScore ?? 0)}</span>
+            </div>
+          </>
+        )}
+      </motion.div>
+    </motion.div>
+  )
 }
 
 function PairPanel({
@@ -374,7 +491,11 @@ function PairPanel({
             <Avatar size="xl" hue="#FCFAF5" pattern="gradient" emoji={p.nickname[0]} ring="glow" />
             <h2 className={styles.partnerName}>{p.nickname}</h2>
             <div className={styles.partnerMeta}>
-              {p.mbti && <Badge tone="gold" outlined>{p.mbti}</Badge>}
+              {p.mbti && (
+                <Badge tone="gold" outlined>
+                  {p.mbti}
+                </Badge>
+              )}
               {p.interests.slice(0, 3).map((it) => (
                 <Badge key={it} tone="neutral" outlined>
                   #{it}
@@ -488,6 +609,7 @@ function HostBar({
   onEndParty,
   onLaunchQuiz,
   onAnnounce,
+  onFire,
 }: {
   onNextRound: () => void
   onEndRound: () => void
@@ -497,9 +619,15 @@ function HostBar({
   onEndParty: () => void
   onLaunchQuiz: () => void
   onAnnounce: (message: string) => void
+  onFire: (kind: string, payload?: Record<string, unknown>) => void
 }) {
   const [composing, setComposing] = useState(false)
   const [draft, setDraft] = useState('')
+  const [ri, setRi] = useState(0)
+  const fireRec = (kind: string, payload: Record<string, unknown>) => {
+    onFire(kind, payload)
+    setRi((n) => n + 1)
+  }
   const submit = () => {
     const msg = draft.trim()
     if (!msg) return
@@ -522,27 +650,91 @@ function HostBar({
               maxLength={140}
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === 'Enter') { e.preventDefault(); submit() }
-                else if (e.key === 'Escape') { setComposing(false); setDraft('') }
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  submit()
+                } else if (e.key === 'Escape') {
+                  setComposing(false)
+                  setDraft('')
+                }
               }}
             />
             <Button variant="primary" size="sm" onClick={submit} disabled={!draft.trim()}>
               📣 발사
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => { setComposing(false); setDraft('') }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setComposing(false)
+                setDraft('')
+              }}
+            >
               취소
             </Button>
           </div>
         ) : (
           <>
-            <Button variant="soft" size="sm" onClick={() => setComposing(true)}>📣 공지</Button>
-            <Button variant="soft" size="sm" onClick={onCheers}>🥂 건배</Button>
-            <Button variant="soft" size="sm" onClick={onShuffle}>🔀 셔플</Button>
-            <Button variant="soft" size="sm" onClick={onComplimentRain}>💖 칭찬 폭우</Button>
-            <Button variant="soft" size="sm" onClick={onLaunchQuiz}>🎯 퀴즈 발사</Button>
-            <Button variant="ghost" size="sm" onClick={onEndRound}>⏸ 라운드 종료</Button>
-            <Button variant="primary" size="md" onClick={onNextRound}>▶ 다음 라운드</Button>
-            <Button variant="danger" size="sm" onClick={onEndParty}>🌹 파티 종료</Button>
+            <Button variant="soft" size="sm" onClick={() => setComposing(true)}>
+              📣 공지
+            </Button>
+            <Button variant="soft" size="sm" onClick={onCheers}>
+              🥂 건배
+            </Button>
+            <Button variant="soft" size="sm" onClick={onShuffle}>
+              🔀 셔플
+            </Button>
+            <Button variant="soft" size="sm" onClick={onComplimentRain}>
+              💖 칭찬 폭우
+            </Button>
+            <span className={styles.barDeck}>
+              <Button
+                variant="gold"
+                size="sm"
+                onClick={() =>
+                  fireRec('balance-game', { ...BALANCE_GAMES[ri % BALANCE_GAMES.length] })
+                }
+              >
+                ⚖️ 밸런스
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                onClick={() =>
+                  fireRec('ideal-type', {
+                    prompt: IDEAL_TYPE_PROMPTS[ri % IDEAL_TYPE_PROMPTS.length],
+                  })
+                }
+              >
+                💘 이상형
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                onClick={() => fireRec('fortune', { ...drawFortune(ri) })}
+              >
+                🔮 운세
+              </Button>
+              <Button
+                variant="gold"
+                size="sm"
+                onClick={() => fireRec('mini-game', { ...MINI_GAMES[ri % MINI_GAMES.length] })}
+              >
+                🎮 미니게임
+              </Button>
+            </span>
+            <Button variant="soft" size="sm" onClick={onLaunchQuiz}>
+              🎯 퀴즈 발사
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onEndRound}>
+              ⏸ 라운드 종료
+            </Button>
+            <Button variant="primary" size="md" onClick={onNextRound}>
+              ▶ 다음 라운드
+            </Button>
+            <Button variant="danger" size="sm" onClick={onEndParty}>
+              🌹 파티 종료
+            </Button>
           </>
         )}
       </div>
@@ -637,23 +829,13 @@ function BgmPanel({
           )}
         </div>
         <div className={styles.bgmControls}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onPrev}
-            disabled={tracks.length === 0}
-          >
+          <Button variant="ghost" size="sm" onClick={onPrev} disabled={tracks.length === 0}>
             ⏮ 이전
           </Button>
           <span className={styles.bgmPos}>
             {tracks.length === 0 ? '0 / 0' : `${current} / ${tracks.length}`}
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onNext}
-            disabled={tracks.length === 0}
-          >
+          <Button variant="ghost" size="sm" onClick={onNext} disabled={tracks.length === 0}>
             다음 ⏭
           </Button>
         </div>
@@ -704,12 +886,7 @@ function BgmPanel({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleAdd}
-            disabled={!url.trim()}
-          >
+          <Button variant="primary" size="md" onClick={handleAdd} disabled={!url.trim()}>
             추가
           </Button>
         </div>
