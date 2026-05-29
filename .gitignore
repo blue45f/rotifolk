@@ -48,4 +48,4 @@ e2e-results
 
 # screenshots / artifacts
 screenshots/
-/sourcing-*.png
+/*.png
