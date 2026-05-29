@@ -375,6 +375,7 @@ export const handlers = [
       await delay({
         scope: 'mutual-only',
         connectionMode: 'both',
+        connectionChannels: ['chat', 'instagram', 'kakao', 'phone'],
         groupAfterParty: true,
         matches: [
           {
@@ -383,8 +384,25 @@ export const handlers = [
             avatarId: 'a_w1',
             result: 'mutual',
             phone: '010-1234-5678',
+            channels: [
+              { channel: 'chat', handle: null },
+              { channel: 'kakao', handle: 'yoonseul_wine' },
+              { channel: 'instagram', handle: null },
+              { channel: 'phone', handle: '010-1234-5678' },
+            ],
           },
         ],
+      }),
+    ),
+  ),
+
+  // Match reveal — 오늘의 인기남/인기녀 (성별별 최다 호감 1인)
+  http.get(`${API}/parties/:partyId/matching/popular`, async () =>
+    HttpResponse.json(
+      await delay({
+        revealPopular: true,
+        popularMale: { userId: 'u_m1', nickname: '도현', avatarId: 'a_m1', likes: 4 },
+        popularFemale: { userId: 'u_w1', nickname: '윤슬', avatarId: 'a_w1', likes: 5 },
       }),
     ),
   ),
