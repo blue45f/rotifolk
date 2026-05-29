@@ -548,6 +548,11 @@ export default function PartyDetailPage() {
                       <div className={styles.partName}>{p.user?.nickname ?? '익명'}</div>
                       <div className={styles.partMeta}>
                         {p.user?.mbti && <span>{p.user.mbti}</span>}
+                        {p.user?.verifiedFields?.includes('identity') && (
+                          <Badge tone="info" size="sm">
+                            ✓ 본인인증
+                          </Badge>
+                        )}
                         {p.status === 'checked-in' && (
                           <Badge tone="success" size="sm">
                             체크인

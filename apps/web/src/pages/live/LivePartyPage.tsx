@@ -192,6 +192,7 @@ export default function LivePartyPage() {
               nickname: p!.user?.nickname ?? '익명',
               mbti: p!.user?.mbti,
               interests: p!.user?.interests ?? [],
+              verified: !!p!.user?.verifiedFields?.includes('identity'),
             }))}
             seatLabel={state.myPair.seatLabel}
             lastCard={state.lastCard?.prompt}
@@ -524,7 +525,13 @@ function PairPanel({
   me,
   meId,
 }: {
-  partners: { id: string; nickname: string; mbti?: string | null; interests: string[] }[]
+  partners: {
+    id: string
+    nickname: string
+    mbti?: string | null
+    interests: string[]
+    verified?: boolean
+  }[]
   seatLabel: string
   lastCard?: string
   onLike: (id: string) => void
@@ -560,6 +567,7 @@ function PairPanel({
             <Avatar size="xl" hue="#FCFAF5" pattern="gradient" emoji={p.nickname[0]} ring="glow" />
             <h2 className={styles.partnerName}>{p.nickname}</h2>
             <div className={styles.partnerMeta}>
+              {p.verified && <Badge tone="info">✓ 본인인증</Badge>}
               {hubId === p.id && <Badge tone="gold">🔥 핫시트</Badge>}
               {p.mbti && (
                 <Badge tone="gold" outlined>
