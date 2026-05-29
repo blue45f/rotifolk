@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module'
 import { UsersModule } from './modules/users/users.module'
 import { PartiesModule } from './modules/parties/parties.module'
 import { VenuesModule } from './modules/venues/venues.module'
+import { VenueBookingsModule } from './modules/venue-bookings/venue-bookings.module'
 import { MatchingModule } from './modules/matching/matching.module'
 import { QuizModule } from './modules/quiz/quiz.module'
 import { QuestionCardsModule } from './modules/question-cards/question-cards.module'
@@ -30,6 +31,7 @@ import { PaymentsModule } from './modules/payments/payments.module'
     UsersModule,
     AvatarsModule,
     VenuesModule,
+    VenueBookingsModule,
     PartiesModule,
     MatchingModule,
     QuizModule,
