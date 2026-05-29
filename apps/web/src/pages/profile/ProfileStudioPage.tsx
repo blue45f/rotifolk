@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
+  CONNECTION_CHANNELS,
   EDUCATION_LABEL,
   INCOME_BAND_LABEL,
   MARITAL_STATUS_LABEL,
@@ -584,6 +585,10 @@ function AvoidTab() {
 
   const [phone, setPhone] = useState('')
   const [label, setLabel] = useState('')
+  // 내 연결 채널 핸들 (매칭 시 상호 동의한 채널만 공개)
+  const [myPhone, setMyPhone] = useState(() => user.phone ?? '')
+  const [myKakao, setMyKakao] = useState(() => user.kakaoId ?? '')
+  const [myInstagram, setMyInstagram] = useState(() => user.instagram ?? '')
   const [avoidSameCompany, setAvoidSameCompany] = useState(() => user.avoidSameCompany ?? false)
   const [showLikesReceived, setShowLikesReceived] = useState(() => user.showLikesReceived ?? true)
   const [joinPopularityRanking, setJoinPopularityRanking] = useState(
@@ -736,26 +741,112 @@ function AvoidTab() {
       </Card>
 
       <Card padding="lg" className={styles.tabCard}>
-        <label className={styles.toggleRow}>
-          <div className={styles.toggleCopy}>
-            <strong>매칭된 상대에게 연락처 공유</strong>
-            <p className={styles.muted}>상호 동의한 매칭 상대에게만 공개돼요.</p>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionIndex}>🔗</span>
+          <div>
+            <h2 className={styles.h2}>연결 채널</h2>
+            <p className={styles.muted}>
+              매칭되면 양쪽이 켠 채널만 공개돼요. 채팅은 번호 노출 없이 늘 열려요.
+            </p>
           </div>
-          <input
-            type="checkbox"
-            className={styles.checkbox}
-            defaultChecked={user.shareContact}
-            onChange={(e) =>
-              updateContact.mutate(
-                { shareContact: e.target.checked },
-                {
-                  onSuccess: () => toast.show('설정을 저장했어요', 'success'),
-                  onError: (err) => toast.show((err as Error).message, 'error'),
-                },
-              )
-            }
-          />
-        </label>
+        </div>
+
+        {(
+          [
+            {
+              key: 'kakao',
+              value: myKakao,
+              set: setMyKakao,
+              share: user.shareKakao,
+              field: 'shareKakao',
+              placeholder: 'kakao_id',
+              mode: undefined,
+            },
+            {
+              key: 'instagram',
+              value: myInstagram,
+              set: setMyInstagram,
+              share: user.shareInstagram,
+              field: 'shareInstagram',
+              placeholder: 'insta_id',
+              mode: undefined,
+            },
+            {
+              key: 'phone',
+              value: myPhone,
+              set: setMyPhone,
+              share: user.shareContact,
+              field: 'shareContact',
+              placeholder: '010-1234-5678',
+              mode: 'tel',
+            },
+          ] as const
+        ).map((ch) => {
+          const meta = CONNECTION_CHANNELS[ch.key]
+          return (
+            <div
+              key={ch.key}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--space-2)',
+                marginBottom: 'var(--space-4)',
+              }}
+            >
+              <Input
+                label={`${meta.icon} ${meta.label}`}
+                placeholder={ch.placeholder}
+                inputMode={ch.mode}
+                value={ch.value}
+                maxLength={ch.key === 'phone' ? 20 : 40}
+                onChange={(e) => ch.set(e.target.value)}
+              />
+              <label className={styles.toggleRow}>
+                <div className={styles.toggleCopy}>
+                  <strong>{meta.label} 공개</strong>
+                  <p className={styles.muted}>
+                    {ch.key === 'phone' ? `⚠️ ${meta.note}` : meta.note}
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  className={styles.checkbox}
+                  defaultChecked={ch.share}
+                  onChange={(e) =>
+                    updateContact.mutate(
+                      { [ch.field]: e.target.checked },
+                      {
+                        onSuccess: () => toast.show('설정을 저장했어요', 'success'),
+                        onError: (err) => toast.show((err as Error).message, 'error'),
+                      },
+                    )
+                  }
+                />
+              </label>
+            </div>
+          )
+        })}
+
+        <Button
+          variant="primary"
+          fullWidth
+          isLoading={updateContact.isPending}
+          onClick={() =>
+            updateContact.mutate(
+              {
+                phone: myPhone.trim() || null,
+                kakaoId: myKakao.trim() || null,
+                instagram: myInstagram.trim() || null,
+              },
+              {
+                onSuccess: () => toast.show('연결 채널을 저장했어요', 'success'),
+                onError: (err) => toast.show((err as Error).message, 'error'),
+              },
+            )
+          }
+        >
+          채널 정보 저장
+        </Button>
       </Card>
 
       <Card padding="lg" className={styles.tabCard}>
