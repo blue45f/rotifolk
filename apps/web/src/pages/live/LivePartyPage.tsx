@@ -10,6 +10,7 @@ import {
   type PromptKind,
 } from '@rotifolk/shared'
 import { SendNoteSheet } from '@features/notes/SendNoteSheet'
+import { usePartyNotes } from '@features/notes/queries'
 import { useParty } from '@features/parties/queries'
 import { useLiveParty } from '@features/live/useLiveParty'
 import { CATEGORY_META } from '@features/categories/meta'
@@ -33,6 +34,11 @@ export default function LivePartyPage() {
   const { state, send } = useLiveParty(partyId, user?.id)
   const toast = useToast()
   const { data: menu } = useVenueMenu(data?.party?.venueId)
+  const { data: partyNotes } = usePartyNotes(partyId)
+  const remainingNotes = Math.max(
+    0,
+    (data?.party?.config?.noteQuota ?? 5) - (partyNotes?.sent?.length ?? 0),
+  )
 
   const [showOrder, setShowOrder] = useState(false)
   const [showFinal, setShowFinal] = useState(false)
@@ -228,6 +234,7 @@ export default function LivePartyPage() {
           open={!!noteTarget}
           onClose={() => setNoteTarget(null)}
           roundIndex={state.currentRoundIndex}
+          remainingQuota={remainingNotes}
         />
       )}
 
