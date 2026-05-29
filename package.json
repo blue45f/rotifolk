@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "description": "Rotifolk — 로테이션 파티 매칭 플랫폼 (와인/커피/차 로테이션 모임)",
-  "packageManager": "pnpm@9.15.4",
+  "packageManager": "pnpm@11.4.0",
   "engines": {
     "node": ">=20.11.0",
-    "pnpm": ">=9.0.0"
+    "pnpm": ">=11.0.0"
   },
   "scripts": {
     "prepare": "husky",
