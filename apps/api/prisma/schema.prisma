@@ -29,6 +29,22 @@ model User {
   homeLat       Float?
   homeLng       Float?
 
+  // 연락처 연결 — 매칭 성사 시 상호 동의한 상대에게만 공개
+  phone        String?
+  shareContact Boolean @default(false)
+
+  // 사전 프로필 — 이상형/대화 프롬프트/찾는 관계/한 줄 등 (아이스브레이커·매칭 활용)
+  profileJson String @default("{}")
+
+  // 신상 인증 (opt-in, 개인정보 최소화 — 연봉은 구간만, 정확액 미저장)
+  occupation        String? // 직업 카테고리/직무
+  company           String? // 회사명 (비공개 가능)
+  incomeBand        String? // none | u3000 | b3000_5000 | b5000_7000 | b7000_10000 | o10000 (만원)
+  maritalStatus     String? // single | married | divorced | widowed | private
+  education         String? // highschool | college | bachelor | master | doctorate | private
+  verifiedFieldsJson String @default("[]") // 인증 완료 필드 ["identity","job","company","income","marital","education"]
+  visibilityJson     String @default("{}") // 필드별 공개범위 { income: "matched", company: "hidden", ... }
+
   referralCode String @unique @default(cuid())
   pointsKRW    Int    @default(0)
 
@@ -65,6 +81,9 @@ model User {
   payments          Payment[]         @relation("UserPayments")
   referralsGiven    Referral[]        @relation("Referrer")
   referralReceived  Referral?         @relation("Referred")
+  venueBookingsMade VenueBooking[]    @relation("VenueBookingRequester")
+  notesSent         PartyNote[]       @relation("NoteFrom")
+  notesReceived     PartyNote[]       @relation("NoteTo")
 
   @@index([role])
   @@index([createdAt])
@@ -76,9 +95,14 @@ model Avatar {
   ownerId    String @unique
   mood       String // chill | sparkling | curious | witty | cozy | mystery
   hue        String // #RRGGBB
-  pattern    String // solid | gradient | sparkle | wave
+  pattern    String // solid | gradient | sparkle | wave | aurora | confetti
   emojiBadge String
   faceSeed   String
+
+  // 아바타 빌더 고도화
+  backdrop        String  @default("none") // none | halo | spotlight | bokeh | grid | wine-stain
+  accessoriesJson String  @default("[]") // 모자/안경/이펙트 등
+  vibeWord        String? // 한 단어 무드 (예: "차분", "장난꾸러기")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -104,11 +128,27 @@ model Venue {
   rating          Float   @default(0)
   reviewCount     Int     @default(0)
 
+  // ── 섭외/예약 고도화 (offhours 참고) ──
+  instantBook        Boolean @default(false) // true면 호스트 요청 즉시 확정
+  cleaningFeeKRW     Int     @default(0)
+  minHours           Int     @default(2) // 최소 대관 시간
+  openMinute         Int     @default(660) // 영업 시작 (분, 0~1440) 기본 11:00
+  closeMinute        Int     @default(1380) // 영업 종료 기본 23:00
+  closedWeekdaysJson String  @default("[]") // 정기 휴무 요일 [0=일 ... 6=토]
+  weekendMultiplier  Float   @default(1) // 주말 가격 배수
+  peakMultiplier     Float   @default(1) // 피크 시간 가격 배수
+  arrivalGuideJson   String  @default("{}") // 도착 가이드(주차/출입/와이파이 등)
+  vibeTagsJson       String  @default("[]") // 무드 태그 ["조용한","루프뷰"]
+  useCasesJson       String  @default("[]") // 추천 용도 ["와인모임","북토크"]
+  hostBlurb          String? // 사장님 한마디 (직접 호스팅 소개)
+  selfHostEnabled    Boolean @default(true) // 사장님이 직접 파티 개설 허용
+
   ownerId String?
   owner   User?   @relation("VenueOwner", fields: [ownerId], references: [id], onDelete: SetNull)
 
   parties   Party[]
   menuItems MenuItem[]
+  bookings  VenueBooking[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -168,6 +208,19 @@ model Party {
   enableLiveOrders      Boolean @default(true)
   enableAvatarOnly      Boolean @default(false)
 
+  // ── 매칭 결과 정책 (차별화) ──
+  matchScope          String  @default("mutual-only") // mutual-only | top-n | all-participants
+  maxMatchesPerPerson Int     @default(3) // top-n일 때 1인당 최대 연결 수
+  connectionMode      String  @default("chat") // chat | phone | both
+  groupAfterParty     Boolean @default(false) // 종료 후 전원 그룹 채팅 개설
+
+  // ── 쪽지 교환 (커피 모임 오프라인 의식) ──
+  enableNotes  Boolean @default(true)
+  noteDelivery String  @default("party-end") // instant | party-end
+
+  // ── 라운드 대화 도우미 (게임/질문/운세/이상형) ──
+  enableConversationKit Boolean @default(true)
+
   basePriceKRW        Int    @default(0)
   drinkPackage        String @default("per-glass") // none | per-glass | unlimited | paired
   snackPackage        String @default("none") // none | per-plate | course | pairing-bites
@@ -177,6 +230,21 @@ model Party {
   ageMin      Int?
   ageMax      Int?
   genderRatio String?
+
+  // ── 모임 포맷 & 로테이션 구조 ──
+  format         String @default("rotation") // rotation | note-ting | mixer
+  rotationFormat String @default("one-on-one") // one-on-one | many-to-one | many-to-many
+  groupSize      Int    @default(2) // N:N 테이블 인원 / N:1 그룹 크기
+
+  // ── 모집 규모 · 성비 · 자동 취소 ──
+  genderRatioTarget String @default("any") // 목표 남:여 성비 "any" | "1:1" | "2:3" 등
+  ratioTolerance    Int    @default(1) // 진행 중 허용 성비 편차 (인원 수 기준)
+  maleCap           Int? // 남성 모집 상한 (null=성비×정원에서 자동 산출)
+  femaleCap         Int? // 여성 모집 상한
+  minMale           Int? // 성사 최소 남성 수 (보조 바닥값)
+  minFemale         Int? // 성사 최소 여성 수 (보조 바닥값)
+  autoCancelAt      DateTime? // 이 시각까지 성비/인원 미달 시 자동 취소
+  autoCancelReason  String?
 
   currentRoundIndex Int @default(0)
 
@@ -201,6 +269,8 @@ model Party {
   savedBy         SavedParty[]
   photos          PartyPhoto[]
   payments        Payment[]
+  notes           PartyNote[]
+  venueBooking    VenueBooking?
 
   @@index([status, startAt])
   @@index([category])
@@ -650,4 +720,67 @@ model LiveEvent {
   expiresAt   DateTime?
 
   @@index([partyId, triggeredAt])
+}
+
+// ======================== VENUE BOOKING (섭외 요청) ========================
+// 모임 호스트가 남의 공간을 빌릴 때의 예약 라이프사이클.
+// 사장님이 자기 공간에서 직접 여는 경우엔 booking 없이 Party가 바로 생성된다.
+model VenueBooking {
+  id          String @id @default(cuid())
+  venueId     String
+  venue       Venue  @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  requesterId String // 공간을 빌리려는 모임 호스트
+  requester   User   @relation("VenueBookingRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  ownerId     String? // 요청 시점의 공간 주인 스냅샷 (인박스 조회용)
+
+  partyId String? @unique // 확정 후 연결된 파티
+  party   Party?  @relation(fields: [partyId], references: [id], onDelete: SetNull)
+
+  startAt     DateTime
+  endAt       DateTime
+  partySize   Int
+  category    String // 개설 예정 파티 카테고리
+  noteToOwner String?
+  status      String   @default("requested") // requested | confirmed | declined | cancelled | completed
+
+  // 가격 스냅샷 (요청 시점 견적)
+  hours          Float
+  baseKRW        Int
+  multiplier     Float @default(1)
+  discountKRW    Int   @default(0)
+  cleaningFeeKRW Int   @default(0)
+  totalKRW       Int
+
+  ownerMessage String? // 사장님 확정/거절 메시지
+  decidedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([requesterId, status])
+  @@index([venueId, startAt])
+  @@index([ownerId, status])
+}
+
+// ======================== PARTY NOTE (쪽지) ========================
+// 라운드에서 만난 상대에게 남기는 쪽지. noteDelivery에 따라 즉시 또는 파티 종료 후 도착.
+model PartyNote {
+  id           String  @id @default(cuid())
+  partyId      String
+  party        Party   @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  fromUserId   String
+  fromUser     User    @relation("NoteFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId     String
+  toUser       User    @relation("NoteTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  roundIndex   Int?
+  body         String
+  emoji        String? // 분위기 스티커
+  shareContact Boolean @default(false) // 보낸 사람이 연락처 동봉
+
+  deliveredAt DateTime? // null이면 아직 미도착(파티 종료 시 도착)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([partyId, toUserId])
+  @@index([toUserId, deliveredAt])
 }
