@@ -727,6 +727,78 @@ async function main() {
     },
   })
 
+  // ============ 새 기능 데모 데이터 (연결 채널·인기·민감설정·회피) ============
+  const byEmail = (p: string) => prisma.user.findUnique({ where: { email: `${p}@rotifolk.dev` } })
+  const [w1, w2, w3, m1, m2, m3] = await Promise.all(
+    ['w1', 'w2', 'w3', 'm1', 'm2', 'm3'].map(byEmail),
+  )
+
+  // 연결 채널 핸들 + 공개 동의 (매칭 리빌에서 단계적으로 열림)
+  if (w1)
+    await prisma.user.update({
+      where: { id: w1.id },
+      data: {
+        phone: '010-1111-2222',
+        shareContact: true,
+        kakaoId: 'yoonseul_w',
+        shareKakao: true,
+        instagram: 'yoonseul.day',
+        shareInstagram: true,
+      },
+    })
+  if (m1)
+    await prisma.user.update({
+      where: { id: m1.id },
+      data: {
+        phone: '010-3333-4444',
+        shareContact: true,
+        kakaoId: 'dohyun_m',
+        shareKakao: true,
+      },
+    })
+  if (w2)
+    await prisma.user.update({
+      where: { id: w2.id },
+      data: { instagram: 'haeun_pic', shareInstagram: true },
+    })
+  // 민감 정보 설정 데모: w3은 인기 랭킹 비참여, m3은 받은 호감 수 비공개
+  if (w3) await prisma.user.update({ where: { id: w3.id }, data: { joinPopularityRanking: false } })
+  if (m3) await prisma.user.update({ where: { id: m3.id }, data: { showLikesReceived: false } })
+
+  // 파티: 연결 채널 4종 모두 제공 + 인기 공개
+  await prisma.party.update({
+    where: { id: wineParty.id },
+    data: {
+      connectionChannelsJson: JSON.stringify(['chat', 'instagram', 'kakao', 'phone']),
+      revealPopular: true,
+      noteQuota: 5,
+    },
+  })
+
+  // 최종 호감 투표 — m1(인기남)·w1(인기녀)에 표를 모으고 w1↔m1 상호 매칭
+  const mkVote = (fromUserId: string, toUserId: string) =>
+    prisma.finalMatchVote.upsert({
+      where: { partyId_fromUserId_toUserId: { partyId: wineParty.id, fromUserId, toUserId } },
+      create: { partyId: wineParty.id, fromUserId, toUserId },
+      update: {},
+    })
+  if (w1 && m1) {
+    await mkVote(w1.id, m1.id)
+    await mkVote(m1.id, w1.id) // 상호 매칭
+  }
+  if (w2 && m1) await mkVote(w2.id, m1.id)
+  if (w3 && m1) await mkVote(w3.id, m1.id) // m1 = 인기남 (3표)
+  if (m2 && w1) await mkVote(m2.id, w1.id)
+  if (m3 && w1) await mkVote(m3.id, w1.id) // w1 = 인기녀 (3표)
+
+  // 회피 목록 데모 (라벨만 — 해시는 데모용 임의값)
+  if (w1)
+    await prisma.avoidContact.upsert({
+      where: { userId_phoneHash: { userId: w1.id, phoneHash: 'demo-hash-ex-colleague' } },
+      create: { userId: w1.id, phoneHash: 'demo-hash-ex-colleague', label: '전 직장 동료' },
+      update: {},
+    })
+
   console.log('✔ Seed complete')
   console.log('   호스트:   host@rotifolk.dev')
   console.log('   여성 5명: w1~w5@rotifolk.dev')
