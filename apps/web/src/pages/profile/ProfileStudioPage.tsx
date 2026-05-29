@@ -289,6 +289,7 @@ function TrustTab() {
   const [company, setCompany] = useState(user.company ?? '')
   const [incomeBand, setIncomeBand] = useState<IncomeBand | ''>(user.incomeBand ?? '')
   const [maritalStatus, setMaritalStatus] = useState<MaritalStatus | ''>(user.maritalStatus ?? '')
+  const [hasChildren, setHasChildren] = useState<boolean | null>(user.hasChildren ?? null)
   const [education, setEducation] = useState<Education | ''>(user.education ?? '')
   const [visibility, setVisibility] = useState<
     Partial<Record<VerifiableDetailField, FieldVisibility>>
@@ -304,6 +305,7 @@ function TrustTab() {
         company: company.trim() || null,
         incomeBand: incomeBand || null,
         maritalStatus: maritalStatus || null,
+        hasChildren,
         education: education || null,
         visibility,
       })
@@ -449,6 +451,30 @@ function TrustTab() {
               ))}
             </select>
           </TrustRow>
+
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-2)',
+              marginBottom: 'var(--space-4)',
+            }}
+          >
+            <strong style={{ fontSize: 'var(--fs-sm)' }}>👶 아이 유무</strong>
+            <p className={styles.muted}>돌싱 모임 등 대상 조건 매칭에 쓰여요.</p>
+            <select
+              className={styles.select}
+              value={hasChildren === null ? '' : hasChildren ? 'yes' : 'no'}
+              onChange={(e) => {
+                const v = e.target.value
+                setHasChildren(v === '' ? null : v === 'yes')
+              }}
+            >
+              <option value="">선택 안 함</option>
+              <option value="yes">있음</option>
+              <option value="no">없음</option>
+            </select>
+          </div>
 
           <TrustRow
             label="학력"
