@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { canAcceptGender, channelsFromLegacyMode } from '@rotifolk/shared'
+import { canAcceptGender, channelsFromLegacyMode, quoteRefund } from '@rotifolk/shared'
 import type {
   ConnectionChannel,
   CreatePartyDto,
@@ -573,18 +573,40 @@ export class PartiesService {
       where: { partyId_userId: { partyId, userId } },
     })
     if (!p) throw new NotFoundException({ code: 'not_joined', message: '참여 기록이 없어요' })
-    if (p.status === 'cancelled') return { ok: true }
+    if (p.status === 'cancelled') return { ok: true, refund: null }
+
+    const party = await this.prisma.party.findUnique({ where: { id: partyId } })
+
+    // 환불 정책 적용 — 결제 내역이 있으면 취소 시점·마감 기준으로 환불율 산정.
+    let refund: ReturnType<typeof quoteRefund> | null = null
+    const payment = await this.prisma.payment.findFirst({
+      where: { partyId, userId, status: 'paid' },
+      orderBy: { createdAt: 'desc' },
+    })
+    if (party && payment) {
+      refund = quoteRefund(payment.amountKRW, {
+        startAt: party.startAt,
+        refundDeadlineHours: party.refundDeadlineHours,
+        reason: 'participant-cancel',
+      })
+      await this.prisma.payment.update({
+        where: { id: payment.id },
+        data:
+          refund.refundKRW > 0
+            ? { status: 'refunded', refundedAt: new Date() }
+            : { status: 'cancelled' },
+      })
+    }
 
     await this.prisma.participation.update({
       where: { id: p.id },
       data: { status: 'cancelled' },
     })
 
-    const party = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (party?.status === 'full') {
       await this.prisma.party.update({ where: { id: partyId }, data: { status: 'open' } })
     }
-    return { ok: true }
+    return { ok: true, refund }
   }
 
   async checkIn(hostId: string, partyId: string, userId: string, seatNumber?: number) {

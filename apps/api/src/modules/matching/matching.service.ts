@@ -445,6 +445,68 @@ export class MatchingService {
     return computeForbiddenPairs(forbiddenInput)
   }
 
+  /**
+   * 오늘의 인기남/인기녀 — 받은 호감(라운드 좋아요 + 최종 투표) 누적 집계.
+   * 성별별 최다 1인만 공개. 프라이버시: 랭킹 비참여자는 후보 제외, 호감 수 비공개자는 카운트 숨김.
+   * revealPopular가 꺼져 있으면 공개하지 않는다.
+   */
+  async popularOfParty(partyId: string) {
+    const party = await this.prisma.party.findUnique({
+      where: { id: partyId },
+      select: { id: true, revealPopular: true },
+    })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!party.revealPopular) {
+      return { revealPopular: false, popularMale: null, popularFemale: null }
+    }
+
+    const [mid, final, participants] = await Promise.all([
+      this.prisma.midMatchVote.findMany({ where: { partyId }, select: { toUserId: true } }),
+      this.prisma.finalMatchVote.findMany({ where: { partyId }, select: { toUserId: true } }),
+      this.prisma.participation.findMany({
+        where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
+        select: {
+          user: {
+            select: {
+              id: true,
+              nickname: true,
+              avatarId: true,
+              gender: true,
+              joinPopularityRanking: true,
+              showLikesReceived: true,
+            },
+          },
+        },
+      }),
+    ])
+
+    const users = participants.map((p) => p.user).filter((u): u is NonNullable<typeof u> => !!u)
+    // 랭킹 비참여(opt-out)는 후보에서 제외
+    const candidates = users
+      .filter((u) => u.joinPopularityRanking !== false)
+      .map((u) => ({ userId: u.id, gender: (u.gender ?? null) as Gender | null }))
+    const { popularMale, popularFemale } = computePopularity([...mid, ...final], candidates)
+
+    const umap = new Map(users.map((u) => [u.id, u]))
+    const enrich = (e: { userId: string; likes: number } | null) => {
+      if (!e) return null
+      const u = umap.get(e.userId)
+      return {
+        userId: e.userId,
+        nickname: u?.nickname ?? '익명',
+        avatarId: u?.avatarId ?? null,
+        // 받은 호감 수 비공개면 카운트를 숨긴다(null)
+        likes: u?.showLikesReceived === false ? null : e.likes,
+      }
+    }
+    return {
+      revealPopular: true,
+      popularMale: enrich(popularMale),
+      popularFemale: enrich(popularFemale),
+    }
+  }
+
   private seatLabel(i: number): string {
     return String.fromCharCode(65 + (i % 26)) + (i >= 26 ? Math.floor(i / 26) : '')
   }

@@ -51,6 +51,10 @@ model User {
   verifiedFieldsJson String @default("[]") // 인증 완료 필드 ["identity","job","company","income","marital","education"]
   visibilityJson     String @default("{}") // 필드별 공개범위 { income: "matched", company: "hidden", ... }
 
+  // 민감 정보 노출 설정
+  showLikesReceived     Boolean @default(true) // 받은 호감 수를 남에게 공개
+  joinPopularityRanking Boolean @default(true) // 오늘의 인기남/인기녀 선정 대상에 포함
+
   referralCode String @unique @default(cuid())
   pointsKRW    Int    @default(0)
 

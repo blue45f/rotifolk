@@ -437,4 +437,10 @@ export const handlers = [
     HttpResponse.json(await delay({ ok: true })),
   ),
   http.get(`${API}/me/avoid-check`, async () => HttpResponse.json(await delay([]))),
+  http.patch(`${API}/me/avoid-prefs`, async ({ request }) =>
+    HttpResponse.json(await delay((await request.json()) as Record<string, unknown>)),
+  ),
+  http.patch(`${API}/me/privacy`, async ({ request }) =>
+    HttpResponse.json(await delay((await request.json()) as Record<string, unknown>)),
+  ),
 ]

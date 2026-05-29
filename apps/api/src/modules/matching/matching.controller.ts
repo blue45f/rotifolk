@@ -50,4 +50,9 @@ export class MatchingController {
   myMatches(@CurrentUser() me: JwtUserPayload, @Param('partyId') partyId: string) {
     return this.matching.myPartyMatches(me.sub, partyId)
   }
+
+  @Get('popular')
+  popular(@Param('partyId') partyId: string) {
+    return this.matching.popularOfParty(partyId)
+  }
 }

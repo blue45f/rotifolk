@@ -5,6 +5,7 @@ import type {
   AvoidPrefsDto,
   AvoidReason,
   PreProfileDto,
+  PrivacyPrefsDto,
   UpdateContactDto,
   UpdateTrustProfileDto,
   VerificationField,
@@ -158,6 +159,21 @@ export function useUpdateAvoidPrefs() {
     mutationFn: (dto: AvoidPrefsDto) => api.patch<AvoidPrefsDto>('me/avoid-prefs', dto),
     onSuccess: (_res, dto) => {
       if (dto.avoidSameCompany !== undefined) updateUser({ avoidSameCompany: dto.avoidSameCompany })
+    },
+  })
+}
+
+/** 민감 정보 노출 설정(받은 호감 수·인기 랭킹) 저장 → 로컬 user 동기화 */
+export function useUpdatePrivacy() {
+  const updateUser = useAuthStore((s) => s.updateUser)
+  return useMutation({
+    mutationFn: (dto: PrivacyPrefsDto) => api.patch<PrivacyPrefsDto>('me/privacy', dto),
+    onSuccess: (_res, dto) => {
+      const patch: Parameters<typeof updateUser>[0] = {}
+      if (dto.showLikesReceived !== undefined) patch.showLikesReceived = dto.showLikesReceived
+      if (dto.joinPopularityRanking !== undefined)
+        patch.joinPopularityRanking = dto.joinPopularityRanking
+      updateUser(patch)
     },
   })
 }

@@ -82,3 +82,10 @@ export const AvoidPrefsSchema = z.object({
   avoidSameCompany: z.boolean().optional(),
 })
 export type AvoidPrefsDto = z.infer<typeof AvoidPrefsSchema>
+
+/** 민감 정보 노출 설정 — 받은 호감 수·인기 랭킹 참여. */
+export const PrivacyPrefsSchema = z.object({
+  showLikesReceived: z.boolean().optional(),
+  joinPopularityRanking: z.boolean().optional(),
+})
+export type PrivacyPrefsDto = z.infer<typeof PrivacyPrefsSchema>

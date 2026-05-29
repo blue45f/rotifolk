@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   EDUCATION_LABEL,
   INCOME_BAND_LABEL,
@@ -29,7 +29,9 @@ import {
   useAddAvoidContacts,
   useAvoidContacts,
   useRemoveAvoidContact,
+  useUpdateAvoidPrefs,
   useUpdateContact,
+  useUpdatePrivacy,
   useUpdateProfile,
   useUpdateTrust,
   useVerifyField,
@@ -577,12 +579,22 @@ function AvoidTab() {
   const addContacts = useAddAvoidContacts()
   const removeContact = useRemoveAvoidContact()
   const updateContact = useUpdateContact()
+  const updateAvoidPrefs = useUpdateAvoidPrefs()
+  const updatePrivacy = useUpdatePrivacy()
 
   const [phone, setPhone] = useState('')
   const [label, setLabel] = useState('')
-  const [avoidSameCompany, setAvoidSameCompany] = useState(
-    () => localStorage.getItem('rotifolk-avoid-same-company') === '1',
+  const [avoidSameCompany, setAvoidSameCompany] = useState(() => user.avoidSameCompany ?? false)
+  const [showLikesReceived, setShowLikesReceived] = useState(() => user.showLikesReceived ?? true)
+  const [joinPopularityRanking, setJoinPopularityRanking] = useState(
+    () => user.joinPopularityRanking ?? true,
   )
+
+  useEffect(() => {
+    setAvoidSameCompany(user.avoidSameCompany ?? false)
+    setShowLikesReceived(user.showLikesReceived ?? true)
+    setJoinPopularityRanking(user.joinPopularityRanking ?? true)
+  }, [user.avoidSameCompany, user.showLikesReceived, user.joinPopularityRanking])
 
   const add = async () => {
     const v = phone.trim()
@@ -602,7 +614,16 @@ function AvoidTab() {
 
   const toggleSameCompany = (next: boolean) => {
     setAvoidSameCompany(next)
-    localStorage.setItem('rotifolk-avoid-same-company', next ? '1' : '0')
+    updateAvoidPrefs.mutate(
+      { avoidSameCompany: next },
+      {
+        onSuccess: () => toast.show('설정을 저장했어요', 'success'),
+        onError: (e) => {
+          setAvoidSameCompany(!next)
+          toast.show((e as Error).message, 'error')
+        },
+      },
+    )
   }
 
   return (
@@ -733,6 +754,66 @@ function AvoidTab() {
                 },
               )
             }
+          />
+        </label>
+      </Card>
+
+      <Card padding="lg" className={styles.tabCard}>
+        <div className={styles.sectionHead}>
+          <span className={styles.sectionIndex}>👀</span>
+          <div>
+            <h2 className={styles.h2}>민감 정보 공개</h2>
+            <p className={styles.muted}>받은 호감 수처럼 민감한 정보를 어디까지 보일지 골라요.</p>
+          </div>
+        </div>
+        <label className={styles.toggleRow}>
+          <div className={styles.toggleCopy}>
+            <strong>받은 호감 수 공개</strong>
+            <p className={styles.muted}>끄면 ‘오늘의 인기’에 뽑혀도 받은 호감 수는 숨겨져요.</p>
+          </div>
+          <input
+            type="checkbox"
+            className={styles.checkbox}
+            checked={showLikesReceived}
+            onChange={(e) => {
+              const next = e.target.checked
+              setShowLikesReceived(next)
+              updatePrivacy.mutate(
+                { showLikesReceived: next },
+                {
+                  onSuccess: () => toast.show('설정을 저장했어요', 'success'),
+                  onError: (err) => {
+                    setShowLikesReceived(!next)
+                    toast.show((err as Error).message, 'error')
+                  },
+                },
+              )
+            }}
+          />
+        </label>
+        <label className={styles.toggleRow}>
+          <div className={styles.toggleCopy}>
+            <strong>오늘의 인기남/인기녀 선정 참여</strong>
+            <p className={styles.muted}>끄면 종료 후 인기 멤버 공개 대상에서 빠져요.</p>
+          </div>
+          <input
+            type="checkbox"
+            className={styles.checkbox}
+            checked={joinPopularityRanking}
+            onChange={(e) => {
+              const next = e.target.checked
+              setJoinPopularityRanking(next)
+              updatePrivacy.mutate(
+                { joinPopularityRanking: next },
+                {
+                  onSuccess: () => toast.show('설정을 저장했어요', 'success'),
+                  onError: (err) => {
+                    setJoinPopularityRanking(!next)
+                    toast.show((err as Error).message, 'error')
+                  },
+                },
+              )
+            }}
           />
         </label>
       </Card>

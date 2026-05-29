@@ -48,6 +48,10 @@ export interface User extends Timestamps {
   education?: Education | null
   verifiedFields: VerificationField[]
   visibility: Partial<Record<VerifiableDetailField, FieldVisibility>>
+
+  // 민감 정보 노출 설정
+  showLikesReceived?: boolean // 받은 호감 수 공개
+  joinPopularityRanking?: boolean // 오늘의 인기남/인기녀 선정 대상 포함
 }
 
 export type PublicUser = Pick<
