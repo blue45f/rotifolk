@@ -86,19 +86,21 @@ export default function HostCreatePage() {
   })
 
   const watched = watch()
-  const [step, setStep] = useState<'concept' | 'venue' | 'rounds' | 'price'>('concept')
+  const [step, setStep] = useState<'concept' | 'venue' | 'rounds' | 'match' | 'price'>('concept')
 
   const next: Record<typeof step, typeof step | null> = {
     concept: 'venue',
     venue: 'rounds',
-    rounds: 'price',
+    rounds: 'match',
+    match: 'price',
     price: null,
   }
   const prev: Record<typeof step, typeof step | null> = {
     concept: null,
     venue: 'concept',
     rounds: 'venue',
-    price: 'rounds',
+    match: 'rounds',
+    price: 'match',
   }
 
   const onSubmit = handleSubmit(async (data) => {
@@ -116,7 +118,7 @@ export default function HostCreatePage() {
       <header className={`container ${styles.head}`}>
         <h1 className={styles.title}>새 로테이션 파티 만들기</h1>
         <div className={styles.stepper} role="tablist" aria-label="파티 개설 단계">
-          {(['concept', 'venue', 'rounds', 'price'] as const).map((s, i) => (
+          {(['concept', 'venue', 'rounds', 'match', 'price'] as const).map((s, i) => (
             <button
               key={s}
               type="button"
@@ -464,7 +466,13 @@ export default function HostCreatePage() {
   )
 }
 
-const STEP_LABEL = { concept: '컨셉', venue: '장소', rounds: '라운드', price: '가격' } as const
+const STEP_LABEL = {
+  concept: '컨셉',
+  venue: '장소',
+  rounds: '라운드',
+  match: '매칭 & 대화',
+  price: '가격',
+} as const
 
 function Toggle({
   checked,

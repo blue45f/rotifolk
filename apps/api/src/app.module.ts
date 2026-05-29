@@ -21,6 +21,8 @@ import { PhotosModule } from './modules/photos/photos.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
 import { HostApplicationsModule } from './modules/host-applications/host-applications.module'
 import { PaymentsModule } from './modules/payments/payments.module'
+import { MeModule } from './modules/me/me.module'
+import { NotesModule } from './modules/notes/notes.module'
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { PaymentsModule } from './modules/payments/payments.module'
     NotificationsModule,
     HostApplicationsModule,
     PaymentsModule,
+    MeModule,
+    NotesModule,
     LiveModule,
   ],
 })

@@ -1,0 +1,112 @@
+.page {
+  padding-block: var(--space-8) var(--space-16);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
+}
+.title {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-tight);
+}
+.sub {
+  color: var(--color-text-muted);
+  line-height: var(--lh-relaxed);
+}
+.sub strong {
+  color: var(--color-text);
+  font-weight: var(--fw-bold);
+}
+.subUnread {
+  color: var(--color-primary);
+  font-weight: var(--fw-semibold);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-5);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.cardUnread {
+  cursor: pointer;
+  background: color-mix(in oklab, var(--brand-gold-500) 6%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--brand-gold-500) 38%, var(--color-border));
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.name {
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 18%, transparent);
+}
+.time {
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+}
+.sticker {
+  font-size: var(--fs-2xl);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.body {
+  color: var(--color-text);
+  line-height: var(--lh-relaxed);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
