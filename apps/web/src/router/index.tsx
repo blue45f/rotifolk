@@ -82,6 +82,8 @@ export const routes: RouteObject[] = [
           { index: true, element: lazyPage(() => import('@pages/host/HostConsolePage')) },
           { path: 'create', element: lazyPage(() => import('@pages/host/HostCreatePage')) },
           { path: 'sourcing', element: lazyPage(() => import('@pages/sourcing/SourcingPage')) },
+          { path: 'space', element: lazyPage(() => import('@pages/host/OwnerHostingPage')) },
+          { path: 'venues/new', element: lazyPage(() => import('@pages/host/VenueRegisterPage')) },
           {
             path: 'parties/:partyId',
             element: lazyPage(() => import('@pages/host/HostManagePage')),
