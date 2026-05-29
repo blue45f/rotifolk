@@ -103,6 +103,14 @@
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-tight);
 }
+.compat {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--brand-burgundy-700);
+  background: color-mix(in oklab, var(--brand-gold-500) 12%, transparent);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
 .actions {
   display: flex;
   flex-direction: column;

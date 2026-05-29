@@ -385,6 +385,11 @@ export const handlers = [
             avatarId: 'a_w1',
             result: 'mutual',
             phone: '010-1234-5678',
+            compatibility: {
+              score: 87,
+              title: '천생연분 ✨',
+              blurb: '오늘 같은 흐름, 흔치 않아요.',
+            },
             channels: [
               { channel: 'chat', handle: null },
               { channel: 'kakao', handle: 'yoonseul_wine' },

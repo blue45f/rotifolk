@@ -13,6 +13,7 @@ import {
   buildRoundRobin,
   buildTrioRotation,
   channelsFromLegacyMode,
+  computeCompatibility,
   computeConnections,
   computeForbiddenPairs,
   computePopularity,
@@ -320,7 +321,14 @@ export class MatchingService {
       }),
       this.prisma.user.findUnique({
         where: { id: userId },
-        select: { shareContact: true, shareKakao: true, shareInstagram: true },
+        select: {
+          shareContact: true,
+          shareKakao: true,
+          shareInstagram: true,
+          mbti: true,
+          interestsJson: true,
+          birthYear: true,
+        },
       }),
       this.forbiddenPairsForParty(partyId),
     ])
@@ -362,9 +370,17 @@ export class MatchingService {
         shareKakao: true,
         instagram: true,
         shareInstagram: true,
+        mbti: true,
+        interestsJson: true,
+        birthYear: true,
       },
     })
     const pmap = new Map(partners.map((p) => [p.id, p]))
+    const meCompat = {
+      mbti: me?.mbti ?? null,
+      interests: parseJsonArray<string>(me?.interestsJson ?? '[]'),
+      birthYear: me?.birthYear ?? null,
+    }
     const popularity = party.revealPopular
       ? computePopularity(
           votes.map((v) => ({ toUserId: v.toUserId })),
@@ -380,6 +396,15 @@ export class MatchingService {
       const conn = mine.find((c) => c.userAId === pid || c.userBId === pid)
       const channels = resolveSharedChannels(offeredChannels, meContact, p ?? {})
       const phone = channels.find((c) => c.channel === 'phone')?.handle ?? null
+      const compat = computeCompatibility(
+        meCompat,
+        {
+          mbti: p?.mbti ?? null,
+          interests: parseJsonArray<string>(p?.interestsJson ?? '[]'),
+          birthYear: p?.birthYear ?? null,
+        },
+        `${userId}-${pid}`,
+      )
       return {
         partnerId: pid,
         nickname: p?.nickname ?? '익명',
@@ -387,6 +412,7 @@ export class MatchingService {
         result: conn?.result ?? 'mutual',
         phone,
         channels,
+        compatibility: { score: compat.score, title: compat.title, blurb: compat.blurb },
       }
     })
 

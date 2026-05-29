@@ -17,6 +17,8 @@ export interface PartyMatch {
   result: MatchResult
   /** 이 인연과 이어질 수 있는 채널들 (호스트 정책 ∩ 상호 동의). */
   channels: MatchChannel[]
+  /** 서로 간의 궁합 (MBTI·관심사·띠 기반). */
+  compatibility?: { score: number; title: string; blurb: string }
 }
 
 export interface MyPartyMatches {

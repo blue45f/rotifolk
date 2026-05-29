@@ -241,6 +241,12 @@ function MatchCard({
         {RESULT_LABEL[match.result]}
       </Badge>
 
+      {match.compatibility && (
+        <div className={styles.compat} title={match.compatibility.blurb}>
+          💞 궁합 {match.compatibility.score} · {match.compatibility.title}
+        </div>
+      )}
+
       <div className={styles.actions}>
         {match.channels.length === 0 ? (
           <span className={styles.channelLocked}>아직 열린 연결 채널이 없어요</span>
