@@ -41,12 +41,13 @@ export default function HostConsolePage() {
   const live = data?.filter((p) => p.status === 'live').length ?? 0
   const open = data?.filter((p) => p.status === 'open').length ?? 0
 
-  const filteredParties = statusFilter === 'all'
-    ? (data ?? [])
-    : (data ?? []).filter((p) => {
-        if (statusFilter === 'ended') return p.status !== 'live' && p.status !== 'open'
-        return p.status === statusFilter
-      })
+  const filteredParties =
+    statusFilter === 'all'
+      ? (data ?? [])
+      : (data ?? []).filter((p) => {
+          if (statusFilter === 'ended') return p.status !== 'live' && p.status !== 'open'
+          return p.status === statusFilter
+        })
 
   return (
     <div className={styles.page}>
@@ -63,6 +64,22 @@ export default function HostConsolePage() {
           </Button>
         </Link>
       </header>
+
+      <section
+        className="container"
+        style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 'var(--space-5)' }}
+      >
+        <Link to="/host/sourcing">
+          <Button variant="gold" size="lg">
+            📍 공간 섭외 스튜디오
+          </Button>
+        </Link>
+        <Link to="/host/space">
+          <Button variant="outline" size="lg">
+            🏠 내 가게로 호스팅
+          </Button>
+        </Link>
+      </section>
 
       <section className={`container ${styles.stats}`}>
         <StatCard label="진행 중인 파티" value={live} emoji="🔴" />
@@ -101,9 +118,7 @@ export default function HostConsolePage() {
           <div className={styles.revenueDivider} />
 
           {(revenue?.totalKRW ?? 0) === 0 ? (
-            <p className={styles.revenueEmpty}>
-              첫 모임이 결제되면 여기에 표시돼요
-            </p>
+            <p className={styles.revenueEmpty}>첫 모임이 결제되면 여기에 표시돼요</p>
           ) : (
             <ul className={styles.revenueList}>
               {revenue?.recent
@@ -142,10 +157,30 @@ export default function HostConsolePage() {
         ) : (
           <>
             <div className={styles.filterRow} role="group" aria-label="파티 상태 필터">
-              <Chip selected={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>전체</Chip>
-              <Chip selected={statusFilter === 'live'} onClick={() => setStatusFilter('live')} leadingEmoji="🔴">진행 중</Chip>
-              <Chip selected={statusFilter === 'open'} onClick={() => setStatusFilter('open')} leadingEmoji="🌙">모집 중</Chip>
-              <Chip selected={statusFilter === 'ended'} onClick={() => setStatusFilter('ended')} leadingEmoji="🏁">지난 파티</Chip>
+              <Chip selected={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
+                전체
+              </Chip>
+              <Chip
+                selected={statusFilter === 'live'}
+                onClick={() => setStatusFilter('live')}
+                leadingEmoji="🔴"
+              >
+                진행 중
+              </Chip>
+              <Chip
+                selected={statusFilter === 'open'}
+                onClick={() => setStatusFilter('open')}
+                leadingEmoji="🌙"
+              >
+                모집 중
+              </Chip>
+              <Chip
+                selected={statusFilter === 'ended'}
+                onClick={() => setStatusFilter('ended')}
+                leadingEmoji="🏁"
+              >
+                지난 파티
+              </Chip>
             </div>
             {filteredParties.length === 0 ? (
               <p className={styles.filterEmpty}>이 상태의 파티가 없어요.</p>

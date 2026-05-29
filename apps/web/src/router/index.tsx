@@ -24,17 +24,28 @@ export const routes: RouteObject[] = [
       { path: 'discover', element: lazyPage(() => import('@pages/discover/DiscoverPage')) },
       { path: 'category/:value', element: lazyPage(() => import('@pages/category/CategoryPage')) },
       { path: 'vibe', element: lazyPage(() => import('@pages/vibe/VibePage')) },
-      { path: 'neighborhood', element: lazyPage(() => import('@pages/neighborhood/NeighborhoodPage')) },
+      {
+        path: 'neighborhood',
+        element: lazyPage(() => import('@pages/neighborhood/NeighborhoodPage')),
+      },
       { path: 'quick', element: lazyPage(() => import('@pages/quick/QuickCreatePage')) },
       { path: 'parties/:partyId', element: lazyPage(() => import('@pages/party/PartyDetailPage')) },
       { path: 'venues', element: lazyPage(() => import('@pages/venues/VenuesPage')) },
       { path: 'help', element: lazyPage(() => import('@pages/help/HelpPage')) },
-      { path: 'hosts/:hostId', element: lazyPage(() => import('@pages/host-profile/HostProfilePage')) },
-      { path: 'match-card/:userId', element: lazyPage(() => import('@pages/match-card/MatchCardPage')) },
+      {
+        path: 'hosts/:hostId',
+        element: lazyPage(() => import('@pages/host-profile/HostProfilePage')),
+      },
+      {
+        path: 'match-card/:userId',
+        element: lazyPage(() => import('@pages/match-card/MatchCardPage')),
+      },
       {
         path: 'me/cards',
         element: <ProtectedRoute />,
-        children: [{ index: true, element: lazyPage(() => import('@pages/match-cards/MatchCardsPage')) }],
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/match-cards/MatchCardsPage')) },
+        ],
       },
       {
         path: 'me/follows',
@@ -44,17 +55,23 @@ export const routes: RouteObject[] = [
       {
         path: 'me/saved',
         element: <ProtectedRoute />,
-        children: [{ index: true, element: lazyPage(() => import('@pages/saved/SavedPartiesPage')) }],
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/saved/SavedPartiesPage')) },
+        ],
       },
       {
         path: 'me/payments',
         element: <ProtectedRoute />,
-        children: [{ index: true, element: lazyPage(() => import('@pages/payments/PaymentsHistoryPage')) }],
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/payments/PaymentsHistoryPage')) },
+        ],
       },
       {
         path: 'me/blocks',
         element: <ProtectedRoute />,
-        children: [{ index: true, element: lazyPage(() => import('@pages/blocks/BlockedUsersPage')) }],
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/blocks/BlockedUsersPage')) },
+        ],
       },
       { path: 'login', element: lazyPage(() => import('@pages/auth/LoginPage')) },
       { path: 'signup', element: lazyPage(() => import('@pages/auth/SignUpPage')) },
@@ -64,7 +81,11 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: lazyPage(() => import('@pages/host/HostConsolePage')) },
           { path: 'create', element: lazyPage(() => import('@pages/host/HostCreatePage')) },
-          { path: 'parties/:partyId', element: lazyPage(() => import('@pages/host/HostManagePage')) },
+          { path: 'sourcing', element: lazyPage(() => import('@pages/sourcing/SourcingPage')) },
+          {
+            path: 'parties/:partyId',
+            element: lazyPage(() => import('@pages/host/HostManagePage')),
+          },
         ],
       },
       {
@@ -88,7 +109,12 @@ export const routes: RouteObject[] = [
       {
         path: 'notifications',
         element: <ProtectedRoute />,
-        children: [{ index: true, element: lazyPage(() => import('@pages/notifications/NotificationsPage')) }],
+        children: [
+          {
+            index: true,
+            element: lazyPage(() => import('@pages/notifications/NotificationsPage')),
+          },
+        ],
       },
       { path: 'search', element: lazyPage(() => import('@pages/search/SearchPage')) },
       { path: 'invite/:code', element: lazyPage(() => import('@pages/invite/InvitePage')) },
@@ -96,12 +122,16 @@ export const routes: RouteObject[] = [
       {
         path: 'become-host',
         element: <ProtectedRoute />,
-        children: [{ index: true, element: lazyPage(() => import('@pages/host-apply/HostApplyPage')) }],
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/host-apply/HostApplyPage')) },
+        ],
       },
       {
         path: 'calendar',
         element: <ProtectedRoute />,
-        children: [{ index: true, element: lazyPage(() => import('@pages/calendar/CalendarPage')) }],
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/calendar/CalendarPage')) },
+        ],
       },
       {
         path: 'admin',
