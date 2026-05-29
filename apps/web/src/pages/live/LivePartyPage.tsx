@@ -361,11 +361,18 @@ export default function LivePartyPage() {
             ))}
           </ul>
         )}
-        <Link to={`/parties/${party.id}`}>
-          <Button variant="primary" fullWidth size="lg">
-            돌아가기
-          </Button>
-        </Link>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+          <Link to={`/parties/${party.id}/reveal`} onClick={() => setShowFinal(false)}>
+            <Button variant="gold" fullWidth size="lg">
+              ✨ 결과 자세히 보기
+            </Button>
+          </Link>
+          <Link to={`/parties/${party.id}`}>
+            <Button variant="ghost" fullWidth size="md">
+              돌아가기
+            </Button>
+          </Link>
+        </div>
       </Sheet>
 
       <Sheet

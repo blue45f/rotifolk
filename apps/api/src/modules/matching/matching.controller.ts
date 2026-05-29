@@ -45,4 +45,9 @@ export class MatchingController {
   reveal(@CurrentUser() me: JwtUserPayload, @Param('partyId') partyId: string) {
     return this.matching.revealFinalMatches(me.sub, partyId)
   }
+
+  @Get('my-matches')
+  myMatches(@CurrentUser() me: JwtUserPayload, @Param('partyId') partyId: string) {
+    return this.matching.myPartyMatches(me.sub, partyId)
+  }
 }

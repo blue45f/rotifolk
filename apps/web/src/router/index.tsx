@@ -108,6 +108,13 @@ export const routes: RouteObject[] = [
         children: [{ index: true, element: lazyPage(() => import('@pages/live/LivePartyPage')) }],
       },
       {
+        path: 'parties/:partyId/reveal',
+        element: <ProtectedRoute />,
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/match-reveal/MatchRevealPage')) },
+        ],
+      },
+      {
         path: 'me',
         element: <ProtectedRoute />,
         children: [{ index: true, element: lazyPage(() => import('@pages/profile/ProfilePage')) }],

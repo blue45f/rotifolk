@@ -369,6 +369,26 @@ export const handlers = [
     )
   }),
 
+  // Match reveal — 내 인연 (파티 정책대로 산출; mock은 상호 매칭 1건)
+  http.get(`${API}/parties/:partyId/matching/my-matches`, async () =>
+    HttpResponse.json(
+      await delay({
+        scope: 'mutual-only',
+        connectionMode: 'both',
+        groupAfterParty: true,
+        matches: [
+          {
+            partnerId: 'u_w1',
+            nickname: '윤슬',
+            avatarId: 'a_w1',
+            result: 'mutual',
+            phone: '010-1234-5678',
+          },
+        ],
+      }),
+    ),
+  ),
+
   // Notes (쪽지)
   http.get(`${API}/notes/mine`, async () => HttpResponse.json(await delay([]))),
   http.get(`${API}/notes/party/:partyId`, async () =>

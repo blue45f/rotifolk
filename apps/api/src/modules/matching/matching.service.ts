@@ -1,15 +1,21 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { PrismaService } from '@/prisma/prisma.service'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
 import {
   buildHeteroRotation,
   buildRoundRobin,
   buildTrioRotation,
+  computeConnections,
   findMutualMatches,
   groupByN,
   shuffle,
 } from '@rotifolk/shared'
-import type { HeteroParticipant } from '@rotifolk/shared'
+import type { HeteroParticipant, MatchScope } from '@rotifolk/shared'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
 
 @Injectable()
@@ -22,7 +28,8 @@ export class MatchingService {
   /** 호스트가 처음 라운드를 생성. 기존 라운드 있으면 폐기. */
   async planRounds(hostId: string, partyId: string) {
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
-    if (!party) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
     if (party.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트만 라운드를 짤 수 있어요' })
 
@@ -32,7 +39,10 @@ export class MatchingService {
       orderBy: { createdAt: 'asc' },
     })
     if (participants.length < 2)
-      throw new BadRequestException({ code: 'not_enough_participants', message: '최소 2명 필요해요' })
+      throw new BadRequestException({
+        code: 'not_enough_participants',
+        message: '최소 2명 필요해요',
+      })
 
     const ids = participants.map((p) => p.userId)
     const heteroPool: HeteroParticipant[] = participants
@@ -132,7 +142,8 @@ export class MatchingService {
 
   async getCurrentRound(partyId: string, userId: string) {
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
-    if (!party) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
     if (!party.currentRoundIndex) return null
 
     const round = await this.prisma.round.findFirst({
@@ -141,9 +152,7 @@ export class MatchingService {
     })
     if (!round) return null
 
-    const myPair = round.pairs.find((p) =>
-      parseJsonArray<string>(p.memberIdsJson).includes(userId),
-    )
+    const myPair = round.pairs.find((p) => parseJsonArray<string>(p.memberIdsJson).includes(userId))
 
     return {
       round: {
@@ -167,7 +176,8 @@ export class MatchingService {
     if (fromUserId === toUserId)
       throw new BadRequestException({ code: 'self_vote', message: '본인은 선택할 수 없어요' })
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
-    if (!party) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
 
     return this.prisma.midMatchVote.upsert({
       where: {
@@ -241,7 +251,12 @@ export class MatchingService {
       ]),
     })
     for (const c of created) {
-      const payload = { kind: 'match_made', title: '💫 매칭됐어요!', body: `${party.title}에서 서로를 골랐어요.`, link: '/chats' }
+      const payload = {
+        kind: 'match_made',
+        title: '💫 매칭됐어요!',
+        body: `${party.title}에서 서로를 골랐어요.`,
+        link: '/chats',
+      }
       this.notifEmitter.toUser(c.userAId, payload)
       this.notifEmitter.toUser(c.userBId, payload)
     }
@@ -253,6 +268,66 @@ export class MatchingService {
       result: c.result,
       matchedAt: c.matchedAt.toISOString(),
     }))
+  }
+
+  /**
+   * 종료 후 매칭 리빌 — 현재 사용자의 인연을 파티 정책(matchScope)대로 계산.
+   * connectionMode가 phone/both이고 양쪽이 연락처 공개에 동의했을 때만 전화번호를 노출한다.
+   */
+  async myPartyMatches(userId: string, partyId: string) {
+    const party = await this.prisma.party.findUnique({ where: { id: partyId } })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+
+    const [votes, participants, me] = await Promise.all([
+      this.prisma.finalMatchVote.findMany({
+        where: { partyId },
+        select: { fromUserId: true, toUserId: true },
+      }),
+      this.prisma.participation.findMany({
+        where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
+        select: { userId: true },
+      }),
+      this.prisma.user.findUnique({ where: { id: userId }, select: { shareContact: true } }),
+    ])
+
+    const connections = computeConnections({
+      scope: party.matchScope as MatchScope,
+      votes,
+      allUserIds: participants.map((p) => p.userId),
+      maxPerPerson: party.maxMatchesPerPerson,
+    })
+    const mine = connections.filter((c) => c.userAId === userId || c.userBId === userId)
+    const partnerIds = [
+      ...new Set(mine.map((c) => (c.userAId === userId ? c.userBId : c.userAId))),
+    ].filter((id) => id !== userId)
+
+    const partners = await this.prisma.user.findMany({
+      where: { id: { in: partnerIds } },
+      select: { id: true, nickname: true, avatarId: true, phone: true, shareContact: true },
+    })
+    const pmap = new Map(partners.map((p) => [p.id, p]))
+    const wantsPhone = party.connectionMode === 'phone' || party.connectionMode === 'both'
+
+    const matches = partnerIds.map((pid) => {
+      const p = pmap.get(pid)
+      const conn = mine.find((c) => c.userAId === pid || c.userBId === pid)
+      const phone = wantsPhone && me?.shareContact && p?.shareContact ? (p?.phone ?? null) : null
+      return {
+        partnerId: pid,
+        nickname: p?.nickname ?? '익명',
+        avatarId: p?.avatarId ?? null,
+        result: conn?.result ?? 'mutual',
+        phone,
+      }
+    })
+
+    return {
+      scope: party.matchScope,
+      connectionMode: party.connectionMode,
+      groupAfterParty: party.groupAfterParty,
+      matches,
+    }
   }
 
   private seatLabel(i: number): string {
