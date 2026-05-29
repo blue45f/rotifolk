@@ -59,6 +59,7 @@ export class MeService {
     if (dto.company !== undefined) data.company = dto.company
     if (dto.incomeBand !== undefined) data.incomeBand = dto.incomeBand
     if (dto.maritalStatus !== undefined) data.maritalStatus = dto.maritalStatus
+    if (dto.hasChildren !== undefined) data.hasChildren = dto.hasChildren
     if (dto.education !== undefined) data.education = dto.education
     if (dto.visibility !== undefined) data.visibilityJson = toJsonString(dto.visibility)
 

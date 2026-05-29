@@ -60,6 +60,7 @@ const DEFAULTS: Partial<CreatePartyDto> = {
     drinkPackage: 'per-glass',
     snackPackage: 'none',
     refundDeadlineHours: 24,
+    pricingRules: [],
   },
   recruitment: {
     genderRatioTarget: 'any',

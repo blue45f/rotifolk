@@ -4,17 +4,26 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { canAcceptGender, channelsFromLegacyMode, quoteRefund } from '@rotifolk/shared'
+import {
+  ageFromBirthYear,
+  canAcceptGender,
+  channelsFromLegacyMode,
+  checkEligibility,
+  quoteRefund,
+} from '@rotifolk/shared'
 import type {
+  ChildrenPolicy,
   ConnectionChannel,
   CreatePartyDto,
+  MaritalStatus,
   PartyCategory,
   PartyConfig,
   PartyQueryDto,
   UpdatePartyDto,
+  VerificationField,
 } from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
-import { toJsonString } from '@/common/json-utils'
+import { parseJsonArray, toJsonString } from '@/common/json-utils'
 import { toParticipation, toParty, toPartySummary } from './party.mapper'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
 
@@ -166,6 +175,7 @@ export class PartiesService {
         drinkPackage: dto.pricing.drinkPackage,
         snackPackage: dto.pricing.snackPackage,
         refundDeadlineHours: dto.pricing.refundDeadlineHours,
+        pricingRulesJson: toJsonString(dto.pricing.pricingRules ?? []),
         genderRatioTarget: dto.recruitment.genderRatioTarget,
         ratioTolerance: dto.recruitment.ratioTolerance,
         maleCap: dto.recruitment.maleCap ?? null,
@@ -177,6 +187,13 @@ export class PartiesService {
         tagsJson: toJsonString(dto.tags),
         ageMin: dto.ageMin ?? null,
         ageMax: dto.ageMax ?? null,
+        maleAgeMin: dto.maleAgeMin ?? null,
+        maleAgeMax: dto.maleAgeMax ?? null,
+        femaleAgeMin: dto.femaleAgeMin ?? null,
+        femaleAgeMax: dto.femaleAgeMax ?? null,
+        requiredVerificationsJson: toJsonString(dto.requiredVerifications ?? []),
+        maritalRequirementJson: toJsonString(dto.maritalRequirement ?? []),
+        childrenPolicy: dto.childrenPolicy ?? 'any',
         genderRatio: dto.genderRatio ?? null,
       },
       include: { venue: true, host: { include: { avatar: true } } },
@@ -357,6 +374,18 @@ export class PartiesService {
     if (dto.maxParticipants) data.maxParticipants = dto.maxParticipants
     if (dto.venueId) data.venueId = dto.venueId
     if (dto.tags) data.tagsJson = toJsonString(dto.tags)
+    if (dto.ageMin !== undefined) data.ageMin = dto.ageMin ?? null
+    if (dto.ageMax !== undefined) data.ageMax = dto.ageMax ?? null
+    if (dto.maleAgeMin !== undefined) data.maleAgeMin = dto.maleAgeMin ?? null
+    if (dto.maleAgeMax !== undefined) data.maleAgeMax = dto.maleAgeMax ?? null
+    if (dto.femaleAgeMin !== undefined) data.femaleAgeMin = dto.femaleAgeMin ?? null
+    if (dto.femaleAgeMax !== undefined) data.femaleAgeMax = dto.femaleAgeMax ?? null
+    if (dto.requiredVerifications !== undefined)
+      data.requiredVerificationsJson = toJsonString(dto.requiredVerifications ?? [])
+    if (dto.maritalRequirement !== undefined)
+      data.maritalRequirementJson = toJsonString(dto.maritalRequirement ?? [])
+    if (dto.childrenPolicy !== undefined) data.childrenPolicy = dto.childrenPolicy
+    if (dto.genderRatio !== undefined) data.genderRatio = dto.genderRatio ?? null
     if (dto.config) {
       Object.assign(data, {
         category: dto.config.category,
@@ -391,6 +420,7 @@ export class PartiesService {
         drinkPackage: dto.pricing.drinkPackage,
         snackPackage: dto.pricing.snackPackage,
         refundDeadlineHours: dto.pricing.refundDeadlineHours,
+        pricingRulesJson: toJsonString(dto.pricing.pricingRules ?? []),
       })
     }
     if (dto.recruitment) {
@@ -445,8 +475,45 @@ export class PartiesService {
     // 아니면 대기열. (예: 5:3 목표면 남10에 여6 이상이어야 남이 더 들어옴)
     const joiner = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { gender: true },
+      select: {
+        gender: true,
+        birthYear: true,
+        maritalStatus: true,
+        hasChildren: true,
+        verifiedFieldsJson: true,
+      },
     })
+
+    // 참가 자격 — 성별별 나이 · 혼인상태(돌싱 등) · 아이 유무 · 필수 인증
+    const eligibility = checkEligibility(
+      {
+        ageMin: party.ageMin,
+        ageMax: party.ageMax,
+        maleAgeMin: party.maleAgeMin,
+        maleAgeMax: party.maleAgeMax,
+        femaleAgeMin: party.femaleAgeMin,
+        femaleAgeMax: party.femaleAgeMax,
+        requiredVerifications: parseJsonArray<VerificationField>(party.requiredVerificationsJson),
+        maritalRequirement: parseJsonArray<MaritalStatus>(party.maritalRequirementJson),
+        childrenPolicy: party.childrenPolicy as ChildrenPolicy,
+      },
+      {
+        gender: joiner?.gender,
+        age: ageFromBirthYear(joiner?.birthYear ?? null, new Date().getFullYear()),
+        maritalStatus: (joiner?.maritalStatus ?? null) as MaritalStatus | null,
+        hasChildren: joiner?.hasChildren ?? null,
+        verifiedFields: parseJsonArray<VerificationField>(joiner?.verifiedFieldsJson ?? '[]'),
+      },
+    )
+    if (!eligibility.ok) {
+      throw new BadRequestException({
+        code: 'not_eligible',
+        message: '참가 자격 조건을 충족하지 않아요',
+        reasons: eligibility.reasons,
+        missingVerifications: eligibility.missingVerifications,
+      })
+    }
+
     const counts = await this.genderCounts(partyId)
     const confirmedCount = await this.prisma.participation.count({
       where: { partyId, status: { in: ['confirmed', 'checked-in'] } },

@@ -20,6 +20,10 @@ import type {
   ConnectionMode,
   ConnectionChannel,
   NoteDelivery,
+  PricingRule,
+  VerificationField,
+  MaritalStatus,
+  ChildrenPolicy,
 } from '@rotifolk/shared'
 import { channelsFromLegacyMode } from '@rotifolk/shared'
 import { parseJsonArray } from '@/common/json-utils'
@@ -61,6 +65,13 @@ export function toParty(row: PartyRow, participationCount?: number): Party {
     tags: parseJsonArray<string>(row.tagsJson),
     ageMin: row.ageMin,
     ageMax: row.ageMax,
+    maleAgeMin: row.maleAgeMin,
+    maleAgeMax: row.maleAgeMax,
+    femaleAgeMin: row.femaleAgeMin,
+    femaleAgeMax: row.femaleAgeMax,
+    requiredVerifications: parseJsonArray<VerificationField>(row.requiredVerificationsJson),
+    maritalRequirement: parseJsonArray<MaritalStatus>(row.maritalRequirementJson),
+    childrenPolicy: row.childrenPolicy as ChildrenPolicy,
     genderRatio: (row.genderRatio as Party['genderRatio']) ?? null,
     config: {
       category: row.category as PartyCategory,
@@ -93,6 +104,7 @@ export function toParty(row: PartyRow, participationCount?: number): Party {
       drinkPackage: row.drinkPackage as DrinkPackage,
       snackPackage: row.snackPackage as SnackPackage,
       refundDeadlineHours: row.refundDeadlineHours,
+      pricingRules: parseJsonArray<PricingRule>(row.pricingRulesJson),
     },
     recruitment: {
       genderRatioTarget: row.genderRatioTarget,
