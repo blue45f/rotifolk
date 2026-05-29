@@ -200,6 +200,8 @@ export default function LivePartyPage() {
             onSendNote={(p) => setNoteTarget(p)}
             hubId={hubId}
             iAmHub={iAmHub}
+            roundIndex={state.currentRoundIndex}
+            totalRounds={party.config.totalRounds}
           />
         ) : (
           <WaitPanel
@@ -513,6 +515,8 @@ function PairPanel({
   onSendNote,
   hubId,
   iAmHub,
+  roundIndex,
+  totalRounds,
 }: {
   partners: { id: string; nickname: string; mbti?: string | null; interests: string[] }[]
   seatLabel: string
@@ -522,6 +526,8 @@ function PairPanel({
   onSendNote: (p: { id: string; nickname: string }) => void
   hubId?: string | null
   iAmHub?: boolean
+  roundIndex: number | null
+  totalRounds: number
 }) {
   return (
     <div className={styles.pair}>
@@ -594,7 +600,7 @@ function PairPanel({
         </Button>
       </div>
 
-      <ConversationKit />
+      <ConversationKit roundIndex={roundIndex} totalRounds={totalRounds} />
     </div>
   )
 }
@@ -607,10 +613,30 @@ const KIT_KINDS: { value: PromptKind; label: string; emoji: string }[] = [
   { value: 'game', label: '게임', emoji: '🎮' },
 ]
 
-/** 참가자용 대화 도우미 — 라운드 중 대화가 끊기지 않게 덱에서 직접 주제를 꺼낸다. */
-function ConversationKit() {
-  const [kind, setKind] = useState<PromptKind>('icebreaker')
+/** 라운드 진행도에 따라 추천 덱 (초반 가볍게 → 중반 밸런스 → 후반 이상형). WNRS 3단계 차용. */
+function suggestKitKind(roundIndex: number | null, totalRounds: number): PromptKind {
+  if (!roundIndex || totalRounds <= 0) return 'icebreaker'
+  const p = roundIndex / totalRounds
+  if (p <= 1 / 3) return 'icebreaker'
+  if (p <= 2 / 3) return 'balance'
+  return 'ideal'
+}
+
+/** 참가자용 대화 도우미 — 라운드 진행도에 맞춰 주제를 추천한다. */
+function ConversationKit({
+  roundIndex,
+  totalRounds,
+}: {
+  roundIndex: number | null
+  totalRounds: number
+}) {
+  const suggested = suggestKitKind(roundIndex, totalRounds)
+  const [kind, setKind] = useState<PromptKind>(suggested)
   const [idx, setIdx] = useState(0)
+  useEffect(() => {
+    setKind(suggestKitKind(roundIndex, totalRounds))
+    setIdx(0)
+  }, [roundIndex, totalRounds])
   const card = buildConversationCard(kind, idx)
   return (
     <div className={styles.kit}>
@@ -631,6 +657,7 @@ function ConversationKit() {
             }}
           >
             <span aria-hidden="true">{k.emoji}</span> {k.label}
+            {k.value === suggested ? ' · 추천' : ''}
           </button>
         ))}
       </div>
