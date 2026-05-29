@@ -2,7 +2,11 @@
 
 import type { ChildrenPolicy } from '../domain/party'
 import type { MaritalStatus, VerificationField } from '../domain/profile'
-import { isAgeEligible, type AgeLimitSource } from '../pricing/participant-pricing'
+import {
+  ageRangeForGender,
+  isAgeEligible,
+  type AgeLimitSource,
+} from '../pricing/participant-pricing'
 
 export type EligibilityReason = 'age' | 'marital' | 'children' | 'verification'
 
@@ -40,7 +44,14 @@ export function checkEligibility(
 ): EligibilityResult {
   const reasons: EligibilityReason[] = []
 
-  if (!isAgeEligible(policy, applicant.gender, applicant.age)) reasons.push('age')
+  // 나이 제한이 설정된 경우, 나이 미입력은 차단(혼인·아이 조건과 동일한 정책 — 확인 불가 시 불충족).
+  const ageLimit = ageRangeForGender(policy, applicant.gender)
+  const hasAgeLimit = ageLimit.min != null || ageLimit.max != null
+  if (hasAgeLimit && applicant.age == null) {
+    reasons.push('age')
+  } else if (!isAgeEligible(policy, applicant.gender, applicant.age)) {
+    reasons.push('age')
+  }
 
   const marital = policy.maritalRequirement ?? []
   if (marital.length > 0) {

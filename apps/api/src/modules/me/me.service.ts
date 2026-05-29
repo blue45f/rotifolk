@@ -205,7 +205,7 @@ export class MeService {
 
     const me = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
-      select: { phoneHash: true, company: true },
+      select: { phoneHash: true, company: true, avoidSameCompany: true },
     })
 
     const myAvoid = await this.prisma.avoidContact.findMany({
@@ -244,7 +244,7 @@ export class MeService {
         myAvoidHashes: myAvoid.map((a) => a.phoneHash),
         myBlockedUserIds: [...blockedUserIds],
         myCompany: me.company,
-        avoidSameCompany: true,
+        avoidSameCompany: me.avoidSameCompany ?? false,
       },
       parts.map((p) => ({
         userId: p.user.id,

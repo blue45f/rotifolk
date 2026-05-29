@@ -443,6 +443,61 @@ export class PartiesService {
     return toParty(updated)
   }
 
+  /** 참가 자격(나이·혼인·아이·필수인증) 검사 — 미충족 시 예외. 신규·재참가 공통. */
+  private async assertEligibleToJoin(
+    party: {
+      ageMin: number | null
+      ageMax: number | null
+      maleAgeMin: number | null
+      maleAgeMax: number | null
+      femaleAgeMin: number | null
+      femaleAgeMax: number | null
+      requiredVerificationsJson: string
+      maritalRequirementJson: string
+      childrenPolicy: string
+    },
+    userId: string,
+  ) {
+    const u = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        gender: true,
+        birthYear: true,
+        maritalStatus: true,
+        hasChildren: true,
+        verifiedFieldsJson: true,
+      },
+    })
+    const eligibility = checkEligibility(
+      {
+        ageMin: party.ageMin,
+        ageMax: party.ageMax,
+        maleAgeMin: party.maleAgeMin,
+        maleAgeMax: party.maleAgeMax,
+        femaleAgeMin: party.femaleAgeMin,
+        femaleAgeMax: party.femaleAgeMax,
+        requiredVerifications: parseJsonArray<VerificationField>(party.requiredVerificationsJson),
+        maritalRequirement: parseJsonArray<MaritalStatus>(party.maritalRequirementJson),
+        childrenPolicy: party.childrenPolicy as ChildrenPolicy,
+      },
+      {
+        gender: u?.gender,
+        age: ageFromBirthYear(u?.birthYear ?? null, new Date().getFullYear()),
+        maritalStatus: (u?.maritalStatus ?? null) as MaritalStatus | null,
+        hasChildren: u?.hasChildren ?? null,
+        verifiedFields: parseJsonArray<VerificationField>(u?.verifiedFieldsJson ?? '[]'),
+      },
+    )
+    if (!eligibility.ok) {
+      throw new BadRequestException({
+        code: 'not_eligible',
+        message: '참가 자격 조건을 충족하지 않아요',
+        reasons: eligibility.reasons,
+        missingVerifications: eligibility.missingVerifications,
+      })
+    }
+  }
+
   async join(userId: string, partyId: string, note?: string | null) {
     const party = await this.prisma.party.findUnique({
       where: { id: partyId },
@@ -458,6 +513,7 @@ export class PartiesService {
     })
     if (existing) {
       if (existing.status === 'cancelled') {
+        await this.assertEligibleToJoin(party, userId)
         const updated = await this.prisma.participation.update({
           where: { id: existing.id },
           data: { status: 'confirmed', note: note ?? null },
@@ -475,44 +531,11 @@ export class PartiesService {
     // 아니면 대기열. (예: 5:3 목표면 남10에 여6 이상이어야 남이 더 들어옴)
     const joiner = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        gender: true,
-        birthYear: true,
-        maritalStatus: true,
-        hasChildren: true,
-        verifiedFieldsJson: true,
-      },
+      select: { gender: true },
     })
 
     // 참가 자격 — 성별별 나이 · 혼인상태(돌싱 등) · 아이 유무 · 필수 인증
-    const eligibility = checkEligibility(
-      {
-        ageMin: party.ageMin,
-        ageMax: party.ageMax,
-        maleAgeMin: party.maleAgeMin,
-        maleAgeMax: party.maleAgeMax,
-        femaleAgeMin: party.femaleAgeMin,
-        femaleAgeMax: party.femaleAgeMax,
-        requiredVerifications: parseJsonArray<VerificationField>(party.requiredVerificationsJson),
-        maritalRequirement: parseJsonArray<MaritalStatus>(party.maritalRequirementJson),
-        childrenPolicy: party.childrenPolicy as ChildrenPolicy,
-      },
-      {
-        gender: joiner?.gender,
-        age: ageFromBirthYear(joiner?.birthYear ?? null, new Date().getFullYear()),
-        maritalStatus: (joiner?.maritalStatus ?? null) as MaritalStatus | null,
-        hasChildren: joiner?.hasChildren ?? null,
-        verifiedFields: parseJsonArray<VerificationField>(joiner?.verifiedFieldsJson ?? '[]'),
-      },
-    )
-    if (!eligibility.ok) {
-      throw new BadRequestException({
-        code: 'not_eligible',
-        message: '참가 자격 조건을 충족하지 않아요',
-        reasons: eligibility.reasons,
-        missingVerifications: eligibility.missingVerifications,
-      })
-    }
+    await this.assertEligibleToJoin(party, userId)
 
     const counts = await this.genderCounts(partyId)
     const confirmedCount = await this.prisma.participation.count({

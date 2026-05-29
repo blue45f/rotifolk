@@ -167,6 +167,7 @@ export class NotesService {
       deliveredAt: row.deliveredAt ? row.deliveredAt.toISOString() : null,
       readAt: row.readAt ? row.readAt.toISOString() : null,
       createdAt: row.createdAt.toISOString(),
+      // PartyNote는 불변(본문 수정 없음) — updatedAt 컬럼이 없어 createdAt과 동일.
       updatedAt: row.createdAt.toISOString(),
     }
   }

@@ -40,4 +40,12 @@ describe('checkEligibility', () => {
   it('조건 없으면 항상 통과', () => {
     expect(checkEligibility({}, {}).ok).toBe(true)
   })
+
+  it('나이 제한이 있으면 나이 미입력은 차단 (혼인·아이와 일관)', () => {
+    const policy = { ageMin: 30, ageMax: 40 }
+    expect(checkEligibility(policy, { age: null }).reasons).toContain('age')
+    expect(checkEligibility(policy, { age: 35 }).ok).toBe(true)
+    // 나이 제한이 없으면 미입력도 통과
+    expect(checkEligibility({}, { age: null }).ok).toBe(true)
+  })
 })
