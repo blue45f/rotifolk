@@ -10,6 +10,8 @@ export const VenueKindEnum = z.enum([
   'rooftop',
   'gallery',
   'studio',
+  'restaurant',
+  'pub',
   'custom',
 ])
 

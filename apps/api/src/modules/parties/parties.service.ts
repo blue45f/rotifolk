@@ -11,9 +11,16 @@ import { toParticipation, toParty, toPartySummary } from './party.mapper'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
 
 const CATEGORY_LABEL: Record<PartyCategory, string> = {
-  wine: '와인', coffee: '커피', tea: '차', whisky: '위스키',
-  cocktail: '칵테일', beer: '맥주', sake: '사케',
-  'natural-wine': '내추럴 와인', dessert: '디저트', custom: '모임',
+  wine: '와인',
+  coffee: '커피',
+  tea: '차',
+  whisky: '위스키',
+  cocktail: '칵테일',
+  beer: '맥주',
+  sake: '사케',
+  'natural-wine': '내추럴 와인',
+  dessert: '디저트',
+  custom: '모임',
 }
 
 @Injectable()
@@ -43,7 +50,11 @@ export class PartiesService {
     const [items, total] = await Promise.all([
       this.prisma.party.findMany({
         where,
-        include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
+        include: {
+          venue: true,
+          host: { select: { id: true, nickname: true } },
+          _count: { select: { participations: true } },
+        },
         orderBy: { startAt: 'asc' },
         skip,
         take: q.pageSize,
@@ -68,7 +79,8 @@ export class PartiesService {
         _count: { select: { participations: true } },
       },
     })
-    if (!row) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!row)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
     const participations = await this.prisma.participation.findMany({
       where: { partyId: id, status: { in: ['confirmed', 'checked-in'] } },
       include: { user: { include: { avatar: true } } },
@@ -90,9 +102,13 @@ export class PartiesService {
 
     const start = new Date(dto.startAt)
     const end = new Date(dto.endAt)
-    if (end <= start) throw new BadRequestException({ code: 'invalid_time', message: '종료가 시작보다 빨라요' })
+    if (end <= start)
+      throw new BadRequestException({ code: 'invalid_time', message: '종료가 시작보다 빨라요' })
     if (dto.maxParticipants < dto.minParticipants)
-      throw new BadRequestException({ code: 'invalid_capacity', message: '최대 인원 ≥ 최소 인원이어야 해요' })
+      throw new BadRequestException({
+        code: 'invalid_capacity',
+        message: '최대 인원 ≥ 최소 인원이어야 해요',
+      })
 
     const created = await this.prisma.party.create({
       data: {
@@ -116,10 +132,28 @@ export class PartiesService {
         enableQuestionCards: dto.config.enableQuestionCards,
         enableLiveOrders: dto.config.enableLiveOrders,
         enableAvatarOnly: dto.config.enableAvatarOnly,
+        format: dto.config.format,
+        rotationFormat: dto.config.rotationFormat,
+        groupSize: dto.config.groupSize,
+        matchScope: dto.config.matchScope,
+        maxMatchesPerPerson: dto.config.maxMatchesPerPerson,
+        connectionMode: dto.config.connectionMode,
+        groupAfterParty: dto.config.groupAfterParty,
+        enableNotes: dto.config.enableNotes,
+        noteDelivery: dto.config.noteDelivery,
+        enableConversationKit: dto.config.enableConversationKit,
         basePriceKRW: dto.pricing.basePriceKRW,
         drinkPackage: dto.pricing.drinkPackage,
         snackPackage: dto.pricing.snackPackage,
         refundDeadlineHours: dto.pricing.refundDeadlineHours,
+        genderRatioTarget: dto.recruitment.genderRatioTarget,
+        ratioTolerance: dto.recruitment.ratioTolerance,
+        maleCap: dto.recruitment.maleCap ?? null,
+        femaleCap: dto.recruitment.femaleCap ?? null,
+        minMale: dto.recruitment.minMale ?? null,
+        minFemale: dto.recruitment.minFemale ?? null,
+        autoCancelAt: dto.recruitment.autoCancelAt ? new Date(dto.recruitment.autoCancelAt) : null,
+        autoCancelReason: dto.recruitment.autoCancelReason ?? null,
         tagsJson: toJsonString(dto.tags),
         ageMin: dto.ageMin ?? null,
         ageMax: dto.ageMax ?? null,
@@ -195,7 +229,11 @@ export class PartiesService {
         status: { in: ['open', 'live'] },
         venue: { area: { contains: area } },
       },
-      include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
+      include: {
+        venue: true,
+        host: { select: { id: true, nickname: true } },
+        _count: { select: { participations: true } },
+      },
       orderBy: { startAt: 'asc' },
       take: 20,
     })
@@ -208,12 +246,13 @@ export class PartiesService {
     const in1h = new Date(now.getTime() + 60 * 60_000)
     const items = await this.prisma.party.findMany({
       where: {
-        OR: [
-          { status: 'live' },
-          { status: 'open', startAt: { lte: in1h } },
-        ],
+        OR: [{ status: 'live' }, { status: 'open', startAt: { lte: in1h } }],
       },
-      include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
+      include: {
+        venue: true,
+        host: { select: { id: true, nickname: true } },
+        _count: { select: { participations: true } },
+      },
       orderBy: { startAt: 'asc' },
       take: 10,
     })
@@ -231,9 +270,7 @@ export class PartiesService {
       take: 100,
       include: { party: { select: { id: true, title: true } } },
     })
-    const partnerIds = matches.map((m) =>
-      m.userAId === userId ? m.userBId : m.userAId,
-    )
+    const partnerIds = matches.map((m) => (m.userAId === userId ? m.userBId : m.userAId))
     const partners = await this.prisma.user.findMany({
       where: { id: { in: partnerIds } },
       select: { id: true, nickname: true, avatarId: true },
@@ -261,7 +298,10 @@ export class PartiesService {
       include: { venue: true, _count: { select: { participations: true } } },
     })
     if (!party) {
-      throw new NotFoundException({ code: 'invite_not_found', message: '초대 코드를 찾을 수 없어요' })
+      throw new NotFoundException({
+        code: 'invite_not_found',
+        message: '초대 코드를 찾을 수 없어요',
+      })
     }
     return {
       id: party.id,
@@ -279,8 +319,13 @@ export class PartiesService {
 
   async update(hostId: string, id: string, dto: UpdatePartyDto) {
     const existing = await this.prisma.party.findUnique({ where: { id } })
-    if (!existing) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
-    if (existing.hostId !== hostId) throw new ForbiddenException({ code: 'forbidden', message: '본인이 호스트인 파티만 수정할 수 있어요' })
+    if (!existing)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (existing.hostId !== hostId)
+      throw new ForbiddenException({
+        code: 'forbidden',
+        message: '본인이 호스트인 파티만 수정할 수 있어요',
+      })
 
     const data: Record<string, unknown> = {}
     if (dto.title) data.title = dto.title
@@ -305,6 +350,16 @@ export class PartiesService {
         enableQuestionCards: dto.config.enableQuestionCards,
         enableLiveOrders: dto.config.enableLiveOrders,
         enableAvatarOnly: dto.config.enableAvatarOnly,
+        format: dto.config.format,
+        rotationFormat: dto.config.rotationFormat,
+        groupSize: dto.config.groupSize,
+        matchScope: dto.config.matchScope,
+        maxMatchesPerPerson: dto.config.maxMatchesPerPerson,
+        connectionMode: dto.config.connectionMode,
+        groupAfterParty: dto.config.groupAfterParty,
+        enableNotes: dto.config.enableNotes,
+        noteDelivery: dto.config.noteDelivery,
+        enableConversationKit: dto.config.enableConversationKit,
       })
     }
     if (dto.pricing) {
@@ -313,6 +368,18 @@ export class PartiesService {
         drinkPackage: dto.pricing.drinkPackage,
         snackPackage: dto.pricing.snackPackage,
         refundDeadlineHours: dto.pricing.refundDeadlineHours,
+      })
+    }
+    if (dto.recruitment) {
+      Object.assign(data, {
+        genderRatioTarget: dto.recruitment.genderRatioTarget,
+        ratioTolerance: dto.recruitment.ratioTolerance,
+        maleCap: dto.recruitment.maleCap ?? null,
+        femaleCap: dto.recruitment.femaleCap ?? null,
+        minMale: dto.recruitment.minMale ?? null,
+        minFemale: dto.recruitment.minFemale ?? null,
+        autoCancelAt: dto.recruitment.autoCancelAt ? new Date(dto.recruitment.autoCancelAt) : null,
+        autoCancelReason: dto.recruitment.autoCancelReason ?? null,
       })
     }
     const updated = await this.prisma.party.update({
@@ -328,7 +395,8 @@ export class PartiesService {
       where: { id: partyId },
       include: { _count: { select: { participations: true } } },
     })
-    if (!party) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
     if (party.status !== 'open')
       throw new BadRequestException({ code: 'party_closed', message: '신청이 마감된 파티에요' })
 
@@ -341,7 +409,10 @@ export class PartiesService {
           where: { id: existing.id },
           data: { status: 'confirmed', note: note ?? null },
         })
-        await this.prisma.user.update({ where: { id: userId }, data: { joinedCount: { increment: 1 } } })
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { joinedCount: { increment: 1 } },
+        })
         return toParticipation(updated)
       }
       throw new BadRequestException({ code: 'already_joined', message: '이미 신청한 파티에요' })
@@ -356,20 +427,25 @@ export class PartiesService {
     })
 
     if (status === 'confirmed') {
-      await this.prisma.user.update({ where: { id: userId }, data: { joinedCount: { increment: 1 } } })
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { joinedCount: { increment: 1 } },
+      })
       const newCount = party._count.participations + 1
       if (newCount >= party.maxParticipants) {
         await this.prisma.party.update({ where: { id: partyId }, data: { status: 'full' } })
       }
-      await this.prisma.notification.create({
-        data: {
-          userId: party.hostId,
-          kind: 'party_join',
-          title: '새 참가자',
-          body: `${created.user?.nickname ?? '참가자'}님이 ${party.title}에 참가 신청했어요.`,
-          link: `/host/parties/${partyId}`,
-        },
-      }).catch(() => undefined)
+      await this.prisma.notification
+        .create({
+          data: {
+            userId: party.hostId,
+            kind: 'party_join',
+            title: '새 참가자',
+            body: `${created.user?.nickname ?? '참가자'}님이 ${party.title}에 참가 신청했어요.`,
+            link: `/host/parties/${partyId}`,
+          },
+        })
+        .catch(() => undefined)
       this.notifEmitter.toUser(party.hostId, {
         kind: 'party_join',
         title: '새 참가자',
@@ -417,7 +493,13 @@ export class PartiesService {
     const participations = await this.prisma.participation.findMany({
       where: { userId, status: { not: 'cancelled' } },
       include: {
-        party: { include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } } },
+        party: {
+          include: {
+            venue: true,
+            host: { select: { id: true, nickname: true } },
+            _count: { select: { participations: true } },
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     })
@@ -430,7 +512,11 @@ export class PartiesService {
   async hostedParties(hostId: string) {
     const items = await this.prisma.party.findMany({
       where: { hostId },
-      include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
+      include: {
+        venue: true,
+        host: { select: { id: true, nickname: true } },
+        _count: { select: { participations: true } },
+      },
       orderBy: { startAt: 'desc' },
     })
     return items.map(toPartySummary)
@@ -465,7 +551,12 @@ export class PartiesService {
       })),
     })
     for (const pp of notifyParticipants) {
-      this.notifEmitter.toUser(pp.userId, { kind: 'party_starting', title: '🎉 파티가 시작됐어요!', body: `${p.title}`, link: `/live/${partyId}` })
+      this.notifEmitter.toUser(pp.userId, {
+        kind: 'party_starting',
+        title: '🎉 파티가 시작됐어요!',
+        body: `${p.title}`,
+        link: `/live/${partyId}`,
+      })
     }
     return updated
   }

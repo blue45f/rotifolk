@@ -1,5 +1,7 @@
 import type { PartySummary, User } from '../domain'
 
+export * from './venue-match'
+
 /**
  * 사용자에게 맞는 파티 점수화.
  * - 관심사 키워드가 title/tags에 등장하면 +2 per match

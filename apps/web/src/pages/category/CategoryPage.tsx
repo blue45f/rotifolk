@@ -14,9 +14,7 @@ import styles from './Category.module.css'
 
 type SortKey = 'soonest' | 'seats' | 'price'
 
-const VALID_CATEGORIES = new Set<PartyCategory>(
-  ALL_CATEGORIES.map((c) => c.value),
-)
+const VALID_CATEGORIES = new Set<PartyCategory>(ALL_CATEGORIES.map((c) => c.value))
 
 /** 카테고리 → 어울리는 venue kind 매핑. */
 const VENUE_KIND_BY_CATEGORY: Partial<Record<PartyCategory, VenueKind>> = {
@@ -42,6 +40,8 @@ const VENUE_KIND_LABEL: Record<VenueKind, string> = {
   rooftop: '루프탑',
   gallery: '갤러리',
   studio: '스튜디오',
+  restaurant: '레스토랑',
+  pub: '펍',
   custom: '커스텀',
 }
 
@@ -71,8 +71,13 @@ export default function CategoryPage() {
   const parties = useMemo(() => {
     const raw = partiesQuery.data?.items ?? []
     const copy = [...raw]
-    if (sort === 'soonest') copy.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
-    else if (sort === 'seats') copy.sort((a, b) => (a.maxParticipants - a.currentParticipants) - (b.maxParticipants - b.currentParticipants))
+    if (sort === 'soonest')
+      copy.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+    else if (sort === 'seats')
+      copy.sort(
+        (a, b) =>
+          a.maxParticipants - a.currentParticipants - (b.maxParticipants - b.currentParticipants),
+      )
     else if (sort === 'price') copy.sort((a, b) => a.basePriceKRW - b.basePriceKRW)
     return copy
   }, [partiesQuery.data, sort])
@@ -83,10 +88,7 @@ export default function CategoryPage() {
     // hostedCount 기반 placeholder — 후기 평점은 모를 수 있으므로 고정
     const rating = '4.7'
     // 같은 카테고리 누적 만난 사람 추정치: 모집 정원 × 평균 회전 라운드(=6)
-    const baseMet = parties.reduce(
-      (sum, p) => sum + p.maxParticipants,
-      0,
-    )
+    const baseMet = parties.reduce((sum, p) => sum + p.maxParticipants, 0)
     const estimatedMet = Math.max(1200, baseMet * 6 + 1200)
     return { weeklyCount, rating, estimatedMet }
   }, [parties])
@@ -133,11 +135,7 @@ export default function CategoryPage() {
   return (
     <div className={styles.page}>
       {/* —— Hero —— */}
-      <section
-        className={styles.hero}
-        style={heroStyle}
-        aria-labelledby="cat-hero-title"
-      >
+      <section className={styles.hero} style={heroStyle} aria-labelledby="cat-hero-title">
         <div className={styles.heroInner}>
           <div className={styles.heroEmoji} aria-hidden="true">
             {meta.emoji}
@@ -192,19 +190,26 @@ export default function CategoryPage() {
               {meta.shortLabel} 라운드로 새로운 사람을 만나보세요.
             </p>
           </div>
-          <Link
-            to={`/discover?category=${validCategory}`}
-            className={styles.sectionAction}
-          >
+          <Link to={`/discover?category=${validCategory}`} className={styles.sectionAction}>
             전체 보기 →
           </Link>
         </header>
 
         {(partiesQuery.data?.items?.length ?? 0) > 0 && (
           <div className={styles.sortRow} role="group" aria-label="정렬 기준">
-            <Chip selected={sort === 'soonest'} onClick={() => setSort('soonest')} leadingEmoji="⏰">빠른 시작순</Chip>
-            <Chip selected={sort === 'seats'} onClick={() => setSort('seats')} leadingEmoji="💺">자리 있는 순</Chip>
-            <Chip selected={sort === 'price'} onClick={() => setSort('price')} leadingEmoji="💰">가격 낮은 순</Chip>
+            <Chip
+              selected={sort === 'soonest'}
+              onClick={() => setSort('soonest')}
+              leadingEmoji="⏰"
+            >
+              빠른 시작순
+            </Chip>
+            <Chip selected={sort === 'seats'} onClick={() => setSort('seats')} leadingEmoji="💺">
+              자리 있는 순
+            </Chip>
+            <Chip selected={sort === 'price'} onClick={() => setSort('price')} leadingEmoji="💰">
+              가격 낮은 순
+            </Chip>
           </div>
         )}
         {partiesQuery.isLoading ? (
@@ -237,9 +242,7 @@ export default function CategoryPage() {
               <h2 id="hosts-title" className={styles.sectionTitle}>
                 인기 호스트
               </h2>
-              <p className={styles.sectionSub}>
-                이 카테고리로 자주 모임을 여는 장소들.
-              </p>
+              <p className={styles.sectionSub}>이 카테고리로 자주 모임을 여는 장소들.</p>
             </div>
           </header>
           <div className={styles.hostList}>
@@ -301,9 +304,7 @@ export default function CategoryPage() {
                     </>
                   )}
                 </span>
-                {v.description && (
-                  <p className={styles.venueDesc}>{v.description}</p>
-                )}
+                {v.description && <p className={styles.venueDesc}>{v.description}</p>}
                 <span className={styles.venueRating}>
                   ⭐ {v.rating.toFixed(1)}
                   <em>({v.reviewCount.toLocaleString()})</em>
@@ -321,9 +322,7 @@ export default function CategoryPage() {
             <h2 id="other-title" className={styles.sectionTitle}>
               다른 카테고리 둘러보기
             </h2>
-            <p className={styles.sectionSub}>
-              오늘은 다른 잔으로 시작해보는 것도 좋아요.
-            </p>
+            <p className={styles.sectionSub}>오늘은 다른 잔으로 시작해보는 것도 좋아요.</p>
           </div>
         </header>
         <div className={styles.otherGrid}>

@@ -14,11 +14,21 @@ import type {
   PartyStatus,
   DrinkPackage,
   SnackPackage,
+  PartyFormat,
+  RotationFormat,
+  MatchScope,
+  ConnectionMode,
+  NoteDelivery,
 } from '@rotifolk/shared'
 import { parseJsonArray } from '@/common/json-utils'
 import { toPublicSummary } from '../users/user.mapper'
 
-type HostShape = { id: string; nickname: string; avatarId?: string | null; avatar?: PrismaAvatar | null } & Partial<PrismaUser>
+type HostShape = {
+  id: string
+  nickname: string
+  avatarId?: string | null
+  avatar?: PrismaAvatar | null
+} & Partial<PrismaUser>
 
 type PartyRow = PrismaParty & {
   host?: HostShape | null
@@ -58,12 +68,32 @@ export function toParty(row: PartyRow, participationCount?: number): Party {
       enableQuestionCards: row.enableQuestionCards,
       enableLiveOrders: row.enableLiveOrders,
       enableAvatarOnly: row.enableAvatarOnly,
+      format: row.format as PartyFormat,
+      rotationFormat: row.rotationFormat as RotationFormat,
+      groupSize: row.groupSize,
+      matchScope: row.matchScope as MatchScope,
+      maxMatchesPerPerson: row.maxMatchesPerPerson,
+      connectionMode: row.connectionMode as ConnectionMode,
+      groupAfterParty: row.groupAfterParty,
+      enableNotes: row.enableNotes,
+      noteDelivery: row.noteDelivery as NoteDelivery,
+      enableConversationKit: row.enableConversationKit,
     },
     pricing: {
       basePriceKRW: row.basePriceKRW,
       drinkPackage: row.drinkPackage as DrinkPackage,
       snackPackage: row.snackPackage as SnackPackage,
       refundDeadlineHours: row.refundDeadlineHours,
+    },
+    recruitment: {
+      genderRatioTarget: row.genderRatioTarget,
+      ratioTolerance: row.ratioTolerance,
+      maleCap: row.maleCap,
+      femaleCap: row.femaleCap,
+      minMale: row.minMale,
+      minFemale: row.minFemale,
+      autoCancelAt: row.autoCancelAt ? row.autoCancelAt.toISOString() : null,
+      autoCancelReason: row.autoCancelReason,
     },
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -82,6 +112,7 @@ export function toPartySummary(row: PartyRow): PartySummary {
     status: row.status as PartyStatus,
     tags: parseJsonArray<string>(row.tagsJson),
     category: row.category as PartyCategory,
+    format: row.format as PartyFormat,
     venueName: row.venue?.name ?? '',
     venueArea: row.venue?.area ?? '',
     basePriceKRW: row.basePriceKRW,

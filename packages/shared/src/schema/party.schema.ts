@@ -21,6 +21,11 @@ export const RotationModeEnum = z.enum([
   'host-curated',
 ])
 
+export const PartyFormatEnum = z.enum(['rotation', 'note-ting', 'mixer'])
+export const RotationFormatEnum = z.enum(['one-on-one', 'many-to-one', 'many-to-many'])
+export const MatchScopeEnum = z.enum(['mutual-only', 'top-n', 'all-participants'])
+export const ConnectionModeEnum = z.enum(['chat', 'phone', 'both'])
+export const NoteDeliveryEnum = z.enum(['instant', 'party-end'])
 export const DrinkPackageEnum = z.enum(['none', 'per-glass', 'unlimited', 'paired'])
 export const SnackPackageEnum = z.enum(['none', 'per-plate', 'course', 'pairing-bites'])
 
@@ -36,6 +41,16 @@ export const PartyConfigSchema = z.object({
   enableQuestionCards: z.boolean().default(true),
   enableLiveOrders: z.boolean().default(true),
   enableAvatarOnly: z.boolean().default(false),
+  format: PartyFormatEnum.default('rotation'),
+  rotationFormat: RotationFormatEnum.default('one-on-one'),
+  groupSize: z.number().int().min(2).max(12).default(2),
+  matchScope: MatchScopeEnum.default('mutual-only'),
+  maxMatchesPerPerson: z.number().int().min(1).max(20).default(3),
+  connectionMode: ConnectionModeEnum.default('chat'),
+  groupAfterParty: z.boolean().default(false),
+  enableNotes: z.boolean().default(true),
+  noteDelivery: NoteDeliveryEnum.default('party-end'),
+  enableConversationKit: z.boolean().default(true),
 })
 
 export const PartyPricingSchema = z.object({
@@ -43,6 +58,17 @@ export const PartyPricingSchema = z.object({
   drinkPackage: DrinkPackageEnum.default('per-glass'),
   snackPackage: SnackPackageEnum.default('none'),
   refundDeadlineHours: z.number().int().min(0).max(168).default(24),
+})
+
+export const PartyRecruitmentSchema = z.object({
+  genderRatioTarget: z.string().min(1).max(20).default('any'),
+  ratioTolerance: z.number().int().min(0).max(10).default(1),
+  maleCap: z.number().int().min(0).max(200).optional().nullable(),
+  femaleCap: z.number().int().min(0).max(200).optional().nullable(),
+  minMale: z.number().int().min(0).max(200).optional().nullable(),
+  minFemale: z.number().int().min(0).max(200).optional().nullable(),
+  autoCancelAt: z.string().datetime().optional().nullable(),
+  autoCancelReason: z.string().max(500).optional().nullable(),
 })
 
 export const CreatePartySchema = z.object({
@@ -56,6 +82,10 @@ export const CreatePartySchema = z.object({
   maxParticipants: z.number().int().min(2).max(40),
   config: PartyConfigSchema,
   pricing: PartyPricingSchema,
+  recruitment: PartyRecruitmentSchema.default({
+    genderRatioTarget: 'any',
+    ratioTolerance: 1,
+  }),
   tags: z.array(z.string().min(1).max(20)).max(10).default([]),
   ageMin: z.number().int().min(18).max(80).optional().nullable(),
   ageMax: z.number().int().min(18).max(80).optional().nullable(),

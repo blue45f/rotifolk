@@ -1,6 +1,6 @@
 import type { User as PrismaUser, Avatar as PrismaAvatar } from '@prisma/client'
 import type { User } from '@rotifolk/shared'
-import { parseJsonArray } from '@/common/json-utils'
+import { parseJsonArray, parseJsonObject } from '@/common/json-utils'
 
 type DbUser = PrismaUser & { avatar?: PrismaAvatar | null }
 
@@ -20,6 +20,16 @@ export function toPublicUser(user: DbUser): User {
     hostedCount: user.hostedCount,
     joinedCount: user.joinedCount,
     isVerified: user.isVerified,
+    phone: user.phone,
+    shareContact: user.shareContact,
+    profile: parseJsonObject(user.profileJson) as User['profile'],
+    occupation: user.occupation,
+    company: user.company,
+    incomeBand: user.incomeBand as User['incomeBand'],
+    maritalStatus: user.maritalStatus as User['maritalStatus'],
+    education: user.education as User['education'],
+    verifiedFields: parseJsonArray(user.verifiedFieldsJson) as User['verifiedFields'],
+    visibility: parseJsonObject(user.visibilityJson) as User['visibility'],
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt.toISOString(),
   }
@@ -35,5 +45,6 @@ export function toPublicSummary(user: DbUser) {
     interests: parseJsonArray<string>(user.interestsJson),
     trustScore: user.trustScore,
     isVerified: user.isVerified,
+    verifiedFields: parseJsonArray(user.verifiedFieldsJson) as User['verifiedFields'],
   }
 }

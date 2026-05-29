@@ -27,12 +27,32 @@ const DEFAULTS: Partial<CreatePartyDto> = {
     enableQuestionCards: true,
     enableLiveOrders: true,
     enableAvatarOnly: false,
+    format: 'rotation',
+    rotationFormat: 'one-on-one',
+    groupSize: 2,
+    matchScope: 'mutual-only',
+    maxMatchesPerPerson: 3,
+    connectionMode: 'chat',
+    groupAfterParty: false,
+    enableNotes: true,
+    noteDelivery: 'party-end',
+    enableConversationKit: true,
   },
   pricing: {
     basePriceKRW: 36000,
     drinkPackage: 'per-glass',
     snackPackage: 'none',
     refundDeadlineHours: 24,
+  },
+  recruitment: {
+    genderRatioTarget: 'any',
+    ratioTolerance: 1,
+    maleCap: null,
+    femaleCap: null,
+    minMale: null,
+    minFemale: null,
+    autoCancelAt: null,
+    autoCancelReason: null,
   },
   minParticipants: 6,
   maxParticipants: 12,
@@ -192,10 +212,15 @@ export default function HostCreatePage() {
                       <div className={styles.venueInfo}>
                         <div className={styles.venueHead}>
                           <strong>{v.name}</strong>
-                          {v.partnered && <Badge tone="gold" size="sm">제휴</Badge>}
+                          {v.partnered && (
+                            <Badge tone="gold" size="sm">
+                              제휴
+                            </Badge>
+                          )}
                         </div>
                         <div className={styles.venueMeta}>
-                          📍 {v.area} · 최대 {v.capacity}명 · 시간당 {v.pricePerHourKRW.toLocaleString()}원
+                          📍 {v.area} · 최대 {v.capacity}명 · 시간당{' '}
+                          {v.pricePerHourKRW.toLocaleString()}원
                         </div>
                         <div className={styles.venueAmenities}>
                           {v.amenities.slice(0, 3).map((a) => (
@@ -346,15 +371,28 @@ export default function HostCreatePage() {
               name="pricing.drinkPackage"
               render={({ field }) => (
                 <div className={styles.modeList}>
-                  {([
-                    { value: 'none', label: '없음', desc: '음료 제공 안 함' },
-                    { value: 'per-glass', label: '잔당 결제', desc: '메뉴에서 골라서 추가 주문' },
-                    { value: 'unlimited', label: '무제한', desc: '시간 내 리필 자유, 추가 비용 없음' },
-                    { value: 'paired', label: '페어링 코스', desc: '라운드마다 호스트가 한 잔씩' },
-                  ] as const).map((o) => (
-                    <button type="button" key={o.value}
+                  {(
+                    [
+                      { value: 'none', label: '없음', desc: '음료 제공 안 함' },
+                      { value: 'per-glass', label: '잔당 결제', desc: '메뉴에서 골라서 추가 주문' },
+                      {
+                        value: 'unlimited',
+                        label: '무제한',
+                        desc: '시간 내 리필 자유, 추가 비용 없음',
+                      },
+                      {
+                        value: 'paired',
+                        label: '페어링 코스',
+                        desc: '라운드마다 호스트가 한 잔씩',
+                      },
+                    ] as const
+                  ).map((o) => (
+                    <button
+                      type="button"
+                      key={o.value}
                       className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
-                      onClick={() => field.onChange(o.value)}>
+                      onClick={() => field.onChange(o.value)}
+                    >
                       <strong>{o.label}</strong>
                       <span>{o.desc}</span>
                     </button>
@@ -369,15 +407,24 @@ export default function HostCreatePage() {
               name="pricing.snackPackage"
               render={({ field }) => (
                 <div className={styles.modeList}>
-                  {([
-                    { value: 'none', label: '없음', desc: '안주 제공 안 함' },
-                    { value: 'per-plate', label: '접시당 결제', desc: '메뉴에서 추가 주문' },
-                    { value: 'course', label: '셰프 코스', desc: '정해진 시점에 코스로 제공' },
-                    { value: 'pairing-bites', label: '페어링 바이트', desc: '음료에 맞춘 소량 페어링' },
-                  ] as const).map((o) => (
-                    <button type="button" key={o.value}
+                  {(
+                    [
+                      { value: 'none', label: '없음', desc: '안주 제공 안 함' },
+                      { value: 'per-plate', label: '접시당 결제', desc: '메뉴에서 추가 주문' },
+                      { value: 'course', label: '셰프 코스', desc: '정해진 시점에 코스로 제공' },
+                      {
+                        value: 'pairing-bites',
+                        label: '페어링 바이트',
+                        desc: '음료에 맞춘 소량 페어링',
+                      },
+                    ] as const
+                  ).map((o) => (
+                    <button
+                      type="button"
+                      key={o.value}
                       className={`${styles.modeBtn} ${field.value === o.value ? styles.modeActive : ''}`}
-                      onClick={() => field.onChange(o.value)}>
+                      onClick={() => field.onChange(o.value)}
+                    >
                       <strong>{o.label}</strong>
                       <span>{o.desc}</span>
                     </button>
@@ -464,8 +511,8 @@ function Summary({ watched }: { watched: Partial<CreatePartyDto> }) {
       <li>
         <span>라운드</span>
         <strong>
-          {watched.config?.totalRounds ?? '-'} × {Math.round((watched.config?.roundDurationSec ?? 0) / 60)}
-          분
+          {watched.config?.totalRounds ?? '-'} ×{' '}
+          {Math.round((watched.config?.roundDurationSec ?? 0) / 60)}분
         </strong>
       </li>
       <li>

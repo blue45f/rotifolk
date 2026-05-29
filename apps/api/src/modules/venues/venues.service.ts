@@ -7,7 +7,7 @@ import type {
   MenuAvailability,
 } from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
-import { parseJsonArray, toJsonString } from '@/common/json-utils'
+import { parseJsonArray, parseJsonObject, toJsonString } from '@/common/json-utils'
 import type { Venue as PrismaVenue, MenuItem as PrismaMenuItem } from '@prisma/client'
 
 @Injectable()
@@ -35,7 +35,8 @@ export class VenuesService {
       where: { id },
       include: { menuItems: true },
     })
-    if (!v) throw new NotFoundException({ code: 'venue_not_found', message: '장소를 찾을 수 없어요' })
+    if (!v)
+      throw new NotFoundException({ code: 'venue_not_found', message: '장소를 찾을 수 없어요' })
     return {
       venue: this.toVenue(v),
       menu: v.menuItems.map(this.toMenuItem),
@@ -88,6 +89,20 @@ export class VenuesService {
     contactPhone: v.contactPhone,
     rating: v.rating,
     reviewCount: v.reviewCount,
+    instantBook: v.instantBook,
+    cleaningFeeKRW: v.cleaningFeeKRW,
+    minHours: v.minHours,
+    openMinute: v.openMinute,
+    closeMinute: v.closeMinute,
+    closedWeekdays: parseJsonArray<number>(v.closedWeekdaysJson),
+    weekendMultiplier: v.weekendMultiplier,
+    peakMultiplier: v.peakMultiplier,
+    arrivalGuide: parseJsonObject(v.arrivalGuideJson) as NonNullable<Venue['arrivalGuide']>,
+    vibeTags: parseJsonArray<string>(v.vibeTagsJson),
+    useCases: parseJsonArray<string>(v.useCasesJson),
+    hostBlurb: v.hostBlurb,
+    selfHostEnabled: v.selfHostEnabled,
+    ownerId: v.ownerId,
     createdAt: v.createdAt.toISOString(),
     updatedAt: v.updatedAt.toISOString(),
   })

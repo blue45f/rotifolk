@@ -21,6 +21,8 @@ const KIND_META: Record<VenueKind, { emoji: string; label: string }> = {
   rooftop: { emoji: '🌆', label: '루프탑' },
   gallery: { emoji: '🖼️', label: '갤러리' },
   studio: { emoji: '🎬', label: '스튜디오' },
+  restaurant: { emoji: '🍽️', label: '레스토랑' },
+  pub: { emoji: '🍺', label: '펍' },
   custom: { emoji: '✨', label: '기타' },
 }
 
@@ -44,11 +46,7 @@ export default function VenuesPage() {
             전체
           </Chip>
           {AREAS.map((a) => (
-            <Chip
-              key={a}
-              selected={area === a}
-              onClick={() => setArea(area === a ? undefined : a)}
-            >
+            <Chip key={a} selected={area === a} onClick={() => setArea(area === a ? undefined : a)}>
               {a}
             </Chip>
           ))}
@@ -87,17 +85,23 @@ export default function VenuesPage() {
                   )}
                   {v.partnered && (
                     <div className={styles.coverBadge}>
-                      <Badge tone="gold" size="sm">제휴</Badge>
+                      <Badge tone="gold" size="sm">
+                        제휴
+                      </Badge>
                     </div>
                   )}
                 </div>
                 <Card.Body>
                   <h3 className={styles.vName}>{v.name}</h3>
                   <div className={styles.vMeta}>
-                    <span>{KIND_META[v.kind].emoji} {KIND_META[v.kind].label}</span>
+                    <span>
+                      {KIND_META[v.kind].emoji} {KIND_META[v.kind].label}
+                    </span>
                     <span>📍 {v.area}</span>
                     <span>👥 {v.capacity}명</span>
-                    <span>⭐ {v.rating.toFixed(1)} ({v.reviewCount})</span>
+                    <span>
+                      ⭐ {v.rating.toFixed(1)} ({v.reviewCount})
+                    </span>
                   </div>
                   <p className={styles.vDesc}>{v.description}</p>
                   <div className={styles.vFooter}>
