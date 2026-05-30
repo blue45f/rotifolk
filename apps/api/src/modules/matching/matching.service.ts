@@ -72,8 +72,6 @@ export class MatchingService {
       .filter((p) => p.user.gender === 'male' || p.user.gender === 'female')
       .map((p) => ({ userId: p.userId, gender: p.user.gender as 'male' | 'female' }))
 
-    await this.prisma.round.deleteMany({ where: { partyId } })
-
     const created: { index: number; pairs: string[][] }[] = []
 
     const heteroPreferred =
@@ -133,22 +131,26 @@ export class MatchingService {
 
     const planned = repairForbiddenPairs(created, forbiddenPairs)
 
-    for (const r of planned) {
-      await this.prisma.round.create({
-        data: {
-          partyId,
-          index: r.index,
-          durationSec: party.roundDurationSec,
-          status: 'queued',
-          pairs: {
-            create: r.pairs.map((members, i) => ({
-              seatLabel: this.seatLabel(i),
-              memberIdsJson: toJsonString(members),
-            })),
+    // 기존 라운드 삭제 + 새 라운드 생성을 한 트랜잭션으로 — 중간 실패 시 라운드가 유실되지 않게.
+    await this.prisma.$transaction(async (tx) => {
+      await tx.round.deleteMany({ where: { partyId } })
+      for (const r of planned) {
+        await tx.round.create({
+          data: {
+            partyId,
+            index: r.index,
+            durationSec: party.roundDurationSec,
+            status: 'queued',
+            pairs: {
+              create: r.pairs.map((members, i) => ({
+                seatLabel: this.seatLabel(i),
+                memberIdsJson: toJsonString(members),
+              })),
+            },
           },
-        },
-      })
-    }
+        })
+      }
+    })
     return this.listRounds(partyId)
   }
 
@@ -274,19 +276,22 @@ export class MatchingService {
       votes.map((v) => ({ fromUserId: v.fromUserId, toUserId: v.toUserId })),
     )
 
-    await this.prisma.finalMatch.deleteMany({ where: { partyId } })
-    const created = await Promise.all(
-      mutuals.map((m) =>
-        this.prisma.finalMatch.create({
-          data: {
-            partyId,
-            userAId: m.userAId,
-            userBId: m.userBId,
-            result: 'mutual',
-          },
-        }),
-      ),
-    )
+    // 기존 매칭 삭제 + 새 매칭 생성을 한 트랜잭션으로 — 중간 실패 시 매칭이 유실되지 않게.
+    const created = await this.prisma.$transaction(async (tx) => {
+      await tx.finalMatch.deleteMany({ where: { partyId } })
+      return Promise.all(
+        mutuals.map((m) =>
+          tx.finalMatch.create({
+            data: {
+              partyId,
+              userAId: m.userAId,
+              userBId: m.userBId,
+              result: 'mutual',
+            },
+          }),
+        ),
+      )
+    })
     await this.prisma.notification.createMany({
       data: created.flatMap((c) => [
         {
