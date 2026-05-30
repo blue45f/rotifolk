@@ -13,13 +13,8 @@ interface PostMessageInput {
 export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** 파티 단톡방을 보장 — 없으면 생성하고 참가자 전원 가입. */
-  async ensurePartyGroupRoom(partyId: string) {
-    let room = await this.prisma.chatRoom.findFirst({
-      where: { partyId, kind: 'group' },
-    })
-    if (room) return room
-
+  /** 파티 단톡방을 보장 — 없으면 생성하고 참가자 전원 가입. 호스트/참가자만 호출 가능. */
+  async ensurePartyGroupRoom(partyId: string, userId: string) {
     const party = await this.prisma.party.findUnique({
       where: { id: partyId },
       include: {
@@ -27,9 +22,24 @@ export class ChatService {
         host: true,
       },
     })
-    if (!party) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
 
-    room = await this.prisma.chatRoom.create({
+    // 호스트 또는 (취소 아닌) 참가자만 단톡방을 생성/보장할 수 있음
+    const isMember =
+      party.hostId === userId || party.participations.some((p) => p.userId === userId)
+    if (!isMember)
+      throw new ForbiddenException({
+        code: 'forbidden',
+        message: '파티의 호스트나 참가자만 그룹 채팅을 시작할 수 있어요',
+      })
+
+    const existing = await this.prisma.chatRoom.findFirst({
+      where: { partyId, kind: 'group' },
+    })
+    if (existing) return existing
+
+    const room = await this.prisma.chatRoom.create({
       data: {
         kind: 'group',
         partyId,
@@ -38,7 +48,7 @@ export class ChatService {
     })
     const memberIds = new Set<string>([party.hostId, ...party.participations.map((p) => p.userId)])
     await this.prisma.chatMembership.createMany({
-      data: [...memberIds].map((userId) => ({ roomId: room!.id, userId })),
+      data: [...memberIds].map((uid) => ({ roomId: room.id, userId: uid })),
     })
     return room
   }
@@ -200,7 +210,8 @@ export class ChatService {
     const m = await this.prisma.chatMembership.findUnique({
       where: { roomId_userId: { roomId, userId } },
     })
-    if (!m) throw new ForbiddenException({ code: 'not_a_member', message: '이 채팅방의 멤버가 아니에요' })
+    if (!m)
+      throw new ForbiddenException({ code: 'not_a_member', message: '이 채팅방의 멤버가 아니에요' })
   }
 }
 

@@ -49,7 +49,7 @@ export class ChatController {
   }
 
   @Post('parties/:partyId/ensure')
-  ensureGroupRoom(@CurrentUser() _me: JwtUserPayload, @Param('partyId') partyId: string) {
-    return this.chat.ensurePartyGroupRoom(partyId)
+  ensureGroupRoom(@CurrentUser() me: JwtUserPayload, @Param('partyId') partyId: string) {
+    return this.chat.ensurePartyGroupRoom(partyId, me.sub)
   }
 }
