@@ -3,6 +3,7 @@ import { AuthGuard } from '@nestjs/passport'
 import {
   AddAvoidContactsSchema,
   AddAvoidPersonSchema,
+  AvoidCheckQuerySchema,
   AvoidPrefsSchema,
   PreProfileSchema,
   PrivacyPrefsSchema,
@@ -13,6 +14,7 @@ import {
 import type {
   AddAvoidContactsDto,
   AddAvoidPersonDto,
+  AvoidCheckQueryDto,
   AvoidPrefsDto,
   PreProfileDto,
   PrivacyPrefsDto,
@@ -106,8 +108,11 @@ export class MeController {
   }
 
   @Get('avoid-check')
-  avoidCheck(@CurrentUser() me: JwtUserPayload, @Query('partyId') partyId: string) {
-    return this.me.avoidCheck(me.sub, partyId)
+  avoidCheck(
+    @CurrentUser() me: JwtUserPayload,
+    @Query(new ZodValidationPipe(AvoidCheckQuerySchema)) q: AvoidCheckQueryDto,
+  ) {
+    return this.me.avoidCheck(me.sub, q.partyId)
   }
 
   @Patch('privacy')

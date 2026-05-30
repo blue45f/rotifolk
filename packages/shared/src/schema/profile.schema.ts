@@ -84,6 +84,12 @@ export const AvoidPrefsSchema = z.object({
 })
 export type AvoidPrefsDto = z.infer<typeof AvoidPrefsSchema>
 
+/** 회피 대조 조회 — 대상 파티 id 필수. */
+export const AvoidCheckQuerySchema = z.object({
+  partyId: z.string().min(1),
+})
+export type AvoidCheckQueryDto = z.infer<typeof AvoidCheckQuerySchema>
+
 /** 민감 정보 노출 설정 — 받은 호감 수·인기 랭킹 참여. */
 export const PrivacyPrefsSchema = z.object({
   showLikesReceived: z.boolean().optional(),
