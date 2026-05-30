@@ -492,8 +492,14 @@ export class MatchingService {
     }
 
     const [mid, final, participants] = await Promise.all([
-      this.prisma.midMatchVote.findMany({ where: { partyId }, select: { toUserId: true } }),
-      this.prisma.finalMatchVote.findMany({ where: { partyId }, select: { toUserId: true } }),
+      this.prisma.midMatchVote.findMany({
+        where: { partyId },
+        select: { fromUserId: true, toUserId: true },
+      }),
+      this.prisma.finalMatchVote.findMany({
+        where: { partyId },
+        select: { fromUserId: true, toUserId: true },
+      }),
       this.prisma.participation.findMany({
         where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
         select: {
@@ -516,7 +522,16 @@ export class MatchingService {
     const candidates = users
       .filter((u) => u.joinPopularityRanking !== false)
       .map((u) => ({ userId: u.id, gender: (u.gender ?? null) as Gender | null }))
-    const { popularMale, popularFemale } = computePopularity([...mid, ...final], candidates)
+    // 같은 사람이 여러 라운드에 좋아요해도 1명으로 집계 — "N명에게 호감"은 사람 수 기준(distinct).
+    const seenAdmirer = new Set<string>()
+    const distinctLikes: { toUserId: string }[] = []
+    for (const v of [...mid, ...final]) {
+      const key = `${v.fromUserId}->${v.toUserId}`
+      if (seenAdmirer.has(key)) continue
+      seenAdmirer.add(key)
+      distinctLikes.push({ toUserId: v.toUserId })
+    }
+    const { popularMale, popularFemale } = computePopularity(distinctLikes, candidates)
 
     const umap = new Map(users.map((u) => [u.id, u]))
     const enrich = (e: { userId: string; likes: number } | null) => {
