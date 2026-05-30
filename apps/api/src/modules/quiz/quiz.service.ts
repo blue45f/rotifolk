@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import { PrismaService } from '@/prisma/prisma.service'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
 import type { CreateQuizDto, SubmitQuizAnswerDto } from '@rotifolk/shared'
@@ -7,7 +12,29 @@ import type { CreateQuizDto, SubmitQuizAnswerDto } from '@rotifolk/shared'
 export class QuizService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list(partyId: string) {
+  /** 이 파티의 확정/체크인 참가자가 아니면 차단. */
+  private async assertParticipant(partyId: string, userId: string) {
+    const part = await this.prisma.participation.findUnique({
+      where: { partyId_userId: { partyId, userId } },
+      select: { status: true },
+    })
+    if (!part || (part.status !== 'confirmed' && part.status !== 'checked-in'))
+      throw new ForbiddenException({
+        code: 'not_participant',
+        message: '이 모임의 참가자만 할 수 있어요',
+      })
+  }
+
+  async list(userId: string, partyId: string) {
+    const party = await this.prisma.party.findUnique({
+      where: { id: partyId },
+      select: { hostId: true },
+    })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    const isHost = party.hostId === userId
+    if (!isHost) await this.assertParticipant(partyId, userId)
+
     const items = await this.prisma.quizQuestion.findMany({
       where: { partyId },
       orderBy: { createdAt: 'asc' },
@@ -18,7 +45,8 @@ export class QuizService {
       kind: q.kind,
       prompt: q.prompt,
       options: parseJsonArray<string>(q.optionsJson),
-      correctOptionIndex: q.correctOptionIndex,
+      // 정답은 호스트에게만 — 참가자에게 미리 노출되면 치팅 가능
+      correctOptionIndex: isHost ? q.correctOptionIndex : null,
       durationSec: q.durationSec,
       imageUrl: q.imageUrl,
       launchedAt: q.launchedAt?.toISOString() ?? null,
@@ -27,9 +55,13 @@ export class QuizService {
 
   async create(hostId: string, dto: CreateQuizDto) {
     const party = await this.prisma.party.findUnique({ where: { id: dto.partyId } })
-    if (!party) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
     if (party.hostId !== hostId)
-      throw new ForbiddenException({ code: 'forbidden', message: '호스트만 퀴즈를 추가할 수 있어요' })
+      throw new ForbiddenException({
+        code: 'forbidden',
+        message: '호스트만 퀴즈를 추가할 수 있어요',
+      })
 
     const q = await this.prisma.quizQuestion.create({
       data: {
@@ -47,7 +79,8 @@ export class QuizService {
 
   async launch(hostId: string, questionId: string) {
     const q = await this.prisma.quizQuestion.findUnique({ where: { id: questionId } })
-    if (!q) throw new NotFoundException({ code: 'quiz_not_found', message: '퀴즈를 찾을 수 없어요' })
+    if (!q)
+      throw new NotFoundException({ code: 'quiz_not_found', message: '퀴즈를 찾을 수 없어요' })
     const party = await this.prisma.party.findUnique({ where: { id: q.partyId } })
     if (!party || party.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트 권한이 필요해요' })
@@ -59,9 +92,19 @@ export class QuizService {
 
   async answer(userId: string, dto: SubmitQuizAnswerDto) {
     const q = await this.prisma.quizQuestion.findUnique({ where: { id: dto.questionId } })
-    if (!q) throw new NotFoundException({ code: 'quiz_not_found', message: '퀴즈를 찾을 수 없어요' })
+    if (!q)
+      throw new NotFoundException({ code: 'quiz_not_found', message: '퀴즈를 찾을 수 없어요' })
 
-    const launchedAtMs = q.launchedAt?.getTime() ?? Date.now()
+    // 참가자만 응답 가능 (비참가자가 리더보드를 오염시키지 못하게)
+    await this.assertParticipant(q.partyId, userId)
+    // 시작된 문항만 — 미시작 문항에 미리 응답해 유리한 응답시간을 얻는 것 차단
+    if (!q.launchedAt)
+      throw new BadRequestException({
+        code: 'quiz_not_launched',
+        message: '아직 시작되지 않은 퀴즈에요',
+      })
+
+    const launchedAtMs = q.launchedAt.getTime()
     const responseMs = Math.max(0, Date.now() - launchedAtMs)
     const isCorrect =
       q.correctOptionIndex != null && dto.selectedOptionIndex === q.correctOptionIndex
@@ -92,7 +135,14 @@ export class QuizService {
     })
     const stats = new Map<
       string,
-      { userId: string; nickname: string; avatarId: string | null; correct: number; sumMs: number; count: number }
+      {
+        userId: string
+        nickname: string
+        avatarId: string | null
+        correct: number
+        sumMs: number
+        count: number
+      }
     >()
     for (const a of answers) {
       const s = stats.get(a.userId) ?? {

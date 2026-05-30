@@ -11,11 +11,13 @@ export class QuizController {
   constructor(private readonly quiz: QuizService) {}
 
   @Get()
-  list(@Param('partyId') partyId: string) {
-    return this.quiz.list(partyId)
+  @UseGuards(AuthGuard('jwt'))
+  list(@CurrentUser() me: JwtUserPayload, @Param('partyId') partyId: string) {
+    return this.quiz.list(me.sub, partyId)
   }
 
   @Get('leaderboard')
+  @UseGuards(AuthGuard('jwt'))
   leaderboard(@Param('partyId') partyId: string) {
     return this.quiz.leaderboard(partyId)
   }
