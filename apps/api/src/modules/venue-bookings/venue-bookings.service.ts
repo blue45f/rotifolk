@@ -33,56 +33,59 @@ export class VenueBookingsService {
     const start = new Date(dto.startAt)
     const end = new Date(dto.endAt)
 
-    const bookingConflict = await this.prisma.venueBooking.findFirst({
-      where: {
-        venueId: venue.id,
-        status: { in: BLOCKING_STATUSES },
-        startAt: { lt: end },
-        endAt: { gt: start },
-      },
-      select: { id: true },
-    })
-    if (bookingConflict)
-      throw new BadRequestException({ code: 'slot_taken', message: '이미 확정된 예약과 겹쳐요' })
-
-    const partyConflict = await this.prisma.party.findFirst({
-      where: {
-        venueId: venue.id,
-        status: { notIn: ['cancelled', 'ended'] },
-        startAt: { lt: end },
-        endAt: { gt: start },
-      },
-      select: { id: true },
-    })
-    if (partyConflict)
-      throw new BadRequestException({
-        code: 'slot_taken',
-        message: '해당 시간에 다른 파티가 있어요',
-      })
-
     const quote = quoteVenueBooking(venue, start, end)
     const instant = venue.instantBook
 
-    const created = await this.prisma.venueBooking.create({
-      data: {
-        venueId: venue.id,
-        requesterId,
-        ownerId: venue.ownerId,
-        startAt: start,
-        endAt: end,
-        partySize: dto.partySize,
-        category: dto.category,
-        noteToOwner: dto.noteToOwner ?? null,
-        status: instant ? 'confirmed' : 'requested',
-        hours: quote.hours,
-        baseKRW: quote.baseKRW,
-        multiplier: quote.multiplier,
-        discountKRW: quote.discountKRW,
-        cleaningFeeKRW: quote.cleaningFeeKRW,
-        totalKRW: quote.totalKRW,
-        decidedAt: instant ? new Date() : null,
-      },
-      include: { venue: true, requester: true },
+    // 충돌 검사와 생성을 한 트랜잭션으로 묶어 동시 즉시예약이 같은 시간대를 중복 확정하지 못하게 함.
+    const created = await this.prisma.$transaction(async (tx) => {
+      const bookingConflict = await tx.venueBooking.findFirst({
+        where: {
+          venueId: venue.id,
+          status: { in: BLOCKING_STATUSES },
+          startAt: { lt: end },
+          endAt: { gt: start },
+        },
+        select: { id: true },
+      })
+      if (bookingConflict)
+        throw new BadRequestException({ code: 'slot_taken', message: '이미 확정된 예약과 겹쳐요' })
+
+      const partyConflict = await tx.party.findFirst({
+        where: {
+          venueId: venue.id,
+          status: { notIn: ['cancelled', 'ended'] },
+          startAt: { lt: end },
+          endAt: { gt: start },
+        },
+        select: { id: true },
+      })
+      if (partyConflict)
+        throw new BadRequestException({
+          code: 'slot_taken',
+          message: '해당 시간에 다른 파티가 있어요',
+        })
+
+      return tx.venueBooking.create({
+        data: {
+          venueId: venue.id,
+          requesterId,
+          ownerId: venue.ownerId,
+          startAt: start,
+          endAt: end,
+          partySize: dto.partySize,
+          category: dto.category,
+          noteToOwner: dto.noteToOwner ?? null,
+          status: instant ? 'confirmed' : 'requested',
+          hours: quote.hours,
+          baseKRW: quote.baseKRW,
+          multiplier: quote.multiplier,
+          discountKRW: quote.discountKRW,
+          cleaningFeeKRW: quote.cleaningFeeKRW,
+          totalKRW: quote.totalKRW,
+          decidedAt: instant ? new Date() : null,
+        },
+        include: { venue: true, requester: true },
+      })
     })
 
     if (venue.ownerId && !instant) {
@@ -131,24 +134,27 @@ export class VenueBookingsService {
     if (row.status !== 'requested')
       throw new BadRequestException({ message: '이미 처리된 요청이에요' })
 
-    if (status === 'confirmed') {
-      const conflict = await this.prisma.venueBooking.findFirst({
-        where: {
-          venueId: row.venueId,
-          status: { in: BLOCKING_STATUSES },
-          startAt: { lt: row.endAt },
-          endAt: { gt: row.startAt },
-          id: { not: row.id },
-        },
-        select: { id: true },
+    // 충돌 재검사와 확정 갱신을 한 트랜잭션으로 묶어 겹치는 두 요청이 동시에 확정되지 않게 함.
+    const updated = await this.prisma.$transaction(async (tx) => {
+      if (status === 'confirmed') {
+        const conflict = await tx.venueBooking.findFirst({
+          where: {
+            venueId: row.venueId,
+            status: { in: BLOCKING_STATUSES },
+            startAt: { lt: row.endAt },
+            endAt: { gt: row.startAt },
+            id: { not: row.id },
+          },
+          select: { id: true },
+        })
+        if (conflict)
+          throw new BadRequestException({ message: '이미 다른 예약이 확정된 시간이에요' })
+      }
+      return tx.venueBooking.update({
+        where: { id },
+        data: { status, ownerMessage: message ?? null, decidedAt: new Date() },
+        include: { venue: true, requester: true },
       })
-      if (conflict) throw new BadRequestException({ message: '이미 다른 예약이 확정된 시간이에요' })
-    }
-
-    const updated = await this.prisma.venueBooking.update({
-      where: { id },
-      data: { status, ownerMessage: message ?? null, decidedAt: new Date() },
-      include: { venue: true, requester: true },
     })
     await this.notify(
       row.requesterId,
