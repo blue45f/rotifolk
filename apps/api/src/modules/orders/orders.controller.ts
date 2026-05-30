@@ -49,9 +49,10 @@ export class OrdersController {
   /** 엔빵 정산 — equal: 1/N 균등, pay-yours: 본인 주문만 합산 */
   @Get('party/:partyId/split')
   splitBill(
+    @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
     @Query('mode') mode: 'equal' | 'pay-yours' = 'equal',
   ) {
-    return this.orders.splitBill(partyId, mode === 'pay-yours' ? 'pay-yours' : 'equal')
+    return this.orders.splitBill(me.sub, partyId, mode === 'pay-yours' ? 'pay-yours' : 'equal')
   }
 }

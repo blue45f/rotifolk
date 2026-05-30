@@ -20,14 +20,19 @@ export class OrdersService {
 
   async create(userId: string, dto: CreateOrderDto): Promise<Order> {
     const party = await this.prisma.party.findUnique({ where: { id: dto.partyId } })
-    if (!party) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
     if (!party.enableLiveOrders)
-      throw new BadRequestException({ code: 'orders_disabled', message: '이 파티는 라이브 주문이 꺼져있어요' })
+      throw new BadRequestException({
+        code: 'orders_disabled',
+        message: '이 파티는 라이브 주문이 꺼져있어요',
+      })
 
     const part = await this.prisma.participation.findUnique({
       where: { partyId_userId: { partyId: dto.partyId, userId } },
     })
-    if (!part) throw new ForbiddenException({ code: 'not_joined', message: '참가자만 주문할 수 있어요' })
+    if (!part)
+      throw new ForbiddenException({ code: 'not_joined', message: '참가자만 주문할 수 있어요' })
 
     const ids = dto.items.map((i) => i.menuItemId)
     const menuItems = await this.prisma.menuItem.findMany({ where: { id: { in: ids } } })
@@ -78,12 +83,26 @@ export class OrdersService {
   }
 
   /** 엔빵 정산 — equal: 1/N 균등, pay-yours: 본인 주문만 합산 */
-  async splitBill(partyId: string, mode: 'equal' | 'pay-yours') {
+  async splitBill(userId: string, partyId: string, mode: 'equal' | 'pay-yours') {
     const party = await this.prisma.party.findUnique({
       where: { id: partyId },
       include: { _count: { select: { participations: true } } },
     })
-    if (!party) throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+
+    // 호스트 또는 참가자만 정산 내역(참가자별 금액) 조회 가능
+    if (party.hostId !== userId) {
+      const part = await this.prisma.participation.findUnique({
+        where: { partyId_userId: { partyId, userId } },
+        select: { status: true },
+      })
+      if (!part || (part.status !== 'confirmed' && part.status !== 'checked-in'))
+        throw new ForbiddenException({
+          code: 'not_participant',
+          message: '파티 참가자만 정산을 볼 수 있어요',
+        })
+    }
 
     const orders = await this.prisma.order.findMany({
       where: { partyId, status: { not: 'cancelled' } },
@@ -126,7 +145,10 @@ export class OrdersService {
   async listByParty(hostId: string, partyId: string) {
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!party || party.hostId !== hostId)
-      throw new ForbiddenException({ code: 'forbidden', message: '호스트만 주문 목록을 볼 수 있어요' })
+      throw new ForbiddenException({
+        code: 'forbidden',
+        message: '호스트만 주문 목록을 볼 수 있어요',
+      })
     const orders = await this.prisma.order.findMany({
       where: { partyId },
       include: { items: true, user: true },
@@ -145,10 +167,17 @@ export class OrdersService {
   }
 
   async updateStatus(hostId: string, orderId: string, dto: UpdateOrderStatusDto): Promise<Order> {
-    const o = await this.prisma.order.findUnique({ where: { id: orderId }, include: { party: true } })
-    if (!o) throw new NotFoundException({ code: 'order_not_found', message: '주문을 찾을 수 없어요' })
+    const o = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { party: true },
+    })
+    if (!o)
+      throw new NotFoundException({ code: 'order_not_found', message: '주문을 찾을 수 없어요' })
     if (o.party.hostId !== hostId)
-      throw new ForbiddenException({ code: 'forbidden', message: '호스트만 주문 상태를 바꿀 수 있어요' })
+      throw new ForbiddenException({
+        code: 'forbidden',
+        message: '호스트만 주문 상태를 바꿀 수 있어요',
+      })
 
     const updated = await this.prisma.order.update({
       where: { id: orderId },
