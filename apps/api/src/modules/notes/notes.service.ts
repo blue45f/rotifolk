@@ -56,30 +56,32 @@ export class NotesService {
         message: '받는 사람이 이 모임 참가자가 아니에요',
       })
 
-    // 모임별 쪽지 상한 — 이미 보낸 쪽지 수가 한도 이상이면 거절(신중한 선택 유도).
-    const sentCount = await this.prisma.partyNote.count({
-      where: { partyId: dto.partyId, fromUserId },
-    })
-    if (sentCount >= party.noteQuota)
-      throw new BadRequestException({
-        code: 'note_quota_exceeded',
-        message: '이 모임에서 보낼 수 있는 쪽지를 모두 사용했어요',
-      })
-
     const deliveredAt = party.noteDelivery === 'instant' ? new Date() : null
 
-    const created = await this.prisma.partyNote.create({
-      data: {
-        partyId: dto.partyId,
-        fromUserId,
-        toUserId: dto.toUserId,
-        roundIndex: dto.roundIndex ?? null,
-        body: dto.body,
-        emoji: dto.emoji ?? null,
-        shareContact: dto.shareContact,
-        deliveredAt,
-      },
-      include: { fromUser: { select: { nickname: true, avatarId: true } } },
+    // 쪽지 상한 검사와 생성을 한 트랜잭션으로 묶어 동시 전송에도 한도를 넘기지 못하게 함.
+    const created = await this.prisma.$transaction(async (tx) => {
+      const sentCount = await tx.partyNote.count({
+        where: { partyId: dto.partyId, fromUserId },
+      })
+      if (sentCount >= party.noteQuota)
+        throw new BadRequestException({
+          code: 'note_quota_exceeded',
+          message: '이 모임에서 보낼 수 있는 쪽지를 모두 사용했어요',
+        })
+
+      return tx.partyNote.create({
+        data: {
+          partyId: dto.partyId,
+          fromUserId,
+          toUserId: dto.toUserId,
+          roundIndex: dto.roundIndex ?? null,
+          body: dto.body,
+          emoji: dto.emoji ?? null,
+          shareContact: dto.shareContact,
+          deliveredAt,
+        },
+        include: { fromUser: { select: { nickname: true, avatarId: true } } },
+      })
     })
     return this.toNote(created)
   }

@@ -45,9 +45,7 @@ class PaymentsController {
     @Param('partyId') partyId: string,
     @Body() body: PayBody,
   ) {
-    const method: PaymentMethod = ALLOWED_METHODS.includes(
-      body?.method as PaymentMethod,
-    )
+    const method: PaymentMethod = ALLOWED_METHODS.includes(body?.method as PaymentMethod)
       ? (body.method as PaymentMethod)
       : 'card'
 
@@ -59,24 +57,26 @@ class PaymentsController {
       })
     }
 
-    const existingPaid = await this.prisma.payment.findFirst({
-      where: { partyId, userId: me.sub, status: 'paid' },
-      orderBy: { createdAt: 'desc' },
-    })
-    if (existingPaid) return this.shape(existingPaid)
+    // 중복 결제 방지 — 조회와 생성을 한 트랜잭션으로 묶어 동시 요청에도 한 건만 생성.
+    const result = await this.prisma.$transaction(async (tx) => {
+      const existingPaid = await tx.payment.findFirst({
+        where: { partyId, userId: me.sub, status: 'paid' },
+        orderBy: { createdAt: 'desc' },
+      })
+      if (existingPaid) return existingPaid
 
-    const now = new Date()
-    const created = await this.prisma.payment.create({
-      data: {
-        partyId,
-        userId: me.sub,
-        amountKRW: party.basePriceKRW,
-        status: 'paid',
-        method,
-        paidAt: now,
-      },
+      return tx.payment.create({
+        data: {
+          partyId,
+          userId: me.sub,
+          amountKRW: party.basePriceKRW,
+          status: 'paid',
+          method,
+          paidAt: new Date(),
+        },
+      })
     })
-    return this.shape(created)
+    return this.shape(result)
   }
 
   @Post(':id/refund')
@@ -108,10 +108,7 @@ class PaymentsController {
   }
 
   @Get('me')
-  async mine(
-    @CurrentUser() me: JwtUserPayload,
-    @Query('partyId') partyId?: string,
-  ) {
+  async mine(@CurrentUser() me: JwtUserPayload, @Query('partyId') partyId?: string) {
     const items = await this.prisma.payment.findMany({
       where: {
         userId: me.sub,
