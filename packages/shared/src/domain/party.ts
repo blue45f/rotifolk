@@ -140,6 +140,15 @@ export function channelsFromLegacyMode(mode: ConnectionMode): ConnectionChannel[
   return ['chat']
 }
 
+/** 채널 배열 → 레거시 connectionMode (하위호환 저장값을 채널과 동기화). */
+export function legacyModeFromChannels(channels: readonly ConnectionChannel[]): ConnectionMode {
+  const hasChat = channels.includes('chat')
+  const hasExternal = channels.some((c) => c !== 'chat')
+  if (hasChat && hasExternal) return 'both'
+  if (hasExternal) return 'phone'
+  return 'chat'
+}
+
 /** 쪽지 도착 시점. */
 export type NoteDelivery = 'instant' | 'party-end'
 

@@ -9,6 +9,7 @@ import {
   canAcceptGender,
   channelsFromLegacyMode,
   checkEligibility,
+  legacyModeFromChannels,
   quoteRefund,
 } from '@rotifolk/shared'
 import type {
@@ -48,13 +49,11 @@ export class PartiesService {
     private readonly notifEmitter: NotificationsEmitter,
   ) {}
 
-  /** config.connectionChannels(있으면) 또는 레거시 connectionMode에서 유도한 채널 JSON. */
-  private connectionChannelsJsonFrom(config: PartyConfig): string {
-    const channels: ConnectionChannel[] =
-      config.connectionChannels && config.connectionChannels.length > 0
-        ? config.connectionChannels
-        : channelsFromLegacyMode(config.connectionMode)
-    return toJsonString(channels)
+  /** config.connectionChannels(있으면) 또는 레거시 connectionMode에서 유도한 채널 배열. */
+  private resolveChannels(config: PartyConfig): ConnectionChannel[] {
+    return config.connectionChannels && config.connectionChannels.length > 0
+      ? config.connectionChannels
+      : channelsFromLegacyMode(config.connectionMode)
   }
 
   async list(q: PartyQueryDto) {
@@ -164,8 +163,8 @@ export class PartiesService {
         groupSize: dto.config.groupSize,
         matchScope: dto.config.matchScope,
         maxMatchesPerPerson: dto.config.maxMatchesPerPerson,
-        connectionMode: dto.config.connectionMode,
-        connectionChannelsJson: this.connectionChannelsJsonFrom(dto.config),
+        connectionMode: legacyModeFromChannels(this.resolveChannels(dto.config)),
+        connectionChannelsJson: toJsonString(this.resolveChannels(dto.config)),
         revealPopular: dto.config.revealPopular ?? true,
         groupAfterParty: dto.config.groupAfterParty,
         enableNotes: dto.config.enableNotes,
@@ -405,8 +404,8 @@ export class PartiesService {
         groupSize: dto.config.groupSize,
         matchScope: dto.config.matchScope,
         maxMatchesPerPerson: dto.config.maxMatchesPerPerson,
-        connectionMode: dto.config.connectionMode,
-        connectionChannelsJson: this.connectionChannelsJsonFrom(dto.config),
+        connectionMode: legacyModeFromChannels(this.resolveChannels(dto.config)),
+        connectionChannelsJson: toJsonString(this.resolveChannels(dto.config)),
         revealPopular: dto.config.revealPopular ?? true,
         groupAfterParty: dto.config.groupAfterParty,
         enableNotes: dto.config.enableNotes,
