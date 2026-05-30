@@ -33,13 +33,18 @@ export const SnackPackageEnum = z.enum(['none', 'per-plate', 'course', 'pairing-
 export const ChildrenPolicyEnum = z.enum(['any', 'has', 'none'])
 
 /** 성별·연령별 참여 비용 규칙. */
-export const PricingRuleSchema = z.object({
-  gender: z.enum(['male', 'female']).optional().nullable(),
-  ageMin: z.number().int().min(18).max(80).optional().nullable(),
-  ageMax: z.number().int().min(18).max(80).optional().nullable(),
-  priceKRW: z.number().int().min(0).max(1_000_000),
-  label: z.string().max(40).optional(),
-})
+export const PricingRuleSchema = z
+  .object({
+    gender: z.enum(['male', 'female']).optional().nullable(),
+    ageMin: z.number().int().min(18).max(80).optional().nullable(),
+    ageMax: z.number().int().min(18).max(80).optional().nullable(),
+    priceKRW: z.number().int().min(0).max(1_000_000),
+    label: z.string().max(40).optional(),
+  })
+  .refine((r) => r.ageMin == null || r.ageMax == null || r.ageMin <= r.ageMax, {
+    message: '최소 나이가 최대 나이보다 클 수 없어요',
+    path: ['ageMax'],
+  })
 export type PricingRuleDto = z.infer<typeof PricingRuleSchema>
 
 export const PartyConfigSchema = z.object({
@@ -88,7 +93,11 @@ export const PartyRecruitmentSchema = z.object({
   autoCancelReason: z.string().max(500).optional().nullable(),
 })
 
-export const CreatePartySchema = z.object({
+/** 최소 나이 ≤ 최대 나이 (둘 다 있을 때만 검사). */
+const ageRangeOk = (min?: number | null, max?: number | null) =>
+  min == null || max == null || min <= max
+
+const CreatePartyObject = z.object({
   title: z.string().min(4).max(60),
   description: z.string().min(20).max(2000),
   venueId: z.string().min(1),
@@ -115,9 +124,35 @@ export const CreatePartySchema = z.object({
   childrenPolicy: ChildrenPolicyEnum.default('any'),
   genderRatio: z.enum(['5:5', 'any']).optional().nullable(),
 })
+
+export const CreatePartySchema = CreatePartyObject.refine((d) => ageRangeOk(d.ageMin, d.ageMax), {
+  message: '최소 나이가 최대 나이보다 클 수 없어요',
+  path: ['ageMax'],
+})
+  .refine((d) => ageRangeOk(d.maleAgeMin, d.maleAgeMax), {
+    message: '남성 최소 나이가 최대 나이보다 클 수 없어요',
+    path: ['maleAgeMax'],
+  })
+  .refine((d) => ageRangeOk(d.femaleAgeMin, d.femaleAgeMax), {
+    message: '여성 최소 나이가 최대 나이보다 클 수 없어요',
+    path: ['femaleAgeMax'],
+  })
 export type CreatePartyDto = z.infer<typeof CreatePartySchema>
 
-export const UpdatePartySchema = CreatePartySchema.partial()
+// .partial()은 ZodObject에만 있으므로 refine 이전의 객체에 적용한 뒤 같은 검증을 부착.
+export const UpdatePartySchema = CreatePartyObject.partial()
+  .refine((d) => ageRangeOk(d.ageMin, d.ageMax), {
+    message: '최소 나이가 최대 나이보다 클 수 없어요',
+    path: ['ageMax'],
+  })
+  .refine((d) => ageRangeOk(d.maleAgeMin, d.maleAgeMax), {
+    message: '남성 최소 나이가 최대 나이보다 클 수 없어요',
+    path: ['maleAgeMax'],
+  })
+  .refine((d) => ageRangeOk(d.femaleAgeMin, d.femaleAgeMax), {
+    message: '여성 최소 나이가 최대 나이보다 클 수 없어요',
+    path: ['femaleAgeMax'],
+  })
 export type UpdatePartyDto = z.infer<typeof UpdatePartySchema>
 
 export const PartyQuerySchema = z.object({
