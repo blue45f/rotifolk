@@ -274,6 +274,8 @@ export interface PartySummary extends Pick<
   | 'maxParticipants'
   | 'status'
   | 'tags'
+  | 'maritalRequirement'
+  | 'childrenPolicy'
 > {
   category: PartyCategory
   format: PartyFormat

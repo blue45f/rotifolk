@@ -132,6 +132,8 @@ export function toPartySummary(row: PartyRow): PartySummary {
     maxParticipants: row.maxParticipants,
     status: row.status as PartyStatus,
     tags: parseJsonArray<string>(row.tagsJson),
+    maritalRequirement: parseJsonArray<MaritalStatus>(row.maritalRequirementJson),
+    childrenPolicy: row.childrenPolicy as ChildrenPolicy,
     category: row.category as PartyCategory,
     format: row.format as PartyFormat,
     venueName: row.venue?.name ?? '',

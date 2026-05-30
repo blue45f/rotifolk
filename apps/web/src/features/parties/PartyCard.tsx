@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
-import { SEOUL_AREAS, formatDistanceKm, haversineKm } from '@rotifolk/shared'
+import {
+  CHILDREN_POLICY_LABEL,
+  MARITAL_STATUS_LABEL,
+  SEOUL_AREAS,
+  formatDistanceKm,
+  haversineKm,
+} from '@rotifolk/shared'
 import { Badge } from '@components/ui/Badge/Badge'
 import { CATEGORY_META } from '@features/categories/meta'
 import { useGeolocation } from '@features/geo/useGeolocation'
@@ -20,13 +26,14 @@ function distanceLabel(area: string, here?: { lat: number; lng: number }): strin
   return formatDistanceKm(haversineKm(here, coords))
 }
 
-const TONE_BY_CATEGORY: Record<string, 'wine' | 'coffee' | 'tea' | 'whisky' | 'gold' | 'primary'> = {
-  wine: 'wine',
-  coffee: 'coffee',
-  tea: 'tea',
-  whisky: 'whisky',
-  'natural-wine': 'gold',
-}
+const TONE_BY_CATEGORY: Record<string, 'wine' | 'coffee' | 'tea' | 'whisky' | 'gold' | 'primary'> =
+  {
+    wine: 'wine',
+    coffee: 'coffee',
+    tea: 'tea',
+    whisky: 'whisky',
+    'natural-wine': 'gold',
+  }
 
 const DRINK_HINT: Record<string, string> = {
   none: '음료 별도',
@@ -37,6 +44,16 @@ const DRINK_HINT: Record<string, string> = {
 
 export function PartyCard({ party }: Props) {
   const cat = CATEGORY_META[party.category]
+  // 돌싱/자녀 등 자격 제한이 있을 때만 칩으로 노출(전체 허용이면 숨김).
+  const marital = party.maritalRequirement ?? []
+  const maritalChip =
+    marital.length > 0 && marital.length < 5
+      ? marital.map((m) => MARITAL_STATUS_LABEL[m]).join('·')
+      : null
+  const childrenChip =
+    party.childrenPolicy && party.childrenPolicy !== 'any'
+      ? CHILDREN_POLICY_LABEL[party.childrenPolicy]
+      : null
   const start = new Date(party.startAt)
   const fillRate = Math.min(1, party.currentParticipants / Math.max(1, party.maxParticipants))
   const isFull = fillRate >= 1
@@ -55,8 +72,7 @@ export function PartyCard({ party }: Props) {
   })
   const isSaved = saved?.some((s) => s.id === party.id) ?? false
   const toggleSave = useMutation({
-    mutationFn: () =>
-      isSaved ? api.delete(`saved/${party.id}`) : api.post(`saved/${party.id}`),
+    mutationFn: () => (isSaved ? api.delete(`saved/${party.id}`) : api.post(`saved/${party.id}`)),
     onMutate: async () => {
       await qc.cancelQueries({ queryKey: ['saved', 'me'] })
       const prev = qc.getQueryData<PartySummary[]>(['saved', 'me'])
@@ -93,14 +109,30 @@ export function PartyCard({ party }: Props) {
         {party.coverImageUrl ? (
           <img src={party.coverImageUrl} alt="" className={styles.coverImg} loading="lazy" />
         ) : (
-          <div className={styles.coverEmoji} aria-hidden="true">{cat.emoji}</div>
+          <div className={styles.coverEmoji} aria-hidden="true">
+            {cat.emoji}
+          </div>
         )}
         <div className={styles.coverScrim} aria-hidden="true" />
         <div className={styles.coverHead}>
-          <Badge tone={tone} size="sm">{cat.emoji} {cat.shortLabel}</Badge>
-          {isLive && <Badge tone="danger" size="sm">🔴 LIVE</Badge>}
-          {!isLive && isFull && <Badge tone="warning" size="sm">마감</Badge>}
-          {!isLive && isHot && <Badge tone="gold" size="sm">곧 마감</Badge>}
+          <Badge tone={tone} size="sm">
+            {cat.emoji} {cat.shortLabel}
+          </Badge>
+          {isLive && (
+            <Badge tone="danger" size="sm">
+              🔴 LIVE
+            </Badge>
+          )}
+          {!isLive && isFull && (
+            <Badge tone="warning" size="sm">
+              마감
+            </Badge>
+          )}
+          {!isLive && isHot && (
+            <Badge tone="gold" size="sm">
+              곧 마감
+            </Badge>
+          )}
         </div>
         {me && (
           <button
@@ -124,6 +156,20 @@ export function PartyCard({ party }: Props) {
 
       <div className={styles.body}>
         <h3 className={styles.title}>{party.title}</h3>
+        {(maritalChip || childrenChip) && (
+          <div className={styles.eligRow}>
+            {maritalChip && (
+              <Badge tone="info" size="sm" outlined>
+                {maritalChip}
+              </Badge>
+            )}
+            {childrenChip && (
+              <Badge tone="neutral" size="sm" outlined>
+                👶 {childrenChip}
+              </Badge>
+            )}
+          </div>
+        )}
         <p className={styles.meta}>
           <span>📍 {party.venueArea}</span>
           {distance && (

@@ -139,6 +139,11 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.eligRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
 .meta {
   display: inline-flex;
   align-items: center;
