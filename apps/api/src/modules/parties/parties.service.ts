@@ -22,6 +22,7 @@ import type {
   UpdatePartyDto,
   VerificationField,
 } from '@rotifolk/shared'
+import type { Party, Prisma } from '@prisma/client'
 import { PrismaService } from '@/prisma/prisma.service'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
 import { toParticipation, toParty, toPartySummary } from './party.mapper'
@@ -508,62 +509,72 @@ export class PartiesService {
     if (party.status !== 'open')
       throw new BadRequestException({ code: 'party_closed', message: '신청이 마감된 파티에요' })
 
+    // 성비 판단에 쓰는 신청자 성별 — 재참가·신규 양쪽에서 사용
+    const joiner = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { gender: true },
+    })
+    const gender = joiner?.gender
+
     const existing = await this.prisma.participation.findUnique({
       where: { partyId_userId: { partyId, userId } },
     })
     if (existing) {
       if (existing.status === 'cancelled') {
+        // 참가 자격 — 성별별 나이 · 혼인상태(돌싱 등) · 아이 유무 · 필수 인증
         await this.assertEligibleToJoin(party, userId)
-        const updated = await this.prisma.participation.update({
-          where: { id: existing.id },
-          data: { status: 'confirmed', note: note ?? null },
+        // 재참가도 정원·성비를 다시 평가 — 마감된 모임에 무조건 확정되지 않도록(대기열 가능)
+        const { updated, status } = await this.prisma.$transaction(async (tx) => {
+          const { status: decided, confirmedCount } = await this.evaluateAdmission(
+            tx,
+            party,
+            gender,
+          )
+          const row = await tx.participation.update({
+            where: { id: existing.id },
+            data: { status: decided, note: note ?? null },
+          })
+          if (decided === 'confirmed') {
+            await tx.user.update({
+              where: { id: userId },
+              data: { joinedCount: { increment: 1 } },
+            })
+            if (confirmedCount + 1 >= party.maxParticipants) {
+              await tx.party.update({ where: { id: partyId }, data: { status: 'full' } })
+            }
+          }
+          return { updated: row, status: decided }
         })
-        await this.prisma.user.update({
-          where: { id: userId },
-          data: { joinedCount: { increment: 1 } },
-        })
+        if (status === 'confirmed') await this.promoteWaitlist(partyId)
         return toParticipation(updated)
       }
       throw new BadRequestException({ code: 'already_joined', message: '이미 신청한 파티에요' })
     }
 
-    // 성비 자동 조절 — 정원 + 비례 성비(genderRatioTarget)를 모두 만족할 때만 확정,
-    // 아니면 대기열. (예: 5:3 목표면 남10에 여6 이상이어야 남이 더 들어옴)
-    const joiner = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { gender: true },
-    })
-
     // 참가 자격 — 성별별 나이 · 혼인상태(돌싱 등) · 아이 유무 · 필수 인증
     await this.assertEligibleToJoin(party, userId)
 
-    const counts = await this.genderCounts(partyId)
-    const confirmedCount = await this.prisma.participation.count({
-      where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
-    })
-    const g = joiner?.gender
-    let accept = confirmedCount < party.maxParticipants
-    if (accept && (g === 'male' || g === 'female') && party.genderRatioTarget !== 'any') {
-      accept = canAcceptGender(g, counts, party.genderRatioTarget, {
-        caps: { male: party.maleCap, female: party.femaleCap },
-        tolerance: party.ratioTolerance,
+    // 성비 자동 조절 — 정원 + 비례 성비(genderRatioTarget)를 모두 만족할 때만 확정, 아니면 대기열.
+    // 판단·생성·정원 갱신을 한 트랜잭션으로 묶어 동시 신청에도 정원을 넘기지 않게 함.
+    const { created, status } = await this.prisma.$transaction(async (tx) => {
+      const { status: decided, confirmedCount } = await this.evaluateAdmission(tx, party, gender)
+      const row = await tx.participation.create({
+        data: { partyId, userId, status: decided, note: note ?? null },
+        include: { user: { include: { avatar: true } } },
       })
-    }
-    const status = accept ? 'confirmed' : 'waitlist'
-
-    const created = await this.prisma.participation.create({
-      data: { partyId, userId, status, note: note ?? null },
-      include: { user: { include: { avatar: true } } },
+      if (decided === 'confirmed') {
+        await tx.user.update({
+          where: { id: userId },
+          data: { joinedCount: { increment: 1 } },
+        })
+        if (confirmedCount + 1 >= party.maxParticipants) {
+          await tx.party.update({ where: { id: partyId }, data: { status: 'full' } })
+        }
+      }
+      return { created: row, status: decided }
     })
 
     if (status === 'confirmed') {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { joinedCount: { increment: 1 } },
-      })
-      if (confirmedCount + 1 >= party.maxParticipants) {
-        await this.prisma.party.update({ where: { id: partyId }, data: { status: 'full' } })
-      }
       // 반대 성별이 충원돼 성비가 풀렸다면 대기열에서 자동 승급
       await this.promoteWaitlist(partyId)
       await this.prisma.notification
@@ -588,9 +599,35 @@ export class PartiesService {
     return toParticipation(created)
   }
 
-  /** 확정/체크인 참가자의 남녀 수 */
-  private async genderCounts(partyId: string): Promise<{ male: number; female: number }> {
-    const parts = await this.prisma.participation.findMany({
+  /**
+   * 정원·성비를 평가해 확정/대기열 여부를 결정. 트랜잭션 안에서 호출해
+   * 조회→판정→생성이 한 단위로 직렬화되도록 한다(동시 신청 정원 초과 방지).
+   */
+  private async evaluateAdmission(
+    tx: Prisma.TransactionClient,
+    party: Party,
+    gender: string | null | undefined,
+  ): Promise<{ status: 'confirmed' | 'waitlist'; confirmedCount: number }> {
+    const counts = await this.genderCounts(party.id, tx)
+    const confirmedCount = await tx.participation.count({
+      where: { partyId: party.id, status: { in: ['confirmed', 'checked-in'] } },
+    })
+    let accept = confirmedCount < party.maxParticipants
+    if (accept && (gender === 'male' || gender === 'female') && party.genderRatioTarget !== 'any') {
+      accept = canAcceptGender(gender, counts, party.genderRatioTarget, {
+        caps: { male: party.maleCap, female: party.femaleCap },
+        tolerance: party.ratioTolerance,
+      })
+    }
+    return { status: accept ? 'confirmed' : 'waitlist', confirmedCount }
+  }
+
+  /** 확정/체크인 참가자의 남녀 수 (트랜잭션 클라이언트도 주입 가능) */
+  private async genderCounts(
+    partyId: string,
+    client: Prisma.TransactionClient = this.prisma,
+  ): Promise<{ male: number; female: number }> {
+    const parts = await client.participation.findMany({
       where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
       include: { user: { select: { gender: true } } },
     })
