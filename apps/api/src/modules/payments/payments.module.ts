@@ -12,7 +12,10 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
+import { ageFromBirthYear, resolveParticipantPrice } from '@rotifolk/shared'
+import type { PricingRule } from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
+import { parseJsonArray } from '@/common/json-utils'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 
 type PaymentMethod = 'card' | 'kakao' | 'toss' | 'mock'
@@ -57,6 +60,18 @@ class PaymentsController {
       })
     }
 
+    // 성별·연령별 참가비 — 결제자의 성별·나이에 맞는 규칙가를 적용(없으면 기본가)
+    const payer = await this.prisma.user.findUnique({
+      where: { id: me.sub },
+      select: { gender: true, birthYear: true },
+    })
+    const rules = parseJsonArray<PricingRule>(party.pricingRulesJson)
+    const age = ageFromBirthYear(payer?.birthYear ?? null, new Date().getFullYear())
+    const amountKRW = resolveParticipantPrice(party.basePriceKRW, rules, {
+      gender: payer?.gender ?? null,
+      age,
+    })
+
     // 중복 결제 방지 — 조회와 생성을 한 트랜잭션으로 묶어 동시 요청에도 한 건만 생성.
     const result = await this.prisma.$transaction(async (tx) => {
       const existingPaid = await tx.payment.findFirst({
@@ -69,7 +84,7 @@ class PaymentsController {
         data: {
           partyId,
           userId: me.sub,
-          amountKRW: party.basePriceKRW,
+          amountKRW,
           status: 'paid',
           method,
           paidAt: new Date(),
