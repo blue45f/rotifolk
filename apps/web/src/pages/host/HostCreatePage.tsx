@@ -963,7 +963,8 @@ export default function HostCreatePage() {
               <div className={styles.group}>
                 <label className={styles.fieldLabel}>필수 인증 (복수 선택)</label>
                 <p className={styles.fieldHelp}>
-                  신원·명함·재직·졸업 등을 제출/검증한 사람만 참가할 수 있어요.
+                  본인·직업·재직·소득·미혼·학력 인증 중 선택한 항목을 검증한 사람만 참가할 수
+                  있어요.
                 </p>
                 <Controller
                   control={control}
