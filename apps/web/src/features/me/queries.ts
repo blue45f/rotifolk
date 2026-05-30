@@ -61,6 +61,7 @@ export function useUpdateTrust() {
       if (dto.company !== undefined) patch.company = dto.company
       if (dto.incomeBand !== undefined) patch.incomeBand = dto.incomeBand
       if (dto.maritalStatus !== undefined) patch.maritalStatus = dto.maritalStatus
+      if (dto.hasChildren !== undefined) patch.hasChildren = dto.hasChildren
       if (dto.education !== undefined) patch.education = dto.education
       if (dto.visibility !== undefined) patch.visibility = dto.visibility
       updateUser(patch)

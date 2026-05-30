@@ -34,6 +34,7 @@ export function toPublicUser(user: DbUser): User {
     company: user.company,
     incomeBand: user.incomeBand as User['incomeBand'],
     maritalStatus: user.maritalStatus as User['maritalStatus'],
+    hasChildren: user.hasChildren,
     education: user.education as User['education'],
     verifiedFields: parseJsonArray(user.verifiedFieldsJson) as User['verifiedFields'],
     visibility: parseJsonObject(user.visibilityJson) as User['visibility'],
