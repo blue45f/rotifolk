@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { detectAvoidOverlaps, normalizePhoneKR } from '@rotifolk/shared'
 import type {
   AddAvoidContactsDto,
@@ -92,6 +92,35 @@ export class MeService {
    * 번호는 원본과 함께 해시도 보관해 회피 대조에 사용.
    */
   async updateContact(userId: string, dto: UpdateContactDto) {
+    // 공개 동의(share*)를 켜는 채널은 핸들(이번 요청 또는 기존 저장값)이 비어있으면 안 됨.
+    // 부분 토글({ shareKakao: true })도 들어오므로 기존 저장값까지 고려해 검사.
+    const enabling =
+      dto.shareContact === true || dto.shareKakao === true || dto.shareInstagram === true
+    if (enabling) {
+      const current = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { phone: true, kakaoId: true, instagram: true },
+      })
+      const effective = (incoming: string | null | undefined, saved: string | null | undefined) =>
+        (incoming !== undefined ? incoming : saved)?.trim() ?? ''
+      const checks: Array<[boolean, string, string]> = [
+        [dto.shareContact === true, effective(dto.phone, current?.phone), '전화번호'],
+        [dto.shareKakao === true, effective(dto.kakaoId, current?.kakaoId), '카카오톡 아이디'],
+        [
+          dto.shareInstagram === true,
+          effective(dto.instagram, current?.instagram),
+          '인스타그램 아이디',
+        ],
+      ]
+      for (const [on, handle, label] of checks) {
+        if (on && !handle)
+          throw new BadRequestException({
+            code: 'handle_required',
+            message: `${label}를 입력해야 공개할 수 있어요`,
+          })
+      }
+    }
+
     const data: Prisma.UserUpdateInput = {}
     if (dto.phone !== undefined) {
       data.phone = dto.phone

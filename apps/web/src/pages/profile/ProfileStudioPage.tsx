@@ -838,15 +838,22 @@ function AvoidTab() {
                   type="checkbox"
                   className={styles.checkbox}
                   defaultChecked={ch.share}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    const next = e.target.checked
+                    // 핸들이 비어있으면 공개를 켤 수 없음(켜도 상대에게 전달될 값이 없음).
+                    if (next && !ch.value.trim()) {
+                      e.currentTarget.checked = false
+                      toast.show('먼저 위 입력란을 채워 주세요', 'error')
+                      return
+                    }
                     updateContact.mutate(
-                      { [ch.field]: e.target.checked },
+                      { [ch.field]: next },
                       {
                         onSuccess: () => toast.show('설정을 저장했어요', 'success'),
                         onError: (err) => toast.show((err as Error).message, 'error'),
                       },
                     )
-                  }
+                  }}
                 />
               </label>
             </div>
