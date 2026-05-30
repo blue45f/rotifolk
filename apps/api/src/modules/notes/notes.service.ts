@@ -33,6 +33,29 @@ export class NotesService {
         message: '이 모임은 쪽지를 받지 않아요',
       })
 
+    // 보내는 사람·받는 사람이 모두 이 모임의 활성 참가자여야 함(비참가자 쪽지 차단).
+    const [fromPart, toPart] = await Promise.all([
+      this.prisma.participation.findUnique({
+        where: { partyId_userId: { partyId: dto.partyId, userId: fromUserId } },
+        select: { status: true },
+      }),
+      this.prisma.participation.findUnique({
+        where: { partyId_userId: { partyId: dto.partyId, userId: dto.toUserId } },
+        select: { status: true },
+      }),
+    ])
+    const isActive = (s?: string) => s === 'confirmed' || s === 'checked-in'
+    if (!isActive(fromPart?.status))
+      throw new ForbiddenException({
+        code: 'not_participant',
+        message: '이 모임의 참가자만 쪽지를 보낼 수 있어요',
+      })
+    if (!isActive(toPart?.status))
+      throw new BadRequestException({
+        code: 'recipient_not_participant',
+        message: '받는 사람이 이 모임 참가자가 아니에요',
+      })
+
     // 모임별 쪽지 상한 — 이미 보낸 쪽지 수가 한도 이상이면 거절(신중한 선택 유도).
     const sentCount = await this.prisma.partyNote.count({
       where: { partyId: dto.partyId, fromUserId },

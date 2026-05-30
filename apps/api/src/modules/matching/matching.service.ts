@@ -203,12 +203,28 @@ export class MatchingService {
     }
   }
 
+  /** userId가 해당 파티의 활성 참가자(confirmed/checked-in)인지 검증 — 비참가자 투표/쪽지 차단. */
+  private async assertParticipant(partyId: string, userId: string) {
+    const p = await this.prisma.participation.findUnique({
+      where: { partyId_userId: { partyId, userId } },
+      select: { status: true },
+    })
+    if (!p || (p.status !== 'confirmed' && p.status !== 'checked-in')) {
+      throw new ForbiddenException({
+        code: 'not_participant',
+        message: '이 모임의 참가자만 할 수 있어요',
+      })
+    }
+  }
+
   async midMatchLike(fromUserId: string, partyId: string, toUserId: string) {
     if (fromUserId === toUserId)
       throw new BadRequestException({ code: 'self_vote', message: '본인은 선택할 수 없어요' })
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!party)
       throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    await this.assertParticipant(partyId, fromUserId)
+    await this.assertParticipant(partyId, toUserId)
 
     return this.prisma.midMatchVote.upsert({
       where: {
@@ -232,6 +248,8 @@ export class MatchingService {
   async finalMatchVote(fromUserId: string, partyId: string, toUserId: string) {
     if (fromUserId === toUserId)
       throw new BadRequestException({ code: 'self_vote', message: '본인은 선택할 수 없어요' })
+    await this.assertParticipant(partyId, fromUserId)
+    await this.assertParticipant(partyId, toUserId)
 
     return this.prisma.finalMatchVote.upsert({
       where: { partyId_fromUserId_toUserId: { partyId, fromUserId, toUserId } },

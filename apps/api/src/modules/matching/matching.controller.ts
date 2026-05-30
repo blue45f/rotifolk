@@ -1,5 +1,8 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
+import { FinalMatchVoteSchema } from '@rotifolk/shared'
+import type { FinalMatchVoteDto } from '@rotifolk/shared'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 import { MatchingService } from './matching.service'
 
@@ -27,7 +30,7 @@ export class MatchingController {
   midLike(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body() body: { toUserId: string },
+    @Body(new ZodValidationPipe(FinalMatchVoteSchema)) body: FinalMatchVoteDto,
   ) {
     return this.matching.midMatchLike(me.sub, partyId, body.toUserId)
   }
@@ -36,7 +39,7 @@ export class MatchingController {
   finalVote(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body() body: { toUserId: string },
+    @Body(new ZodValidationPipe(FinalMatchVoteSchema)) body: FinalMatchVoteDto,
   ) {
     return this.matching.finalMatchVote(me.sub, partyId, body.toUserId)
   }
