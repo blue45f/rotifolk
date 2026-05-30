@@ -103,6 +103,12 @@
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-tight);
 }
+.compatGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+}
 .compat {
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
@@ -110,6 +116,17 @@
   background: color-mix(in oklab, var(--brand-gold-500) 12%, transparent);
   padding: 4px 12px;
   border-radius: var(--radius-pill);
+}
+.compatBlurb {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  color: var(--color-text-muted);
+}
+.compatFactors {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
 }
 .actions {
   display: flex;

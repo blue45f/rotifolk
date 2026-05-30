@@ -256,8 +256,16 @@ function MatchCard({
       </div>
 
       {match.compatibility && (
-        <div className={styles.compat} title={match.compatibility.blurb}>
-          💞 궁합 {match.compatibility.score} · {match.compatibility.title}
+        <div className={styles.compatGroup}>
+          <div className={styles.compat}>
+            💞 궁합 {match.compatibility.score} · {match.compatibility.title}
+          </div>
+          {match.compatibility.blurb && (
+            <p className={styles.compatBlurb}>{match.compatibility.blurb}</p>
+          )}
+          {match.compatibility.factors && match.compatibility.factors.length > 0 && (
+            <p className={styles.compatFactors}>{match.compatibility.factors.join(' · ')}</p>
+          )}
         </div>
       )}
 

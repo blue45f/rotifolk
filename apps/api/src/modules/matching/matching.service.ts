@@ -437,14 +437,18 @@ export class MatchingService {
         result: conn?.result ?? 'mutual',
         phone,
         channels,
-        compatibility: { score: compat.score, title: compat.title, blurb: compat.blurb },
+        compatibility: {
+          score: compat.score,
+          title: compat.title,
+          blurb: compat.blurb,
+          factors: compat.factors,
+        },
         verified: parseJsonArray<string>(p?.verifiedFieldsJson ?? '[]').includes('identity'),
       }
     })
 
     return {
       scope: party.matchScope,
-      connectionMode: party.connectionMode,
       connectionChannels: offeredChannels,
       groupAfterParty: party.groupAfterParty,
       popularity,

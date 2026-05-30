@@ -17,8 +17,10 @@ export interface PartyMatch {
   result: MatchResult
   /** 이 인연과 이어질 수 있는 채널들 (호스트 정책 ∩ 상호 동의). */
   channels: MatchChannel[]
-  /** 서로 간의 궁합 (MBTI·관심사·띠 기반). */
-  compatibility?: { score: number; title: string; blurb: string }
+  /** 전화 채널이 양쪽 동의로 공유됐을 때의 번호(아니면 null). channels에서 파생된 편의 필드. */
+  phone?: string | null
+  /** 서로 간의 궁합 (MBTI·관심사·띠 기반). factors는 점수에 기여한 근거 목록. */
+  compatibility?: { score: number; title: string; blurb: string; factors?: string[] }
   /** 본인인증 완료 여부 (신뢰 신호). */
   verified?: boolean
 }
@@ -28,6 +30,8 @@ export interface MyPartyMatches {
   /** 호스트가 이 파티에서 제공한 연결 채널 (다중). */
   connectionChannels: ConnectionChannel[]
   groupAfterParty: boolean
+  /** 오늘의 인기남/인기녀 요약 (popular 엔드포인트와 동일 데이터, 응답에 함께 실림). */
+  popularity?: { popularMale: PopularPerson | null; popularFemale: PopularPerson | null }
   /** 내가 받은 호감 수 (본인에게만 보여주는 요약). */
   myLikesReceived?: number
   matches: PartyMatch[]
