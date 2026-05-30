@@ -666,6 +666,7 @@ export class PartiesService {
     if (p.status === 'cancelled') return { ok: true, refund: null }
 
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
+    const wasActive = p.status === 'confirmed' || p.status === 'checked-in'
 
     // 환불 정책 적용 — 결제 내역이 있으면 취소 시점·마감 기준으로 환불율 산정.
     let refund: ReturnType<typeof quoteRefund> | null = null
@@ -679,23 +680,30 @@ export class PartiesService {
         refundDeadlineHours: party.refundDeadlineHours,
         reason: 'participant-cancel',
       })
-      await this.prisma.payment.update({
-        where: { id: payment.id },
-        data:
-          refund.refundKRW > 0
-            ? { status: 'refunded', refundedAt: new Date() }
-            : { status: 'cancelled' },
-      })
     }
 
-    await this.prisma.participation.update({
-      where: { id: p.id },
-      data: { status: 'cancelled' },
+    // 환불·참가취소·정원복구를 원자적으로 처리(부분 실패 방지).
+    await this.prisma.$transaction(async (tx) => {
+      if (payment && refund) {
+        await tx.payment.update({
+          where: { id: payment.id },
+          data:
+            refund.refundKRW > 0
+              ? { status: 'refunded', refundedAt: new Date() }
+              : { status: 'cancelled' },
+        })
+      }
+      await tx.participation.update({ where: { id: p.id }, data: { status: 'cancelled' } })
+      // 'full'이었던 경우에만 open으로 — 조건부 갱신으로 live/locked 강등 방지.
+      await tx.party.updateMany({
+        where: { id: partyId, status: 'full' },
+        data: { status: 'open' },
+      })
     })
 
-    if (party?.status === 'full') {
-      await this.prisma.party.update({ where: { id: partyId }, data: { status: 'open' } })
-    }
+    // 확정 참가자가 빠져 자리가 났으면 대기자 승급.
+    if (wasActive) await this.promoteWaitlist(partyId)
+
     return { ok: true, refund }
   }
 

@@ -49,6 +49,12 @@ export class MatchingService {
       throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
     if (party.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트만 라운드를 짤 수 있어요' })
+    // 진행/종료된 파티는 재편성 금지 — 라이브 라운드·투표 데이터 손실 방지.
+    if (party.status === 'live' || party.status === 'ended' || party.status === 'cancelled')
+      throw new BadRequestException({
+        code: 'rounds_locked',
+        message: '이미 시작했거나 종료된 모임은 라운드를 다시 짤 수 없어요',
+      })
 
     const participants = await this.prisma.participation.findMany({
       where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
