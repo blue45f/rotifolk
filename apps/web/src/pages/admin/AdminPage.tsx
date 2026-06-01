@@ -1132,6 +1132,28 @@ export default function AdminPage() {
     return { queue }
   }
 
+  const buildExecutionTimelineStep = (
+    step: RevenueInsightExecutionQueueStep,
+    status: RevenueInsightExecutionStatus,
+    message: string,
+  ): RevenueInsightExecutionTimelineStep => {
+    if (step.type === 'monitoring') {
+      return {
+        ...step,
+        payload: step.payload,
+        status,
+        message,
+      }
+    }
+
+    return {
+      ...step,
+      payload: step.payload,
+      status,
+      message,
+    }
+  }
+
   const runRevenueInsightActionAll = async () => {
     if (revenueInsights.length === 0 || isAutoApplyingInsights) return
     if (!revenueSummary || saveMonitoringPolicy.isPending || saveRule.isPending) return
@@ -1147,11 +1169,9 @@ export default function AdminPage() {
     setIsAutoApplyingInsights(true)
     setAutoApplySummary('')
 
-    let timeline: RevenueInsightExecutionTimelineStep[] = plan.queue.map((step) => ({
-      ...step,
-      status: 'pending',
-      message: '대기',
-    }))
+    let timeline: RevenueInsightExecutionTimelineStep[] = plan.queue.map((step) =>
+      buildExecutionTimelineStep(step, 'pending', '대기'),
+    )
     setAutoApplyTimeline(timeline)
 
     const mark = (index: number, update: Partial<RevenueInsightExecutionTimelineStep>) => {
@@ -2128,11 +2148,7 @@ export default function AdminPage() {
     const plan = buildRevenueInsightExecutionPlan(revenueInsights)
     if (!plan) return []
 
-    return plan.queue.map((step) => ({
-      ...step,
-      status: 'pending',
-      message: '실행 대기',
-    }))
+    return plan.queue.map((step) => buildExecutionTimelineStep(step, 'pending', '실행 대기'))
   }, [revenueInsights])
   const projectedHealthDropWarning = projectedHealthDelta !== null && projectedHealthDelta <= -10
   const isProjectedHealthCritical = projectedHealthScore?.level === 'critical'
