@@ -67,6 +67,29 @@ type RevenueRuleHistoryRow = {
   reason: string | null
 }
 
+type MonitoringPolicyRecord = {
+  key: string
+  warningRefundRatePercent: number
+  dangerRefundRatePercent: number
+  topPartyConcentrationPercent: number
+  updatedBy: string | null
+  updatedAt: Date
+}
+
+type MonitoringPolicyHistoryRow = {
+  id: string
+  key: string
+  fromWarningRefundRatePercent: number
+  toWarningRefundRatePercent: number
+  fromDangerRefundRatePercent: number
+  toDangerRefundRatePercent: number
+  fromTopPartyConcentrationPercent: number
+  toTopPartyConcentrationPercent: number
+  changedBy: string | null
+  changedAt: Date
+  reason: string | null
+}
+
 interface MonitoringPolicySnapshot {
   healthAlerts: RevenueHealthAlertThreshold
   updatedAt: string
@@ -418,10 +441,49 @@ class PaymentsController {
       return this.monitoringPolicySnapshot()
     }
 
-    monitoringPolicyState = next
-    monitoringPolicyUpdatedAt = new Date()
-    monitoringPolicyUpdatedBy = me.sub
-    this.appendMonitoringPolicyHistory(current, next, reason)
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.monitoringPolicyConfig.upsert({
+          where: { key: REVENUE_MONITORING_POLICY_CONFIG_KEY },
+          create: {
+            key: REVENUE_MONITORING_POLICY_CONFIG_KEY,
+            warningRefundRatePercent: next.warningRefundRatePercent,
+            dangerRefundRatePercent: next.dangerRefundRatePercent,
+            topPartyConcentrationPercent: next.topPartyConcentrationPercent,
+            updatedBy: me.sub,
+          },
+          update: {
+            warningRefundRatePercent: next.warningRefundRatePercent,
+            dangerRefundRatePercent: next.dangerRefundRatePercent,
+            topPartyConcentrationPercent: next.topPartyConcentrationPercent,
+            updatedBy: me.sub,
+          },
+        })
+
+        await tx.monitoringPolicyHistory.create({
+          data: {
+            key: REVENUE_MONITORING_POLICY_CONFIG_KEY,
+            fromWarningRefundRatePercent: current.warningRefundRatePercent,
+            toWarningRefundRatePercent: next.warningRefundRatePercent,
+            fromDangerRefundRatePercent: current.dangerRefundRatePercent,
+            toDangerRefundRatePercent: next.dangerRefundRatePercent,
+            fromTopPartyConcentrationPercent: current.topPartyConcentrationPercent,
+            toTopPartyConcentrationPercent: next.topPartyConcentrationPercent,
+            changedBy: me.sub,
+            reason,
+          },
+        })
+      })
+    } catch (error) {
+      if (isPrismaMissingTableError(error)) {
+        monitoringPolicyState = next
+        monitoringPolicyUpdatedAt = new Date()
+        monitoringPolicyUpdatedBy = me.sub
+        this.appendMonitoringPolicyHistory(current, next, reason)
+      } else {
+        throw error
+      }
+    }
 
     return this.monitoringPolicySnapshot()
   }
@@ -437,10 +499,35 @@ class PaymentsController {
     const safeLimit =
       Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 50) : 20
 
-    return monitoringPolicyHistories
-      .slice()
-      .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())
-      .slice(0, safeLimit)
+    try {
+      const rows = await this.prisma.monitoringPolicyHistory.findMany({
+        where: { key: REVENUE_MONITORING_POLICY_CONFIG_KEY },
+        orderBy: { changedAt: 'desc' },
+        take: safeLimit,
+      })
+
+      return rows.map((row: MonitoringPolicyHistoryRow) => ({
+        id: row.id,
+        key: row.key,
+        fromWarningRefundRatePercent: row.fromWarningRefundRatePercent,
+        toWarningRefundRatePercent: row.toWarningRefundRatePercent,
+        fromDangerRefundRatePercent: row.fromDangerRefundRatePercent,
+        toDangerRefundRatePercent: row.toDangerRefundRatePercent,
+        fromTopPartyConcentrationPercent: row.fromTopPartyConcentrationPercent,
+        toTopPartyConcentrationPercent: row.toTopPartyConcentrationPercent,
+        changedBy: row.changedBy,
+        changedAt: row.changedAt.toISOString(),
+        reason: row.reason,
+      }))
+    } catch (error) {
+      if (isPrismaMissingTableError(error)) {
+        return monitoringPolicyHistories
+          .slice()
+          .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())
+          .slice(0, safeLimit)
+      }
+      throw error
+    }
   }
 
   @Post('admin/monitoring-policy/rollback')
@@ -450,26 +537,47 @@ class PaymentsController {
   ): Promise<MonitoringPolicySnapshot> {
     this.assertAdmin(me)
 
-    const sortedHistories = monitoringPolicyHistories
-      .slice()
-      .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())
+    const rollbackReason = this.normalizeMonitoringPolicyReason(body.reason) ?? '이전 설정으로 롤백'
+    const current = await this.currentMonitoringPolicy()
 
-    const targetHistory = body.historyId
-      ? sortedHistories.find((history) => history.id === body.historyId)
-      : sortedHistories[0]
+    let targetHistory: MonitoringPolicyHistoryRow | null = null
+    let fallbackTargetHistory: MonitoringPolicyChangeHistory | null = null
 
-    if (!targetHistory) {
+    try {
+      targetHistory = body.historyId
+        ? await this.prisma.monitoringPolicyHistory.findUnique({
+            where: { id: body.historyId },
+          })
+        : await this.prisma.monitoringPolicyHistory.findFirst({
+            where: { key: REVENUE_MONITORING_POLICY_CONFIG_KEY },
+            orderBy: { changedAt: 'desc' },
+          })
+    } catch (error) {
+      if (!isPrismaMissingTableError(error)) {
+        throw error
+      }
+
+      const sortedHistories = monitoringPolicyHistories
+        .slice()
+        .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())
+
+      fallbackTargetHistory = body.historyId
+        ? (sortedHistories.find((history) => history.id === body.historyId) ?? null)
+        : (sortedHistories[0] ?? null)
+    }
+
+    const target = fallbackTargetHistory ?? targetHistory
+    if (!target || target.key !== REVENUE_MONITORING_POLICY_CONFIG_KEY) {
       throw new NotFoundException({
         code: 'monitoring_policy_history_not_found',
         message: '롤백할 모니터링 정책 이력을 찾지 못했어요.',
       })
     }
 
-    const current = await this.currentMonitoringPolicy()
     const next: RevenueHealthAlertThreshold = {
-      warningRefundRatePercent: targetHistory.fromWarningRefundRatePercent,
-      dangerRefundRatePercent: targetHistory.fromDangerRefundRatePercent,
-      topPartyConcentrationPercent: targetHistory.fromTopPartyConcentrationPercent,
+      warningRefundRatePercent: target.fromWarningRefundRatePercent,
+      dangerRefundRatePercent: target.fromDangerRefundRatePercent,
+      topPartyConcentrationPercent: target.fromTopPartyConcentrationPercent,
     }
     const changed =
       current.warningRefundRatePercent !== next.warningRefundRatePercent ||
@@ -480,14 +588,57 @@ class PaymentsController {
       return this.monitoringPolicySnapshot()
     }
 
-    monitoringPolicyState = next
-    monitoringPolicyUpdatedAt = new Date()
-    monitoringPolicyUpdatedBy = me.sub
-    this.appendMonitoringPolicyHistory(
-      current,
-      next,
-      this.normalizeMonitoringPolicyReason(body.reason) ?? '이전 설정으로 롤백',
-    )
+    if (fallbackTargetHistory) {
+      monitoringPolicyState = next
+      monitoringPolicyUpdatedAt = new Date()
+      monitoringPolicyUpdatedBy = me.sub
+      this.appendMonitoringPolicyHistory(current, next, rollbackReason)
+      return this.monitoringPolicySnapshot()
+    }
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.monitoringPolicyConfig.upsert({
+          where: { key: REVENUE_MONITORING_POLICY_CONFIG_KEY },
+          create: {
+            key: REVENUE_MONITORING_POLICY_CONFIG_KEY,
+            warningRefundRatePercent: next.warningRefundRatePercent,
+            dangerRefundRatePercent: next.dangerRefundRatePercent,
+            topPartyConcentrationPercent: next.topPartyConcentrationPercent,
+            updatedBy: me.sub,
+          },
+          update: {
+            warningRefundRatePercent: next.warningRefundRatePercent,
+            dangerRefundRatePercent: next.dangerRefundRatePercent,
+            topPartyConcentrationPercent: next.topPartyConcentrationPercent,
+            updatedBy: me.sub,
+          },
+        })
+
+        await tx.monitoringPolicyHistory.create({
+          data: {
+            key: REVENUE_MONITORING_POLICY_CONFIG_KEY,
+            fromWarningRefundRatePercent: current.warningRefundRatePercent,
+            toWarningRefundRatePercent: next.warningRefundRatePercent,
+            fromDangerRefundRatePercent: current.dangerRefundRatePercent,
+            toDangerRefundRatePercent: next.dangerRefundRatePercent,
+            fromTopPartyConcentrationPercent: current.topPartyConcentrationPercent,
+            toTopPartyConcentrationPercent: next.topPartyConcentrationPercent,
+            changedBy: me.sub,
+            reason: rollbackReason,
+          },
+        })
+      })
+    } catch (error) {
+      if (isPrismaMissingTableError(error)) {
+        monitoringPolicyState = next
+        monitoringPolicyUpdatedAt = new Date()
+        monitoringPolicyUpdatedBy = me.sub
+        this.appendMonitoringPolicyHistory(current, next, rollbackReason)
+      } else {
+        throw error
+      }
+    }
 
     return this.monitoringPolicySnapshot()
   }
@@ -1181,6 +1332,39 @@ class PaymentsController {
     }
   }
 
+  private async getMonitoringPolicyConfig(): Promise<MonitoringPolicyRecord> {
+    try {
+      const existing = await this.prisma.monitoringPolicyConfig.findUnique({
+        where: { key: REVENUE_MONITORING_POLICY_CONFIG_KEY },
+      })
+      if (existing) {
+        return existing
+      }
+
+      return this.prisma.monitoringPolicyConfig.create({
+        data: {
+          key: REVENUE_MONITORING_POLICY_CONFIG_KEY,
+          warningRefundRatePercent: monitoringPolicyState.warningRefundRatePercent,
+          dangerRefundRatePercent: monitoringPolicyState.dangerRefundRatePercent,
+          topPartyConcentrationPercent: monitoringPolicyState.topPartyConcentrationPercent,
+          updatedBy: monitoringPolicyUpdatedBy,
+        },
+      })
+    } catch (error) {
+      if (isPrismaMissingTableError(error)) {
+        return {
+          key: REVENUE_MONITORING_POLICY_CONFIG_KEY,
+          warningRefundRatePercent: monitoringPolicyState.warningRefundRatePercent,
+          dangerRefundRatePercent: monitoringPolicyState.dangerRefundRatePercent,
+          topPartyConcentrationPercent: monitoringPolicyState.topPartyConcentrationPercent,
+          updatedAt: monitoringPolicyUpdatedAt,
+          updatedBy: monitoringPolicyUpdatedBy,
+        }
+      }
+      throw error
+    }
+  }
+
   private normalizeRevenueRules(current: RevenueRules, body: UpdateRevenueRulesBody): RevenueRules {
     const next: RevenueRules = { ...current }
 
@@ -1267,16 +1451,25 @@ class PaymentsController {
   }
 
   private async monitoringPolicySnapshot(): Promise<MonitoringPolicySnapshot> {
-    const healthAlerts = await this.currentMonitoringPolicy()
+    const config = await this.getMonitoringPolicyConfig()
     return {
-      healthAlerts,
-      updatedAt: monitoringPolicyUpdatedAt.toISOString(),
-      updatedBy: monitoringPolicyUpdatedBy,
+      healthAlerts: {
+        warningRefundRatePercent: config.warningRefundRatePercent,
+        dangerRefundRatePercent: config.dangerRefundRatePercent,
+        topPartyConcentrationPercent: config.topPartyConcentrationPercent,
+      },
+      updatedAt: config.updatedAt.toISOString(),
+      updatedBy: config.updatedBy,
     }
   }
 
   private async currentMonitoringPolicy(): Promise<RevenueHealthAlertThreshold> {
-    return { ...monitoringPolicyState }
+    const config = await this.getMonitoringPolicyConfig()
+    return {
+      warningRefundRatePercent: config.warningRefundRatePercent,
+      dangerRefundRatePercent: config.dangerRefundRatePercent,
+      topPartyConcentrationPercent: config.topPartyConcentrationPercent,
+    }
   }
 
   private normalizeMonitoringPolicy(

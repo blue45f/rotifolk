@@ -570,6 +570,34 @@ model RevenueRuleHistory {
   @@index([key, changedAt(sort: Desc)])
 }
 
+model MonitoringPolicyConfig {
+  key                        String   @id
+  warningRefundRatePercent    Float    @default(12)
+  dangerRefundRatePercent     Float    @default(25)
+  topPartyConcentrationPercent Float  @default(70)
+  updatedBy                  String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
+model MonitoringPolicyHistory {
+  id                               String   @id @default(cuid())
+  key                              String
+  fromWarningRefundRatePercent      Float
+  toWarningRefundRatePercent        Float
+  fromDangerRefundRatePercent       Float
+  toDangerRefundRatePercent         Float
+  fromTopPartyConcentrationPercent  Float
+  toTopPartyConcentrationPercent    Float
+  changedBy                        String?
+  reason                           String?
+  changedAt                        DateTime @default(now())
+
+  @@index([key, changedAt(sort: Desc)])
+}
+
 // ======================== PAYMENT ========================
 model Payment {
   id         String    @id @default(cuid())
