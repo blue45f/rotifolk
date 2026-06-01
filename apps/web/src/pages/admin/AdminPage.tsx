@@ -1175,10 +1175,16 @@ export default function AdminPage() {
     setAutoApplyTimeline(timeline)
 
     const mark = (index: number, update: Partial<RevenueInsightExecutionTimelineStep>) => {
-      timeline = timeline.map((prev, prevIndex) =>
-        prevIndex === index ? { ...prev, ...update } : prev,
-      )
-      setAutoApplyTimeline(timeline)
+      const next = [...timeline]
+      const current = next[index]
+      if (!current) return
+
+      next[index] = {
+        ...current,
+        ...update,
+      } as RevenueInsightExecutionTimelineStep
+      timeline = next
+      setAutoApplyTimeline(next)
     }
 
     try {
