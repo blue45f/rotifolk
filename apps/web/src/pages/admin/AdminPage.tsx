@@ -279,7 +279,7 @@ type RevenueInsightExecutionPlanWithQueue = RevenueInsightExecutionPlan & {
 
 type RevenueInsightExecutionStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped'
 
-interface RevenueInsightExecutionTimelineStep extends RevenueInsightExecutionQueueStep {
+type RevenueInsightExecutionTimelineStep = RevenueInsightExecutionQueueStep & {
   status: RevenueInsightExecutionStatus
   message?: string
 }
@@ -1132,17 +1132,6 @@ export default function AdminPage() {
     return { queue }
   }
 
-  const pendingAutoApplyQueue = useMemo<RevenueInsightExecutionTimelineStep[]>(() => {
-    const plan = buildRevenueInsightExecutionPlan(revenueInsights)
-    if (!plan) return []
-
-    return plan.queue.map((step) => ({
-      ...step,
-      status: 'pending',
-      message: '실행 대기',
-    }))
-  }, [revenueInsights])
-
   const runRevenueInsightActionAll = async () => {
     if (revenueInsights.length === 0 || isAutoApplyingInsights) return
     if (!revenueSummary || saveMonitoringPolicy.isPending || saveRule.isPending) return
@@ -1177,11 +1166,32 @@ export default function AdminPage() {
         const step = timeline[index]
         mark(index, { status: 'running', message: '실행 중' })
 
-        const currentPayload =
-          step.type === 'monitoring'
-            ? buildRevenueInsightMonitoringPayload(step.actionId)
-            : buildRevenueInsightRulePayload(step.actionId)
+        if (step.type === 'monitoring') {
+          const currentPayload = buildRevenueInsightMonitoringPayload(step.actionId)
+          if (!currentPayload) {
+            mark(index, {
+              status: 'skipped',
+              message: '현재 데이터 변화로 건너뜀',
+            })
+            continue
+          }
 
+          try {
+            await saveMonitoringPolicy.mutateAsync(currentPayload)
+            mark(index, {
+              status: 'success',
+              message: '적용 완료',
+            })
+          } catch (error) {
+            mark(index, {
+              status: 'failed',
+              message: (error as Error).message,
+            })
+          }
+          continue
+        }
+
+        const currentPayload = buildRevenueInsightRulePayload(step.actionId)
         if (!currentPayload) {
           mark(index, {
             status: 'skipped',
@@ -1191,12 +1201,7 @@ export default function AdminPage() {
         }
 
         try {
-          if (step.type === 'monitoring') {
-            await saveMonitoringPolicy.mutateAsync(currentPayload)
-          } else {
-            await saveRule.mutateAsync(currentPayload)
-          }
-
+          await saveRule.mutateAsync(currentPayload)
           mark(index, {
             status: 'success',
             message: '적용 완료',
@@ -2119,6 +2124,16 @@ export default function AdminPage() {
     topPartyConcentrationPercent,
     totalPaid,
   ])
+  const pendingAutoApplyQueue = useMemo<RevenueInsightExecutionTimelineStep[]>(() => {
+    const plan = buildRevenueInsightExecutionPlan(revenueInsights)
+    if (!plan) return []
+
+    return plan.queue.map((step) => ({
+      ...step,
+      status: 'pending',
+      message: '실행 대기',
+    }))
+  }, [revenueInsights])
   const projectedHealthDropWarning = projectedHealthDelta !== null && projectedHealthDelta <= -10
   const isProjectedHealthCritical = projectedHealthScore?.level === 'critical'
   const needsReasonForHighRiskSave =
