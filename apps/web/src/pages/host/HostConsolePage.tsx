@@ -164,14 +164,13 @@ export default function HostConsolePage() {
   const [scenarioRefundPercent, setScenarioRefundPercent] = useState('')
   const [targetPayoutAmount, setTargetPayoutAmount] = useState('')
   const { data, isLoading } = useHostedParties()
-  const summaryQuery = useMemo(() => {
-    const params = new URLSearchParams()
-    if (summaryFrom) params.set('from', summaryFrom)
-    if (summaryTo) params.set('to', summaryTo)
-    if (summaryPartyId) params.set('partyId', summaryPartyId)
-    if (summaryCompareMode) params.set('compareMode', summaryCompareMode)
-    const query = params.toString()
-    return `payments/host/summary${query ? `?${query}` : ''}`
+  const summaryQueryParams = useMemo(() => {
+    const params: Record<string, string> = {}
+    if (summaryFrom) params.from = summaryFrom
+    if (summaryTo) params.to = summaryTo
+    if (summaryPartyId) params.partyId = summaryPartyId
+    if (summaryCompareMode) params.compareMode = summaryCompareMode
+    return params
   }, [summaryPartyId, summaryCompareMode, summaryFrom, summaryTo])
   const isSummaryRangeValid = !summaryFrom || !summaryTo || summaryFrom <= summaryTo
   const { data: revenue } = useQuery({
@@ -184,7 +183,8 @@ export default function HostConsolePage() {
       summaryPartyId,
       summaryCompareMode,
     ],
-    queryFn: () => api.get<HostRevenueSummary>(summaryQuery),
+    queryFn: () =>
+      api.get<HostRevenueSummary>('payments/host/summary', { searchParams: summaryQueryParams }),
     enabled: isSummaryRangeValid,
   })
 

@@ -611,15 +611,15 @@ export default function AdminPage() {
     Number.isFinite(summaryTopLimit) && summaryTopLimit > 0 && summaryTopLimit <= 50
   const normalizedSummaryTopLimit = isSummaryTopLimitValid ? summaryTopLimit : 12
   const isSummaryDateRangeValid = !summaryFrom || !summaryTo || summaryFrom <= summaryTo
-  const summaryQuery = useMemo(() => {
-    const params = new URLSearchParams()
-    if (summaryFrom) params.set('from', summaryFrom)
-    if (summaryTo) params.set('to', summaryTo)
-    if (summaryPartyId) params.set('partyId', summaryPartyId)
-    params.set('compareMode', summaryCompareMode)
-    params.set('topLimit', String(normalizedSummaryTopLimit))
-    const query = params.toString()
-    return `payments/admin/summary${query ? `?${query}` : ''}`
+  const summaryQueryParams = useMemo(() => {
+    const params: Record<string, string> = {
+      compareMode: summaryCompareMode,
+      topLimit: String(normalizedSummaryTopLimit),
+    }
+    if (summaryFrom) params.from = summaryFrom
+    if (summaryTo) params.to = summaryTo
+    if (summaryPartyId) params.partyId = summaryPartyId
+    return params
   }, [summaryCompareMode, summaryFrom, summaryTo, summaryPartyId, normalizedSummaryTopLimit])
 
   const { data: revenueSummary, isLoading: isRevenueSummaryLoading } = useQuery({
@@ -633,7 +633,8 @@ export default function AdminPage() {
       summaryPartyId,
       normalizedSummaryTopLimit,
     ],
-    queryFn: () => api.get<AdminRevenueSummary>(summaryQuery),
+    queryFn: () =>
+      api.get<AdminRevenueSummary>('payments/admin/summary', { searchParams: summaryQueryParams }),
     enabled: isSummaryDateRangeValid,
   })
 
