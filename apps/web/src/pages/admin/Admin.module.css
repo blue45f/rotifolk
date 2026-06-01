@@ -343,6 +343,17 @@
   font-size: var(--fs-xs);
 }
 
+.ruleCriticalHint {
+  color: var(--color-danger);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+
+.ruleCautionHint {
+  color: var(--color-warning);
+  font-size: var(--fs-xs);
+}
+
 .alertList {
   margin: 0;
   padding: 0;

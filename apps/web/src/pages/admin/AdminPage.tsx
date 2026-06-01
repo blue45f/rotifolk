@@ -167,6 +167,9 @@ interface PlannerSensitivityScenario {
   platformRevenueDeltaKRW: number
   note?: string
   noteForTarget?: string
+  transactionCount: number
+  projectedHealthScore: RevenueHealthScore | null
+  healthScoreDelta: number | null
 }
 
 interface RevenueHealthScore {
@@ -1239,6 +1242,33 @@ export default function AdminPage() {
     return (planningProjection.platformRevenueKRW / parsedPlannerTargetRevenue) * 100
   }, [parsedPlannerTargetRevenue, planningProjection])
 
+  const planningProjectionHealthScore = useMemo<RevenueHealthScore | null>(() => {
+    if (
+      !planningProjection ||
+      parsedPlannerTransactionCount === null ||
+      parsedPlannerRefundRate === null
+    ) {
+      return null
+    }
+
+    return createProjectedRuleHealth({
+      totalPaidKRW: planningProjection.projectedGrossPaidKRW,
+      totalTickets: parsedPlannerTransactionCount,
+      refundRatePercent: parsedPlannerRefundRate,
+      platformRevenueKRW: planningProjection.platformRevenueKRW,
+      topPartyConcentrationPercent,
+      monitoring: monitoringThresholds,
+      netSalesChangePercent,
+    })
+  }, [
+    monitoringThresholds,
+    netSalesChangePercent,
+    parsedPlannerRefundRate,
+    parsedPlannerTransactionCount,
+    planningProjection,
+    topPartyConcentrationPercent,
+  ])
+
   const plannerSensitivityScenarios = useMemo<PlannerSensitivityScenario[]>(() => {
     if (
       !revenueSummary ||
@@ -1273,6 +1303,17 @@ export default function AdminPage() {
         baseHostPayout: planningProjection ? planningProjection.hostPayoutKRW : hostPayout,
         targetPlatformRevenue: null,
       })
+      const projectedHealthScore = planningProjection
+        ? createProjectedRuleHealth({
+            totalPaidKRW: projected.projectedGrossPaidKRW,
+            totalTickets: transactionCount,
+            refundRatePercent: refundRate,
+            platformRevenueKRW: projected.platformRevenueKRW,
+            topPartyConcentrationPercent,
+            monitoring: monitoringThresholds,
+            netSalesChangePercent,
+          })
+        : null
 
       return {
         id: `${key}-${label}`,
@@ -1289,6 +1330,12 @@ export default function AdminPage() {
           projected.platformRevenueKRW -
           (planningProjection ? planningProjection.platformRevenueKRW : platformRevenue),
         note,
+        transactionCount,
+        projectedHealthScore,
+        healthScoreDelta:
+          projectedHealthScore && planningProjectionHealthScore
+            ? projectedHealthScore.score - planningProjectionHealthScore.score
+            : null,
       }
     }
 
@@ -1338,6 +1385,7 @@ export default function AdminPage() {
     parsedPlannerRefundRate,
     parsedPlannerTransactionCount,
     parsedRefundRetention,
+    planningProjectionHealthScore,
     planningProjection,
     platformRevenue,
     hostPayout,
@@ -1507,6 +1555,9 @@ export default function AdminPage() {
       ? projectedHealthScore.score - revenueHealthScore.score
       : null
   const projectedHealthDropWarning = projectedHealthDelta !== null && projectedHealthDelta <= -10
+  const isProjectedHealthCritical = projectedHealthScore?.level === 'critical'
+  const needsReasonForHighRiskSave =
+    isProjectedHealthCritical && projected !== null && !ruleChangeReason.trim()
 
   return (
     <div className={`container ${styles.page}`}>
@@ -2226,6 +2277,28 @@ export default function AdminPage() {
                               {scenario.hostPayoutKRW.toLocaleString()}원
                             </span>
                           </div>
+                          {scenario.projectedHealthScore ? (
+                            <div className={styles.kpiCompareMeta}>
+                              <span className={styles.kpiSubLabel}>예상 건전성</span>
+                              <span
+                                className={`${styles.kpiTrendDelta} ${
+                                  scenario.healthScoreDelta !== null &&
+                                  scenario.healthScoreDelta > 0
+                                    ? styles.kpiTrendUp
+                                    : scenario.healthScoreDelta !== null &&
+                                        scenario.healthScoreDelta < 0
+                                      ? styles.kpiTrendDown
+                                      : styles.kpiTrendFlat
+                                }`}
+                              >
+                                {scenario.projectedHealthScore.score}점 ·{' '}
+                                {scenario.projectedHealthScore.levelLabel}
+                                {scenario.healthScoreDelta !== null
+                                  ? ` (${scenario.healthScoreDelta > 0 ? '+' : ''}${scenario.healthScoreDelta}점)`
+                                  : ''}
+                              </span>
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                     </div>
@@ -2295,7 +2368,11 @@ export default function AdminPage() {
                 variant="primary"
                 size="sm"
                 disabled={
-                  !hasRuleInput || saveRule.isPending || isRevenueRuleLoading || !revenueSummary
+                  !hasRuleInput ||
+                  saveRule.isPending ||
+                  isRevenueRuleLoading ||
+                  !revenueSummary ||
+                  needsReasonForHighRiskSave
                 }
                 title={revenueSummary ? '' : '요약 수치를 먼저 조회해 주세요'}
               >
@@ -2325,11 +2402,23 @@ export default function AdminPage() {
                     )
                   </span>
                 ) : null}
+                {isProjectedHealthCritical ? (
+                  <span className={styles.ruleCriticalHint}>
+                    건전성 위험 경고: 저장 전 변경 사유를 꼭 입력해야 합니다.
+                  </span>
+                ) : projectedHealthDropWarning ? (
+                  <span className={styles.ruleCautionHint}>
+                    경고: 현재 대비 건전성이 낮아져 추가 조치가 필요할 수 있어요.
+                  </span>
+                ) : null}
               </div>
             ) : null}
             {!hasRuleInput && (
               <p className={styles.ruleHint}>수수료는 0~100 사이 숫자로 입력해 주세요.</p>
             )}
+            {needsReasonForHighRiskSave ? (
+              <p className={styles.ruleHint}>위험 구간 적용은 변경 사유 입력이 필수입니다.</p>
+            ) : null}
           </form>
 
           <form
@@ -2473,6 +2562,16 @@ export default function AdminPage() {
               {revenueRuleHistory.map((history) => (
                 <li key={history.id} className={styles.historyItem}>
                   {(() => {
+                    const fromProjection = createPlannerProjection({
+                      transactionCount: totalTickets,
+                      avgTicket,
+                      refundRate: refundRatePercent,
+                      platformFeePercent: history.fromPlatformFeePercent,
+                      refundRetentionPercent: history.fromRefundRetentionPercent,
+                      basePlatformRevenue: platformRevenue,
+                      baseHostPayout: hostPayout,
+                      targetPlatformRevenue: null,
+                    })
                     const projected = createPlannerProjection({
                       transactionCount: totalTickets,
                       avgTicket,
@@ -2482,6 +2581,15 @@ export default function AdminPage() {
                       basePlatformRevenue: platformRevenue,
                       baseHostPayout: hostPayout,
                       targetPlatformRevenue: null,
+                    })
+                    const fromHealth = createProjectedRuleHealth({
+                      totalPaidKRW: totalPaid,
+                      totalTickets,
+                      refundRatePercent,
+                      platformRevenueKRW: fromProjection.platformRevenueKRW,
+                      topPartyConcentrationPercent,
+                      monitoring: monitoringThresholds,
+                      netSalesChangePercent,
                     })
                     const toHealth = createProjectedRuleHealth({
                       totalPaidKRW: totalPaid,
@@ -2510,9 +2618,31 @@ export default function AdminPage() {
                           정산 {projected.hostPayoutKRW.toLocaleString()}원
                         </span>
                         <span className={styles.historyMeta}>
-                          {toHealth
-                            ? `적용 시 수익 건전성 ${toHealth.score}점 · ${toHealth.levelLabel}`
-                            : '수익 건전성 계산 불가'}
+                          수익 건전성{' '}
+                          {toHealth ? `${toHealth.score}점 · ${toHealth.levelLabel}` : '계산 불가'}
+                          {toHealth && fromHealth
+                            ? ` (${fromHealth.score}점 → ${toHealth.score}점)`
+                            : ''}
+                        </span>
+                        <span className={styles.historyMeta}>
+                          수익 변동 {fromProjection.platformRevenueKRW.toLocaleString()}원 →{' '}
+                          {projected.platformRevenueKRW.toLocaleString()}원 (
+                          {projected.platformRevenueKRW - fromProjection.platformRevenueKRW >= 0
+                            ? '+'
+                            : ''}
+                          {(
+                            projected.platformRevenueKRW - fromProjection.platformRevenueKRW
+                          ).toLocaleString()}
+                          원)
+                        </span>
+                        <span className={styles.historyMeta}>
+                          정산 변동 {fromProjection.hostPayoutKRW.toLocaleString()}원 →{' '}
+                          {projected.hostPayoutKRW.toLocaleString()}원 (
+                          {projected.hostPayoutKRW - fromProjection.hostPayoutKRW >= 0 ? '+' : ''}
+                          {(
+                            projected.hostPayoutKRW - fromProjection.hostPayoutKRW
+                          ).toLocaleString()}
+                          원)
                         </span>
                         <span className={styles.historyMeta}>
                           사유: {history.reason ?? '사유 없음'}
