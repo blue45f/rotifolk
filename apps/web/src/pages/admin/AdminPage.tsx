@@ -133,6 +133,26 @@ interface RevenuePlanningProjection {
   requiredFeeReachable?: boolean
 }
 
+interface RevenueRulePreset {
+  id: string
+  label: string
+  description: string
+  platformFeePercent: number
+  refundRetentionPercent: number
+}
+
+interface RevenueRulePresetProjection {
+  preset: RevenueRulePreset
+  projection: RevenuePlanningProjection
+  isCurrent: boolean
+}
+
+interface RevenueRuleUpdatePayload {
+  platformFeePercent: number
+  refundRetentionPercent: number
+  reason?: string
+}
+
 interface PlannerSensitivityScenario {
   id: string
   label: string
@@ -224,6 +244,30 @@ const KIND_LABEL: Record<string, string> = {
 }
 
 const FALLBACK_MONITORING_ALERTS = REVENUE_MONITORING_POLICY.healthAlerts
+
+const REVENUE_RULE_PRESETS: RevenueRulePreset[] = [
+  {
+    id: 'defensive',
+    label: '보수형',
+    description: '호스트 정산 부담을 줄이고 안정적으로 운영하고 싶을 때',
+    platformFeePercent: 6,
+    refundRetentionPercent: 8,
+  },
+  {
+    id: 'balanced',
+    label: '균형형',
+    description: '수익과 호스트 정산 균형을 맞춘 기본 운영형',
+    platformFeePercent: 8,
+    refundRetentionPercent: 4,
+  },
+  {
+    id: 'growth',
+    label: '성장형',
+    description: '단기 수익을 늘려야 할 때 쓰는 공격형 운영형',
+    platformFeePercent: 10,
+    refundRetentionPercent: 0,
+  },
+]
 
 function formatKpiValue(value: number, unit: 'currency' | 'percent') {
   return unit === 'percent' ? `${value.toFixed(1)}%` : `${value.toLocaleString()}원`
@@ -722,11 +766,11 @@ export default function AdminPage() {
     parsedMonitoringTopParty !== monitoringThresholds.topPartyConcentrationPercent
 
   const saveRule = useMutation({
-    mutationFn: () =>
+    mutationFn: (payload: RevenueRuleUpdatePayload) =>
       api.patch<RevenueRuleConfig>('payments/admin/revenue-rules', {
-        platformFeePercent: parsedPlatformFee ?? 0,
-        refundRetentionPercent: parsedRefundRetention ?? 0,
-        ...(ruleChangeReason.trim() ? { reason: ruleChangeReason.trim() } : {}),
+        platformFeePercent: payload.platformFeePercent,
+        refundRetentionPercent: payload.refundRetentionPercent,
+        ...(payload.reason?.trim() ? { reason: payload.reason.trim() } : {}),
       }),
     onSuccess: (saved) => {
       setPlatformFeePercent(String(saved.platformFeePercent))
@@ -739,6 +783,18 @@ export default function AdminPage() {
     },
     onError: (error) => toast.show((error as Error).message, 'error'),
   })
+
+  const applyRevenueRulePreset = (preset: RevenueRulePreset) => {
+    if (!revenueSummary || saveRule.isPending) return
+    setPlatformFeePercent(String(preset.platformFeePercent))
+    setRefundRetentionPercent(String(preset.refundRetentionPercent))
+    setRuleChangeReason('')
+    saveRule.mutate({
+      platformFeePercent: preset.platformFeePercent,
+      refundRetentionPercent: preset.refundRetentionPercent,
+      reason: `수익 모델 프리셋 적용: ${preset.label}`,
+    })
+  }
 
   const saveMonitoringPolicy = useMutation({
     mutationFn: () =>
@@ -1324,6 +1380,37 @@ export default function AdminPage() {
     planningProjection?.platformRevenueKRW,
   ])
 
+  const presetScenarios = useMemo<RevenueRulePresetProjection[]>(() => {
+    if (!revenueSummary || totalTickets <= 0) {
+      return []
+    }
+
+    return REVENUE_RULE_PRESETS.map((preset) => ({
+      preset,
+      projection: createPlannerProjection({
+        transactionCount: totalTickets,
+        avgTicket,
+        refundRate: refundRatePercent,
+        platformFeePercent: preset.platformFeePercent,
+        refundRetentionPercent: preset.refundRetentionPercent,
+        basePlatformRevenue: platformRevenue,
+        baseHostPayout: hostPayout,
+        targetPlatformRevenue: null,
+      }),
+      isCurrent:
+        revenueRules?.platformFeePercent === preset.platformFeePercent &&
+        revenueRules?.refundRetentionPercent === preset.refundRetentionPercent,
+    }))
+  }, [
+    avgTicket,
+    hostPayout,
+    platformRevenue,
+    refundRatePercent,
+    revenueRules,
+    revenueSummary,
+    totalTickets,
+  ])
+
   const projected = useMemo(() => {
     if (!hasRuleInput || !revenueSummary) return null
     if (parsedPlatformFee === null || parsedRefundRetention === null) return null
@@ -1709,6 +1796,91 @@ export default function AdminPage() {
             <p className={styles.sectionNote}>
               현재 수수료율/환불보전율을 기준으로 가정 조건을 바꿔보며 시뮬레이션할 수 있어요.
             </p>
+            <div className={styles.presetSection}>
+              <p className={styles.sectionNote}>
+                운영 단계별로 바로 적용 가능한 수익 모델 프리셋입니다.
+              </p>
+              {revenueSummary && presetScenarios.length > 0 ? (
+                <div className={styles.revenuePresetGrid}>
+                  {presetScenarios.map(({ preset, projection, isCurrent }) => (
+                    <article key={preset.id} className={styles.revenuePresetCard}>
+                      <header className={styles.revenuePresetHeader}>
+                        <div>
+                          <h4 className={styles.revenuePresetTitle}>{preset.label}</h4>
+                          <p className={styles.revenuePresetMeta}>
+                            플랫폼 수수료 {preset.platformFeePercent}% / 환불보전{' '}
+                            {preset.refundRetentionPercent}%
+                          </p>
+                        </div>
+                        <span
+                          className={`${styles.revenuePresetBadge} ${
+                            isCurrent
+                              ? styles.revenuePresetBadgeCurrent
+                              : styles.revenuePresetBadgeMuted
+                          }`}
+                        >
+                          {isCurrent ? '현재 반영' : '검토 대상'}
+                        </span>
+                      </header>
+                      <p className={styles.sectionNote}>{preset.description}</p>
+                      <div className={styles.revenuePresetKpiGrid}>
+                        <div className={styles.kpiCard}>
+                          <span className={styles.kpiLabel}>예상 플랫폼 수익</span>
+                          <strong className={styles.kpiValue}>
+                            {projection.platformRevenueKRW.toLocaleString()}원
+                          </strong>
+                          <div className={styles.kpiCompareMeta}>
+                            <span className={styles.kpiSubLabel}>현재 대비</span>
+                            <span
+                              className={`${styles.kpiTrendDelta} ${
+                                projection.platformDeltaKRW >= 0
+                                  ? styles.kpiTrendUp
+                                  : styles.kpiTrendDown
+                              }`}
+                            >
+                              {projection.platformDeltaKRW >= 0 ? '+' : ''}
+                              {projection.platformDeltaKRW.toLocaleString()}원
+                            </span>
+                          </div>
+                        </div>
+                        <div className={styles.kpiCard}>
+                          <span className={styles.kpiLabel}>예상 호스트 정산</span>
+                          <strong className={styles.kpiValue}>
+                            {projection.hostPayoutKRW.toLocaleString()}원
+                          </strong>
+                          <div className={styles.kpiCompareMeta}>
+                            <span className={styles.kpiSubLabel}>현재 대비</span>
+                            <span
+                              className={`${styles.kpiTrendDelta} ${
+                                projection.hostPayoutDeltaKRW >= 0
+                                  ? styles.kpiTrendUp
+                                  : styles.kpiTrendDown
+                              }`}
+                            >
+                              {projection.hostPayoutDeltaKRW >= 0 ? '+' : ''}
+                              {projection.hostPayoutDeltaKRW.toLocaleString()}원
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant={isCurrent ? 'ghost' : 'primary'}
+                        size="sm"
+                        onClick={() => applyRevenueRulePreset(preset)}
+                        disabled={isCurrent || !revenueSummary || saveRule.isPending}
+                        title={isCurrent ? '현재 설정과 동일해요.' : undefined}
+                      >
+                        {saveRule.isPending ? '적용 중...' : '즉시 적용'}
+                      </Button>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.ruleHint}>
+                  수익 요약을 조회하면 프리셋 수익 추정을 확인할 수 있어요.
+                </p>
+              )}
+            </div>
 
             <form
               className={styles.ruleForm}
@@ -1943,7 +2115,11 @@ export default function AdminPage() {
             onSubmit={(event) => {
               event.preventDefault()
               if (!hasRuleInput || saveRule.isPending) return
-              saveRule.mutate()
+              saveRule.mutate({
+                platformFeePercent: parsedPlatformFee ?? 0,
+                refundRetentionPercent: parsedRefundRetention ?? 0,
+                reason: ruleChangeReason,
+              })
             }}
           >
             <label className={styles.ruleField}>

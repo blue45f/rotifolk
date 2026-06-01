@@ -406,6 +406,74 @@
   padding-top: var(--space-3);
 }
 
+.presetSection {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.revenuePresetGrid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.revenuePresetCard {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.revenuePresetHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.revenuePresetTitle {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.revenuePresetMeta {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--fs-xxs);
+}
+
+.revenuePresetBadge {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: var(--fs-xxs);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+
+.revenuePresetBadgeCurrent {
+  border-color: color-mix(in srgb, var(--color-success) 55%, transparent);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+
+.revenuePresetBadgeMuted {
+  border-color: var(--color-border-soft);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+}
+
+.revenuePresetKpiGrid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .plannerInputs {
   display: grid;
   gap: var(--space-3);
@@ -638,6 +706,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .revenuePresetGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .monitoringSimulationGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -682,6 +754,10 @@
 
   .plannerSection {
     gap: var(--space-2);
+  }
+
+  .revenuePresetGrid {
+    grid-template-columns: 1fr;
   }
 
   .plannerMetaRow {
