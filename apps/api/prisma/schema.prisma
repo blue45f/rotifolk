@@ -549,6 +549,7 @@ model RevenueRuleConfig {
   key                    String   @id
   platformFeePercent     Float    @default(8)
   refundRetentionPercent Float    @default(0)
+  minimumHostPayoutPercent Float   @default(85)
   updatedBy              String?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
@@ -563,6 +564,8 @@ model RevenueRuleHistory {
   toPlatformFeePercent     Float
   fromRefundRetentionPercent Float
   toRefundRetentionPercent Float
+  fromMinimumHostPayoutPercent Float
+  toMinimumHostPayoutPercent Float
   changedBy               String?
   reason                  String?
   changedAt               DateTime @default(now())

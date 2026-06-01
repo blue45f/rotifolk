@@ -16,7 +16,9 @@ interface RevenueHealthScoreArgs {
   totalTickets: number
   refundRatePercent: number
   platformRevenueKRW: number
+  hostPayoutKRW: number
   topPartyConcentrationPercent: number
+  minimumHostPayoutPercent: number
   monitoring: RevenueHealthAlertThreshold
   netSalesChangePercent: number | null
 }
@@ -27,7 +29,9 @@ export function computeRevenueHealthScore(args: RevenueHealthScoreArgs): Revenue
     totalTickets,
     refundRatePercent,
     platformRevenueKRW,
+    hostPayoutKRW,
     topPartyConcentrationPercent,
+    minimumHostPayoutPercent,
     monitoring,
     netSalesChangePercent,
   } = args
@@ -46,6 +50,7 @@ export function computeRevenueHealthScore(args: RevenueHealthScoreArgs): Revenue
   const warningRefundRatePercent = clampNumber(monitoring.warningRefundRatePercent, 0, 100)
   const dangerRefundRatePercent = clampNumber(monitoring.dangerRefundRatePercent, 0, 100)
   const topPartyThreshold = clampNumber(monitoring.topPartyConcentrationPercent, 0, 100)
+  const minimumHostShare = clampNumber(minimumHostPayoutPercent, 0, 100)
   const reasons: string[] = []
 
   const refundPenalty =
@@ -86,6 +91,21 @@ export function computeRevenueHealthScore(args: RevenueHealthScoreArgs): Revenue
     )
   }
 
+  const hostPayoutRate = clampNumber(
+    totalPaidKRW > 0 ? (hostPayoutKRW / totalPaidKRW) * 100 : 0,
+    0,
+    100,
+  )
+  const minimumHostPayoutPenalty =
+    minimumHostShare <= 0 || hostPayoutRate >= minimumHostShare
+      ? 0
+      : ((minimumHostShare - hostPayoutRate) / minimumHostShare) * 20
+  if (minimumHostPayoutPenalty > 0) {
+    reasons.push(
+      `호스트 정산 비율이 최소 기준(${minimumHostShare.toFixed(1)}%) 아래로 떨어져 정책 조정이 필요해요.`,
+    )
+  }
+
   const trendPenalty =
     netSalesChangePercent === null || netSalesChangePercent >= 0
       ? 0
@@ -96,7 +116,12 @@ export function computeRevenueHealthScore(args: RevenueHealthScoreArgs): Revenue
 
   const score = Math.round(
     clampNumber(
-      100 - refundPenalty - concentrationPenalty - platformPenalty - trendPenalty,
+      100 -
+        refundPenalty -
+        concentrationPenalty -
+        platformPenalty -
+        minimumHostPayoutPenalty -
+        trendPenalty,
       0,
       100,
     ),

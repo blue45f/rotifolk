@@ -73,6 +73,7 @@ interface MockPayment {
 interface MockRevenueRuleConfig {
   platformFeePercent: number
   refundRetentionPercent: number
+  minimumHostPayoutPercent: number
   updatedAt: string
   updatedBy: string | null
 }
@@ -84,6 +85,8 @@ interface MockRevenueRuleHistory {
   toPlatformFeePercent: number
   fromRefundRetentionPercent: number
   toRefundRetentionPercent: number
+  fromMinimumHostPayoutPercent: number
+  toMinimumHostPayoutPercent: number
   changedBy: string | null
   changedAt: string
   reason: string | null
@@ -92,6 +95,7 @@ interface MockRevenueRuleHistory {
 interface MockRevenueRuleSimulationRequest {
   platformFeePercent?: number
   refundRetentionPercent?: number
+  minimumHostPayoutPercent?: number
   from?: string | null
   to?: string | null
   partyId?: string | null
@@ -99,8 +103,14 @@ interface MockRevenueRuleSimulationRequest {
 }
 
 interface MockRevenueRuleSimulationResponse {
-  currentRules: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>
-  nextRules: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>
+  currentRules: Pick<
+    MockRevenueRuleConfig,
+    'platformFeePercent' | 'refundRetentionPercent' | 'minimumHostPayoutPercent'
+  >
+  nextRules: Pick<
+    MockRevenueRuleConfig,
+    'platformFeePercent' | 'refundRetentionPercent' | 'minimumHostPayoutPercent'
+  >
   currentHealthScore: {
     score: number
     level: 'good' | 'warning' | 'critical'
@@ -293,6 +303,7 @@ const mockPartyById = new Map(mockParties.map((party) => [party.id, party]))
 let mockRevenueRules: MockRevenueRuleConfig = {
   platformFeePercent: 8,
   refundRetentionPercent: 0,
+  minimumHostPayoutPercent: 85,
   updatedAt: nowIso(),
   updatedBy: null,
 }
@@ -305,8 +316,14 @@ let mockMonitoringPolicyUpdatedBy: string | null = null
 let mockMonitoringPolicyHistories: MonitoringPolicyHistory[] = []
 
 function appendRevenueRuleHistory(
-  from: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>,
-  to: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>,
+  from: Pick<
+    MockRevenueRuleConfig,
+    'platformFeePercent' | 'refundRetentionPercent' | 'minimumHostPayoutPercent'
+  >,
+  to: Pick<
+    MockRevenueRuleConfig,
+    'platformFeePercent' | 'refundRetentionPercent' | 'minimumHostPayoutPercent'
+  >,
   reason?: string,
 ) {
   mockRevenueRuleHistories.unshift({
@@ -316,6 +333,8 @@ function appendRevenueRuleHistory(
     toPlatformFeePercent: to.platformFeePercent,
     fromRefundRetentionPercent: from.refundRetentionPercent,
     toRefundRetentionPercent: to.refundRetentionPercent,
+    fromMinimumHostPayoutPercent: from.minimumHostPayoutPercent,
+    toMinimumHostPayoutPercent: to.minimumHostPayoutPercent,
     changedBy: mockUsers[0].id,
     reason: reason?.trim() ?? null,
     changedAt: nowIso(),
@@ -360,7 +379,10 @@ function roundMoney(value: number) {
 }
 
 function buildMockProjectedRevenueHealthScore(
-  rules: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>,
+  rules: Pick<
+    MockRevenueRuleConfig,
+    'platformFeePercent' | 'refundRetentionPercent' | 'minimumHostPayoutPercent'
+  >,
   summaryOptions?: {
     from?: string | null
     to?: string | null
@@ -372,6 +394,7 @@ function buildMockProjectedRevenueHealthScore(
   try {
     mockRevenueRules.platformFeePercent = rules.platformFeePercent
     mockRevenueRules.refundRetentionPercent = rules.refundRetentionPercent
+    mockRevenueRules.minimumHostPayoutPercent = rules.minimumHostPayoutPercent
 
     const summary = getMockAdminRevenueSummary({
       topLimit: summaryOptions?.topLimit ?? 12,
@@ -390,6 +413,8 @@ function buildMockProjectedRevenueHealthScore(
       totalTickets: summary.totalPaidCount + summary.totalRefundedCount,
       refundRatePercent: summary.refundRatePercent,
       platformRevenueKRW: summary.platformRevenueKRW,
+      hostPayoutKRW: summary.hostPayoutKRW,
+      minimumHostPayoutPercent: rules.minimumHostPayoutPercent,
       topPartyConcentrationPercent,
       monitoring: mockMonitoringPolicy,
       netSalesChangePercent: null,
@@ -560,6 +585,7 @@ function getMockAdminRevenueSummary({
         platformFeeKRW,
         refundRetentionKRW,
         hostPayoutKRW,
+        minimumHostPayoutPercent: rules.minimumHostPayoutPercent,
         platformRevenueKRW: platformFeeKRW + refundRetentionKRW,
         avgTicketKRW,
         topParties,
@@ -716,6 +742,7 @@ function buildMockRevenueHealthAlerts(summary: {
   platformFeeKRW: number
   refundRetentionKRW: number
   hostPayoutKRW: number
+  minimumHostPayoutPercent: number
   partyCount: number
   topParties: MockAdminRevenueSummaryParty[]
   platformRevenueKRW: number
@@ -723,6 +750,9 @@ function buildMockRevenueHealthAlerts(summary: {
 }): MockAdminRevenueHealthAlert[] {
   const alerts: MockAdminRevenueHealthAlert[] = []
   const totalTickets = summary.totalPaidCount + summary.totalRefundedCount
+  const minimumHostPayoutPercent = safePercent(summary.minimumHostPayoutPercent)
+  const hostPayoutPercent =
+    summary.grossPaidKRW > 0 ? (summary.hostPayoutKRW / summary.grossPaidKRW) * 100 : 0
   if (totalTickets === 0) {
     alerts.push({
       code: 'no_transactions',
@@ -768,6 +798,15 @@ function buildMockRevenueHealthAlerts(summary: {
       level: 'danger',
       title: '정산 이상',
       detail: '플랫폼 수익 계산값이 음수로 잡혀 데이터 집계 점검이 필요합니다.',
+    })
+  }
+
+  if (minimumHostPayoutPercent > 0 && hostPayoutPercent < minimumHostPayoutPercent) {
+    alerts.push({
+      code: 'host_payout_too_low',
+      level: 'warning',
+      title: '호스트 정산 비율 경고',
+      detail: `호스트 정산 비율이 최소 임계치 ${minimumHostPayoutPercent.toFixed(1)}% 미만입니다.`,
     })
   }
 
@@ -1923,10 +1962,17 @@ export const handlers = [
         : typeof body.refundRetentionPercent === 'string'
           ? Number(body.refundRetentionPercent)
           : undefined
+    const minimumHostPayoutPercent =
+      typeof body.minimumHostPayoutPercent === 'number'
+        ? Number(body.minimumHostPayoutPercent)
+        : typeof body.minimumHostPayoutPercent === 'string'
+          ? Number(body.minimumHostPayoutPercent)
+          : undefined
 
     if (
       typeof platformFeePercent === 'undefined' &&
-      typeof refundRetentionPercent === 'undefined'
+      typeof refundRetentionPercent === 'undefined' &&
+      typeof minimumHostPayoutPercent === 'undefined'
     ) {
       return HttpResponse.json({ code: 'invalid_revenue_rules' }, { status: 400 })
     }
@@ -1951,9 +1997,20 @@ export const handlers = [
       }
     }
 
+    if (typeof minimumHostPayoutPercent !== 'undefined') {
+      if (
+        !Number.isFinite(minimumHostPayoutPercent) ||
+        minimumHostPayoutPercent < 0 ||
+        minimumHostPayoutPercent > 100
+      ) {
+        return HttpResponse.json({ code: 'invalid_minimum_host_payout' }, { status: 400 })
+      }
+    }
+
     const previous = {
       platformFeePercent: mockRevenueRules.platformFeePercent,
       refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+      minimumHostPayoutPercent: mockRevenueRules.minimumHostPayoutPercent,
     }
     const next = {
       platformFeePercent:
@@ -1964,6 +2021,10 @@ export const handlers = [
         typeof refundRetentionPercent === 'number'
           ? safePercent(refundRetentionPercent)
           : previous.refundRetentionPercent,
+      minimumHostPayoutPercent:
+        typeof minimumHostPayoutPercent === 'number'
+          ? safePercent(minimumHostPayoutPercent)
+          : previous.minimumHostPayoutPercent,
     }
 
     const currentSummaryOptions = {
@@ -1990,16 +2051,19 @@ export const handlers = [
     const body = (await request.json().catch(() => ({}))) as {
       platformFeePercent?: unknown
       refundRetentionPercent?: unknown
+      minimumHostPayoutPercent?: unknown
       reason?: string
     }
     const previous = {
       platformFeePercent: mockRevenueRules.platformFeePercent,
       refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+      minimumHostPayoutPercent: mockRevenueRules.minimumHostPayoutPercent,
     }
 
     if (
       typeof body.platformFeePercent === 'undefined' &&
-      typeof body.refundRetentionPercent === 'undefined'
+      typeof body.refundRetentionPercent === 'undefined' &&
+      typeof body.minimumHostPayoutPercent === 'undefined'
     ) {
       return HttpResponse.json({ code: 'invalid_revenue_rules' }, { status: 400 })
     }
@@ -2018,10 +2082,18 @@ export const handlers = [
       }
       mockRevenueRules.refundRetentionPercent = safePercent(value)
     }
+    if (typeof body.minimumHostPayoutPercent !== 'undefined') {
+      const value = Number(body.minimumHostPayoutPercent)
+      if (!Number.isFinite(value) || value < 0 || value > 100) {
+        return HttpResponse.json({ code: 'invalid_minimum_host_payout' }, { status: 400 })
+      }
+      mockRevenueRules.minimumHostPayoutPercent = safePercent(value)
+    }
 
     const next = {
       platformFeePercent: mockRevenueRules.platformFeePercent,
       refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+      minimumHostPayoutPercent: mockRevenueRules.minimumHostPayoutPercent,
     }
     const reason = typeof body.reason === 'string' ? body.reason.trim() : ''
     const projectedHealthScore = buildMockProjectedRevenueHealthScore(next)
@@ -2037,7 +2109,8 @@ export const handlers = [
 
     if (
       next.platformFeePercent !== previous.platformFeePercent ||
-      next.refundRetentionPercent !== previous.refundRetentionPercent
+      next.refundRetentionPercent !== previous.refundRetentionPercent ||
+      next.minimumHostPayoutPercent !== previous.minimumHostPayoutPercent
     ) {
       appendRevenueRuleHistory(previous, next, reason)
     }
@@ -2069,16 +2142,19 @@ export const handlers = [
     const previous = {
       platformFeePercent: mockRevenueRules.platformFeePercent,
       refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+      minimumHostPayoutPercent: mockRevenueRules.minimumHostPayoutPercent,
     }
 
     const next = {
       platformFeePercent: targetHistory.fromPlatformFeePercent,
       refundRetentionPercent: targetHistory.fromRefundRetentionPercent,
+      minimumHostPayoutPercent: targetHistory.fromMinimumHostPayoutPercent,
     }
 
     if (
       next.platformFeePercent !== previous.platformFeePercent ||
-      next.refundRetentionPercent !== previous.refundRetentionPercent
+      next.refundRetentionPercent !== previous.refundRetentionPercent ||
+      next.minimumHostPayoutPercent !== previous.minimumHostPayoutPercent
     ) {
       const reason =
         typeof body.reason === 'string' && body.reason.trim().length > 0
@@ -2088,6 +2164,7 @@ export const handlers = [
       appendRevenueRuleHistory(previous, next, reason)
       mockRevenueRules.platformFeePercent = next.platformFeePercent
       mockRevenueRules.refundRetentionPercent = next.refundRetentionPercent
+      mockRevenueRules.minimumHostPayoutPercent = next.minimumHostPayoutPercent
       mockRevenueRules.updatedAt = nowIso()
       mockRevenueRules.updatedBy = mockUsers[0].id
     }

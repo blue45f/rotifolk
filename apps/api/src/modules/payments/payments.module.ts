@@ -26,11 +26,13 @@ const ALLOWED_METHODS: PaymentMethod[] = ['card', 'kakao', 'toss', 'mock']
 interface RevenueRules {
   platformFeePercent: number
   refundRetentionPercent: number
+  minimumHostPayoutPercent: number
 }
 
 interface RevenueRuleSnapshot {
   platformFeePercent: number
   refundRetentionPercent: number
+  minimumHostPayoutPercent: number
   updatedAt: string
   updatedBy: string | null
 }
@@ -39,6 +41,7 @@ interface RevenueRuleRecord {
   key: string
   platformFeePercent: number
   refundRetentionPercent: number
+  minimumHostPayoutPercent: number
   updatedAt: Date
   updatedBy: string | null
 }
@@ -50,6 +53,8 @@ interface RevenueRuleChangeHistory {
   toPlatformFeePercent: number
   fromRefundRetentionPercent: number
   toRefundRetentionPercent: number
+  fromMinimumHostPayoutPercent: number
+  toMinimumHostPayoutPercent: number
   changedBy: string | null
   changedAt: string
   reason: string | null
@@ -62,6 +67,8 @@ type RevenueRuleHistoryRow = {
   toPlatformFeePercent: number
   fromRefundRetentionPercent: number
   toRefundRetentionPercent: number
+  fromMinimumHostPayoutPercent: number
+  toMinimumHostPayoutPercent: number
   changedBy: string | null
   changedAt: Date
   reason: string | null
@@ -125,6 +132,7 @@ interface RollbackMonitoringPolicyBody {
 interface RevenueRuleSimulationInput {
   platformFeePercent?: number
   refundRetentionPercent?: number
+  minimumHostPayoutPercent?: number
   from?: string
   to?: string
   partyId?: string
@@ -215,6 +223,7 @@ interface RevenueSummaryComputed {
   refundRetentionKRW: number
   hostPayoutKRW: number
   platformRevenueKRW: number
+  minimumHostPayoutPercent: number
   avgTicketKRW: number
   topParties: AdminRevenueSummaryParty[]
   partyCount: number
@@ -228,6 +237,7 @@ interface PayBody {
 interface UpdateRevenueRulesBody {
   platformFeePercent?: number
   refundRetentionPercent?: number
+  minimumHostPayoutPercent?: number
   reason?: string
 }
 
@@ -284,6 +294,7 @@ type PaymentAdminSummaryRow = {
 const DEFAULT_REVENUE_RULES: RevenueRules = {
   platformFeePercent: clampPercent(process.env.PLATFORM_FEE_PERCENT, 8),
   refundRetentionPercent: clampPercent(process.env.REFUND_RETENTION_PERCENT, 0),
+  minimumHostPayoutPercent: clampPercent(process.env.MIN_HOST_PAYOUT_PERCENT, 85),
 }
 const DEFAULT_MONITORING_POLICY: RevenueHealthAlertThreshold = {
   ...REVENUE_MONITORING_POLICY.healthAlerts,
@@ -294,6 +305,10 @@ let monitoringPolicyUpdatedBy: string | null = null
 let monitoringPolicyHistories: MonitoringPolicyChangeHistory[] = []
 const REVENUE_MONITORING_POLICY_CONFIG_KEY = 'global'
 
+let revenueRuleState: RevenueRules = { ...DEFAULT_REVENUE_RULES }
+let revenueRuleUpdatedAt = new Date()
+let revenueRuleUpdatedBy: string | null = null
+let revenueRuleHistories: RevenueRuleChangeHistory[] = []
 const REVENUE_RULE_CONFIG_KEY = 'global'
 
 @Controller('payments')
@@ -659,6 +674,7 @@ class PaymentsController {
     const next = this.normalizeRevenueRules(current, {
       platformFeePercent: body.platformFeePercent,
       refundRetentionPercent: body.refundRetentionPercent,
+      minimumHostPayoutPercent: body.minimumHostPayoutPercent,
     })
 
     const [currentHealthScore, simulatedHealthScore] = await Promise.all([
@@ -694,7 +710,8 @@ class PaymentsController {
 
     if (
       typeof body?.platformFeePercent === 'undefined' &&
-      typeof body?.refundRetentionPercent === 'undefined'
+      typeof body?.refundRetentionPercent === 'undefined' &&
+      typeof body?.minimumHostPayoutPercent === 'undefined'
     ) {
       throw new BadRequestException({
         code: 'invalid_revenue_rules',
@@ -707,7 +724,8 @@ class PaymentsController {
     const reason = this.normalizeReason(body.reason)
     if (
       current.platformFeePercent === next.platformFeePercent &&
-      current.refundRetentionPercent === next.refundRetentionPercent
+      current.refundRetentionPercent === next.refundRetentionPercent &&
+      current.minimumHostPayoutPercent === next.minimumHostPayoutPercent
     ) {
       return this.revenueRuleSnapshot()
     }
@@ -728,11 +746,13 @@ class PaymentsController {
             key: REVENUE_RULE_CONFIG_KEY,
             platformFeePercent: next.platformFeePercent,
             refundRetentionPercent: next.refundRetentionPercent,
+            minimumHostPayoutPercent: next.minimumHostPayoutPercent,
             updatedBy: me.sub,
           },
           update: {
             platformFeePercent: next.platformFeePercent,
             refundRetentionPercent: next.refundRetentionPercent,
+            minimumHostPayoutPercent: next.minimumHostPayoutPercent,
             updatedBy: me.sub,
           },
         })
@@ -744,6 +764,8 @@ class PaymentsController {
             toPlatformFeePercent: next.platformFeePercent,
             fromRefundRetentionPercent: current.refundRetentionPercent,
             toRefundRetentionPercent: next.refundRetentionPercent,
+            fromMinimumHostPayoutPercent: current.minimumHostPayoutPercent,
+            toMinimumHostPayoutPercent: next.minimumHostPayoutPercent,
             changedBy: me.sub,
             reason,
           },
@@ -751,12 +773,11 @@ class PaymentsController {
       })
     } catch (error) {
       if (isPrismaMissingTableError(error)) {
-        return {
-          platformFeePercent: next.platformFeePercent,
-          refundRetentionPercent: next.refundRetentionPercent,
-          updatedAt: new Date().toISOString(),
-          updatedBy: me.sub,
-        }
+        revenueRuleState = next
+        revenueRuleUpdatedAt = new Date()
+        revenueRuleUpdatedBy = me.sub
+        this.appendRevenueRuleHistory(current, next, reason)
+        return this.revenueRuleSnapshot()
       }
       throw error
     }
@@ -789,13 +810,18 @@ class PaymentsController {
         toPlatformFeePercent: row.toPlatformFeePercent,
         fromRefundRetentionPercent: row.fromRefundRetentionPercent,
         toRefundRetentionPercent: row.toRefundRetentionPercent,
+        fromMinimumHostPayoutPercent: row.fromMinimumHostPayoutPercent,
+        toMinimumHostPayoutPercent: row.toMinimumHostPayoutPercent,
         changedBy: row.changedBy,
         changedAt: row.changedAt.toISOString(),
         reason: row.reason,
       }))
     } catch (error) {
       if (isPrismaMissingTableError(error)) {
-        return []
+        return revenueRuleHistories
+          .slice()
+          .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())
+          .slice(0, safeLimit)
       }
       throw error
     }
@@ -812,6 +838,7 @@ class PaymentsController {
     const rollbackReason = this.normalizeReason(body.reason) ?? '이전 설정으로 롤백'
 
     let history
+    let fallbackTargetHistory: RevenueRuleChangeHistory | null = null
     try {
       history = body.historyId
         ? await this.prisma.revenueRuleHistory.findUnique({
@@ -823,15 +850,19 @@ class PaymentsController {
           })
     } catch (error) {
       if (isPrismaMissingTableError(error)) {
-        throw new BadRequestException({
-          code: 'revenue_rule_history_unavailable',
-          message: '변경 이력 테이블이 없어 롤백할 수 없습니다.',
-        })
+        const sortedHistories = revenueRuleHistories
+          .slice()
+          .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())
+        fallbackTargetHistory = body.historyId
+          ? (sortedHistories.find((item) => item.id === body.historyId) ?? null)
+          : (sortedHistories[0] ?? null)
+      } else {
+        throw error
       }
-      throw error
     }
 
-    if (!history || history.key !== REVENUE_RULE_CONFIG_KEY) {
+    const targetHistory = fallbackTargetHistory ?? history
+    if (!targetHistory || targetHistory.key !== REVENUE_RULE_CONFIG_KEY) {
       throw new NotFoundException({
         code: 'revenue_rule_history_not_found',
         message: '롤백할 변경 이력을 찾지 못했어요.',
@@ -839,14 +870,24 @@ class PaymentsController {
     }
 
     const next: RevenueRules = {
-      platformFeePercent: history.fromPlatformFeePercent,
-      refundRetentionPercent: history.fromRefundRetentionPercent,
+      platformFeePercent: targetHistory.fromPlatformFeePercent,
+      refundRetentionPercent: targetHistory.fromRefundRetentionPercent,
+      minimumHostPayoutPercent: targetHistory.fromMinimumHostPayoutPercent,
     }
 
     if (
       current.platformFeePercent === next.platformFeePercent &&
-      current.refundRetentionPercent === next.refundRetentionPercent
+      current.refundRetentionPercent === next.refundRetentionPercent &&
+      current.minimumHostPayoutPercent === next.minimumHostPayoutPercent
     ) {
+      return this.revenueRuleSnapshot()
+    }
+
+    if (fallbackTargetHistory) {
+      revenueRuleState = next
+      revenueRuleUpdatedAt = new Date()
+      revenueRuleUpdatedBy = me.sub
+      this.appendRevenueRuleHistory(current, next, rollbackReason)
       return this.revenueRuleSnapshot()
     }
 
@@ -858,11 +899,13 @@ class PaymentsController {
             key: REVENUE_RULE_CONFIG_KEY,
             platformFeePercent: next.platformFeePercent,
             refundRetentionPercent: next.refundRetentionPercent,
+            minimumHostPayoutPercent: next.minimumHostPayoutPercent,
             updatedBy: me.sub,
           },
           update: {
             platformFeePercent: next.platformFeePercent,
             refundRetentionPercent: next.refundRetentionPercent,
+            minimumHostPayoutPercent: next.minimumHostPayoutPercent,
             updatedBy: me.sub,
           },
         })
@@ -874,6 +917,8 @@ class PaymentsController {
             toPlatformFeePercent: next.platformFeePercent,
             fromRefundRetentionPercent: current.refundRetentionPercent,
             toRefundRetentionPercent: next.refundRetentionPercent,
+            fromMinimumHostPayoutPercent: current.minimumHostPayoutPercent,
+            toMinimumHostPayoutPercent: next.minimumHostPayoutPercent,
             changedBy: me.sub,
             reason: rollbackReason,
           },
@@ -881,12 +926,13 @@ class PaymentsController {
       })
     } catch (error) {
       if (isPrismaMissingTableError(error)) {
-        throw new BadRequestException({
-          code: 'revenue_rule_history_unavailable',
-          message: '변경 이력 테이블이 없어 롤백할 수 없습니다.',
-        })
+        revenueRuleState = next
+        revenueRuleUpdatedAt = new Date()
+        revenueRuleUpdatedBy = me.sub
+        this.appendRevenueRuleHistory(current, next, rollbackReason)
+      } else {
+        throw error
       }
-      throw error
     }
 
     return this.revenueRuleSnapshot()
@@ -1291,6 +1337,7 @@ class PaymentsController {
     return {
       platformFeePercent: clampPercent(config.platformFeePercent),
       refundRetentionPercent: clampPercent(config.refundRetentionPercent),
+      minimumHostPayoutPercent: clampPercent(config.minimumHostPayoutPercent),
     }
   }
 
@@ -1299,6 +1346,7 @@ class PaymentsController {
     return {
       platformFeePercent: clampPercent(config.platformFeePercent),
       refundRetentionPercent: clampPercent(config.refundRetentionPercent),
+      minimumHostPayoutPercent: clampPercent(config.minimumHostPayoutPercent),
       updatedAt: config.updatedAt.toISOString(),
       updatedBy: config.updatedBy,
     }
@@ -1316,16 +1364,18 @@ class PaymentsController {
           key: REVENUE_RULE_CONFIG_KEY,
           platformFeePercent: DEFAULT_REVENUE_RULES.platformFeePercent,
           refundRetentionPercent: DEFAULT_REVENUE_RULES.refundRetentionPercent,
+          minimumHostPayoutPercent: DEFAULT_REVENUE_RULES.minimumHostPayoutPercent,
         },
       })
     } catch (error) {
       if (isPrismaMissingTableError(error)) {
         return {
           key: REVENUE_RULE_CONFIG_KEY,
-          platformFeePercent: DEFAULT_REVENUE_RULES.platformFeePercent,
-          refundRetentionPercent: DEFAULT_REVENUE_RULES.refundRetentionPercent,
+          platformFeePercent: revenueRuleState.platformFeePercent,
+          refundRetentionPercent: revenueRuleState.refundRetentionPercent,
+          minimumHostPayoutPercent: revenueRuleState.minimumHostPayoutPercent,
           updatedAt: new Date(),
-          updatedBy: null,
+          updatedBy: revenueRuleUpdatedBy,
         }
       }
       throw error
@@ -1390,6 +1440,17 @@ class PaymentsController {
       next.refundRetentionPercent = clampPercent(percent)
     }
 
+    if (typeof body.minimumHostPayoutPercent !== 'undefined') {
+      const percent = body.minimumHostPayoutPercent
+      if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+        throw new BadRequestException({
+          code: 'invalid_minimum_host_payout',
+          message: '호스트 최소 정산 비율은 0~100 사이여야 합니다.',
+        })
+      }
+      next.minimumHostPayoutPercent = clampPercent(percent)
+    }
+
     return next
   }
 
@@ -1439,6 +1500,8 @@ class PaymentsController {
       totalTickets: summary.totalPaidCount + summary.totalRefundedCount,
       refundRatePercent: summary.refundRatePercent,
       platformRevenueKRW: summary.platformRevenueKRW,
+      hostPayoutKRW: summary.hostPayoutKRW,
+      minimumHostPayoutPercent: nextRules.minimumHostPayoutPercent,
       topPartyConcentrationPercent,
       monitoring: policy,
       netSalesChangePercent: null,
@@ -1542,6 +1605,26 @@ class PaymentsController {
       toTopPartyConcentrationPercent: next.topPartyConcentrationPercent,
       changedBy: monitoringPolicyUpdatedBy,
       changedAt: monitoringPolicyUpdatedAt.toISOString(),
+      reason,
+    })
+  }
+
+  private appendRevenueRuleHistory(
+    current: RevenueRules,
+    next: RevenueRules,
+    reason: string | null,
+  ) {
+    revenueRuleHistories.unshift({
+      id: `rrh_${Date.now()}_${Math.random().toString(16).slice(2, 7)}`,
+      key: REVENUE_RULE_CONFIG_KEY,
+      fromPlatformFeePercent: current.platformFeePercent,
+      toPlatformFeePercent: next.platformFeePercent,
+      fromRefundRetentionPercent: current.refundRetentionPercent,
+      toRefundRetentionPercent: next.refundRetentionPercent,
+      fromMinimumHostPayoutPercent: current.minimumHostPayoutPercent,
+      toMinimumHostPayoutPercent: next.minimumHostPayoutPercent,
+      changedBy: revenueRuleUpdatedBy,
+      changedAt: revenueRuleUpdatedAt.toISOString(),
       reason,
     })
   }
@@ -1743,6 +1826,7 @@ function calculateRevenueSummary(
     refundRetentionKRW,
     hostPayoutKRW,
     platformRevenueKRW: platformFeeKRW + refundRetentionKRW,
+    minimumHostPayoutPercent: rules.minimumHostPayoutPercent,
     avgTicketKRW,
     topParties,
     partyCount: byParty.size,
@@ -1756,6 +1840,9 @@ function buildRevenueHealthAlerts(
 ): AdminRevenueHealthAlert[] {
   const alerts: AdminRevenueHealthAlert[] = []
   const totalTickets = summary.totalPaidCount + summary.totalRefundedCount
+  const minimumHostPayoutPercent = clampPercent(summary.minimumHostPayoutPercent)
+  const hostPayoutPercent =
+    summary.grossPaidKRW > 0 ? (summary.hostPayoutKRW / summary.grossPaidKRW) * 100 : 0
 
   if (totalTickets === 0) {
     alerts.push({
@@ -1805,6 +1892,15 @@ function buildRevenueHealthAlerts(
     })
   }
 
+  if (minimumHostPayoutPercent > 0 && hostPayoutPercent < minimumHostPayoutPercent) {
+    alerts.push({
+      code: 'host_payout_too_low',
+      level: 'warning',
+      title: '호스트 정산 비율 경고',
+      detail: `호스트 정산 비율이 최소 임계치 ${minimumHostPayoutPercent.toFixed(1)}% 미만입니다.`,
+    })
+  }
+
   return alerts
 }
 
@@ -1812,7 +1908,7 @@ function isPrismaMissingTableError(error: unknown): boolean {
   if (
     typeof error === 'object' &&
     error !== null &&
-    (error as { code?: string }).code === 'P2021'
+    ((error as { code?: string }).code === 'P2021' || (error as { code?: string }).code === 'P2022')
   ) {
     return true
   }

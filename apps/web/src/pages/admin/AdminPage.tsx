@@ -30,6 +30,7 @@ interface AdminReport {
 interface RevenueRuleConfig {
   platformFeePercent: number
   refundRetentionPercent: number
+  minimumHostPayoutPercent: number
   updatedAt: string
   updatedBy: string | null
 }
@@ -41,6 +42,8 @@ interface RevenueRuleHistory {
   toPlatformFeePercent: number
   fromRefundRetentionPercent: number
   toRefundRetentionPercent: number
+  fromMinimumHostPayoutPercent: number
+  toMinimumHostPayoutPercent: number
   changedBy: string | null
   changedAt: string
   reason: string | null
@@ -143,6 +146,7 @@ interface RevenueRulePreset {
   description: string
   platformFeePercent: number
   refundRetentionPercent: number
+  minimumHostPayoutPercent?: number
 }
 
 interface RevenueRulePresetProjection {
@@ -156,12 +160,14 @@ interface RevenueRulePresetProjection {
 interface RevenueRuleUpdatePayload {
   platformFeePercent: number
   refundRetentionPercent: number
+  minimumHostPayoutPercent: number
   reason?: string
 }
 
 interface RevenueRuleSimulationRequest {
   platformFeePercent: number
   refundRetentionPercent: number
+  minimumHostPayoutPercent: number
   from?: string
   to?: string
   partyId?: string
@@ -385,6 +391,8 @@ function buildMonitoringThresholdSimulation(args: {
   totalTickets: number
   refundRatePercent: number
   platformRevenueKRW: number
+  hostPayoutKRW: number
+  minimumHostPayoutPercent: number
   topPartyConcentrationPercent: number
   netSalesChangePercent: number | null
 }): MonitoringThresholdSimulation | null {
@@ -393,6 +401,8 @@ function buildMonitoringThresholdSimulation(args: {
     totalTickets: args.totalTickets,
     refundRatePercent: args.refundRatePercent,
     platformRevenueKRW: args.platformRevenueKRW,
+    hostPayoutKRW: args.hostPayoutKRW,
+    minimumHostPayoutPercent: args.minimumHostPayoutPercent,
     topPartyConcentrationPercent: args.topPartyConcentrationPercent,
     monitoring: args.baseMonitoringThresholds,
     netSalesChangePercent: args.netSalesChangePercent,
@@ -402,6 +412,8 @@ function buildMonitoringThresholdSimulation(args: {
     totalTickets: args.totalTickets,
     refundRatePercent: args.refundRatePercent,
     platformRevenueKRW: args.platformRevenueKRW,
+    hostPayoutKRW: args.hostPayoutKRW,
+    minimumHostPayoutPercent: args.minimumHostPayoutPercent,
     topPartyConcentrationPercent: args.topPartyConcentrationPercent,
     monitoring: args.simulatedMonitoringThresholds,
     netSalesChangePercent: args.netSalesChangePercent,
@@ -515,6 +527,8 @@ function createProjectedRuleHealth(args: {
   totalTickets: number
   refundRatePercent: number
   platformRevenueKRW: number
+  hostPayoutKRW: number
+  minimumHostPayoutPercent: number
   topPartyConcentrationPercent: number
   monitoring: RevenueHealthAlertThreshold
   netSalesChangePercent: number | null
@@ -524,6 +538,8 @@ function createProjectedRuleHealth(args: {
     totalTickets: args.totalTickets,
     refundRatePercent: args.refundRatePercent,
     platformRevenueKRW: args.platformRevenueKRW,
+    hostPayoutKRW: args.hostPayoutKRW,
+    minimumHostPayoutPercent: args.minimumHostPayoutPercent,
     topPartyConcentrationPercent: args.topPartyConcentrationPercent,
     monitoring: args.monitoring,
     netSalesChangePercent: args.netSalesChangePercent,
@@ -534,6 +550,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState<TabKey>('open')
   const [platformFeePercent, setPlatformFeePercent] = useState('')
   const [refundRetentionPercent, setRefundRetentionPercent] = useState('')
+  const [minimumHostPayoutPercent, setMinimumHostPayoutPercent] = useState('')
   const [ruleChangeReason, setRuleChangeReason] = useState('')
   const [rollbackReasons, setRollbackReasons] = useState<Record<string, string>>({})
 
@@ -578,7 +595,11 @@ export default function AdminPage() {
   const isSummaryDateRangeValid = !summaryFrom || !summaryTo || summaryFrom <= summaryTo
   const parsedPlatformFee = parsePercentInput(platformFeePercent)
   const parsedRefundRetention = parsePercentInput(refundRetentionPercent)
-  const hasRuleInput = parsedPlatformFee !== null && parsedRefundRetention !== null
+  const parsedMinimumHostPayoutPercent = parsePercentInput(minimumHostPayoutPercent)
+  const hasRuleInput =
+    parsedPlatformFee !== null &&
+    parsedRefundRetention !== null &&
+    parsedMinimumHostPayoutPercent !== null
   const summaryQueryParams = useMemo(() => {
     const params: Record<string, string> = {
       compareMode: summaryCompareMode,
@@ -643,11 +664,13 @@ export default function AdminPage() {
       normalizedSummaryTopLimit,
       parsedPlatformFee,
       parsedRefundRetention,
+      parsedMinimumHostPayoutPercent,
     ],
     queryFn: () =>
       api.post<RevenueRuleSimulationResponse>('payments/admin/revenue-rules/simulate', {
         platformFeePercent: parsedPlatformFee,
         refundRetentionPercent: parsedRefundRetention,
+        minimumHostPayoutPercent: parsedMinimumHostPayoutPercent,
         from: summaryFrom || undefined,
         to: summaryTo || undefined,
         partyId: summaryPartyId || undefined,
@@ -660,7 +683,12 @@ export default function AdminPage() {
     if (!revenueRules) return
     setPlatformFeePercent(String(revenueRules.platformFeePercent))
     setRefundRetentionPercent(String(revenueRules.refundRetentionPercent))
-  }, [revenueRules?.platformFeePercent, revenueRules?.refundRetentionPercent])
+    setMinimumHostPayoutPercent(String(revenueRules.minimumHostPayoutPercent))
+  }, [
+    revenueRules?.platformFeePercent,
+    revenueRules?.refundRetentionPercent,
+    revenueRules?.minimumHostPayoutPercent,
+  ])
   useEffect(() => {
     if (!monitoringPolicy?.healthAlerts) return
     setMonitoringWarningRate(String(monitoringPolicy.healthAlerts.warningRefundRatePercent))
@@ -723,11 +751,13 @@ export default function AdminPage() {
       api.patch<RevenueRuleConfig>('payments/admin/revenue-rules', {
         platformFeePercent: payload.platformFeePercent,
         refundRetentionPercent: payload.refundRetentionPercent,
+        minimumHostPayoutPercent: payload.minimumHostPayoutPercent,
         ...(payload.reason?.trim() ? { reason: payload.reason.trim() } : {}),
       }),
     onSuccess: (saved) => {
       setPlatformFeePercent(String(saved.platformFeePercent))
       setRefundRetentionPercent(String(saved.refundRetentionPercent))
+      setMinimumHostPayoutPercent(String(saved.minimumHostPayoutPercent))
       setRuleChangeReason('')
       queryClient.invalidateQueries({ queryKey: ['admin', 'payments', 'summary'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'payments', 'revenue-rules'] })
@@ -744,10 +774,23 @@ export default function AdminPage() {
     if (!revenueSummary || saveRule.isPending) return
     setPlatformFeePercent(String(preset.platformFeePercent))
     setRefundRetentionPercent(String(preset.refundRetentionPercent))
+    setMinimumHostPayoutPercent(
+      String(
+        preset.minimumHostPayoutPercent ??
+          parsedMinimumHostPayoutPercent ??
+          revenueRules?.minimumHostPayoutPercent ??
+          0,
+      ),
+    )
     setRuleChangeReason('')
     saveRule.mutate({
       platformFeePercent: preset.platformFeePercent,
       refundRetentionPercent: preset.refundRetentionPercent,
+      minimumHostPayoutPercent:
+        preset.minimumHostPayoutPercent ??
+        parsedMinimumHostPayoutPercent ??
+        revenueRules?.minimumHostPayoutPercent ??
+        0,
       reason: `수익 모델 프리셋 적용: ${preset.label}`,
     })
   }
@@ -801,6 +844,7 @@ export default function AdminPage() {
       setRuleChangeReason('')
       setPlatformFeePercent(String(saved.platformFeePercent))
       setRefundRetentionPercent(String(saved.refundRetentionPercent))
+      setMinimumHostPayoutPercent(String(saved.minimumHostPayoutPercent))
       queryClient.invalidateQueries({ queryKey: ['admin', 'payments', 'summary'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'payments', 'revenue-rules'] })
       queryClient.invalidateQueries({ queryKey: ['admin', 'payments', 'revenue-rules', 'history'] })
@@ -945,6 +989,10 @@ export default function AdminPage() {
   const refundRateDelta = previousPeriod
     ? refundRatePercent - previousPeriod.refundRatePercent
     : null
+  const activeMinimumHostPayoutPercent =
+    revenueSummary?.rules.minimumHostPayoutPercent ?? revenueRules?.minimumHostPayoutPercent ?? 0
+  const draftMinimumHostPayoutPercent =
+    parsedMinimumHostPayoutPercent ?? activeMinimumHostPayoutPercent
   const revenueHealthScore = useMemo<RevenueHealthScore | null>(() => {
     if (!revenueSummary) return null
     return createProjectedRuleHealth({
@@ -952,6 +1000,8 @@ export default function AdminPage() {
       totalTickets: totalTickets,
       refundRatePercent,
       platformRevenueKRW: platformRevenue,
+      hostPayoutKRW: hostPayout,
+      minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
       topPartyConcentrationPercent,
       monitoring: monitoringThresholds ?? FALLBACK_MONITORING_ALERTS,
       netSalesChangePercent,
@@ -962,9 +1012,12 @@ export default function AdminPage() {
     refundRatePercent,
     totalPaid,
     totalTickets,
+    activeMinimumHostPayoutPercent,
+    hostPayout,
     topPartyConcentrationPercent,
     netSalesChangePercent,
     revenueSummary,
+    revenueRules?.minimumHostPayoutPercent,
   ])
 
   const trendComparisonKpis = useMemo<RevenueTrendKpiItem[]>(
@@ -1190,11 +1243,13 @@ export default function AdminPage() {
       totalTickets: parsedPlannerTransactionCount,
       refundRatePercent: parsedPlannerRefundRate,
       platformRevenueKRW: planningProjection.platformRevenueKRW,
+      minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
       topPartyConcentrationPercent,
       monitoring: monitoringThresholds,
       netSalesChangePercent,
     })
   }, [
+    activeMinimumHostPayoutPercent,
     monitoringThresholds,
     netSalesChangePercent,
     parsedPlannerRefundRate,
@@ -1243,6 +1298,7 @@ export default function AdminPage() {
             totalTickets: transactionCount,
             refundRatePercent: refundRate,
             platformRevenueKRW: projected.platformRevenueKRW,
+            minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
             topPartyConcentrationPercent,
             monitoring: monitoringThresholds,
             netSalesChangePercent,
@@ -1390,6 +1446,10 @@ export default function AdminPage() {
     }
 
     return REVENUE_RULE_PRESETS.map((preset) => {
+      const presetMinimumHostPayoutPercent =
+        preset.minimumHostPayoutPercent ??
+        revenueRules?.minimumHostPayoutPercent ??
+        activeMinimumHostPayoutPercent
       const projection = createPlannerProjection({
         transactionCount: totalTickets,
         avgTicket,
@@ -1405,6 +1465,7 @@ export default function AdminPage() {
         totalTickets,
         refundRatePercent,
         platformRevenueKRW: projection.platformRevenueKRW,
+        minimumHostPayoutPercent: presetMinimumHostPayoutPercent,
         topPartyConcentrationPercent,
         monitoring: monitoringThresholds,
         netSalesChangePercent,
@@ -1415,7 +1476,8 @@ export default function AdminPage() {
         projection,
         isCurrent:
           revenueRules?.platformFeePercent === preset.platformFeePercent &&
-          revenueRules?.refundRetentionPercent === preset.refundRetentionPercent,
+          revenueRules?.refundRetentionPercent === preset.refundRetentionPercent &&
+          revenueRules?.minimumHostPayoutPercent === presetMinimumHostPayoutPercent,
         projectedHealthScore,
         healthScoreDelta:
           projectedHealthScore && revenueHealthScore
@@ -1427,6 +1489,7 @@ export default function AdminPage() {
     avgTicket,
     hostPayout,
     platformRevenue,
+    activeMinimumHostPayoutPercent,
     monitoringThresholds,
     refundRatePercent,
     totalPaid,
@@ -1473,11 +1536,13 @@ export default function AdminPage() {
       totalTickets,
       refundRatePercent,
       platformRevenueKRW: projected.nextPlatformRevenue,
+      minimumHostPayoutPercent: draftMinimumHostPayoutPercent,
       topPartyConcentrationPercent,
       monitoring: monitoringThresholds,
       netSalesChangePercent,
     })
   }, [
+    draftMinimumHostPayoutPercent,
     netSalesChangePercent,
     parsedPlatformFee,
     projected,
@@ -1872,7 +1937,8 @@ export default function AdminPage() {
                             <h4 className={styles.revenuePresetTitle}>{preset.label}</h4>
                             <p className={styles.revenuePresetMeta}>
                               플랫폼 수수료 {preset.platformFeePercent}% / 환불보전{' '}
-                              {preset.refundRetentionPercent}%
+                              {preset.refundRetentionPercent}% / 최소 호스트 정산율{' '}
+                              {preset.minimumHostPayoutPercent ?? activeMinimumHostPayoutPercent}%
                             </p>
                           </div>
                           <span
@@ -2260,6 +2326,8 @@ export default function AdminPage() {
               saveRule.mutate({
                 platformFeePercent: parsedPlatformFee ?? 0,
                 refundRetentionPercent: parsedRefundRetention ?? 0,
+                minimumHostPayoutPercent:
+                  parsedMinimumHostPayoutPercent ?? activeMinimumHostPayoutPercent,
                 reason: ruleChangeReason,
               })
             }}
@@ -2289,6 +2357,18 @@ export default function AdminPage() {
               />
             </label>
             <label className={styles.ruleField}>
+              <span>최소 호스트 정산율 (%)</span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                step={0.1}
+                value={minimumHostPayoutPercent}
+                onChange={(event) => setMinimumHostPayoutPercent(event.target.value)}
+                placeholder="예: 85"
+              />
+            </label>
+            <label className={styles.ruleField}>
               <span>변경 사유(선택)</span>
               <input
                 type="text"
@@ -2301,7 +2381,8 @@ export default function AdminPage() {
             <div className={styles.ruleMeta}>
               <span>
                 현재 반영값: 수수료 {Number(revenueRules?.platformFeePercent ?? 0)}% / 환불보전{' '}
-                {Number(revenueRules?.refundRetentionPercent ?? 0)}%
+                {Number(revenueRules?.refundRetentionPercent ?? 0)}% / 최소 호스트 정산율{' '}
+                {Number(revenueRules?.minimumHostPayoutPercent ?? 0)}%
               </span>
               <Button
                 type="submit"
@@ -2363,7 +2444,9 @@ export default function AdminPage() {
               </div>
             ) : null}
             {!hasRuleInput && (
-              <p className={styles.ruleHint}>수수료는 0~100 사이 숫자로 입력해 주세요.</p>
+              <p className={styles.ruleHint}>
+                수수료, 환불보전, 최소 호스트 정산율을 모두 0~100 사이 숫자로 입력해 주세요.
+              </p>
             )}
             {needsReasonForHighRiskSave ? (
               <p className={styles.ruleHint}>위험 구간 적용은 변경 사유 입력이 필수입니다.</p>
@@ -2536,6 +2619,7 @@ export default function AdminPage() {
                       totalTickets,
                       refundRatePercent,
                       platformRevenueKRW: fromProjection.platformRevenueKRW,
+                      minimumHostPayoutPercent: history.fromMinimumHostPayoutPercent,
                       topPartyConcentrationPercent,
                       monitoring: monitoringThresholds,
                       netSalesChangePercent,
@@ -2545,6 +2629,7 @@ export default function AdminPage() {
                       totalTickets,
                       refundRatePercent,
                       platformRevenueKRW: projected.platformRevenueKRW,
+                      minimumHostPayoutPercent: history.toMinimumHostPayoutPercent,
                       topPartyConcentrationPercent,
                       monitoring: monitoringThresholds,
                       netSalesChangePercent,
@@ -2561,6 +2646,10 @@ export default function AdminPage() {
                         <span className={styles.historyMeta}>
                           환불보전 {history.fromRefundRetentionPercent}% →{' '}
                           {history.toRefundRetentionPercent}%
+                        </span>
+                        <span className={styles.historyMeta}>
+                          최소 호스트 정산율 {history.fromMinimumHostPayoutPercent}% →{' '}
+                          {history.toMinimumHostPayoutPercent}%
                         </span>
                         <span className={styles.historyMeta}>
                           적용 예상 플랫폼 수익 {projected.platformRevenueKRW.toLocaleString()}원 /
@@ -2657,6 +2746,7 @@ export default function AdminPage() {
                           totalTickets,
                           refundRatePercent,
                           platformRevenueKRW: platformRevenue,
+                          minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
                           topPartyConcentrationPercent,
                           monitoring: {
                             warningRefundRatePercent: history.toWarningRefundRatePercent,
