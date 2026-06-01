@@ -79,7 +79,7 @@
 }
 .revenueStats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--space-5);
   position: relative;
 }
@@ -98,6 +98,13 @@
   letter-spacing: -0.02em;
   line-height: 1.15;
 }
+.revenueSubBadge {
+  display: inline-flex;
+  margin-left: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-bold);
+}
 .revenueStatHero .revenueValue {
   font-size: clamp(1.8rem, 4vw, 2.8rem);
   background: linear-gradient(135deg, #D6A84E 0%, #B8893B 60%, #7A1F3D 100%);
@@ -111,6 +118,184 @@
   margin-block: var(--space-5);
   position: relative;
 }
+.compareSection {
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.compareTitle {
+  margin-bottom: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-bold);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.compareRange {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+.compareStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-4);
+}
+.compareStat {
+  border: 1px solid rgba(122, 31, 61, 0.15);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: grid;
+  gap: 4px;
+  background: color-mix(in srgb, #ffffff 90%, #fff7e8);
+}
+.compareLabel {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+.compareValue {
+  color: var(--color-text);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-black);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.compareMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.comparePrev {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+.compareDelta {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+.compareTrendUp {
+  color: var(--color-success);
+}
+.compareTrendDown {
+  color: var(--color-danger);
+}
+.compareTrendFlat {
+  color: var(--color-text-muted);
+}
+.compareTrendNone {
+  color: var(--color-text-muted);
+}
+.revenueFilter {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--space-3);
+  align-items: end;
+  margin-bottom: var(--space-4);
+}
+.filterField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+.filterField input,
+.filterField select {
+  width: 100%;
+  border: 1px solid rgba(122, 31, 61, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  background: color-mix(in srgb, #ffffff 92%, #fff7e8);
+}
+.filterField input:focus-visible,
+.filterField select:focus-visible,
+.scenarioForm input:focus-visible {
+  outline: 2px solid color-mix(in srgb, #d6a84e 70%, #7a1f3d 30%);
+  outline-offset: 1px;
+}
+
+.filterActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.sectionHint,
+.sectionNote {
+  margin-bottom: var(--space-3);
+  font-size: var(--fs-sm);
+}
+.sectionHint {
+  color: #b91c1c;
+}
+.sectionNote {
+  color: var(--color-text-muted);
+}
+
+.scenarioForm {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.scenarioForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+.scenarioForm input {
+  width: 100%;
+  border: 1px solid rgba(122, 31, 61, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  background: color-mix(in srgb, #ffffff 94%, #fff7e8);
+}
+.scenarioLabel {
+  letter-spacing: -0.01em;
+}
+.scenarioOutput {
+  color: #7a1f3d;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  font-weight: var(--fw-bold);
+}
+
+.goalSection {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px dashed rgba(122, 31, 61, 0.2);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.goalSectionForecast {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.goalSection .scenarioHint {
+  margin: 0;
+}
+
+.scenarioHint {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+.scenarioDeltaUp {
+  color: #0f766e;
+  font-weight: var(--fw-bold);
+}
+.scenarioDeltaDown {
+  color: #b91c1c;
+  font-weight: var(--fw-bold);
+}
 .revenueList {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -119,13 +304,20 @@
 }
 .revenueListItem {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.4);
   font-size: var(--fs-sm);
+}
+.revenueListTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-width: 0;
 }
 .revenueListTitle {
   font-weight: var(--fw-bold);
@@ -136,6 +328,22 @@
   min-width: 0;
   flex: 1;
 }
+.refundBadge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+.refundBadgeWarning {
+  color: #a15c00;
+  background: color-mix(in srgb, #f59e0b 18%, white);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.refundBadgeDanger {
+  color: #b91c1c;
+  background: color-mix(in srgb, #ef4444 14%, white);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
 .revenueListMeta {
   color: #B8893B;
   font-weight: var(--fw-bold);
@@ -145,6 +353,13 @@
   color: var(--color-text-muted);
   font-weight: var(--fw-regular);
   margin-left: 4px;
+}
+.revenueListMetaGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
 }
 .revenueEmpty {
   position: relative;
@@ -169,3 +384,15 @@
 
 .filterRow { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-5); }
 .filterEmpty { color: var(--color-text-muted); padding: var(--space-8) 0; text-align: center; }
+
+@media (max-width: 740px) {
+  .revenueStats {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+  .compareStats {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  }
+  .revenueFilter {
+    grid-template-columns: 1fr;
+  }
+}

@@ -9,7 +9,7 @@ import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { api } from '@services/api'
-import { REVENUE_MONITORING_POLICY } from '@rotifolk/shared'
+import { REVENUE_MONITORING_POLICY, type RevenueHealthAlertThreshold } from '@rotifolk/shared'
 import styles from './Admin.module.css'
 
 interface AdminReport {
@@ -147,6 +147,37 @@ interface PlannerSensitivityScenario {
   noteForTarget?: string
 }
 
+interface RevenueHealthScore {
+  score: number
+  level: 'good' | 'warning' | 'critical'
+  levelLabel: string
+  topPartyConcentrationPercent: number
+  reasons: string[]
+  summary: string
+}
+
+interface MonitoringThresholdSignal {
+  tone: 'good' | 'warning' | 'critical'
+  current: number
+  warning: number
+  danger: number
+  remainingToWarning: number
+  remainingToDanger: number
+}
+
+interface MonitoringThresholdSimulation {
+  currentHealthScore: RevenueHealthScore
+  simulatedHealthScore: RevenueHealthScore
+  scoreDelta: number
+  refundSignal: MonitoringThresholdSignal
+  concentrationSignal: {
+    tone: 'good' | 'warning' | 'critical'
+    current: number
+    threshold: number
+    remainingToLimit: number
+  }
+}
+
 interface AdminRevenueSummary {
   totalPaidCount: number
   totalRefundedCount: number
@@ -267,6 +298,81 @@ function clampPercentToRange(value: number): number {
   return Math.max(0, Math.min(100, value))
 }
 
+function monitoringLevel(
+  refundRatePercent: number,
+  warning: number,
+  danger: number,
+): 'good' | 'warning' | 'critical' {
+  if (refundRatePercent >= danger) return 'critical'
+  if (refundRatePercent >= warning) return 'warning'
+  return 'good'
+}
+
+function buildMonitoringThresholdSimulation(args: {
+  baseMonitoringThresholds: RevenueHealthAlertThreshold
+  simulatedMonitoringThresholds: RevenueHealthAlertThreshold
+  totalPaidKRW: number
+  totalTickets: number
+  refundRatePercent: number
+  platformRevenueKRW: number
+  topPartyConcentrationPercent: number
+  netSalesChangePercent: number | null
+}): MonitoringThresholdSimulation | null {
+  const baseHealthScore = computeRevenueHealthScore({
+    totalPaidKRW: args.totalPaidKRW,
+    totalTickets: args.totalTickets,
+    refundRatePercent: args.refundRatePercent,
+    platformRevenueKRW: args.platformRevenueKRW,
+    topPartyConcentrationPercent: args.topPartyConcentrationPercent,
+    monitoring: args.baseMonitoringThresholds,
+    netSalesChangePercent: args.netSalesChangePercent,
+  })
+  const simulatedHealthScore = computeRevenueHealthScore({
+    totalPaidKRW: args.totalPaidKRW,
+    totalTickets: args.totalTickets,
+    refundRatePercent: args.refundRatePercent,
+    platformRevenueKRW: args.platformRevenueKRW,
+    topPartyConcentrationPercent: args.topPartyConcentrationPercent,
+    monitoring: args.simulatedMonitoringThresholds,
+    netSalesChangePercent: args.netSalesChangePercent,
+  })
+
+  const refundTone = monitoringLevel(
+    args.refundRatePercent,
+    args.simulatedMonitoringThresholds.warningRefundRatePercent,
+    args.simulatedMonitoringThresholds.dangerRefundRatePercent,
+  )
+  const concentrationTone =
+    args.topPartyConcentrationPercent >=
+    args.simulatedMonitoringThresholds.topPartyConcentrationPercent
+      ? 'critical'
+      : 'good'
+
+  return {
+    currentHealthScore: baseHealthScore,
+    simulatedHealthScore,
+    scoreDelta: simulatedHealthScore.score - baseHealthScore.score,
+    refundSignal: {
+      tone: refundTone,
+      current: args.refundRatePercent,
+      warning: args.simulatedMonitoringThresholds.warningRefundRatePercent,
+      danger: args.simulatedMonitoringThresholds.dangerRefundRatePercent,
+      remainingToWarning:
+        args.simulatedMonitoringThresholds.warningRefundRatePercent - args.refundRatePercent,
+      remainingToDanger:
+        args.simulatedMonitoringThresholds.dangerRefundRatePercent - args.refundRatePercent,
+    },
+    concentrationSignal: {
+      tone: concentrationTone,
+      current: args.topPartyConcentrationPercent,
+      threshold: args.simulatedMonitoringThresholds.topPartyConcentrationPercent,
+      remainingToLimit:
+        args.simulatedMonitoringThresholds.topPartyConcentrationPercent -
+        args.topPartyConcentrationPercent,
+    },
+  }
+}
+
 function createPlannerProjection(args: {
   transactionCount: number
   avgTicket: number
@@ -331,6 +437,131 @@ function createPlannerProjection(args: {
       targetRateRaw !== null &&
       targetRateRaw >= 0 &&
       targetRateRaw <= 100,
+  }
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(value, max))
+}
+
+function computeRevenueHealthScore(args: {
+  totalPaidKRW: number
+  totalTickets: number
+  refundRatePercent: number
+  platformRevenueKRW: number
+  topPartyConcentrationPercent: number
+  monitoring: RevenueHealthAlertThreshold
+  netSalesChangePercent: number | null
+}): RevenueHealthScore {
+  const {
+    totalPaidKRW,
+    totalTickets,
+    refundRatePercent,
+    platformRevenueKRW,
+    topPartyConcentrationPercent,
+    monitoring,
+    netSalesChangePercent,
+  } = args
+
+  if (totalTickets <= 0 || totalPaidKRW <= 0) {
+    return {
+      score: 0,
+      level: 'critical',
+      levelLabel: '거래 미확보',
+      topPartyConcentrationPercent,
+      summary: '현재 구간에서 거래 데이터가 부족해 위험도 판단이 제한돼요.',
+      reasons: ['거래/환불 데이터가 없어 점검 항목이 보류됩니다.'],
+    }
+  }
+
+  const warningRefundRatePercent = clampNumber(monitoring.warningRefundRatePercent, 0, 100)
+  const dangerRefundRatePercent = clampNumber(monitoring.dangerRefundRatePercent, 0, 100)
+  const topPartyThreshold = clampNumber(monitoring.topPartyConcentrationPercent, 0, 100)
+  const reasons: string[] = []
+
+  const refundPenalty =
+    refundRatePercent <= warningRefundRatePercent
+      ? 0
+      : dangerRefundRatePercent <= warningRefundRatePercent
+        ? 40
+        : refundRatePercent >= dangerRefundRatePercent
+          ? 40
+          : ((refundRatePercent - warningRefundRatePercent) /
+              (dangerRefundRatePercent - warningRefundRatePercent)) *
+            40
+
+  if (refundPenalty > 0) {
+    reasons.push(
+      `환불률이 경고 임계값(${warningRefundRatePercent.toFixed(1)}%)을 넘겨 추가 모니터링이 필요해요.`,
+    )
+  }
+
+  const concentrationPenalty =
+    topPartyConcentrationPercent <= topPartyThreshold
+      ? 0
+      : ((topPartyConcentrationPercent - topPartyThreshold) /
+          Math.max(1, 100 - topPartyThreshold)) *
+        20
+
+  if (concentrationPenalty > 0) {
+    reasons.push(
+      `상위 파티 매출 집중도가 ${topPartyConcentrationPercent.toFixed(1)}%로 편중이 커요.`,
+    )
+  }
+
+  const platformShare = clampNumber((platformRevenueKRW / totalPaidKRW) * 100, 0, 100)
+  const platformPenalty = platformShare > 35 ? ((platformShare - 35) / 65) * 10 : 0
+  if (platformPenalty > 0) {
+    reasons.push(
+      `플랫폼 수익 비중이 ${platformShare.toFixed(1)}%로 상대적으로 높아 호스트 수익이 압박될 수 있어요.`,
+    )
+  }
+
+  const trendPenalty =
+    netSalesChangePercent === null || netSalesChangePercent >= 0
+      ? 0
+      : Math.min(20, Math.abs(netSalesChangePercent) * 0.4)
+  if (trendPenalty > 6) {
+    reasons.push('실결제액이 직전 대비 하락해 운영 개선 트리거가 보입니다.')
+  }
+
+  const score = Math.round(
+    clampNumber(
+      100 - refundPenalty - concentrationPenalty - platformPenalty - trendPenalty,
+      0,
+      100,
+    ),
+  )
+
+  if (score >= 85) {
+    return {
+      score,
+      level: 'good',
+      levelLabel: '양호',
+      topPartyConcentrationPercent,
+      summary: '현재 수익 건전성이 안정적이에요. 모니터링 정책 유지가 적절해 보입니다.',
+      reasons: reasons.length > 0 ? reasons : ['이상 신호 없음'],
+    }
+  }
+
+  if (score >= 70) {
+    return {
+      score,
+      level: 'warning',
+      levelLabel: '주의',
+      topPartyConcentrationPercent,
+      summary: '운영 신호가 약하게 악화되고 있어 선제 점검이 필요해요.',
+      reasons: reasons.length > 0 ? reasons : ['환불/편중 지표를 계속 확인하세요.'],
+    }
+  }
+
+  return {
+    score,
+    level: 'critical',
+    levelLabel: '위험',
+    topPartyConcentrationPercent,
+    summary: '수익 리스크가 높습니다. 정책 임계값 조정이나 개입이 필요해 보여요.',
+    reasons: reasons.length > 0 ? reasons : ['즉시 조치 대상이 될 리스크가 있습니다.'],
   }
 }
 
@@ -619,6 +850,13 @@ export default function AdminPage() {
       ['경고 임계값(경고)', `${monitoringAlerts.warningRefundRatePercent}%`],
       ['경고 임계값(위험)', `${monitoringAlerts.dangerRefundRatePercent}%`],
       ['파티 집중 임계값', `${monitoringAlerts.topPartyConcentrationPercent}%`],
+      ['최대 파티 집중도', `${topPartyConcentrationPercent.toFixed(1)}%`],
+      [
+        '수익 건전성 점수',
+        revenueHealthScore
+          ? `${revenueHealthScore.score} / 100 (${revenueHealthScore.levelLabel})`
+          : '미계산',
+      ],
       [''],
       ...(trendRows.length > 0
         ? [[`${comparisonLabel} 분석`], ['지표', '현재값', '이전값', '변화율'], ...trendRows, ['']]
@@ -671,6 +909,9 @@ export default function AdminPage() {
   const comparisonLabel = compareModeLabel(revenueSummary?.comparison?.mode ?? summaryCompareMode)
   const healthAlerts = revenueSummary?.healthAlerts ?? []
   const hasPreviousPeriod = !!previousPeriod
+  const topPartyConcentrationPercent = topParties[0]
+    ? (topParties[0].paidGrossKRW / Math.max(totalPaid, 1)) * 100
+    : 0
   const grossPaidChangePercent =
     previousPeriod && previousPeriod.grossPaidKRW > 0
       ? ((totalPaid - previousPeriod.grossPaidKRW) / previousPeriod.grossPaidKRW) * 100
@@ -688,6 +929,27 @@ export default function AdminPage() {
   const refundRateDelta = previousPeriod
     ? refundRatePercent - previousPeriod.refundRatePercent
     : null
+  const revenueHealthScore = useMemo<RevenueHealthScore | null>(() => {
+    if (!revenueSummary) return null
+    return computeRevenueHealthScore({
+      totalPaidKRW: totalPaid,
+      totalTickets: totalTickets,
+      refundRatePercent,
+      platformRevenueKRW: platformRevenue,
+      topPartyConcentrationPercent,
+      monitoring: monitoringThresholds ?? FALLBACK_MONITORING_ALERTS,
+      netSalesChangePercent,
+    })
+  }, [
+    monitoringThresholds,
+    platformRevenue,
+    refundRatePercent,
+    totalPaid,
+    totalTickets,
+    topPartyConcentrationPercent,
+    netSalesChangePercent,
+    revenueSummary,
+  ])
 
   const trendComparisonKpis = useMemo<RevenueTrendKpiItem[]>(
     () =>
@@ -761,6 +1023,69 @@ export default function AdminPage() {
       netSalesChangePercent,
     ],
   )
+  const monitoringThresholdSimulation = useMemo<MonitoringThresholdSimulation | null>(() => {
+    if (
+      !revenueSummary ||
+      !hasMonitoringInput ||
+      !hasMonitoringInputChanged ||
+      parsedMonitoringWarning === null ||
+      parsedMonitoringDanger === null ||
+      parsedMonitoringTopParty === null ||
+      !revenueHealthScore
+    ) {
+      return null
+    }
+
+    const baseMonitoringThresholds = {
+      warningRefundRatePercent: monitoringThresholds.warningRefundRatePercent,
+      dangerRefundRatePercent: monitoringThresholds.dangerRefundRatePercent,
+      topPartyConcentrationPercent: monitoringThresholds.topPartyConcentrationPercent,
+    }
+    const simulatedMonitoringThresholds = {
+      warningRefundRatePercent: parsedMonitoringWarning,
+      dangerRefundRatePercent: parsedMonitoringDanger,
+      topPartyConcentrationPercent: parsedMonitoringTopParty,
+    }
+
+    if (
+      baseMonitoringThresholds.warningRefundRatePercent ===
+        simulatedMonitoringThresholds.warningRefundRatePercent &&
+      baseMonitoringThresholds.dangerRefundRatePercent ===
+        simulatedMonitoringThresholds.dangerRefundRatePercent &&
+      baseMonitoringThresholds.topPartyConcentrationPercent ===
+        simulatedMonitoringThresholds.topPartyConcentrationPercent
+    ) {
+      return null
+    }
+
+    return buildMonitoringThresholdSimulation({
+      baseMonitoringThresholds,
+      simulatedMonitoringThresholds,
+      totalPaidKRW: totalPaid,
+      totalTickets,
+      refundRatePercent,
+      platformRevenueKRW: platformRevenue,
+      topPartyConcentrationPercent,
+      netSalesChangePercent,
+    })
+  }, [
+    hasMonitoringInput,
+    hasMonitoringInputChanged,
+    parsedMonitoringDanger,
+    parsedMonitoringTopParty,
+    parsedMonitoringWarning,
+    monitoringThresholds.dangerRefundRatePercent,
+    monitoringThresholds.topPartyConcentrationPercent,
+    monitoringThresholds.warningRefundRatePercent,
+    netSalesChangePercent,
+    platformRevenue,
+    refundRatePercent,
+    revenueHealthScore,
+    revenueSummary,
+    topPartyConcentrationPercent,
+    totalPaid,
+    totalTickets,
+  ])
 
   const parsedPlannerTransactionCount = parsePositiveIntegerInput(plannerTransactionCount)
   const parsedPlannerAvgTicket = parseMoneyInput(plannerAvgTicket)
@@ -1061,6 +1386,128 @@ export default function AdminPage() {
             {monitoringThresholds.dangerRefundRatePercent}% · 파티 집중도{' '}
             {monitoringThresholds.topPartyConcentrationPercent}%
           </p>
+          {revenueHealthScore ? (
+            <div className={styles.healthScorePanel}>
+              <div className={styles.healthScoreHeader}>
+                <strong className={styles.healthScoreTitle}>수익 건전성 점수</strong>
+                <span
+                  className={`${styles.healthScoreBadge} ${
+                    revenueHealthScore.level === 'good'
+                      ? styles.healthScoreBadgeGood
+                      : revenueHealthScore.level === 'warning'
+                        ? styles.healthScoreBadgeWarning
+                        : styles.healthScoreBadgeCritical
+                  }`}
+                >
+                  {revenueHealthScore.score}점 · {revenueHealthScore.levelLabel}
+                </span>
+              </div>
+              <p className={styles.sectionNote}>{revenueHealthScore.summary}</p>
+              <ul className={styles.healthScoreReasonList}>
+                {revenueHealthScore.reasons.map((reason) => (
+                  <li key={reason} className={styles.healthScoreReasonItem}>
+                    {reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {monitoringThresholdSimulation ? (
+            <div className={styles.monitoringSimulationPanel}>
+              <div className={styles.monitoringSimulationHeader}>
+                <strong className={styles.sectionTitle}>임계치 시뮬레이션</strong>
+                <span
+                  className={`${styles.monitoringSimulationBadge} ${
+                    monitoringThresholdSimulation.scoreDelta > 0
+                      ? styles.monitoringSimulationBadgeGood
+                      : monitoringThresholdSimulation.scoreDelta < 0
+                        ? styles.monitoringSimulationBadgeCritical
+                        : styles.monitoringSimulationBadgeNeutral
+                  }`}
+                >
+                  {monitoringThresholdSimulation.simulatedHealthScore.score}점 ·{' '}
+                  {monitoringThresholdSimulation.simulatedHealthScore.levelLabel}
+                  {monitoringThresholdSimulation.scoreDelta > 0
+                    ? ` (+${monitoringThresholdSimulation.scoreDelta})`
+                    : monitoringThresholdSimulation.scoreDelta < 0
+                      ? ` (${monitoringThresholdSimulation.scoreDelta})`
+                      : ' (동률)'}
+                </span>
+              </div>
+              <p className={styles.sectionNote}>
+                현재 기준과 비교해 수익 건전성 점수가
+                {monitoringThresholdSimulation.scoreDelta >= 0 ? ' 개선' : ' 악화'}돼요.
+              </p>
+              <div className={styles.monitoringSimulationGrid}>
+                <div className={styles.monitoringSimulationItem}>
+                  <span className={styles.monitoringSimulationLabel}>현재 환불률</span>
+                  <strong>{monitoringThresholdSimulation.refundSignal.current.toFixed(1)}%</strong>
+                  <span className={styles.monitoringSimulationSubLabel}>
+                    임계치(경고 {monitoringThresholdSimulation.refundSignal.warning}% / 위험{' '}
+                    {monitoringThresholdSimulation.refundSignal.danger}%)
+                  </span>
+                  <span className={styles.monitoringSimulationState}>
+                    상태:{' '}
+                    {monitoringThresholdSimulation.refundSignal.tone === 'good'
+                      ? '양호'
+                      : monitoringThresholdSimulation.refundSignal.tone === 'warning'
+                        ? '주의'
+                        : '위험'}
+                    {' · '}
+                    {monitoringThresholdSimulation.refundSignal.tone === 'good'
+                      ? `안전 여유 ${Math.max(
+                          monitoringThresholdSimulation.refundSignal.remainingToWarning,
+                          monitoringThresholdSimulation.refundSignal.remainingToDanger,
+                        ).toFixed(1)}pp`
+                      : monitoringThresholdSimulation.refundSignal.tone === 'warning'
+                        ? `위험선까지 ${Math.max(
+                            monitoringThresholdSimulation.refundSignal.remainingToDanger,
+                            0,
+                          ).toFixed(1)}pp`
+                        : `위험 임계 초과 ${Math.max(
+                            0,
+                            -monitoringThresholdSimulation.refundSignal.remainingToDanger,
+                          ).toFixed(1)}pp`}
+                  </span>
+                </div>
+                <div className={styles.monitoringSimulationItem}>
+                  <span className={styles.monitoringSimulationLabel}>Top 파티 집중도</span>
+                  <strong>
+                    {monitoringThresholdSimulation.concentrationSignal.current.toFixed(1)}%
+                  </strong>
+                  <span className={styles.monitoringSimulationSubLabel}>
+                    임계치 {monitoringThresholdSimulation.concentrationSignal.threshold}%
+                  </span>
+                  <span className={styles.monitoringSimulationState}>
+                    상태:{' '}
+                    {monitoringThresholdSimulation.concentrationSignal.tone === 'good'
+                      ? '양호'
+                      : '위험'}
+                    {monitoringThresholdSimulation.concentrationSignal.tone === 'good'
+                      ? ` · 여유 ${Math.max(
+                          monitoringThresholdSimulation.concentrationSignal.remainingToLimit,
+                          0,
+                        ).toFixed(1)}pp`
+                      : ` · 초과 ${Math.abs(
+                          monitoringThresholdSimulation.concentrationSignal.remainingToLimit,
+                        ).toFixed(1)}pp`}
+                  </span>
+                </div>
+                <div className={styles.monitoringSimulationItem}>
+                  <span className={styles.monitoringSimulationLabel}>건전성 요약</span>
+                  <strong>{monitoringThresholdSimulation.simulatedHealthScore.summary}</strong>
+                  <span className={styles.monitoringSimulationSubLabel}>
+                    현재 대비: {monitoringThresholdSimulation.currentHealthScore.score}점 →
+                    {monitoringThresholdSimulation.simulatedHealthScore.score}점
+                  </span>
+                  <span className={styles.monitoringSimulationState}>
+                    {monitoringThresholdSimulation.simulatedHealthScore.reasons[0] ??
+                      '추가 알림 없음'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className={styles.filterPanel}>
             <label className={styles.filterField}>
@@ -1773,6 +2220,40 @@ export default function AdminPage() {
             <ul className={styles.historyList}>
               {monitoringPolicyHistory.map((history) => (
                 <li key={history.id} className={styles.historyItem}>
+                  {(() => {
+                    const simulatedHealthScore = revenueSummary
+                      ? computeRevenueHealthScore({
+                          totalPaidKRW: totalPaid,
+                          totalTickets,
+                          refundRatePercent,
+                          platformRevenueKRW: platformRevenue,
+                          topPartyConcentrationPercent,
+                          monitoring: {
+                            warningRefundRatePercent: history.toWarningRefundRatePercent,
+                            dangerRefundRatePercent: history.toDangerRefundRatePercent,
+                            topPartyConcentrationPercent: history.toTopPartyConcentrationPercent,
+                          },
+                          netSalesChangePercent,
+                        })
+                      : null
+                    return (
+                      <span
+                        className={`${styles.historyScoreBadge} ${
+                          simulatedHealthScore?.level === 'good'
+                            ? styles.historyScoreBadgeGood
+                            : simulatedHealthScore?.level === 'warning'
+                              ? styles.historyScoreBadgeWarning
+                              : simulatedHealthScore?.level === 'critical'
+                                ? styles.historyScoreBadgeCritical
+                                : styles.historyScoreBadgeNeutral
+                        }`}
+                      >
+                        {simulatedHealthScore
+                          ? `이 설정 적용 시 수익 점수: ${simulatedHealthScore.score}점`
+                          : '실시간 점수 계산 불가'}
+                      </span>
+                    )
+                  })()}
                   <span className={styles.historyTime}>
                     {new Date(history.changedAt).toLocaleString('ko-KR')}
                   </span>

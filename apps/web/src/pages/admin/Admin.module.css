@@ -51,6 +51,145 @@
   font-size: var(--fs-xs);
 }
 
+.healthScorePanel {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, #f8fafc 86%, #fff2cf);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.healthScoreHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.healthScoreTitle {
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  font-weight: var(--fw-bold);
+}
+
+.healthScoreBadge {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 4px 10px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+
+.healthScoreBadgeGood {
+  border-color: color-mix(in srgb, var(--color-success) 50%, transparent);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+
+.healthScoreBadgeWarning {
+  border-color: color-mix(in srgb, var(--color-warning) 60%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
+}
+
+.healthScoreBadgeCritical {
+  border-color: color-mix(in srgb, var(--color-danger) 60%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+}
+
+.healthScoreReasonList {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.healthScoreReasonItem {
+  color: var(--color-text);
+  font-size: var(--fs-xxs);
+  line-height: 1.5;
+}
+
+.monitoringSimulationPanel {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  border: 1px dashed color-mix(in srgb, var(--color-border) 60%, transparent);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--color-surface) 95%, #e2e8f0);
+}
+
+.monitoringSimulationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.monitoringSimulationBadge {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 4px 10px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+
+.monitoringSimulationBadgeGood {
+  border-color: color-mix(in srgb, var(--color-success) 40%, transparent);
+  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  color: var(--color-success);
+}
+
+.monitoringSimulationBadgeNeutral {
+  border-color: var(--color-border);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+}
+
+.monitoringSimulationBadgeCritical {
+  border-color: color-mix(in srgb, var(--color-danger) 50%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+}
+
+.monitoringSimulationGrid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.monitoringSimulationItem {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  background: var(--color-surface);
+}
+
+.monitoringSimulationLabel {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xxs);
+}
+
+.monitoringSimulationSubLabel {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xxs);
+}
+
+.monitoringSimulationState {
+  color: var(--color-text);
+  font-size: var(--fs-xxs);
+  font-weight: var(--fw-bold);
+}
+
 .kpiGrid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -349,6 +488,39 @@
   color: var(--color-text-muted);
 }
 
+.historyScoreBadge {
+  justify-self: start;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 4px 10px;
+  font-size: var(--fs-xxs);
+  font-weight: var(--fw-semibold);
+}
+
+.historyScoreBadgeGood {
+  border-color: color-mix(in srgb, var(--color-success) 55%, transparent);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
+}
+
+.historyScoreBadgeWarning {
+  border-color: color-mix(in srgb, var(--color-warning) 65%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
+}
+
+.historyScoreBadgeCritical {
+  border-color: color-mix(in srgb, var(--color-danger) 60%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
+}
+
+.historyScoreBadgeNeutral {
+  border-color: color-mix(in srgb, var(--color-border) 80%, var(--color-text) 20%);
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+}
+
 .historyMeta {
   font-size: var(--fs-xs);
   color: var(--color-text);
@@ -466,12 +638,20 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .monitoringSimulationGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .plannerResultGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .plannerSensitivityGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .monitoringSimulationGrid {
+    grid-template-columns: 1fr;
   }
 }
 

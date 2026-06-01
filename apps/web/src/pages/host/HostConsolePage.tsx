@@ -130,6 +130,28 @@ function parsePercentInput(value: string): number | null {
   return parsed
 }
 
+function parseMoneyInput(value: string): number | null {
+  const text = value.trim()
+  if (text.length === 0) return null
+  const parsed = Number(text)
+  if (!Number.isFinite(parsed) || parsed < 0) return null
+  return parsed
+}
+
+function clampPercentToRange(value: number) {
+  return Math.max(0, Math.min(100, value))
+}
+
+function calcSummaryDays(startDate: string, endDate: string): number | null {
+  if (!startDate || !endDate) return null
+  const start = new Date(`${startDate}T00:00:00.000Z`)
+  const end = new Date(`${endDate}T00:00:00.000Z`)
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null
+  const deltaMs = end.getTime() - start.getTime()
+  if (deltaMs < 0) return null
+  return Math.floor(deltaMs / (1000 * 60 * 60 * 24)) + 1
+}
+
 export default function HostConsolePage() {
   const user = useAuthStore((s) => s.user)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
@@ -140,6 +162,7 @@ export default function HostConsolePage() {
     useState<HostSummaryCompareMode>('previous_period')
   const [scenarioPlatformFeePercent, setScenarioPlatformFeePercent] = useState('')
   const [scenarioRefundPercent, setScenarioRefundPercent] = useState('')
+  const [targetPayoutAmount, setTargetPayoutAmount] = useState('')
   const { data, isLoading } = useHostedParties()
   const summaryQuery = useMemo(() => {
     const params = new URLSearchParams()
@@ -237,6 +260,61 @@ export default function HostConsolePage() {
     revenue?.totalKRW && hostScenarioPayoutKRW !== null
       ? Math.round((hostScenarioPayoutKRW / revenue.totalKRW) * 1000) / 10
       : null
+  const parsedTargetPayoutAmount = parseMoneyInput(targetPayoutAmount)
+  const hostScenarioTargetPayoutReachedRate =
+    parsedTargetPayoutAmount !== null &&
+    hostScenarioPayoutKRW !== null &&
+    parsedTargetPayoutAmount > 0
+      ? (hostScenarioPayoutKRW / parsedTargetPayoutAmount) * 100
+      : null
+  const hostScenarioTargetPayoutGap =
+    parsedTargetPayoutAmount !== null && hostScenarioPayoutKRW !== null
+      ? hostScenarioPayoutKRW - parsedTargetPayoutAmount
+      : null
+  const summaryDaysInRange = calcSummaryDays(summaryFrom, summaryTo)
+  const hasSummaryPeriod =
+    !!summaryFrom && !!summaryTo && isSummaryRangeValid && summaryDaysInRange !== null
+  const hostScenarioDailyPayout =
+    hasHostScenario && hasSummaryPeriod && hostScenarioPayoutKRW !== null
+      ? hostScenarioPayoutKRW / (summaryDaysInRange ?? 0)
+      : null
+  const targetPayoutShortfall =
+    parsedTargetPayoutAmount !== null && hostScenarioPayoutKRW !== null
+      ? Math.max(0, parsedTargetPayoutAmount - hostScenarioPayoutKRW)
+      : null
+  const targetPayoutTargetToReachDays =
+    targetPayoutShortfall === null || targetPayoutShortfall <= 0 || !hostScenarioDailyPayout
+      ? null
+      : Math.ceil(targetPayoutShortfall / hostScenarioDailyPayout)
+  const targetPayoutReachDate = targetPayoutTargetToReachDays
+    ? (() => {
+        const date = new Date()
+        date.setDate(date.getDate() + targetPayoutTargetToReachDays)
+        return date.toLocaleDateString('ko-KR')
+      })()
+    : null
+  const targetPayoutTransactionsEstimate =
+    targetPayoutShortfall === null || targetPayoutShortfall <= 0
+      ? null
+      : paidCount > 0 && hasHostScenario && hostScenarioPayoutKRW !== null
+        ? Math.ceil(targetPayoutShortfall / (hostScenarioPayoutKRW / Math.max(paidCount, 1)))
+        : null
+  const targetFeeForPayout =
+    revenue?.totalKRW && parsedTargetPayoutAmount !== null && revenue.totalKRW > 0
+      ? clampPercentToRange(
+          ((revenue.totalKRW - parsedTargetPayoutAmount) / revenue.totalKRW) * 100,
+        )
+      : null
+  const targetFeeReachable =
+    hostScenarioPayoutKRW !== null &&
+    parsedTargetPayoutAmount !== null &&
+    revenue?.totalKRW !== undefined &&
+    revenue.totalKRW > 0 &&
+    parsedTargetPayoutAmount <= revenue.totalKRW &&
+    targetFeeForPayout !== null &&
+    targetFeeForPayout >= 0 &&
+    targetFeeForPayout <= 100
+
   const previousPeriod = revenue?.previousPeriod ?? null
   const comparisonMeta = revenue?.comparison ?? {
     mode: summaryCompareMode,
@@ -583,6 +661,108 @@ export default function HostConsolePage() {
                 ) : (
                   <span className={styles.scenarioHint}>0~100 사이 비율을 입력해 주세요.</span>
                 )}
+                <div className={styles.goalSection}>
+                  <label>
+                    <span className={styles.scenarioLabel}>목표 정산액(원)</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step={1000}
+                      value={targetPayoutAmount}
+                      onChange={(event) => setTargetPayoutAmount(event.target.value)}
+                    />
+                  </label>
+                  {parsedTargetPayoutAmount === null ? (
+                    <span className={styles.scenarioHint}>
+                      목표 정산액을 입력하면 달성률을 계산해요.
+                    </span>
+                  ) : (
+                    <div>
+                      <p className={styles.scenarioOutput}>
+                        목표 정산액 대비 달성률:{' '}
+                        {hostScenarioTargetPayoutReachedRate === null
+                          ? '-'
+                          : `${hostScenarioTargetPayoutReachedRate.toFixed(1)}%`}
+                        {hostScenarioTargetPayoutGap !== null
+                          ? ` (${hostScenarioTargetPayoutGap >= 0 ? '+' : ''}${hostScenarioTargetPayoutGap.toLocaleString()}원)`
+                          : ''}
+                      </p>
+                      {targetFeeForPayout !== null && parsedPlatformFee !== null ? (
+                        <p className={styles.scenarioHint}>
+                          목표 정산액 달성을 위해서는 수수료를{' '}
+                          <strong>{targetFeeForPayout.toFixed(1)}%</strong>로 설정하는 게 필요해요.
+                          {targetFeeReachable ? (
+                            <>
+                              {' '}
+                              (현재 {parsedPlatformFee.toFixed(1)}% 대비{' '}
+                              {targetFeeForPayout >= parsedPlatformFee ? '상향 ' : '하향 '}
+                              {Math.abs(targetFeeForPayout - parsedPlatformFee).toFixed(1)}pp)
+                            </>
+                          ) : (
+                            <span className={styles.scenarioDeltaDown}>
+                              {' '}
+                              목표 정산액이 현재 거래 합계(총매출)보다 큽니다.
+                            </span>
+                          )}
+                        </p>
+                      ) : null}
+                      <div className={styles.goalSectionForecast}>
+                        {hasHostScenario ? (
+                          targetPayoutShortfall !== null && targetPayoutShortfall > 0 ? (
+                            <>
+                              <p className={styles.scenarioOutput}>
+                                추가로 필요한 정산액: {targetPayoutShortfall.toLocaleString()}원
+                              </p>
+                              {hasSummaryPeriod && targetPayoutTargetToReachDays !== null ? (
+                                <p className={styles.scenarioHint}>
+                                  현재 조회 구간 기준 일평균 정산액{' '}
+                                  {hostScenarioDailyPayout?.toLocaleString()}원을 기준으로
+                                  {targetPayoutTargetToReachDays}일 안에 달성 가능해요. (예상 달성일{' '}
+                                  {targetPayoutReachDate ?? '-'})
+                                  {targetPayoutTransactionsEstimate !== null
+                                    ? ` · 거래 건수 기준으로는 약 ${targetPayoutTransactionsEstimate.toLocaleString()}건 추가`
+                                    : ''}
+                                </p>
+                              ) : (
+                                <p className={styles.scenarioHint}>
+                                  조회 구간(시작일/종료일) 기준을 지정하면 일자 기반 도달 시점을
+                                  예측할 수 있어요.
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <p className={styles.scenarioOutput}>목표 정산액을 이미 달성했어요.</p>
+                          )
+                        ) : (
+                          <p className={styles.scenarioHint}>
+                            수수료/환불보전 입력값을 먼저 맞춰 주세요.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div className={styles.filterActions}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setTargetPayoutAmount(String(totalPayout))
+                      }}
+                      disabled={!revenue}
+                    >
+                      내 정산 기준 채우기
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setTargetPayoutAmount('')}
+                    >
+                      초기화
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
