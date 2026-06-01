@@ -7,12 +7,22 @@ import type {
   QuestionCard,
   RevenueHealthAlertThreshold,
   ConnectionChannel,
+  CommunityPost,
+  CommunityPostCategory,
+  CreateCommunityCommentDto,
+  CreateCommunityPostDto,
 } from '@rotifolk/shared'
-import { REVENUE_MONITORING_POLICY, computeRevenueHealthScore } from '@rotifolk/shared'
+import {
+  REVENUE_MONITORING_POLICY,
+  buildCommunityCommentTree,
+  computeRevenueHealthScore,
+} from '@rotifolk/shared'
 import { quoteVenueBooking, recommendVenues, suggestOffHoursSlots } from '@rotifolk/shared'
 import {
   MOCK_TOKEN,
   mockCards,
+  mockCommunityComments,
+  mockCommunityPosts,
   mockMenus,
   mockParties,
   mockUsers,
@@ -1895,6 +1905,100 @@ export const handlers = [
   ),
   http.post(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
   http.delete(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
+
+  // Community
+  http.get(`${API}/community/posts`, async ({ request }) => {
+    const url = new URL(request.url)
+    const category = url.searchParams.get('category') as CommunityPostCategory | null
+    const area = url.searchParams.get('area')
+    const q = url.searchParams.get('q')?.toLowerCase()
+    const page = Number(url.searchParams.get('page') ?? 1)
+    const pageSize = Number(url.searchParams.get('pageSize') ?? 12)
+    const filtered = mockCommunityPosts.filter((post) => {
+      if (category && post.category !== category) return false
+      if (area && post.area !== area) return false
+      if (q && !`${post.title} ${post.body}`.toLowerCase().includes(q)) return false
+      return true
+    })
+    const start = (page - 1) * pageSize
+    return HttpResponse.json(
+      await delay({
+        items: filtered.slice(start, start + pageSize),
+        total: filtered.length,
+        page,
+        pageSize,
+        hasNext: start + pageSize < filtered.length,
+      }),
+    )
+  }),
+  http.get(`${API}/community/posts/:postId`, async ({ params }) => {
+    const post = mockCommunityPosts.find((item) => item.id === params.postId)
+    if (!post) return HttpResponse.json({ code: 'community_post_not_found' }, { status: 404 })
+    const comments = mockCommunityComments
+      .filter((comment) => comment.postId === post.id)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    return HttpResponse.json(
+      await delay({ ...post, comments: buildCommunityCommentTree(comments) }),
+    )
+  }),
+  http.post(`${API}/community/posts`, async ({ request }) => {
+    const body = (await request.json()) as CreateCommunityPostDto
+    const post: CommunityPost = {
+      id: `cp_${Date.now()}`,
+      title: body.title,
+      body: body.body,
+      category: body.category ?? 'question',
+      area: body.area ?? null,
+      partyId: body.partyId ?? null,
+      partyTitle: null,
+      tags: body.tags ?? [],
+      commentCount: 0,
+      lastCommentAt: null,
+      author: {
+        id: mockUsers[1].id,
+        nickname: mockUsers[1].nickname,
+        avatarId: mockUsers[1].avatarId,
+        role: mockUsers[1].role,
+        isVerified: mockUsers[1].isVerified,
+      },
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    }
+    mockCommunityPosts.unshift(post)
+    return HttpResponse.json(await delay(post))
+  }),
+  http.post(`${API}/community/posts/:postId/comments`, async ({ params, request }) => {
+    const post = mockCommunityPosts.find((item) => item.id === params.postId)
+    if (!post) return HttpResponse.json({ code: 'community_post_not_found' }, { status: 404 })
+    const body = (await request.json()) as CreateCommunityCommentDto
+    const parent = body.parentId
+      ? mockCommunityComments.find((comment) => comment.id === body.parentId)
+      : null
+    if (body.parentId && (!parent || parent.postId !== post.id)) {
+      return HttpResponse.json({ code: 'invalid_parent_comment' }, { status: 400 })
+    }
+    const parentId = parent?.parentId ?? parent?.id ?? null
+    const created = {
+      id: `cc_${Date.now()}`,
+      postId: post.id,
+      parentId,
+      body: body.body,
+      author: {
+        id: mockUsers[1].id,
+        nickname: mockUsers[1].nickname,
+        avatarId: mockUsers[1].avatarId,
+        role: mockUsers[1].role,
+        isVerified: mockUsers[1].isVerified,
+      },
+      replies: [],
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    }
+    mockCommunityComments.push(created)
+    post.commentCount += 1
+    post.lastCommentAt = created.createdAt
+    return HttpResponse.json(await delay(created))
+  }),
 
   // Saved parties
   http.get(`${API}/saved`, async () => HttpResponse.json(await delay([]))),

@@ -39,6 +39,8 @@ async function main() {
   await prisma.quizQuestion.deleteMany()
   await prisma.finalMatch.deleteMany()
   await prisma.contactExchangeRequest.deleteMany()
+  await prisma.communityComment.deleteMany()
+  await prisma.communityPost.deleteMany()
   await prisma.finalMatchVote.deleteMany()
   await prisma.midMatchVote.deleteMany()
   await prisma.pair.deleteMany()
@@ -1199,6 +1201,67 @@ async function main() {
       },
     })
   }
+
+  // ============ 커뮤니티 샘플 데이터 ============
+  const communityPost = await prisma.communityPost.create({
+    data: {
+      authorId: W[0].id,
+      partyId: wineParty.id,
+      title: '첫 로테이션 모임 전에 뭘 준비하면 좋을까요?',
+      body: '와인 초보라 라운드에서 어떤 이야기를 꺼내면 좋을지 궁금해요. 복장이나 주문 방식도 미리 알고 싶습니다.',
+      category: 'question',
+      area: '한남동',
+      tagsJson: JSON.stringify(['와인초보', '첫참여', '한남동']),
+    },
+  })
+  const rootComment = await prisma.communityComment.create({
+    data: {
+      postId: communityPost.id,
+      authorId: host.id,
+      body: '처음이면 향이나 맛을 맞히려 하지 않아도 괜찮아요. 좋아하는 분위기와 최근 재밌게 본 콘텐츠만 준비해도 대화가 충분히 이어져요.',
+    },
+  })
+  const replyComment = await prisma.communityComment.create({
+    data: {
+      postId: communityPost.id,
+      authorId: M[0].id,
+      parentId: rootComment.id,
+      body: '저도 첫 참여 때 이 답변이 제일 도움 됐어요. 질문 카드가 있어서 대화 공백이 거의 없었습니다.',
+    },
+  })
+  await prisma.communityComment.create({
+    data: {
+      postId: communityPost.id,
+      authorId: W[1].id,
+      body: '복장은 너무 격식보다 편한 셔츠나 니트 정도면 충분했어요.',
+    },
+  })
+  await prisma.communityPost.update({
+    where: { id: communityPost.id },
+    data: { commentCount: 3, lastCommentAt: replyComment.createdAt },
+  })
+  const reviewPost = await prisma.communityPost.create({
+    data: {
+      authorId: M[1].id,
+      partyId: approvalParty.id,
+      title: '요청 승인형 연락처 교환, 부담이 확실히 낮았어요',
+      body: '채팅은 바로 열리고 외부 연락처는 요청과 승인으로 나뉘니 거절도 자연스러웠습니다. 다음 모임에도 이 방식이 있으면 좋겠어요.',
+      category: 'match-review',
+      area: '북촌',
+      tagsJson: JSON.stringify(['연락처교환', '안전매칭']),
+    },
+  })
+  await prisma.communityComment.create({
+    data: {
+      postId: reviewPost.id,
+      authorId: W[0].id,
+      body: '저도 번호보다 인스타 요청부터 시작하는 흐름이 편했어요.',
+    },
+  })
+  await prisma.communityPost.update({
+    where: { id: reviewPost.id },
+    data: { commentCount: 1, lastCommentAt: new Date() },
+  })
 
   // 회피 목록 데모 (라벨만 — 해시는 데모용 임의값)
   if (w1)

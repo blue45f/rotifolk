@@ -24,6 +24,7 @@ export const routes: RouteObject[] = [
       { path: 'discover', element: lazyPage(() => import('@pages/discover/DiscoverPage')) },
       { path: 'category/:value', element: lazyPage(() => import('@pages/category/CategoryPage')) },
       { path: 'vibe', element: lazyPage(() => import('@pages/vibe/VibePage')) },
+      { path: 'community', element: lazyPage(() => import('@pages/community/CommunityPage')) },
       {
         path: 'neighborhood',
         element: lazyPage(() => import('@pages/neighborhood/NeighborhoodPage')),

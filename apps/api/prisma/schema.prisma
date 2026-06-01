@@ -96,6 +96,8 @@ model User {
   notesSent         PartyNote[]       @relation("NoteFrom")
   notesReceived     PartyNote[]       @relation("NoteTo")
   avoidContacts     AvoidContact[]    @relation("AvoidOwner")
+  communityPosts     CommunityPost[]   @relation("CommunityPostAuthor")
+  communityComments  CommunityComment[] @relation("CommunityCommentAuthor")
   contactExchangeRequestsSent     ContactExchangeRequest[] @relation("ContactExchangeRequester")
   contactExchangeRequestsReceived ContactExchangeRequest[] @relation("ContactExchangeReceiver")
   contactExchangeRequestsDecided  ContactExchangeRequest[] @relation("ContactExchangeDecider")
@@ -304,6 +306,7 @@ model Party {
   notes           PartyNote[]
   venueBooking    VenueBooking?
   contactExchangeRequests ContactExchangeRequest[]
+  communityPosts  CommunityPost[]
 
   @@index([status, startAt])
   @@index([category])
@@ -660,6 +663,53 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([userId, createdAt])
+}
+
+// ======================== COMMUNITY ========================
+model CommunityPost {
+  id           String   @id @default(cuid())
+  authorId     String
+  author       User     @relation("CommunityPostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  partyId      String?
+  party        Party?   @relation(fields: [partyId], references: [id], onDelete: SetNull)
+  title        String
+  body         String
+  category     String   @default("question") // question | after-party | venue-tip | match-review
+  area         String?
+  tagsJson     String   @default("[]")
+  status       String   @default("open") // open | hidden | removed
+  commentCount Int      @default(0)
+  lastCommentAt DateTime?
+
+  comments CommunityComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category, createdAt])
+  @@index([area, createdAt])
+  @@index([authorId, createdAt])
+  @@index([partyId])
+}
+
+model CommunityComment {
+  id        String @id @default(cuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User   @relation("CommunityCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    CommunityComment?  @relation("CommunityReplyThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   CommunityComment[] @relation("CommunityReplyThread")
+  body      String
+  status    String @default("visible") // visible | hidden | removed
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId, createdAt])
+  @@index([parentId, createdAt])
+  @@index([authorId, createdAt])
 }
 
 // ======================== PARTY PHOTO ========================

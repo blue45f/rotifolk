@@ -8,11 +8,14 @@ import type {
   Venue,
   VenueBooking,
   MenuItem,
+  CommunityComment,
+  CommunityPost,
   QuestionCard,
   User,
 } from '@rotifolk/shared'
 
 const now = new Date()
+const minutesAgo = (m: number) => new Date(now.getTime() - m * 60_000).toISOString()
 const inDays = (d: number, h = 19) => {
   const t = new Date(now)
   t.setDate(t.getDate() + d)
@@ -186,6 +189,93 @@ export const mockUsers: User[] = [
     visibility: {},
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
+  },
+]
+
+const communityAuthor = (index: number) => {
+  const user = mockUsers[index]
+  return {
+    id: user.id,
+    nickname: user.nickname,
+    avatarId: user.avatarId,
+    role: user.role,
+    isVerified: user.isVerified,
+  }
+}
+
+export const mockCommunityPosts: CommunityPost[] = [
+  {
+    id: 'cp_first',
+    title: '첫 로테이션 모임 전에 뭘 준비하면 좋을까요?',
+    body: '와인 초보라 라운드에서 어떤 이야기를 꺼내면 좋을지 궁금해요. 복장이나 주문 방식도 미리 알고 싶습니다.',
+    category: 'question',
+    area: '한남동',
+    partyId: 'p_wine',
+    partyTitle: '[MOCK] 한남 루프탑 와인 5:5 로테이션',
+    tags: ['와인초보', '첫참여', '한남동'],
+    commentCount: 3,
+    lastCommentAt: minutesAgo(32),
+    author: communityAuthor(1),
+    createdAt: minutesAgo(240),
+    updatedAt: minutesAgo(240),
+  },
+  {
+    id: 'cp_contact',
+    title: '요청 승인형 연락처 교환, 부담이 확실히 낮았어요',
+    body: '채팅은 바로 열리고 외부 연락처는 요청과 승인으로 나뉘니 거절도 자연스러웠습니다. 다음 모임에도 이 방식이 있으면 좋겠어요.',
+    category: 'match-review',
+    area: '북촌',
+    partyId: 'p_request',
+    partyTitle: '[MOCK] 요청 승인형 연락처 교환 데모',
+    tags: ['연락처교환', '안전매칭'],
+    commentCount: 1,
+    lastCommentAt: minutesAgo(18),
+    author: communityAuthor(3),
+    createdAt: minutesAgo(90),
+    updatedAt: minutesAgo(90),
+  },
+]
+
+export const mockCommunityComments: CommunityComment[] = [
+  {
+    id: 'cc_host_tip',
+    postId: 'cp_first',
+    parentId: null,
+    body: '처음이면 향이나 맛을 맞히려 하지 않아도 괜찮아요. 좋아하는 분위기와 최근 재밌게 본 콘텐츠만 준비해도 대화가 충분히 이어져요.',
+    author: communityAuthor(0),
+    replies: [],
+    createdAt: minutesAgo(160),
+    updatedAt: minutesAgo(160),
+  },
+  {
+    id: 'cc_reply_help',
+    postId: 'cp_first',
+    parentId: 'cc_host_tip',
+    body: '저도 첫 참여 때 이 답변이 제일 도움 됐어요. 질문 카드가 있어서 대화 공백이 거의 없었습니다.',
+    author: communityAuthor(3),
+    replies: [],
+    createdAt: minutesAgo(32),
+    updatedAt: minutesAgo(32),
+  },
+  {
+    id: 'cc_outfit',
+    postId: 'cp_first',
+    parentId: null,
+    body: '복장은 너무 격식보다 편한 셔츠나 니트 정도면 충분했어요.',
+    author: communityAuthor(2),
+    replies: [],
+    createdAt: minutesAgo(52),
+    updatedAt: minutesAgo(52),
+  },
+  {
+    id: 'cc_contact_agree',
+    postId: 'cp_contact',
+    parentId: null,
+    body: '저도 번호보다 인스타 요청부터 시작하는 흐름이 편했어요.',
+    author: communityAuthor(1),
+    replies: [],
+    createdAt: minutesAgo(18),
+    updatedAt: minutesAgo(18),
   },
 ]
 

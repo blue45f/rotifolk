@@ -7,7 +7,7 @@ import styles from './BottomNav.module.css'
 
 const BASE_ITEMS = [
   { to: '/', label: '홈', icon: '🏠', end: true, key: 'home' },
-  { to: '/neighborhood', label: '내 동네', icon: '📍', key: 'hood' },
+  { to: '/community', label: '커뮤니티', icon: '💬', key: 'community' },
   { to: '/quick', label: '즉석', icon: '⚡', emphasize: true, key: 'quick' },
   { to: '/chats', label: '채팅', icon: '💌', key: 'chats' },
   { to: '/me', label: '나', icon: '🌙', key: 'me' },
