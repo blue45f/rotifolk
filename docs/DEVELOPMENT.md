@@ -4,6 +4,7 @@
 
 - `pnpm install`
 - 루트 README의 시나리오(데모 계정/환경 변수) 확인
+- `apps/api/.env.example`의 `MIN_HOST_PAYOUT_PERCENT`(호스트 수익 하한값) 값 확인
 - `pnpm dev` 또는 `pnpm dev:web` + `pnpm dev:api`로 로컬 동작
 - 기능 변경 시 `packages/shared` 타입 계약부터 갱신
 

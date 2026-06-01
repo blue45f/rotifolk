@@ -27,14 +27,17 @@
 - `GET /payments/admin/summary` (200)
 - `GET /payments/admin/revenue-rules` (200)
 - `GET /payments/admin/revenue-rules/history` (200)
-- `PATCH /payments/admin/revenue-rules` (변경 사유 포함)
+- `PATCH /payments/admin/revenue-rules` (변경 사유 포함, 최소 호스트 정산율 포함)
 - `POST /payments/admin/revenue-rules/rollback`
+- `PATCH` 요청 예시: `{"platformFeePercent":12,"refundRetentionPercent":2,"minimumHostPayoutPercent":87,"reason":"수익률 재조정"}`
 
-## 최근 로컬 검증 결과 (2026-06-01)
+## 최근 로컬 검증 결과 (2026-06-02)
 
 - `admin@rotifolk.dev` 로그인 응답: `token` 발급 성공, `role=admin` 확인
 - 호스트 계정(`host@rotifolk.dev`)으로 `/api/payments/admin/revenue-rules` 호출 시 `403 admin_only` 확인
 - `/api/payments/admin/summary` 호출 시 정상 200 응답
 - 규칙 변경(8/0 → 10/15, 사유: `요율 테스트`) 성공
+- 최소 호스트 정산율 변경(85% → 87%, 사유: `호스트 수익 바닥 보전`) 성공
 - 변경 이력 조회 시 `reason: 요율 테스트` 항목 확인
 - 롤백(`historyId` 지정, 사유: `테스트 롤백`) 호출 시 규칙이 이전값(8/0)으로 복귀
+- 요약(summary) 호출에서 `minimumHostPayoutPercent: 87` 노출 확인
