@@ -638,16 +638,20 @@ export default function AdminPage() {
   const queryClient = useQueryClient()
   const toast = useToast()
 
-  const { data: openData } = useQuery({
+  const { data: openData, isError: isOpenReportsError } = useQuery({
     queryKey: ['admin', 'reports', 'open'],
     queryFn: () => api.get<AdminReport[]>('admin/reports?status=open'),
   })
-  const { data: reviewingData } = useQuery({
+  const { data: reviewingData, isError: isReviewingReportsError } = useQuery({
     queryKey: ['admin', 'reports', 'reviewing'],
     queryFn: () => api.get<AdminReport[]>('admin/reports?status=reviewing'),
   })
 
-  const { data: data, isLoading } = useQuery({
+  const {
+    data: data,
+    isLoading,
+    isError: isTabReportsError,
+  } = useQuery({
     queryKey: ['admin', 'reports', tab],
     queryFn: () => api.get<AdminReport[]>(`admin/reports?status=${tab}`),
   })
@@ -2252,7 +2256,11 @@ export default function AdminPage() {
       <header className={styles.head}>
         <p className={styles.headBadge}>Admin Operations Console</p>
         <h1>🛡️ 어드민 콘솔</h1>
-        <p>신고 큐 운영 · 수익 정책 · 매출 점검</p>
+        <p>
+          미처리 신고 {openCount}건, 검토 중 신고 {reviewingCount}건입니다. 우선순위는 ‘미처리 신고
+          처리 → 진행 검토 → 조치 완료’이며, 수익 제안은 우측 패널에서 바로 적용해 운영 상태를
+          안정화하세요.
+        </p>
       </header>
 
       <div className={styles.statsRow}>
@@ -3693,12 +3701,20 @@ export default function AdminPage() {
 
       {isLoading ? (
         <Loading />
+      ) : isOpenReportsError || isReviewingReportsError || isTabReportsError ? (
+        <div className={styles.emptyStateWrap}>
+          <EmptyState
+            emoji="⚠️"
+            title="데이터를 불러오지 못했어요"
+            description="신고 큐 조회 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요."
+          />
+        </div>
       ) : (
         <>
           <div className={styles.tabsPanel}>
             <div className={styles.tabsTitleWrap}>
               <h3 className={styles.tabsTitle}>신고 처리 워크플로우</h3>
-              <span className={styles.tabsSub}>실시간 상태별 큐</span>
+              <span className={styles.tabsSub}>우선 액션: 미처리 신고 → 검토 진행 → 조치 완료</span>
             </div>
             <Tabs
               tabs={[
@@ -3766,6 +3782,7 @@ export default function AdminPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={patch.isPending}
                         onClick={() => patch.mutate({ id: r.id, status: 'reviewing' })}
                       >
                         검토 시작
@@ -3773,6 +3790,7 @@ export default function AdminPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={patch.isPending}
                         onClick={() => patch.mutate({ id: r.id, status: 'dismissed' })}
                       >
                         기각
@@ -3780,6 +3798,7 @@ export default function AdminPage() {
                       <Button
                         variant="primary"
                         size="sm"
+                        disabled={patch.isPending}
                         onClick={() => patch.mutate({ id: r.id, status: 'resolved' })}
                       >
                         조치 완료
@@ -3791,6 +3810,7 @@ export default function AdminPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={patch.isPending}
                         onClick={() => patch.mutate({ id: r.id, status: 'dismissed' })}
                       >
                         기각
@@ -3798,6 +3818,7 @@ export default function AdminPage() {
                       <Button
                         variant="primary"
                         size="sm"
+                        disabled={patch.isPending}
                         onClick={() => patch.mutate({ id: r.id, status: 'resolved' })}
                       >
                         조치 완료
