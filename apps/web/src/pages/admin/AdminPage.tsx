@@ -622,6 +622,7 @@ export default function AdminPage() {
     Record<string, string>
   >({})
   const [isAutoApplyingInsights, setIsAutoApplyingInsights] = useState(false)
+  const [isAutoApplyStopRequested, setIsAutoApplyStopRequested] = useState(false)
   const [autoApplyTimeline, setAutoApplyTimeline] = useState<RevenueInsightExecutionTimelineStep[]>(
     [],
   )
@@ -633,6 +634,7 @@ export default function AdminPage() {
   const platformFeeInputRef = useRef<HTMLInputElement>(null)
   const minimumHostPayoutInputRef = useRef<HTMLInputElement>(null)
   const monitoringWarningInputRef = useRef<HTMLInputElement>(null)
+  const autoApplyStopToken = useRef({ requested: false })
   const queryClient = useQueryClient()
   const toast = useToast()
 
@@ -1154,11 +1156,43 @@ export default function AdminPage() {
     }
   }
 
-  const runRevenueInsightActionAll = async () => {
+  const runRevenueInsightActionAll = async (onlyFailed = false) => {
     if (revenueInsights.length === 0 || isAutoApplyingInsights) return
     if (!revenueSummary || saveMonitoringPolicy.isPending || saveRule.isPending) return
 
-    const plan = buildRevenueInsightExecutionPlan(revenueInsights)
+    let plan: RevenueInsightExecutionPlanWithQueue | null = null
+    if (onlyFailed) {
+      const failedSteps = autoApplyTimeline.filter((step) => step.status === 'failed')
+      if (failedSteps.length === 0) {
+        toast.show('재시도할 실패 항목이 없어요.', 'info')
+        return
+      }
+
+      plan = {
+        queue: failedSteps.map<RevenueInsightExecutionQueueStep>((step) => {
+          if (step.type === 'monitoring') {
+            return {
+              type: 'monitoring',
+              actionId: step.actionId,
+              title: step.title,
+              priority: step.priority,
+              payload: step.payload,
+            }
+          }
+
+          return {
+            type: 'rule',
+            actionId: step.actionId,
+            title: step.title,
+            priority: step.priority,
+            payload: step.payload,
+          }
+        }),
+      }
+    } else {
+      plan = buildRevenueInsightExecutionPlan(revenueInsights)
+    }
+
     if (!plan || plan.queue.length === 0) {
       toast.show('적용 가능한 제안이 없어요.', 'info')
       setAutoApplyTimeline([])
@@ -1167,6 +1201,8 @@ export default function AdminPage() {
     }
 
     setIsAutoApplyingInsights(true)
+    setIsAutoApplyStopRequested(false)
+    autoApplyStopToken.current.requested = false
     setAutoApplySummary('')
 
     let timeline: RevenueInsightExecutionTimelineStep[] = plan.queue.map((step) =>
@@ -1189,6 +1225,19 @@ export default function AdminPage() {
 
     try {
       for (let index = 0; index < timeline.length; index += 1) {
+        if (autoApplyStopToken.current.requested) {
+          for (let remainingIndex = index; remainingIndex < timeline.length; remainingIndex += 1) {
+            if (timeline[remainingIndex]?.status === 'pending') {
+              mark(remainingIndex, {
+                status: 'skipped',
+                message: '사용자 중단으로 건너뜀',
+              })
+            }
+          }
+
+          break
+        }
+
         const step = timeline[index]
         mark(index, { status: 'running', message: '실행 중' })
 
@@ -1242,20 +1291,39 @@ export default function AdminPage() {
     } catch (error) {
       toast.show((error as Error).message, 'error')
     } finally {
+      const wasStopped = autoApplyStopToken.current.requested
       const successCount = timeline.filter((step) => step.status === 'success').length
       const skippedCount = timeline.filter((step) => step.status === 'skipped').length
       const failedCount = timeline.filter((step) => step.status === 'failed').length
 
-      setAutoApplySummary(
-        `실행 결과: 성공 ${successCount}건 · 실패 ${failedCount}건 · 제외 ${skippedCount}건`,
-      )
-      if (failedCount > 0) {
-        toast.show(`일부 항목 실행 실패 (${failedCount}건)`, 'error')
+      const finishedCount = successCount + failedCount + skippedCount
+      if (wasStopped) {
+        setAutoApplySummary(
+          `중단됨 · 진행 ${finishedCount}/${timeline.length}건 (성공 ${successCount}건 · 실패 ${failedCount}건 · 미실행 ${timeline.length - finishedCount}건)`,
+        )
       } else {
-        toast.show('수익 운영 제안을 우선순위 순으로 일괄 적용했어요.', 'success')
+        setAutoApplySummary(
+          `실행 결과: 성공 ${successCount}건 · 실패 ${failedCount}건 · 제외 ${skippedCount}건`,
+        )
+        if (failedCount > 0) {
+          toast.show(`일부 항목 실행 실패 (${failedCount}건)`, 'error')
+        } else {
+          toast.show('수익 운영 제안을 우선순위 순으로 일괄 적용했어요.', 'success')
+        }
       }
+
+      setIsAutoApplyStopRequested(false)
       setIsAutoApplyingInsights(false)
     }
+  }
+
+  const requestStopAutoApply = () => {
+    if (!isAutoApplyingInsights || isAutoApplyStopRequested) return
+
+    autoApplyStopToken.current.requested = true
+    setIsAutoApplyStopRequested(true)
+    setAutoApplySummary('중단 요청이 접수됐습니다. 현재 단계 완료 후 실행을 멈출게요.')
+    toast.show('자동 실행을 중단 요청했어요.', 'info')
   }
 
   const rollbackMonitoringPolicy = useMutation({
@@ -2170,7 +2238,11 @@ export default function AdminPage() {
   const autoApplyFailedCount = autoApplyDisplayQueue.filter(
     (step) => step.status === 'failed',
   ).length
+  const autoApplyFailureHistoryCount = autoApplyTimeline.filter(
+    (step) => step.status === 'failed',
+  ).length
   const hasAutoApplyCandidates = pendingAutoApplyQueue.length > 0
+  const hasAutoApplyFailedHistory = autoApplyFailureHistoryCount > 0
   const autoApplyButtonLabel = isAutoApplyingInsights
     ? `일괄 적용 중 ${autoApplyCompletedCount}/${autoApplyDisplayQueue.length}`
     : `우선순위 순 일괄 적용 (${pendingAutoApplyQueue.length}개)`
@@ -2249,7 +2321,7 @@ export default function AdminPage() {
                     variant="secondary"
                     size="sm"
                     isLoading={isAutoApplyingInsights}
-                    onClick={runRevenueInsightActionAll}
+                    onClick={() => runRevenueInsightActionAll()}
                     disabled={
                       isAutoApplyingInsights ||
                       saveMonitoringPolicy.isPending ||
@@ -2266,16 +2338,28 @@ export default function AdminPage() {
                   >
                     {autoApplyButtonLabel}
                   </Button>
-                  {isAutoApplyingInsights && (
+                  {hasAutoApplyFailedHistory && !isAutoApplyingInsights ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => runRevenueInsightActionAll(true)}
+                      title="실패한 항목만 우선순위 순으로 재실행"
+                    >
+                      실패 항목만 재시도
+                    </Button>
+                  ) : null}
+                  {isAutoApplyingInsights ? (
                     <Button
                       variant="soft"
                       size="sm"
-                      disabled
-                      title="실행 중단은 곧 추가 예정 기능입니다"
+                      onClick={requestStopAutoApply}
+                      disabled={isAutoApplyStopRequested}
+                      isLoading={isAutoApplyStopRequested}
+                      title="현재 실행 중인 시퀀스를 중단해요"
                     >
-                      중단
+                      {isAutoApplyStopRequested ? '중단 중' : '중단'}
                     </Button>
-                  )}
+                  ) : null}
                 </div>
               </div>
               {autoApplyDisplayQueue.length > 0 ? (
