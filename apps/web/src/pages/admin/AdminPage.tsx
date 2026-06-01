@@ -253,16 +253,8 @@ type RevenueInsightActionId =
   | 'minimum-host-payout-lower'
   | 'preset-defensive'
 
-interface RevenueInsightExecutionStep {
-  actionId: RevenueInsightActionId
-  title: string
-  priority: number
-}
-
 interface RevenueInsightExecutionPlan {
-  monitoringPayload?: MonitoringPolicyUpdatePayload
-  rulePayload?: RevenueRuleUpdatePayload
-  steps: RevenueInsightExecutionStep[]
+  queue: RevenueInsightExecutionQueueStep[]
 }
 
 type RevenueInsightExecutionQueueStep =
@@ -283,6 +275,13 @@ type RevenueInsightExecutionQueueStep =
 
 type RevenueInsightExecutionPlanWithQueue = RevenueInsightExecutionPlan & {
   queue: RevenueInsightExecutionQueueStep[]
+}
+
+type RevenueInsightExecutionStatus = 'pending' | 'running' | 'success' | 'failed' | 'skipped'
+
+interface RevenueInsightExecutionTimelineStep extends RevenueInsightExecutionQueueStep {
+  status: RevenueInsightExecutionStatus
+  message?: string
 }
 
 interface AdminRevenueSummary {
@@ -623,6 +622,10 @@ export default function AdminPage() {
     Record<string, string>
   >({})
   const [isAutoApplyingInsights, setIsAutoApplyingInsights] = useState(false)
+  const [autoApplyTimeline, setAutoApplyTimeline] = useState<RevenueInsightExecutionTimelineStep[]>(
+    [],
+  )
+  const [autoApplySummary, setAutoApplySummary] = useState('')
   const [plannerTransactionCount, setPlannerTransactionCount] = useState('')
   const [plannerAvgTicket, setPlannerAvgTicket] = useState('')
   const [plannerRefundRate, setPlannerRefundRate] = useState('')
@@ -1094,7 +1097,6 @@ export default function AdminPage() {
     if (executableInsights.length === 0) return null
 
     const seenActionIds = new Set<RevenueInsightActionId>()
-    const steps: RevenueInsightExecutionStep[] = []
     const queue: RevenueInsightExecutionQueueStep[] = []
 
     for (const insight of executableInsights) {
@@ -1112,7 +1114,6 @@ export default function AdminPage() {
           priority: insight.priority,
           payload: monitoringPayload,
         })
-        steps.push({ actionId: insight.actionId, title: insight.title, priority: insight.priority })
         continue
       }
 
@@ -1124,13 +1125,23 @@ export default function AdminPage() {
           priority: insight.priority,
           payload: rulePayload,
         })
-        steps.push({ actionId: insight.actionId, title: insight.title, priority: insight.priority })
       }
     }
 
-    if (steps.length === 0) return null
-    return { steps, queue }
+    if (queue.length === 0) return null
+    return { queue }
   }
+
+  const pendingAutoApplyQueue = useMemo<RevenueInsightExecutionTimelineStep[]>(() => {
+    const plan = buildRevenueInsightExecutionPlan(revenueInsights)
+    if (!plan) return []
+
+    return plan.queue.map((step) => ({
+      ...step,
+      status: 'pending',
+      message: '실행 대기',
+    }))
+  }, [revenueInsights])
 
   const runRevenueInsightActionAll = async () => {
     if (revenueInsights.length === 0 || isAutoApplyingInsights) return
@@ -1139,23 +1150,79 @@ export default function AdminPage() {
     const plan = buildRevenueInsightExecutionPlan(revenueInsights)
     if (!plan || plan.queue.length === 0) {
       toast.show('적용 가능한 제안이 없어요.', 'info')
+      setAutoApplyTimeline([])
+      setAutoApplySummary('')
       return
     }
 
     setIsAutoApplyingInsights(true)
+    setAutoApplySummary('')
+
+    let timeline: RevenueInsightExecutionTimelineStep[] = plan.queue.map((step) => ({
+      ...step,
+      status: 'pending',
+      message: '대기',
+    }))
+    setAutoApplyTimeline(timeline)
+
+    const mark = (index: number, update: Partial<RevenueInsightExecutionTimelineStep>) => {
+      timeline = timeline.map((prev, prevIndex) =>
+        prevIndex === index ? { ...prev, ...update } : prev,
+      )
+      setAutoApplyTimeline(timeline)
+    }
+
     try {
-      for (const step of plan.queue) {
-        if (step.type === 'monitoring') {
-          await saveMonitoringPolicy.mutateAsync(step.payload)
+      for (let index = 0; index < timeline.length; index += 1) {
+        const step = timeline[index]
+        mark(index, { status: 'running', message: '실행 중' })
+
+        const currentPayload =
+          step.type === 'monitoring'
+            ? buildRevenueInsightMonitoringPayload(step.actionId)
+            : buildRevenueInsightRulePayload(step.actionId)
+
+        if (!currentPayload) {
+          mark(index, {
+            status: 'skipped',
+            message: '현재 데이터 변화로 건너뜀',
+          })
           continue
         }
 
-        await saveRule.mutateAsync(step.payload)
+        try {
+          if (step.type === 'monitoring') {
+            await saveMonitoringPolicy.mutateAsync(currentPayload)
+          } else {
+            await saveRule.mutateAsync(currentPayload)
+          }
+
+          mark(index, {
+            status: 'success',
+            message: '적용 완료',
+          })
+        } catch (error) {
+          mark(index, {
+            status: 'failed',
+            message: (error as Error).message,
+          })
+        }
       }
-      toast.show('수익 운영 제안을 우선순위 순으로 일괄 적용했습니다.', 'success')
     } catch (error) {
       toast.show((error as Error).message, 'error')
     } finally {
+      const successCount = timeline.filter((step) => step.status === 'success').length
+      const skippedCount = timeline.filter((step) => step.status === 'skipped').length
+      const failedCount = timeline.filter((step) => step.status === 'failed').length
+
+      setAutoApplySummary(
+        `실행 결과: 성공 ${successCount}건 · 실패 ${failedCount}건 · 제외 ${skippedCount}건`,
+      )
+      if (failedCount > 0) {
+        toast.show(`일부 항목 실행 실패 (${failedCount}건)`, 'error')
+      } else {
+        toast.show('수익 운영 제안을 우선순위 순으로 일괄 적용했어요.', 'success')
+      }
       setIsAutoApplyingInsights(false)
     }
   }
@@ -2036,7 +2103,7 @@ export default function AdminPage() {
       )
     }
 
-    return insights.sort((a, b) => b.priority - a.priority).slice(0, 4)
+    return insights.sort((a, b) => b.priority - a.priority)
   }, [
     activeMinimumHostPayoutPercent,
     grossPaidChangePercent,
@@ -2137,15 +2204,58 @@ export default function AdminPage() {
                       saveRule.isPending ||
                       isMonitoringPolicyLoading ||
                       isRevenueRuleLoading ||
-                      revenueInsights.every((insight) => !insight.actionId)
+                      pendingAutoApplyQueue.length === 0
                     }
                   >
                     {isAutoApplyingInsights
-                      ? '제안 일괄 적용 중'
-                      : `우선순위 순 일괄 적용 (${revenueInsights.filter((insight) => insight.actionId).length}개)`}
+                      ? `일괄 적용 중 (${autoApplyTimeline.filter((step) => step.status !== 'pending').length}/${autoApplyTimeline.length})`
+                      : `우선순위 순 일괄 적용 (${pendingAutoApplyQueue.length}개)`}
                   </Button>
                 </div>
               </div>
+              {autoApplyTimeline.length > 0 || pendingAutoApplyQueue.length > 0 ? (
+                <div className={styles.insightRunPanel}>
+                  <div className={styles.insightRunHeader}>
+                    <strong className={styles.insightRunTitle}>일괄 실행 시퀀스</strong>
+                    <span className={styles.insightRunHint}>
+                      {isAutoApplyingInsights
+                        ? '실시간 실행 순서를 반영해 진행 중'
+                        : `총 ${pendingAutoApplyQueue.length}개 항목`}
+                    </span>
+                  </div>
+                  <ol className={styles.insightRunList}>
+                    {(isAutoApplyingInsights ? autoApplyTimeline : pendingAutoApplyQueue).map(
+                      (item, idx) => (
+                        <li
+                          key={`${item.type}-${item.actionId}-${idx}`}
+                          className={`${styles.insightRunItem} ${
+                            item.status === 'running'
+                              ? styles.insightRunItemRunning
+                              : item.status === 'success'
+                                ? styles.insightRunItemDone
+                                : item.status === 'failed'
+                                  ? styles.insightRunItemError
+                                  : item.status === 'skipped'
+                                    ? styles.insightRunItemSkipped
+                                    : ''
+                          }`}
+                        >
+                          <span className={styles.insightRunIndex}>#{idx + 1}</span>
+                          <span className={styles.insightRunMeta}>우선순위 {item.priority}</span>
+                          <span className={styles.insightRunTitleText}>{item.title}</span>
+                          <span className={styles.insightRunBadge}>
+                            {item.type === 'monitoring' ? '임계치 정책' : '수익 정책'}
+                          </span>
+                          <span className={styles.insightRunStatus}>{item.message}</span>
+                        </li>
+                      ),
+                    )}
+                  </ol>
+                  {autoApplySummary ? (
+                    <p className={styles.insightRunSummary}>{autoApplySummary}</p>
+                  ) : null}
+                </div>
+              ) : null}
               <div className={styles.insightGrid}>
                 {revenueInsights.map((insight, index) => (
                   <article key={`${insight.title}-${index}`} className={styles.insightCard}>

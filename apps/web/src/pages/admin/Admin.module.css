@@ -358,6 +358,190 @@
   gap: 4px;
 }
 
+.insightRunPanel {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklab, var(--color-border-soft) 75%, transparent);
+  padding: var(--space-2) var(--space-2) var(--space-3);
+  background:
+    linear-gradient(125deg, color-mix(in oklab, var(--color-surface-soft) 74%, transparent), var(--color-surface));
+  display: grid;
+  gap: var(--space-2);
+  z-index: 1;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 16%, transparent);
+}
+
+.insightRunPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-success) 56%, transparent),
+    color-mix(in oklab, var(--color-warning) 52%, transparent),
+    color-mix(in oklab, var(--color-danger) 60%, transparent)
+  );
+  opacity: 0.45;
+}
+
+.insightRunPanel::after {
+  content: '';
+  position: absolute;
+  right: -90px;
+  bottom: -95px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in oklab, var(--brand-gold-200) 45%, transparent) 0%, transparent 75%);
+}
+
+.insightRunHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  z-index: 1;
+}
+
+.insightRunTitle {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.insightRunHint {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xxs);
+}
+
+.insightRunList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.insightRunItem {
+  position: relative;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklab, var(--color-border-soft) 70%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 85%, transparent);
+  display: grid;
+  grid-template-columns: 26px auto 1fr auto auto;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 36px;
+  animation: adminRunItemReveal 0.35s var(--ease-out) both;
+}
+
+.insightRunItem::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  opacity: 0.7;
+}
+
+.insightRunItemDone::before {
+  background: linear-gradient(180deg, var(--color-success), color-mix(in oklab, var(--color-success) 60%, transparent));
+}
+
+.insightRunItemError::before {
+  background: linear-gradient(180deg, var(--color-danger), color-mix(in oklab, var(--color-danger) 60%, transparent));
+}
+
+.insightRunItemSkipped::before {
+  background: linear-gradient(180deg, var(--color-text-muted), color-mix(in oklab, var(--color-text-muted) 65%, transparent));
+}
+
+.insightRunItemRunning::before {
+  background: linear-gradient(180deg, var(--color-warning), color-mix(in oklab, var(--color-warning) 60%, transparent));
+}
+
+.insightRunItemRunning {
+  animation:
+    adminRunItemReveal 0.45s var(--ease-out) both,
+    adminRunPulse 1.8s ease-in-out infinite;
+}
+
+.insightRunIndex {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--color-surface-soft) 78%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+  font-size: var(--fs-xxs);
+  font-weight: var(--fw-bold);
+  color: var(--color-text-muted);
+}
+
+.insightRunMeta {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--fs-xxs);
+  color: var(--color-text-muted);
+}
+
+.insightRunTitleText {
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.insightRunBadge {
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-border-soft) 70%, transparent);
+  padding: 3px 8px;
+  background: color-mix(in oklab, var(--color-surface-soft) 72%, transparent);
+  font-size: var(--fs-xxs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+}
+
+.insightRunStatus {
+  justify-self: end;
+  color: var(--color-text);
+  font-size: var(--fs-xxs);
+  white-space: nowrap;
+}
+
+.insightRunItemDone .insightRunStatus {
+  color: var(--color-success);
+}
+
+.insightRunItemRunning .insightRunStatus {
+  color: var(--color-warning);
+}
+
+.insightRunItemError .insightRunStatus {
+  color: var(--color-danger);
+}
+
+.insightRunItemSkipped .insightRunStatus {
+  color: var(--color-text-muted);
+}
+
+.insightRunSummary {
+  margin: 0;
+  padding-top: 2px;
+  color: var(--color-text-muted);
+  font-size: var(--fs-xxs);
+}
+
 .insightHeaderActions {
   display: flex;
   align-items: center;
@@ -1289,6 +1473,29 @@
 .insightCard,
 .historyItem {
   animation: adminCardReveal 0.5s var(--ease-out) both;
+}
+
+@keyframes adminRunItemReveal {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes adminRunPulse {
+  0%,
+  100% {
+    transform: translateZ(0) scale(1);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-warning) 30%, transparent);
+  }
+  50% {
+    transform: translateZ(0) scale(1.003);
+    box-shadow: 0 0 0 8px color-mix(in oklab, var(--color-warning) 0%, transparent);
+  }
 }
 
 .insightCard:nth-child(1),
