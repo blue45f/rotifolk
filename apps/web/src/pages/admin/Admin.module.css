@@ -418,6 +418,53 @@
   font-size: var(--fs-xxs);
 }
 
+.insightRunProgressWrap {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--color-surface-soft) 64%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border-soft) 70%, transparent);
+}
+
+.insightRunProgress {
+  --run-progress-glow: color-mix(in oklab, var(--color-warning) 40%, transparent);
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-success) 75%, transparent),
+    color-mix(in oklab, var(--color-warning) 75%, transparent)
+  );
+  transition: width var(--dur-base) var(--ease-out);
+  box-shadow: 0 0 0 0 var(--run-progress-glow);
+  animation: adminRunProgressGlow 2.2s ease-in-out infinite;
+}
+
+.insightRunProgressWrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, white 18%, transparent),
+    transparent 35%,
+    color-mix(in oklab, white 18%, transparent)
+  );
+  opacity: 0.4;
+}
+
+.insightRunFailureHint {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-danger) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-danger) 35%, transparent);
+  color: var(--color-danger);
+  font-size: var(--fs-xxs);
+  font-weight: var(--fw-semibold);
+}
+
 .insightRunList {
   list-style: none;
   margin: 0;
@@ -556,6 +603,7 @@
 }
 
 .insightPriorityBadge {
+  margin-left: auto;
   width: fit-content;
   padding: 3px 9px;
   border-radius: 999px;
@@ -583,6 +631,36 @@
   display: grid;
   gap: var(--space-1);
   transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+  overflow: hidden;
+}
+
+.insightCardSuccess {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-success) 28%, transparent);
+  background:
+    radial-gradient(140% 170% at 0% 0%, color-mix(in oklab, var(--color-success) 18%, transparent), transparent 56%),
+    var(--color-surface);
+}
+
+.insightCardWarning {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-warning) 28%, transparent);
+  background:
+    radial-gradient(140% 170% at 0% 0%, color-mix(in oklab, var(--color-warning) 18%, transparent), transparent 56%),
+    var(--color-surface);
+}
+
+.insightCardDanger {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-danger) 28%, transparent);
+  background:
+    radial-gradient(140% 170% at 0% 0%, color-mix(in oklab, var(--color-danger) 20%, transparent), transparent 56%),
+    var(--color-surface);
+}
+
+.insightCardSuccess:hover,
+.insightCardWarning:hover,
+.insightCardDanger:hover {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--color-surface) 40%, transparent),
+    0 12px 26px color-mix(in oklab, var(--color-text) 8%, transparent);
 }
 
 .insightCard:hover {
@@ -622,6 +700,18 @@
   opacity: 0.85;
 }
 
+.insightToneIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  background: color-mix(in oklab, var(--color-surface-soft) 72%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 60%, transparent);
+}
+
 .insightBadge {
   width: fit-content;
   border-radius: 999px;
@@ -652,6 +742,9 @@
   margin: 0;
   font-size: var(--fs-sm);
   color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .insightDescription {
@@ -1498,6 +1591,16 @@
   }
 }
 
+@keyframes adminRunProgressGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-warning) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 14px 2px color-mix(in oklab, var(--color-warning) 25%, transparent);
+  }
+}
+
 .insightCard:nth-child(1),
 .insightGrid .insightCard:nth-child(1) {
   animation-delay: 0.04s;
@@ -1614,6 +1717,7 @@
   .reportCard,
   .revenuePresetCard,
   .insightCard,
+  .insightRunProgress,
   .historyItem,
   .emptyStateWrap,
   .revenueInsightsPanel,

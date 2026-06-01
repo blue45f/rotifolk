@@ -2160,6 +2160,20 @@ export default function AdminPage() {
   const isProjectedHealthCritical = projectedHealthScore?.level === 'critical'
   const needsReasonForHighRiskSave =
     isProjectedHealthCritical && projected !== null && !ruleChangeReason.trim()
+  const autoApplyDisplayQueue = isAutoApplyingInsights ? autoApplyTimeline : pendingAutoApplyQueue
+  const autoApplyCompletedCount = autoApplyDisplayQueue.filter(
+    (step) => step.status === 'success' || step.status === 'skipped' || step.status === 'failed',
+  ).length
+  const autoApplyProgressPercent = autoApplyDisplayQueue.length
+    ? Math.round((autoApplyCompletedCount / autoApplyDisplayQueue.length) * 100)
+    : 0
+  const autoApplyFailedCount = autoApplyDisplayQueue.filter(
+    (step) => step.status === 'failed',
+  ).length
+  const hasAutoApplyCandidates = pendingAutoApplyQueue.length > 0
+  const autoApplyButtonLabel = isAutoApplyingInsights
+    ? `일괄 적용 중 ${autoApplyCompletedCount}/${autoApplyDisplayQueue.length}`
+    : `우선순위 순 일괄 적용 (${pendingAutoApplyQueue.length}개)`
 
   return (
     <div className={`container ${styles.page}`}>
@@ -2234,6 +2248,7 @@ export default function AdminPage() {
                   <Button
                     variant="secondary"
                     size="sm"
+                    isLoading={isAutoApplyingInsights}
                     onClick={runRevenueInsightActionAll}
                     disabled={
                       isAutoApplyingInsights ||
@@ -2241,52 +2256,75 @@ export default function AdminPage() {
                       saveRule.isPending ||
                       isMonitoringPolicyLoading ||
                       isRevenueRuleLoading ||
-                      pendingAutoApplyQueue.length === 0
+                      !hasAutoApplyCandidates
+                    }
+                    title={
+                      hasAutoApplyCandidates
+                        ? '현재 제안 항목을 우선순위 순으로 일괄 실행'
+                        : '현재 실행 가능한 제안 항목이 없습니다'
                     }
                   >
-                    {isAutoApplyingInsights
-                      ? `일괄 적용 중 (${autoApplyTimeline.filter((step) => step.status !== 'pending').length}/${autoApplyTimeline.length})`
-                      : `우선순위 순 일괄 적용 (${pendingAutoApplyQueue.length}개)`}
+                    {autoApplyButtonLabel}
                   </Button>
+                  {isAutoApplyingInsights && (
+                    <Button
+                      variant="soft"
+                      size="sm"
+                      disabled
+                      title="실행 중단은 곧 추가 예정 기능입니다"
+                    >
+                      중단
+                    </Button>
+                  )}
                 </div>
               </div>
-              {autoApplyTimeline.length > 0 || pendingAutoApplyQueue.length > 0 ? (
+              {autoApplyDisplayQueue.length > 0 ? (
                 <div className={styles.insightRunPanel}>
                   <div className={styles.insightRunHeader}>
                     <strong className={styles.insightRunTitle}>일괄 실행 시퀀스</strong>
                     <span className={styles.insightRunHint}>
                       {isAutoApplyingInsights
-                        ? '실시간 실행 순서를 반영해 진행 중'
+                        ? `실행 중 · ${autoApplyProgressPercent}%`
                         : `총 ${pendingAutoApplyQueue.length}개 항목`}
                     </span>
                   </div>
+                  <div className={styles.insightRunProgressWrap}>
+                    <div
+                      className={styles.insightRunProgress}
+                      style={{ width: `${autoApplyProgressPercent}%` }}
+                    />
+                  </div>
+                  {autoApplyFailedCount > 0 && !isAutoApplyingInsights ? (
+                    <p className={styles.insightRunFailureHint}>
+                      최근 실행에서 {autoApplyFailedCount}건이 실패했어요. 실패 항목은 재실행
+                      대상으로 남습니다.
+                    </p>
+                  ) : null}
                   <ol className={styles.insightRunList}>
-                    {(isAutoApplyingInsights ? autoApplyTimeline : pendingAutoApplyQueue).map(
-                      (item, idx) => (
-                        <li
-                          key={`${item.type}-${item.actionId}-${idx}`}
-                          className={`${styles.insightRunItem} ${
-                            item.status === 'running'
-                              ? styles.insightRunItemRunning
-                              : item.status === 'success'
-                                ? styles.insightRunItemDone
-                                : item.status === 'failed'
-                                  ? styles.insightRunItemError
-                                  : item.status === 'skipped'
-                                    ? styles.insightRunItemSkipped
-                                    : ''
-                          }`}
-                        >
-                          <span className={styles.insightRunIndex}>#{idx + 1}</span>
-                          <span className={styles.insightRunMeta}>우선순위 {item.priority}</span>
-                          <span className={styles.insightRunTitleText}>{item.title}</span>
-                          <span className={styles.insightRunBadge}>
-                            {item.type === 'monitoring' ? '임계치 정책' : '수익 정책'}
-                          </span>
-                          <span className={styles.insightRunStatus}>{item.message}</span>
-                        </li>
-                      ),
-                    )}
+                    {autoApplyDisplayQueue.map((item, idx) => (
+                      <li
+                        key={`${item.type}-${item.actionId}-${idx}`}
+                        className={`${styles.insightRunItem} ${
+                          item.status === 'running'
+                            ? styles.insightRunItemRunning
+                            : item.status === 'success'
+                              ? styles.insightRunItemDone
+                              : item.status === 'failed'
+                                ? styles.insightRunItemError
+                                : item.status === 'skipped'
+                                  ? styles.insightRunItemSkipped
+                                  : ''
+                        }`}
+                      >
+                        <span className={styles.insightRunIndex}>#{idx + 1}</span>
+                        <span className={styles.insightRunMeta}>우선순위 {item.priority}</span>
+                        <span className={styles.insightRunTitleText}>{item.title}</span>
+                        <span className={styles.insightRunBadge}>
+                          {item.type === 'monitoring' ? '임계치 정책' : '수익 정책'}
+                        </span>
+                        <span className={styles.insightRunStatus}>{item.message}</span>
+                      </li>
+                    ))}
                   </ol>
                   {autoApplySummary ? (
                     <p className={styles.insightRunSummary}>{autoApplySummary}</p>
@@ -2295,8 +2333,24 @@ export default function AdminPage() {
               ) : null}
               <div className={styles.insightGrid}>
                 {revenueInsights.map((insight, index) => (
-                  <article key={`${insight.title}-${index}`} className={styles.insightCard}>
+                  <article
+                    key={`${insight.title}-${index}`}
+                    className={`${styles.insightCard} ${
+                      insight.tone === 'success'
+                        ? styles.insightCardSuccess
+                        : insight.tone === 'warning'
+                          ? styles.insightCardWarning
+                          : styles.insightCardDanger
+                    }`}
+                  >
                     <div className={styles.insightHeaderMetaRow}>
+                      <span className={styles.insightToneIcon}>
+                        {insight.tone === 'success'
+                          ? '🎯'
+                          : insight.tone === 'warning'
+                            ? '⚠️'
+                            : '🚨'}
+                      </span>
                       <span className={styles.insightPriorityBadge}>
                         우선순위 {insight.priority}
                       </span>
