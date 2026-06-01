@@ -230,6 +230,13 @@ interface MonitoringThresholdSimulation {
   }
 }
 
+interface RevenueInsight {
+  tone: 'success' | 'warning' | 'danger'
+  title: string
+  description: string
+  action: string
+}
+
 interface AdminRevenueSummary {
   totalPaidCount: number
   totalRefundedCount: number
@@ -1134,6 +1141,8 @@ export default function AdminPage() {
       totalTickets,
       refundRatePercent,
       platformRevenueKRW: platformRevenue,
+      hostPayoutKRW: hostPayout,
+      minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
       topPartyConcentrationPercent,
       netSalesChangePercent,
     })
@@ -1243,6 +1252,7 @@ export default function AdminPage() {
       totalTickets: parsedPlannerTransactionCount,
       refundRatePercent: parsedPlannerRefundRate,
       platformRevenueKRW: planningProjection.platformRevenueKRW,
+      hostPayoutKRW: planningProjection.hostPayoutKRW,
       minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
       topPartyConcentrationPercent,
       monitoring: monitoringThresholds,
@@ -1298,6 +1308,7 @@ export default function AdminPage() {
             totalTickets: transactionCount,
             refundRatePercent: refundRate,
             platformRevenueKRW: projected.platformRevenueKRW,
+            hostPayoutKRW: projected.hostPayoutKRW,
             minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
             topPartyConcentrationPercent,
             monitoring: monitoringThresholds,
@@ -1465,6 +1476,7 @@ export default function AdminPage() {
         totalTickets,
         refundRatePercent,
         platformRevenueKRW: projection.platformRevenueKRW,
+        hostPayoutKRW: projection.hostPayoutKRW,
         minimumHostPayoutPercent: presetMinimumHostPayoutPercent,
         topPartyConcentrationPercent,
         monitoring: monitoringThresholds,
@@ -1536,6 +1548,7 @@ export default function AdminPage() {
       totalTickets,
       refundRatePercent,
       platformRevenueKRW: projected.nextPlatformRevenue,
+      hostPayoutKRW: projected.nextHostPayout,
       minimumHostPayoutPercent: draftMinimumHostPayoutPercent,
       topPartyConcentrationPercent,
       monitoring: monitoringThresholds,
@@ -1559,6 +1572,108 @@ export default function AdminPage() {
       ? projectedHealthScore.score -
         (ruleSimulation.data?.currentHealthScore ?? revenueHealthScore)!.score
       : null
+  const revenueInsights = useMemo<RevenueInsight[]>(() => {
+    if (!revenueSummary || !revenueHealthScore) return []
+
+    const insights: RevenueInsight[] = []
+    const platformShareRate =
+      totalPaid > 0 ? roundPercentWithOneDecimal((platformRevenue / totalPaid) * 100) : 0
+    const hostShareRate =
+      totalPaid > 0 ? roundPercentWithOneDecimal((hostPayout / totalPaid) * 100) : 0
+    const concentrationGap =
+      topPartyConcentrationPercent - monitoringThresholds.topPartyConcentrationPercent
+
+    if (refundRatePercent >= monitoringThresholds.dangerRefundRatePercent) {
+      insights.push({
+        tone: 'danger',
+        title: '환불률 즉시 대응이 필요해요',
+        description: `현재 환불률 ${refundRatePercent.toFixed(1)}%는 위험 임계치 ${monitoringThresholds.dangerRefundRatePercent}%를 넘었어요.`,
+        action: '환불 사유 분류 강화, 분쟁 대응 템플릿 고도화, 환불 보전율/임계값 동시 조정 검토',
+      })
+    } else if (refundRatePercent >= monitoringThresholds.warningRefundRatePercent) {
+      insights.push({
+        tone: 'warning',
+        title: '환불률 주의 구간',
+        description: `환불률이 경고 임계치 ${monitoringThresholds.warningRefundRatePercent}%에 근접했어요.`,
+        action: '모니터링 임계치와 호스트 사전 안내문구를 함께 검토해 조정 위험을 줄이세요',
+      })
+    }
+
+    if (concentrationGap >= 0) {
+      insights.push({
+        tone: 'danger',
+        title: 'Top 파티 과집중',
+        description: `상위 파티 집중도가 임계치 ${monitoringThresholds.topPartyConcentrationPercent}%를 ${concentrationGap.toFixed(1)}%p 넘었어요.`,
+        action: '상위 파티 프로모션 제한, 수수료 정책 분리 검토, 신규 파티 추천 비율 분산',
+      })
+    } else if (concentrationGap >= -3) {
+      insights.push({
+        tone: 'warning',
+        title: '파티 집중도 경계선',
+        description: `상위 파티 집중도가 임계치까지 ${Math.abs(concentrationGap).toFixed(1)}%p 남아 있어요.`,
+        action: '집중도 상향 전파 전에 환불/호스트 성장 신호를 1~2일 모니터링하세요',
+      })
+    }
+
+    if (hostShareRate < activeMinimumHostPayoutPercent) {
+      insights.push({
+        tone: 'danger',
+        title: '최소 정산율 위험',
+        description: `현재 호스트 정산율 ${hostShareRate}%가 최소 보장값 ${activeMinimumHostPayoutPercent}%보다 낮아요.`,
+        action: '최소 호스트 정산율 파라미터 상향 또는 수수료 인상 범위를 재검토하세요',
+      })
+    } else if (hostShareRate >= activeMinimumHostPayoutPercent + 8) {
+      insights.push({
+        tone: 'success',
+        title: '호스트 정산 여력 충분',
+        description: `호스트 정산율 ${hostShareRate}%로 최소값 ${activeMinimumHostPayoutPercent}%를 충족해요.`,
+        action: '수익 확장 시 플랫폼 수수료 인상 여지를 검토할 수 있어요',
+      })
+    }
+
+    if (grossPaidChangePercent !== null) {
+      if (grossPaidChangePercent >= 20) {
+        insights.push({
+          tone: 'success',
+          title: '매출 상승 추세',
+          description: `총 결제액이 직전 대비 ${formatDeltaPercent(grossPaidChangePercent)} 증가했어요.`,
+          action: '성공 신호를 유지하려면 Top 파티 집중도와 환불률을 지속 모니터링하세요',
+        })
+      } else if (grossPaidChangePercent <= -15) {
+        insights.push({
+          tone: 'warning',
+          title: '매출 둔화 주의',
+          description: `총 결제액이 직전 대비 ${formatDeltaPercent(grossPaidChangePercent)} 감소했어요.`,
+          action: '수수료 변경보다 유입 개선 정책(쿠폰/노출/쿼레이션)부터 선 적용하세요',
+        })
+      }
+    }
+
+    if (platformShareRate > 0 && projectedHealthDelta !== null && projectedHealthDelta <= -8) {
+      insights.push({
+        tone: 'warning',
+        title: '수익 정책 변경 영향 큼',
+        description: `현재 후보 정책 반영 시 건전성이 ${Math.abs(projectedHealthDelta)}점 하락 가능성이 있어요.`,
+        action: '저장 전 프리셋/임계값 완화안을 함께 비교해 의사결정하세요',
+      })
+    }
+
+    return insights.slice(0, 4)
+  }, [
+    activeMinimumHostPayoutPercent,
+    grossPaidChangePercent,
+    hostPayout,
+    monitoringThresholds.dangerRefundRatePercent,
+    monitoringThresholds.topPartyConcentrationPercent,
+    monitoringThresholds.warningRefundRatePercent,
+    platformRevenue,
+    projectedHealthDelta,
+    refundRatePercent,
+    revenueHealthScore,
+    revenueSummary,
+    topPartyConcentrationPercent,
+    totalPaid,
+  ])
   const projectedHealthDropWarning = projectedHealthDelta !== null && projectedHealthDelta <= -10
   const isProjectedHealthCritical = projectedHealthScore?.level === 'critical'
   const needsReasonForHighRiskSave =
@@ -1567,21 +1682,18 @@ export default function AdminPage() {
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
+        <p className={styles.headBadge}>Admin Operations Console</p>
         <h1>🛡️ 어드민 콘솔</h1>
         <p>신고 큐 운영 · 수익 정책 · 매출 점검</p>
       </header>
 
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
-          <span className={styles.statNum} style={{ color: 'var(--color-danger)' }}>
-            {openCount}
-          </span>
+          <span className={`${styles.statNum} ${styles.statNumDanger}`}>{openCount}</span>
           <span className={styles.statLabel}>미처리</span>
         </div>
         <div className={styles.statCard}>
-          <span className={styles.statNum} style={{ color: 'var(--brand-gold-600, #B8891E)' }}>
-            {reviewingCount}
-          </span>
+          <span className={`${styles.statNum} ${styles.statNumGold}`}>{reviewingCount}</span>
           <span className={styles.statLabel}>검토 중</span>
         </div>
         <div className={styles.statCard}>
@@ -1590,8 +1702,8 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <section className={styles.revenueSection}>
-        <Card padding="lg" className={styles.revenuePanel}>
+      <section className={`${styles.revenueSection} ${styles.adminPulse}`}>
+        <Card padding="lg" className={`${styles.revenuePanel} ${styles.adminPulse}`}>
           <h2 className={styles.sectionTitle}>수익 운영 대시보드</h2>
           <p className={styles.sectionNote}>
             지표는 결제 전체 기준이며, 필터는 생성일 기준으로 계산됩니다.
@@ -1625,6 +1737,40 @@ export default function AdminPage() {
                   </li>
                 ))}
               </ul>
+            </div>
+          ) : null}
+          {revenueInsights.length > 0 ? (
+            <div className={styles.revenueInsightsPanel}>
+              <div className={styles.revenueInsightsHeader}>
+                <h3 className={styles.sectionTitle}>수익 운영 제안</h3>
+                <span className={styles.sectionSubtle}>
+                  현재 지표 기준으로 바로 적용 가능한 권장 액션입니다.
+                </span>
+              </div>
+              <div className={styles.insightGrid}>
+                {revenueInsights.map((insight, index) => (
+                  <article key={`${insight.title}-${index}`} className={styles.insightCard}>
+                    <span
+                      className={`${styles.insightBadge} ${
+                        insight.tone === 'success'
+                          ? styles.insightBadgeSuccess
+                          : insight.tone === 'warning'
+                            ? styles.insightBadgeWarning
+                            : styles.insightBadgeDanger
+                      }`}
+                    >
+                      {insight.tone === 'success'
+                        ? '권장'
+                        : insight.tone === 'warning'
+                          ? '주의'
+                          : '경고'}
+                    </span>
+                    <h4 className={styles.insightTitle}>{insight.title}</h4>
+                    <p className={styles.insightDescription}>{insight.description}</p>
+                    <p className={styles.insightAction}>권장 액션: {insight.action}</p>
+                  </article>
+                ))}
+              </div>
             </div>
           ) : null}
           {monitoringThresholdSimulation ? (
@@ -2619,6 +2765,7 @@ export default function AdminPage() {
                       totalTickets,
                       refundRatePercent,
                       platformRevenueKRW: fromProjection.platformRevenueKRW,
+                      hostPayoutKRW: fromProjection.hostPayoutKRW,
                       minimumHostPayoutPercent: history.fromMinimumHostPayoutPercent,
                       topPartyConcentrationPercent,
                       monitoring: monitoringThresholds,
@@ -2629,6 +2776,7 @@ export default function AdminPage() {
                       totalTickets,
                       refundRatePercent,
                       platformRevenueKRW: projected.platformRevenueKRW,
+                      hostPayoutKRW: projected.hostPayoutKRW,
                       minimumHostPayoutPercent: history.toMinimumHostPayoutPercent,
                       topPartyConcentrationPercent,
                       monitoring: monitoringThresholds,
@@ -2746,6 +2894,7 @@ export default function AdminPage() {
                           totalTickets,
                           refundRatePercent,
                           platformRevenueKRW: platformRevenue,
+                          hostPayoutKRW: hostPayout,
                           minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
                           topPartyConcentrationPercent,
                           monitoring: {
@@ -2834,23 +2983,33 @@ export default function AdminPage() {
         <Loading />
       ) : (
         <>
-          <Tabs
-            tabs={[
-              { value: 'open', label: `미처리${openCount > 0 ? ` (${openCount})` : ''}` },
-              {
-                value: 'reviewing',
-                label: `검토 중${reviewingCount > 0 ? ` (${reviewingCount})` : ''}`,
-              },
-              { value: 'resolved', label: '처리 완료' },
-            ]}
-            value={tab}
-            onChange={(v) => setTab(v as TabKey)}
-          />
+          <div className={styles.tabsPanel}>
+            <div className={styles.tabsTitleWrap}>
+              <h3 className={styles.tabsTitle}>신고 처리 워크플로우</h3>
+              <span className={styles.tabsSub}>실시간 상태별 큐</span>
+            </div>
+            <Tabs
+              tabs={[
+                { value: 'open', label: `미처리${openCount > 0 ? ` (${openCount})` : ''}` },
+                {
+                  value: 'reviewing',
+                  label: `검토 중${reviewingCount > 0 ? ` (${reviewingCount})` : ''}`,
+                },
+                { value: 'resolved', label: '처리 완료' },
+              ]}
+              value={tab}
+              onChange={(v) => setTab(v as TabKey)}
+            />
+          </div>
           <div className={styles.list}>
             {isLoading ? (
-              <Loading />
+              <div className={styles.emptyStateWrap}>
+                <Loading />
+              </div>
             ) : !data || data.length === 0 ? (
-              <EmptyState emoji="🕊️" title="처리할 신고가 없어요" />
+              <div className={styles.emptyStateWrap}>
+                <EmptyState emoji="🕊️" title="처리할 신고가 없어요" />
+              </div>
             ) : (
               data.map((r) => (
                 <Card key={r.id} padding="lg" className={styles.reportCard}>

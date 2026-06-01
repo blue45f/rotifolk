@@ -41,6 +41,7 @@
     linear-gradient(180deg, color-mix(in oklab, var(--color-surface-elev) 88%, transparent), color-mix(in oklab, var(--color-surface-soft) 92%, transparent));
   box-shadow: var(--shadow-lg);
   backdrop-filter: blur(6px);
+  overflow: hidden;
 }
 
 .head::before {
@@ -76,12 +77,52 @@
   line-height: var(--lh-tight);
   color: var(--color-text);
   font-family: var(--font-display);
+  position: relative;
+  z-index: 1;
 }
 
 .head p {
   margin: 8px 0 0;
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.headBadge {
+  margin: 0 0 6px;
+  display: inline-flex;
+  width: fit-content;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xxs);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text);
+  background: color-mix(in oklab, var(--brand-burgundy-100) 72%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-burgundy-600) 28%, transparent);
+}
+
+.adminPulse {
+  position: relative;
+  overflow: hidden;
+}
+
+.adminPulse::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    100deg,
+    transparent 32%,
+    color-mix(in oklab, var(--brand-cream-100) 42%, transparent) 46%,
+    transparent 62%
+  );
+  opacity: 0;
+  transform: translateX(-120%);
+  animation: adminPulseSweep 8s ease-in-out infinite;
+  z-index: 0;
 }
 
 .statsRow {
@@ -132,6 +173,14 @@
   color: var(--color-text);
 }
 
+.statNumDanger {
+  color: var(--color-danger);
+}
+
+.statNumGold {
+  color: color-mix(in oklab, var(--brand-gold-600) 85%, var(--color-text) 15%);
+}
+
 .statLabel {
   position: relative;
   z-index: 1;
@@ -144,6 +193,75 @@
   display: grid;
   gap: var(--space-5);
   margin-bottom: var(--space-6);
+}
+
+.tabsPanel {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklab, var(--color-border) 82%, transparent);
+  background:
+    linear-gradient(145deg, color-mix(in oklab, var(--color-surface) 82%, transparent), color-mix(in oklab, var(--color-surface-soft) 80%, transparent));
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.tabsPanel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(140deg, transparent 45%, color-mix(in oklab, var(--brand-gold-200) 20%, transparent));
+  opacity: 0.35;
+  z-index: -1;
+}
+
+.tabsTitleWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.tabsTitle {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.tabsSub {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+
+.emptyStateWrap {
+  border-radius: var(--radius-lg);
+  border: 1px dashed color-mix(in oklab, var(--color-border) 78%, transparent);
+  background: linear-gradient(130deg, color-mix(in oklab, var(--color-surface-soft) 82%, transparent), color-mix(in oklab, var(--brand-cream-100) 34%, transparent));
+  min-height: 168px;
+  padding: var(--space-8) var(--space-4);
+  display: grid;
+  place-items: center;
+  animation: adminCardReveal 0.42s var(--ease-out) both;
+  position: relative;
+  overflow: hidden;
+}
+
+.emptyStateWrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    120deg,
+    transparent 38%,
+    color-mix(in oklab, var(--brand-cream-100) 38%, transparent)
+  );
+  opacity: 0.24;
 }
 
 .panelCard,
@@ -189,6 +307,152 @@
   margin: 0;
   color: var(--color-text-muted);
   font-size: var(--fs-xs);
+}
+
+.sectionSubtle {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--fs-xxs);
+}
+
+.revenueInsightsPanel {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in oklab, var(--color-border) 84%, transparent);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(150deg, color-mix(in oklab, var(--color-info-bg) 40%, transparent), color-mix(in oklab, var(--color-surface) 90%, transparent));
+  display: grid;
+  gap: var(--space-2);
+  animation: adminCardReveal 0.45s var(--ease-out) both;
+  position: relative;
+  overflow: hidden;
+}
+
+.revenueInsightsPanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    140% 80% at 100% 0%,
+    color-mix(in oklab, var(--brand-gold-200) 22%, transparent),
+    transparent 60%
+  );
+  opacity: 0.24;
+  z-index: 0;
+}
+
+.revenueInsightsHeader {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  z-index: 1;
+}
+
+.insightGrid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  position: relative;
+  z-index: 1;
+}
+
+.insightCard {
+  position: relative;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklab, var(--color-border-soft) 80%, transparent);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  display: grid;
+  gap: var(--space-1);
+  transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+}
+
+.insightCard:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--brand-burgundy-500) 32%, transparent);
+}
+
+.insightCard::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--brand-burgundy-200) 42%, transparent);
+  filter: blur(2px);
+}
+
+.insightCard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--brand-gold-500) 45%, transparent),
+    color-mix(in oklab, var(--brand-burgundy-600) 45%, transparent)
+  );
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+
+.insightCard:hover::before {
+  opacity: 0.85;
+}
+
+.insightBadge {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: var(--fs-xxs);
+  font-weight: var(--fw-bold);
+}
+
+.insightBadgeSuccess {
+  border: 1px solid color-mix(in oklab, var(--color-success) 55%, transparent);
+  background: color-mix(in oklab, var(--color-success) 10%, transparent);
+  color: var(--color-success);
+}
+
+.insightBadgeWarning {
+  border: 1px solid color-mix(in oklab, var(--color-warning) 55%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 10%, transparent);
+  color: var(--color-warning);
+}
+
+.insightBadgeDanger {
+  border: 1px solid color-mix(in oklab, var(--color-danger) 55%, transparent);
+  background: color-mix(in oklab, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+}
+
+.insightTitle {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.insightDescription {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-relaxed);
+}
+
+.insightAction {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--fs-xxs);
+  font-weight: var(--fw-semibold);
 }
 
 .healthScorePanel {
@@ -946,6 +1210,31 @@
   text-decoration: underline;
 }
 
+@keyframes adminPulseSweep {
+  0% {
+    transform: translateX(-140%);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.28;
+  }
+  100% {
+    transform: translateX(140%);
+    opacity: 0;
+  }
+}
+
+@keyframes adminCardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes adminPanelFade {
   from {
     opacity: 0.4;
@@ -957,6 +1246,35 @@
   }
 }
 
+.statCard,
+.kpiCard,
+.reportCard,
+.revenuePresetCard,
+.insightCard,
+.historyItem {
+  animation: adminCardReveal 0.5s var(--ease-out) both;
+}
+
+.insightCard:nth-child(1),
+.insightGrid .insightCard:nth-child(1) {
+  animation-delay: 0.04s;
+}
+
+.insightCard:nth-child(2),
+.insightGrid .insightCard:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.insightCard:nth-child(3),
+.insightGrid .insightCard:nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.insightCard:nth-child(4),
+.insightGrid .insightCard:nth-child(4) {
+  animation-delay: 0.16s;
+}
+
 @media (max-width: 960px) {
   .statsRow,
   .filterPanel,
@@ -966,7 +1284,8 @@
   .revenuePresetKpiGrid,
   .plannerSensitivityGrid,
   .plannerResultGrid,
-  .monitoringSimulationGrid {
+  .monitoringSimulationGrid,
+  .insightGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -976,6 +1295,10 @@
 
   .statsRow {
     gap: var(--space-2);
+  }
+
+  .tabsTitle {
+    font-size: var(--fs-md);
   }
 }
 
@@ -992,7 +1315,8 @@
   .kpiGrid,
   .revenuePresetGrid,
   .revenuePresetKpiGrid,
-  .monitoringSimulationGrid {
+  .monitoringSimulationGrid,
+  .insightGrid {
     grid-template-columns: 1fr;
   }
 
@@ -1019,5 +1343,40 @@
 
   .revenuePanel {
     padding: var(--space-2);
+  }
+
+  .tabsPanel {
+    padding: var(--space-2);
+  }
+
+  .tabsTitleWrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tabsSub {
+    font-size: var(--fs-xxs);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adminPulse::before,
+  .head::before,
+  .head::after,
+  .revenuePanel,
+  .panelCard,
+  .panelSection,
+  .statCard,
+  .kpiCard,
+  .reportCard,
+  .revenuePresetCard,
+  .insightCard,
+  .historyItem,
+  .emptyStateWrap,
+  .revenueInsightsPanel,
+  .healthScorePanel,
+  .monitoringSimulationPanel {
+    animation: none !important;
+    transition: none !important;
   }
 }
