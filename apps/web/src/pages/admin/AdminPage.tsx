@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Card } from '@components/ui/Card/Card'
@@ -105,6 +105,13 @@ interface MonitoringPolicyHistory {
   changedBy: string | null
   changedAt: string
   reason: string | null
+}
+
+interface MonitoringPolicyUpdatePayload {
+  warningRefundRatePercent: number
+  dangerRefundRatePercent: number
+  topPartyConcentrationPercent: number
+  reason?: string
 }
 
 type AdminSummaryCompareMode = 'none' | 'previous_period' | 'previous_month' | 'previous_year'
@@ -235,7 +242,15 @@ interface RevenueInsight {
   title: string
   description: string
   action: string
+  actionId?: RevenueInsightActionId
+  actionLabel?: string
 }
+
+type RevenueInsightActionId =
+  | 'refund-monitoring-relax'
+  | 'concentration-cap-relax'
+  | 'minimum-host-payout-lower'
+  | 'preset-defensive'
 
 interface AdminRevenueSummary {
   totalPaidCount: number
@@ -578,6 +593,9 @@ export default function AdminPage() {
   const [plannerAvgTicket, setPlannerAvgTicket] = useState('')
   const [plannerRefundRate, setPlannerRefundRate] = useState('')
   const [plannerTargetPlatformRevenue, setPlannerTargetPlatformRevenue] = useState('')
+  const platformFeeInputRef = useRef<HTMLInputElement>(null)
+  const minimumHostPayoutInputRef = useRef<HTMLInputElement>(null)
+  const monitoringWarningInputRef = useRef<HTMLInputElement>(null)
   const queryClient = useQueryClient()
   const toast = useToast()
 
@@ -803,13 +821,8 @@ export default function AdminPage() {
   }
 
   const saveMonitoringPolicy = useMutation({
-    mutationFn: () =>
-      api.patch<MonitoringPolicyConfig>('payments/admin/monitoring-policy', {
-        warningRefundRatePercent: parsedMonitoringWarning ?? 0,
-        dangerRefundRatePercent: parsedMonitoringDanger ?? 0,
-        topPartyConcentrationPercent: parsedMonitoringTopParty ?? 0,
-        ...(monitoringPolicyReason.trim() ? { reason: monitoringPolicyReason.trim() } : {}),
-      }),
+    mutationFn: (input: MonitoringPolicyUpdatePayload) =>
+      api.patch<MonitoringPolicyConfig>('payments/admin/monitoring-policy', input),
     onSuccess: (saved) => {
       setMonitoringWarningRate(String(saved.healthAlerts.warningRefundRatePercent))
       setMonitoringDangerRate(String(saved.healthAlerts.dangerRefundRatePercent))
@@ -824,6 +837,182 @@ export default function AdminPage() {
     },
     onError: (error) => toast.show((error as Error).message, 'error'),
   })
+
+  const buildMonitoringPolicyPayload = (
+    input?: Partial<MonitoringPolicyUpdatePayload>,
+  ): MonitoringPolicyUpdatePayload => {
+    const warning =
+      input?.warningRefundRatePercent ??
+      parsedMonitoringWarning ??
+      monitoringThresholds.warningRefundRatePercent
+    const danger =
+      input?.dangerRefundRatePercent ??
+      parsedMonitoringDanger ??
+      monitoringThresholds.dangerRefundRatePercent
+    const topParty =
+      input?.topPartyConcentrationPercent ??
+      parsedMonitoringTopParty ??
+      monitoringThresholds.topPartyConcentrationPercent
+    const reason =
+      typeof input?.reason === 'string' ? input.reason.trim() : monitoringPolicyReason.trim()
+    const normalizedWarning = clampPercentToRange(warning)
+    const normalizedDanger = clampPercentToRange(danger)
+    const normalizedTopParty = clampPercentToRange(topParty)
+    const orderedDanger = Math.max(normalizedWarning, normalizedDanger)
+    const orderedWarning = Math.min(normalizedWarning, orderedDanger)
+
+    return {
+      warningRefundRatePercent: orderedWarning,
+      dangerRefundRatePercent: orderedDanger,
+      topPartyConcentrationPercent: normalizedTopParty,
+      ...(reason ? { reason } : {}),
+    }
+  }
+
+  const focusMonitoringPolicyInputs = () => {
+    requestAnimationFrame(() => {
+      monitoringWarningInputRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+      monitoringWarningInputRef.current?.focus()
+    })
+  }
+
+  const applyMonitoringPolicySuggestion = (input: Partial<MonitoringPolicyUpdatePayload>) => {
+    const payload = buildMonitoringPolicyPayload(input)
+
+    setMonitoringWarningRate(String(payload.warningRefundRatePercent))
+    setMonitoringDangerRate(String(payload.dangerRefundRatePercent))
+    setMonitoringTopPartyRate(String(payload.topPartyConcentrationPercent))
+    setMonitoringPolicyReason(
+      payload.reason || `수익 운영 제안 적용 (${new Date().toLocaleString('ko-KR')})`,
+    )
+
+    saveMonitoringPolicy.mutate(payload)
+    focusMonitoringPolicyInputs()
+  }
+
+  const buildRevenueRulePayload = (
+    input?: Partial<RevenueRuleUpdatePayload>,
+  ): RevenueRuleUpdatePayload | null => {
+    const platformFee =
+      input?.platformFeePercent ?? parsedPlatformFee ?? revenueRules?.platformFeePercent
+    const refundRetention =
+      input?.refundRetentionPercent ?? parsedRefundRetention ?? revenueRules?.refundRetentionPercent
+    const minimumHostPayout =
+      input?.minimumHostPayoutPercent ??
+      parsedMinimumHostPayoutPercent ??
+      revenueRules?.minimumHostPayoutPercent ??
+      activeMinimumHostPayoutPercent
+
+    if (
+      platformFee === null ||
+      platformFee === undefined ||
+      refundRetention === null ||
+      refundRetention === undefined ||
+      minimumHostPayout === null ||
+      minimumHostPayout === undefined ||
+      Number.isNaN(platformFee) ||
+      Number.isNaN(refundRetention) ||
+      Number.isNaN(minimumHostPayout)
+    )
+      return null
+
+    return {
+      platformFeePercent: roundPercentWithOneDecimal(platformFee),
+      refundRetentionPercent: roundPercentWithOneDecimal(refundRetention),
+      minimumHostPayoutPercent: roundPercentWithOneDecimal(minimumHostPayout),
+      reason: input?.reason?.trim() || ruleChangeReason.trim() || `수익 운영 제안 적용`,
+    }
+  }
+
+  const focusRuleInputs = (focusOn: 'platformFee' | 'minimumHostPayout' = 'platformFee') => {
+    const targetInput =
+      focusOn === 'minimumHostPayout'
+        ? minimumHostPayoutInputRef.current
+        : platformFeeInputRef.current
+
+    requestAnimationFrame(() => {
+      targetInput?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+      targetInput?.focus()
+    })
+  }
+
+  const applyRevenueRuleSuggestion = (
+    input: Partial<RevenueRuleUpdatePayload>,
+    fallbackReason: string,
+    focusOn: 'platformFee' | 'minimumHostPayout' = 'platformFee',
+  ) => {
+    const payload = buildRevenueRulePayload({
+      ...input,
+      reason: input.reason?.trim() || fallbackReason,
+    })
+    if (!payload) return
+    setRuleChangeReason(payload.reason || fallbackReason)
+    setPlatformFeePercent(String(payload.platformFeePercent))
+    setRefundRetentionPercent(String(payload.refundRetentionPercent))
+    setMinimumHostPayoutPercent(String(payload.minimumHostPayoutPercent))
+    saveRule.mutate(payload)
+    focusRuleInputs(focusOn)
+  }
+
+  const runRevenueInsightAction = (actionId?: RevenueInsightActionId) => {
+    if (!actionId || !revenueSummary) return
+    if (saveMonitoringPolicy.isPending || saveRule.isPending) return
+
+    if (actionId === 'refund-monitoring-relax') {
+      const nextDanger = roundPercentWithOneDecimal(Math.min(100, refundRatePercent + 1))
+      const nextWarning = roundPercentWithOneDecimal(Math.max(0, nextDanger - 0.8))
+      applyMonitoringPolicySuggestion({
+        warningRefundRatePercent: nextWarning,
+        dangerRefundRatePercent: nextDanger,
+        reason: `환불률 ${refundRatePercent.toFixed(1)}% 상승 대응 임시 완화`,
+      })
+      return
+    }
+
+    if (actionId === 'concentration-cap-relax') {
+      const nextTopPartyLimit = roundPercentWithOneDecimal(
+        Math.min(100, topPartyConcentrationPercent + 6),
+      )
+      applyMonitoringPolicySuggestion({
+        topPartyConcentrationPercent: nextTopPartyLimit,
+        warningRefundRatePercent: monitoringThresholds.warningRefundRatePercent,
+        dangerRefundRatePercent: monitoringThresholds.dangerRefundRatePercent,
+        reason: `Top 파티 과집중 완화 조치 반영 (${topPartyConcentrationPercent.toFixed(1)}% 현재)`,
+      })
+      return
+    }
+
+    if (actionId === 'minimum-host-payout-lower') {
+      const hostShareRate =
+        totalPaid > 0
+          ? roundPercentWithOneDecimal((hostPayout / totalPaid) * 100)
+          : activeMinimumHostPayoutPercent
+      const nextMinimum = roundPercentWithOneDecimal(Math.max(0, hostShareRate - 1))
+      applyRevenueRuleSuggestion(
+        {
+          minimumHostPayoutPercent: nextMinimum,
+          platformFeePercent: parsedPlatformFee ?? revenueRules?.platformFeePercent ?? 0,
+          refundRetentionPercent:
+            parsedRefundRetention ?? revenueRules?.refundRetentionPercent ?? 0,
+        },
+        `최소 정산율 위험 대응: 목표 정산율 하향`,
+        'minimumHostPayout',
+      )
+      return
+    }
+
+    if (actionId === 'preset-defensive') {
+      const defensivePreset = REVENUE_RULE_PRESETS.find((preset) => preset.id === 'defensive')
+      if (!defensivePreset) return
+      applyRevenueRulePreset(defensivePreset)
+    }
+  }
 
   const rollbackMonitoringPolicy = useMutation({
     mutationFn: (input: { historyId: string; reason?: string }) =>
@@ -1589,6 +1778,8 @@ export default function AdminPage() {
         title: '환불률 즉시 대응이 필요해요',
         description: `현재 환불률 ${refundRatePercent.toFixed(1)}%는 위험 임계치 ${monitoringThresholds.dangerRefundRatePercent}%를 넘었어요.`,
         action: '환불 사유 분류 강화, 분쟁 대응 템플릿 고도화, 환불 보전율/임계값 동시 조정 검토',
+        actionId: 'refund-monitoring-relax',
+        actionLabel: '임계치 일시 완화 적용',
       })
     } else if (refundRatePercent >= monitoringThresholds.warningRefundRatePercent) {
       insights.push({
@@ -1596,6 +1787,8 @@ export default function AdminPage() {
         title: '환불률 주의 구간',
         description: `환불률이 경고 임계치 ${monitoringThresholds.warningRefundRatePercent}%에 근접했어요.`,
         action: '모니터링 임계치와 호스트 사전 안내문구를 함께 검토해 조정 위험을 줄이세요',
+        actionId: 'refund-monitoring-relax',
+        actionLabel: '임계치 미세 조정 적용',
       })
     }
 
@@ -1605,6 +1798,8 @@ export default function AdminPage() {
         title: 'Top 파티 과집중',
         description: `상위 파티 집중도가 임계치 ${monitoringThresholds.topPartyConcentrationPercent}%를 ${concentrationGap.toFixed(1)}%p 넘었어요.`,
         action: '상위 파티 프로모션 제한, 수수료 정책 분리 검토, 신규 파티 추천 비율 분산',
+        actionId: 'concentration-cap-relax',
+        actionLabel: '임계치 완화 후 임시 운영',
       })
     } else if (concentrationGap >= -3) {
       insights.push({
@@ -1612,6 +1807,8 @@ export default function AdminPage() {
         title: '파티 집중도 경계선',
         description: `상위 파티 집중도가 임계치까지 ${Math.abs(concentrationGap).toFixed(1)}%p 남아 있어요.`,
         action: '집중도 상향 전파 전에 환불/호스트 성장 신호를 1~2일 모니터링하세요',
+        actionId: 'concentration-cap-relax',
+        actionLabel: '임계치 완화 적용',
       })
     }
 
@@ -1621,6 +1818,8 @@ export default function AdminPage() {
         title: '최소 정산율 위험',
         description: `현재 호스트 정산율 ${hostShareRate}%가 최소 보장값 ${activeMinimumHostPayoutPercent}%보다 낮아요.`,
         action: '최소 호스트 정산율 파라미터 상향 또는 수수료 인상 범위를 재검토하세요',
+        actionId: 'minimum-host-payout-lower',
+        actionLabel: '최소 정산율 완화 적용',
       })
     } else if (hostShareRate >= activeMinimumHostPayoutPercent + 8) {
       insights.push({
@@ -1655,6 +1854,8 @@ export default function AdminPage() {
         title: '수익 정책 변경 영향 큼',
         description: `현재 후보 정책 반영 시 건전성이 ${Math.abs(projectedHealthDelta)}점 하락 가능성이 있어요.`,
         action: '저장 전 프리셋/임계값 완화안을 함께 비교해 의사결정하세요',
+        actionId: 'preset-defensive',
+        actionLabel: '보수형 프리셋 즉시 적용',
       })
     }
 
@@ -1768,6 +1969,23 @@ export default function AdminPage() {
                     <h4 className={styles.insightTitle}>{insight.title}</h4>
                     <p className={styles.insightDescription}>{insight.description}</p>
                     <p className={styles.insightAction}>권장 액션: {insight.action}</p>
+                    {insight.actionId ? (
+                      <div className={styles.insightActionRow}>
+                        <Button
+                          variant={insight.tone === 'danger' ? 'danger' : 'primary'}
+                          size="sm"
+                          onClick={() => runRevenueInsightAction(insight.actionId)}
+                          disabled={
+                            saveMonitoringPolicy.isPending ||
+                            saveRule.isPending ||
+                            isMonitoringPolicyLoading ||
+                            isRevenueRuleLoading
+                          }
+                        >
+                          {insight.actionLabel || '제안 적용'}
+                        </Button>
+                      </div>
+                    ) : null}
                   </article>
                 ))}
               </div>
@@ -2485,6 +2703,7 @@ export default function AdminPage() {
                 min={0}
                 max={100}
                 step={0.1}
+                ref={platformFeeInputRef}
                 value={platformFeePercent}
                 onChange={(event) => setPlatformFeePercent(event.target.value)}
                 placeholder="예: 8"
@@ -2509,6 +2728,7 @@ export default function AdminPage() {
                 min={0}
                 max={100}
                 step={0.1}
+                ref={minimumHostPayoutInputRef}
                 value={minimumHostPayoutPercent}
                 onChange={(event) => setMinimumHostPayoutPercent(event.target.value)}
                 placeholder="예: 85"
@@ -2609,7 +2829,10 @@ export default function AdminPage() {
                 saveMonitoringPolicy.isPending
               )
                 return
-              saveMonitoringPolicy.mutate()
+              saveMonitoringPolicy.mutate({
+                ...buildMonitoringPolicyPayload(),
+                ...(monitoringPolicyReason.trim() ? { reason: monitoringPolicyReason.trim() } : {}),
+              })
             }}
           >
             <label className={styles.ruleField}>
@@ -2619,6 +2842,7 @@ export default function AdminPage() {
                 min={0}
                 max={100}
                 step={0.1}
+                ref={monitoringWarningInputRef}
                 value={monitoringWarningRate}
                 onChange={(event) => setMonitoringWarningRate(event.target.value)}
                 placeholder="예: 30"

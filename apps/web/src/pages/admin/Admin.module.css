@@ -455,6 +455,13 @@
   font-weight: var(--fw-semibold);
 }
 
+.insightActionRow {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 .healthScorePanel {
   margin-top: var(--space-2);
   padding: var(--space-3);
