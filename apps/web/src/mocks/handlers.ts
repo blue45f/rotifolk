@@ -1,5 +1,13 @@
 import { http, HttpResponse } from 'msw'
-import type { Paginated, Participation, PartySummary } from '@rotifolk/shared'
+import type {
+  Paginated,
+  Participation,
+  Party,
+  PartySummary,
+  QuestionCard,
+  RevenueHealthAlertThreshold,
+} from '@rotifolk/shared'
+import { REVENUE_MONITORING_POLICY } from '@rotifolk/shared'
 import { quoteVenueBooking, recommendVenues, suggestOffHoursSlots } from '@rotifolk/shared'
 import {
   MOCK_TOKEN,
@@ -16,6 +24,986 @@ const API = '*/api'
 
 function delay<T>(value: T, ms = 120): Promise<T> {
   return new Promise((res) => setTimeout(() => res(value), ms))
+}
+
+type PaymentMethod = 'card' | 'kakao' | 'toss' | 'mock'
+type ChatMessageKind = 'text' | 'system' | 'split-bill'
+
+interface MockChatRoom {
+  id: string
+  kind: 'group' | 'pair'
+  title: string | null
+  partyId: string | null
+  partyTitle: string | null
+  lastMessage: { body: string; kind: ChatMessageKind; createdAt: string } | null
+  members: { userId: string; nickname: string; avatarId: string | null | undefined }[]
+  lastReadAt: string | null
+}
+
+interface MockChatMessage {
+  id: string
+  roomId: string
+  userId: string
+  nickname: string
+  body: string
+  kind: ChatMessageKind
+  meta?: Record<string, unknown> | null
+  createdAt: string
+}
+
+interface MockPayment {
+  id: string
+  partyId: string
+  userId: string
+  amountKRW: number
+  status: 'pending' | 'paid' | 'refunded' | 'cancelled'
+  method: PaymentMethod
+  paidAt: string | null
+  refundedAt: string | null
+  createdAt: string
+  party?: {
+    id: string
+    title: string
+    category: string
+    startAt: string
+    coverImageUrl: string | null | undefined
+  } | null
+}
+
+interface MockRevenueRuleConfig {
+  platformFeePercent: number
+  refundRetentionPercent: number
+  updatedAt: string
+  updatedBy: string | null
+}
+
+interface MockRevenueRuleHistory {
+  id: string
+  key: string
+  fromPlatformFeePercent: number
+  toPlatformFeePercent: number
+  fromRefundRetentionPercent: number
+  toRefundRetentionPercent: number
+  changedBy: string | null
+  changedAt: string
+  reason: string | null
+}
+
+interface MockAdminRevenueSummaryParty {
+  partyId: string
+  partyTitle: string
+  paidCount: number
+  refundedCount: number
+  paidGrossKRW: number
+  refundedGrossKRW: number
+  platformFeeKRW: number
+  hostPayoutKRW: number
+  netGrossKRW: number
+  refundRatePercent: number
+  grossTicketCount: number
+}
+
+interface MockAdminRevenueTrend {
+  grossPaidKRW: number
+  grossRefundedKRW: number
+  netSalesKRW: number
+  platformFeeKRW: number
+  refundRetentionKRW: number
+  hostPayoutKRW: number
+  platformRevenueKRW: number
+  totalPaidCount: number
+  totalRefundedCount: number
+  refundRatePercent: number
+}
+
+interface MockAdminRevenueHealthAlert {
+  code: string
+  level: 'warning' | 'danger'
+  title: string
+  detail: string
+}
+
+interface MockMonitoringPolicySnapshot {
+  healthAlerts: RevenueHealthAlertThreshold
+  updatedAt: string
+  updatedBy: string | null
+}
+
+interface MonitoringPolicyUpdateBody {
+  warningRefundRatePercent?: number
+  dangerRefundRatePercent?: number
+  topPartyConcentrationPercent?: number
+  reason?: string
+}
+
+interface MonitoringPolicyHistory {
+  id: string
+  key: string
+  fromWarningRefundRatePercent: number
+  toWarningRefundRatePercent: number
+  fromDangerRefundRatePercent: number
+  toDangerRefundRatePercent: number
+  fromTopPartyConcentrationPercent: number
+  toTopPartyConcentrationPercent: number
+  changedBy: string | null
+  changedAt: string
+  reason: string | null
+}
+
+interface RollbackMonitoringPolicyBody {
+  historyId?: string
+  reason?: string
+}
+
+type AdminSummaryComparisonMode = 'none' | 'previous_period' | 'previous_month' | 'previous_year'
+
+interface MockAdminRevenueComparison {
+  mode: AdminSummaryComparisonMode
+  enabled: boolean
+  rangeFrom: string | null
+  rangeTo: string | null
+}
+
+interface MockAdminRevenueSummary {
+  totalPaidCount: number
+  totalRefundedCount: number
+  grossPaidKRW: number
+  grossRefundedKRW: number
+  netSalesKRW: number
+  platformFeeKRW: number
+  refundRetentionKRW: number
+  hostPayoutKRW: number
+  platformRevenueKRW: number
+  avgTicketKRW: number
+  topParties: MockAdminRevenueSummaryParty[]
+  rules: MockRevenueRuleConfig
+  partyCount: number
+  refundRatePercent: number
+  rangeFrom: string | null
+  rangeTo: string | null
+  previousPeriod: MockAdminRevenueTrend | null
+  comparison: MockAdminRevenueComparison
+  healthAlerts: MockAdminRevenueHealthAlert[]
+}
+
+interface MockHostRevenueTrend {
+  totalKRW: number
+  paidCount: number
+  totalPaidCount: number
+  totalRefundedCount: number
+  totalTickets: number
+  avgTicketKRW: number
+  refundRatePercent: number
+  refundedKRW: number
+  platformFeeKRW: number
+  refundRetentionKRW: number
+  hostPayoutKRW: number
+  partyCount: number
+}
+
+interface MockHostSummaryComparison {
+  mode: AdminSummaryComparisonMode
+  enabled: boolean
+  rangeFrom: string | null
+  rangeTo: string | null
+}
+
+interface MockHostRevenueSummary {
+  totalKRW: number
+  paidCount: number
+  totalPaidCount: number
+  totalRefundedCount: number
+  totalTickets: number
+  avgTicketKRW: number
+  refundRatePercent: number
+  partyCount: number
+  refundedKRW: number
+  platformFeePercent: number
+  refundRetentionPercent: number
+  platformFeeKRW: number
+  refundRetentionKRW: number
+  hostPayoutKRW: number
+  previousPeriod: MockHostRevenueTrend | null
+  comparison: MockHostSummaryComparison
+  rangeFrom: string | null
+  rangeTo: string | null
+  recent: Array<{
+    partyId: string
+    partyTitle: string
+    totalKRW: number
+    paidCount: number
+    refundedCount: number
+    refundedKRW: number
+    grossTicketCount: number
+    refundRatePercent: number
+    platformFeeKRW: number
+    hostPayoutKRW: number
+  }>
+}
+
+interface MockRevenueSummaryInputOptions {
+  from?: string | null
+  to?: string | null
+  partyId?: string | null
+  topLimit?: string | number
+  compareMode?: string
+}
+
+interface MockHostRevenueSummaryInput {
+  hostId?: string
+  from?: string | null
+  to?: string | null
+  partyId?: string | null
+  compareMode?: string
+}
+
+const nowIso = () => new Date().toISOString()
+const mockPartyById = new Map(mockParties.map((party) => [party.id, party]))
+let mockRevenueRules: MockRevenueRuleConfig = {
+  platformFeePercent: 8,
+  refundRetentionPercent: 0,
+  updatedAt: nowIso(),
+  updatedBy: null,
+}
+let mockRevenueRuleHistories: MockRevenueRuleHistory[] = []
+let mockMonitoringPolicy: RevenueHealthAlertThreshold = {
+  ...REVENUE_MONITORING_POLICY.healthAlerts,
+}
+let mockMonitoringPolicyUpdatedAt = nowIso()
+let mockMonitoringPolicyUpdatedBy: string | null = null
+let mockMonitoringPolicyHistories: MonitoringPolicyHistory[] = []
+
+function appendRevenueRuleHistory(
+  from: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>,
+  to: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>,
+  reason?: string,
+) {
+  mockRevenueRuleHistories.unshift({
+    id: `rrh_${Date.now()}_${Math.random().toString(16).slice(2, 7)}`,
+    key: 'global',
+    fromPlatformFeePercent: from.platformFeePercent,
+    toPlatformFeePercent: to.platformFeePercent,
+    fromRefundRetentionPercent: from.refundRetentionPercent,
+    toRefundRetentionPercent: to.refundRetentionPercent,
+    changedBy: mockUsers[0].id,
+    reason: reason?.trim() ?? null,
+    changedAt: nowIso(),
+  })
+}
+
+function appendMonitoringPolicyHistory(
+  from: Pick<
+    RevenueHealthAlertThreshold,
+    'warningRefundRatePercent' | 'dangerRefundRatePercent' | 'topPartyConcentrationPercent'
+  >,
+  to: Pick<
+    RevenueHealthAlertThreshold,
+    'warningRefundRatePercent' | 'dangerRefundRatePercent' | 'topPartyConcentrationPercent'
+  >,
+  reason?: string,
+) {
+  mockMonitoringPolicyHistories.unshift({
+    id: `mph_${Date.now()}_${Math.random().toString(16).slice(2, 7)}`,
+    key: 'global',
+    fromWarningRefundRatePercent: from.warningRefundRatePercent,
+    toWarningRefundRatePercent: to.warningRefundRatePercent,
+    fromDangerRefundRatePercent: from.dangerRefundRatePercent,
+    toDangerRefundRatePercent: to.dangerRefundRatePercent,
+    fromTopPartyConcentrationPercent: from.topPartyConcentrationPercent,
+    toTopPartyConcentrationPercent: to.topPartyConcentrationPercent,
+    changedBy: mockUsers[0].id,
+    changedAt: nowIso(),
+    reason: reason?.trim() ?? null,
+  })
+}
+
+const revenueRuleSnapshot = () => ({ ...mockRevenueRules })
+const monitoringPolicySnapshot = (): MockMonitoringPolicySnapshot => ({
+  healthAlerts: mockMonitoringPolicy,
+  updatedAt: mockMonitoringPolicyUpdatedAt,
+  updatedBy: mockMonitoringPolicyUpdatedBy,
+})
+
+function roundMoney(value: number) {
+  return Math.round(value)
+}
+
+function roundPercent(value: number) {
+  return Math.round(value * 100) / 100
+}
+
+function parseSummaryDate(value?: string | null, asEndOfDay = false): number | null {
+  if (!value) return null
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return null
+  if (asEndOfDay) {
+    parsed.setHours(23, 59, 59, 999)
+  }
+  return parsed.getTime()
+}
+
+function clampSummaryTopLimit(limit?: string | number | null): number {
+  const parsed = Number.parseInt(String(limit ?? '12'), 10)
+  if (!Number.isFinite(parsed)) return 12
+  return Math.max(1, Math.min(parsed, 50))
+}
+
+function safePercent(value: number) {
+  if (value < 0) return 0
+  if (value > 100) return 100
+  return value
+}
+
+function getMockAdminRevenueSummary({
+  from,
+  to,
+  partyId,
+  topLimit = 12,
+  compareMode = 'previous_period',
+}: MockRevenueSummaryInputOptions = {}): MockAdminRevenueSummary {
+  const fromTs = parseSummaryDate(from)
+  const toTs = parseSummaryDate(to, true)
+  const normalizeSummaryRange = filterDateRange(fromTs, toTs)
+  const safeTopLimit = clampSummaryTopLimit(topLimit)
+  const normalizedCompareMode = normalizeMockComparisonMode(compareMode)
+  const [comparisonFrom, comparisonTo] = buildMockComparisonRange(
+    normalizeSummaryRange,
+    normalizedCompareMode,
+  )
+
+  const summarize = (rows: MockPayment[]): MockAdminRevenueSummary => {
+    const byParty = new Map<
+      string,
+      {
+        partyId: string
+        partyTitle: string
+        paidCount: number
+        refundedCount: number
+        paidGrossKRW: number
+        refundedGrossKRW: number
+      }
+    >()
+
+    let totalPaidCount = 0
+    let totalRefundedCount = 0
+    let grossPaidKRW = 0
+    let grossRefundedKRW = 0
+
+    for (const payment of rows) {
+      const party = mockPartyById.get(payment.partyId)
+      if (!party) continue
+      if (partyId && payment.partyId !== partyId) continue
+
+      const entry = byParty.get(payment.partyId) ?? {
+        partyId: party.id,
+        partyTitle: party.title,
+        paidCount: 0,
+        refundedCount: 0,
+        paidGrossKRW: 0,
+        refundedGrossKRW: 0,
+      }
+
+      if (payment.status === 'paid') {
+        totalPaidCount += 1
+        grossPaidKRW += payment.amountKRW
+        entry.paidCount += 1
+        entry.paidGrossKRW += payment.amountKRW
+      } else if (payment.status === 'refunded') {
+        totalRefundedCount += 1
+        grossRefundedKRW += payment.amountKRW
+        entry.refundedCount += 1
+        entry.refundedGrossKRW += payment.amountKRW
+      }
+
+      byParty.set(payment.partyId, entry)
+    }
+
+    const platformFeeKRW = roundMoney((grossPaidKRW * mockRevenueRules.platformFeePercent) / 100)
+    const refundRetentionKRW = roundMoney(
+      (grossRefundedKRW * mockRevenueRules.refundRetentionPercent) / 100,
+    )
+    const hostPayoutKRW = grossPaidKRW - platformFeeKRW
+    const avgTicketKRW = totalPaidCount > 0 ? roundMoney(grossPaidKRW / totalPaidCount) : 0
+    const grossTicketCount = totalPaidCount + totalRefundedCount
+    const refundRatePercent =
+      grossTicketCount > 0 ? roundPercent((totalRefundedCount / grossTicketCount) * 100) : 0
+
+    const topParties = Array.from(byParty.values())
+      .map((entry) => {
+        const partyPlatformFeeKRW = roundMoney(
+          (entry.paidGrossKRW * mockRevenueRules.platformFeePercent) / 100,
+        )
+        const partyGrossTicketCount = entry.paidCount + entry.refundedCount
+        const partyRefundRatePercent =
+          partyGrossTicketCount > 0
+            ? roundPercent((entry.refundedCount / partyGrossTicketCount) * 100)
+            : 0
+        return {
+          ...entry,
+          platformFeeKRW: partyPlatformFeeKRW,
+          hostPayoutKRW: Math.max(entry.paidGrossKRW - partyPlatformFeeKRW, 0),
+          netGrossKRW: Math.max(entry.paidGrossKRW - entry.refundedGrossKRW, 0),
+          refundRatePercent: partyRefundRatePercent,
+          grossTicketCount: partyGrossTicketCount,
+        }
+      })
+      .sort((a, b) => b.paidGrossKRW - a.paidGrossKRW)
+      .slice(0, safeTopLimit)
+
+    const rules = revenueRuleSnapshot()
+    const previousPeriod =
+      comparisonFrom !== null && comparisonTo !== null
+        ? summarizeMockPreviousPeriod([comparisonFrom, comparisonTo], partyId)
+        : null
+
+    return {
+      totalPaidCount,
+      totalRefundedCount,
+      grossPaidKRW,
+      grossRefundedKRW,
+      netSalesKRW: grossPaidKRW - grossRefundedKRW,
+      platformFeeKRW,
+      refundRetentionKRW,
+      hostPayoutKRW,
+      platformRevenueKRW: platformFeeKRW + refundRetentionKRW,
+      avgTicketKRW,
+      topParties,
+      rules,
+      partyCount: byParty.size,
+      refundRatePercent,
+      rangeFrom:
+        normalizeSummaryRange[0] !== null ? new Date(normalizeSummaryRange[0]).toISOString() : null,
+      rangeTo:
+        normalizeSummaryRange[1] !== null ? new Date(normalizeSummaryRange[1]).toISOString() : null,
+      comparison: {
+        mode: normalizedCompareMode,
+        enabled: !!previousPeriod,
+        rangeFrom: comparisonFrom ? new Date(comparisonFrom).toISOString() : null,
+        rangeTo: comparisonTo ? new Date(comparisonTo).toISOString() : null,
+      },
+      previousPeriod,
+      healthAlerts: buildMockRevenueHealthAlerts({
+        totalPaidCount,
+        totalRefundedCount,
+        grossPaidKRW,
+        platformFeeKRW,
+        refundRetentionKRW,
+        hostPayoutKRW,
+        platformRevenueKRW: platformFeeKRW + refundRetentionKRW,
+        avgTicketKRW,
+        topParties,
+        partyCount: byParty.size,
+        refundRatePercent,
+        healthAlerts: mockMonitoringPolicy,
+      }),
+    }
+  }
+
+  const filtered = mockPayments.filter((payment) => {
+    const createdAt = Date.parse(payment.createdAt)
+    if (Number.isNaN(createdAt)) return false
+    const [fromDate, toDate] = normalizeSummaryRange
+    if (fromDate !== null && createdAt < fromDate) return false
+    if (toDate !== null && createdAt > toDate) return false
+    if (partyId && payment.partyId !== partyId) return false
+    return true
+  })
+
+  const summary = summarize(filtered)
+  return summary
+}
+
+function filterDateRange(
+  fromTs: number | null,
+  toTs: number | null,
+): [number | null, number | null] {
+  const parsedFrom = fromTs === null ? null : fromTs
+  const parsedTo = toTs === null ? null : toTs
+  return [parsedFrom, parsedTo]
+}
+
+function normalizeMockComparisonMode(mode: string | undefined): AdminSummaryComparisonMode {
+  switch (mode) {
+    case 'none':
+      return 'none'
+    case 'previous':
+    case 'previous_period':
+      return 'previous_period'
+    case 'previous_month':
+      return 'previous_month'
+    case 'previous_year':
+      return 'previous_year'
+    default:
+      return 'previous_period'
+  }
+}
+
+function buildMockComparisonRange(
+  dateRange: [number | null, number | null],
+  compareMode: AdminSummaryComparisonMode,
+): [number | null, number | null] {
+  const [fromTs, toTs] = dateRange
+  if (compareMode === 'none' || fromTs === null || toTs === null || fromTs > toTs) {
+    return [null, null]
+  }
+
+  if (compareMode === 'previous_period') {
+    const periodMs = toTs - fromTs
+    const previousTo = fromTs - 1
+    const previousFrom = previousTo - periodMs
+    return [previousFrom, previousTo]
+  }
+
+  if (compareMode === 'previous_month') {
+    return [shiftMockDateRangeUnit(fromTs, 'month', -1), shiftMockDateRangeUnit(toTs, 'month', -1)]
+  }
+
+  return [shiftMockDateRangeUnit(fromTs, 'year', -1), shiftMockDateRangeUnit(toTs, 'year', -1)]
+}
+
+function shiftMockDateRangeUnit(timestamp: number, unit: 'month' | 'year', amount: number): number {
+  const baseDate = new Date(timestamp)
+  const year = baseDate.getFullYear()
+  const month = baseDate.getMonth()
+  const day = baseDate.getDate()
+  const hours = baseDate.getHours()
+  const minutes = baseDate.getMinutes()
+  const seconds = baseDate.getSeconds()
+  const milliseconds = baseDate.getMilliseconds()
+
+  const shifted = new Date(year, month, 1, hours, minutes, seconds, milliseconds)
+  if (unit === 'month') {
+    shifted.setMonth(month + amount)
+  } else {
+    shifted.setFullYear(year + amount)
+  }
+  const maxDay = new Date(shifted.getFullYear(), shifted.getMonth() + 1, 0).getDate()
+  shifted.setDate(Math.min(day, maxDay))
+  return shifted.getTime()
+}
+
+function summarizeMockPreviousPeriod(
+  dateRange: [number | null, number | null],
+  partyId?: string | null,
+): MockAdminRevenueTrend | null {
+  const [fromTs, toTs] = dateRange
+  if (fromTs === null || toTs === null || fromTs > toTs) return null
+
+  const filtered = mockPayments.filter((payment) => {
+    const createdAt = Date.parse(payment.createdAt)
+    if (Number.isNaN(createdAt)) return false
+    if (createdAt < fromTs) return false
+    if (createdAt > toTs) return false
+    if (partyId && payment.partyId !== partyId) return false
+    return true
+  })
+
+  let totalPaidCount = 0
+  let totalRefundedCount = 0
+  let grossPaidKRW = 0
+  let grossRefundedKRW = 0
+  for (const payment of filtered) {
+    if (payment.status === 'paid') {
+      totalPaidCount += 1
+      grossPaidKRW += payment.amountKRW
+    } else if (payment.status === 'refunded') {
+      totalRefundedCount += 1
+      grossRefundedKRW += payment.amountKRW
+    }
+  }
+
+  const platformFeeKRW = roundMoney((grossPaidKRW * mockRevenueRules.platformFeePercent) / 100)
+  const refundRetentionKRW = roundMoney(
+    (grossRefundedKRW * mockRevenueRules.refundRetentionPercent) / 100,
+  )
+  const hostPayoutKRW = grossPaidKRW - platformFeeKRW
+  const netSalesKRW = grossPaidKRW - grossRefundedKRW
+  const totalTicket = totalPaidCount + totalRefundedCount
+  const refundRatePercent =
+    totalTicket > 0 ? roundPercent((totalRefundedCount / totalTicket) * 100) : 0
+
+  return {
+    grossPaidKRW,
+    grossRefundedKRW,
+    netSalesKRW,
+    platformFeeKRW,
+    refundRetentionKRW,
+    hostPayoutKRW,
+    platformRevenueKRW: platformFeeKRW + refundRetentionKRW,
+    totalPaidCount,
+    totalRefundedCount,
+    refundRatePercent,
+  }
+}
+
+function buildMockRevenueHealthAlerts(summary: {
+  totalPaidCount: number
+  totalRefundedCount: number
+  grossPaidKRW: number
+  refundRatePercent: number
+  avgTicketKRW: number
+  platformFeeKRW: number
+  refundRetentionKRW: number
+  hostPayoutKRW: number
+  partyCount: number
+  topParties: MockAdminRevenueSummaryParty[]
+  platformRevenueKRW: number
+  healthAlerts: RevenueHealthAlertThreshold
+}): MockAdminRevenueHealthAlert[] {
+  const alerts: MockAdminRevenueHealthAlert[] = []
+  const totalTickets = summary.totalPaidCount + summary.totalRefundedCount
+  if (totalTickets === 0) {
+    alerts.push({
+      code: 'no_transactions',
+      level: 'warning',
+      title: '거래 없음',
+      detail: '선택 기간에 결제/환불 데이터가 없습니다.',
+    })
+    return alerts
+  }
+
+  if (summary.refundRatePercent >= summary.healthAlerts.dangerRefundRatePercent) {
+    alerts.push({
+      code: 'high_refund_rate',
+      level: 'danger',
+      title: '환불률 급증',
+      detail: `환불률이 ${summary.refundRatePercent.toFixed(1)}%로 임계값을 초과했습니다.`,
+    })
+  } else if (summary.refundRatePercent >= summary.healthAlerts.warningRefundRatePercent) {
+    alerts.push({
+      code: 'elevated_refund_rate',
+      level: 'warning',
+      title: '환불률 상승',
+      detail: `환불률이 ${summary.refundRatePercent.toFixed(1)}%로 주의 구간입니다.`,
+    })
+  }
+
+  const topParty = summary.topParties[0]
+  if (topParty && summary.grossPaidKRW > 0) {
+    const concentration = (topParty.paidGrossKRW / summary.grossPaidKRW) * 100
+    if (concentration >= summary.healthAlerts.topPartyConcentrationPercent) {
+      alerts.push({
+        code: 'party_concentration',
+        level: 'warning',
+        title: '파티 편중',
+        detail: `${topParty.partyTitle}의 매출 비중이 ${concentration.toFixed(1)}%로 높습니다.`,
+      })
+    }
+  }
+
+  if (summary.platformRevenueKRW < 0) {
+    alerts.push({
+      code: 'platform_revenue_negative',
+      level: 'danger',
+      title: '정산 이상',
+      detail: '플랫폼 수익 계산값이 음수로 잡혀 데이터 집계 점검이 필요합니다.',
+    })
+  }
+
+  return alerts
+}
+
+function getMockHostRevenueSummary({
+  hostId = 'u_host',
+  from,
+  to,
+  partyId,
+  compareMode = 'previous_period',
+}: MockHostRevenueSummaryInput = {}): MockHostRevenueSummary {
+  const hostParties = mockParties.filter((party) => party.hostId === hostId)
+  const hostedIds = hostParties.map((party) => party.id)
+  const targetPartyId = partyId?.trim() ?? null
+  const fromTs = parseSummaryDate(from)
+  const toTs = parseSummaryDate(to, true)
+  const [summaryFrom, summaryTo] = filterDateRange(fromTs, toTs)
+  const normalizedCompareMode = normalizeMockComparisonMode(compareMode)
+  const [comparisonFrom, comparisonTo] = buildMockComparisonRange(
+    [summaryFrom, summaryTo],
+    normalizedCompareMode,
+  )
+  const includeParties = targetPartyId ? new Set([targetPartyId]) : new Set(hostedIds)
+  const isAuthorizedParty = !targetPartyId || includeParties.has(targetPartyId)
+  const baseComparison = {
+    mode: normalizedCompareMode,
+    enabled: false,
+    rangeFrom: comparisonFrom ? new Date(comparisonFrom).toISOString() : null,
+    rangeTo: comparisonTo ? new Date(comparisonTo).toISOString() : null,
+  }
+
+  const summarizeHostRows = (
+    rows: MockPayment[],
+  ): {
+    totalKRW: number
+    paidCount: number
+    totalPaidCount: number
+    totalRefundedCount: number
+    totalTickets: number
+    avgTicketKRW: number
+    refundRatePercent: number
+    partyCount: number
+    refundedKRW: number
+    platformFeeKRW: number
+    refundRetentionKRW: number
+    hostPayoutKRW: number
+    recent: Array<{
+      partyId: string
+      partyTitle: string
+      totalKRW: number
+      paidCount: number
+      refundedCount: number
+      refundedKRW: number
+      grossTicketCount: number
+      refundRatePercent: number
+      platformFeeKRW: number
+      hostPayoutKRW: number
+    }>
+  } => {
+    let totalKRW = 0
+    let paidCount = 0
+    let refundedKRW = 0
+    let totalPaidCount = 0
+    let totalRefundedCount = 0
+    const byParty = new Map<
+      string,
+      { totalKRW: number; paidCount: number; refundedCount: number; refundedKRW: number }
+    >()
+
+    for (const payment of rows) {
+      const entry = byParty.get(payment.partyId) ?? {
+        totalKRW: 0,
+        paidCount: 0,
+        refundedCount: 0,
+        refundedKRW: 0,
+      }
+      if (payment.status === 'paid') {
+        totalKRW += payment.amountKRW
+        paidCount += 1
+        totalPaidCount += 1
+        entry.totalKRW += payment.amountKRW
+        entry.paidCount += 1
+      } else if (payment.status === 'refunded') {
+        refundedKRW += payment.amountKRW
+        totalRefundedCount += 1
+        entry.refundedKRW += payment.amountKRW
+        entry.refundedCount += 1
+      }
+      byParty.set(payment.partyId, entry)
+    }
+
+    const platformFeeKRW = roundMoney((totalKRW * mockRevenueRules.platformFeePercent) / 100)
+    const refundRetentionKRW = roundMoney(
+      (refundedKRW * mockRevenueRules.refundRetentionPercent) / 100,
+    )
+    const hostPayoutKRW = totalKRW - platformFeeKRW
+    const avgTicketKRW = paidCount > 0 ? roundMoney(totalKRW / paidCount) : 0
+    const totalTickets = totalPaidCount + totalRefundedCount
+    const refundRatePercent =
+      totalTickets > 0 ? roundPercent((totalRefundedCount / totalTickets) * 100) : 0
+
+    const recent = hostParties.slice(0, 12).map((party) => {
+      const entry = byParty.get(party.id) ?? {
+        totalKRW: 0,
+        paidCount: 0,
+        refundedCount: 0,
+        refundedKRW: 0,
+      }
+      const partyPlatformFeeKRW = roundMoney(
+        (entry.totalKRW * mockRevenueRules.platformFeePercent) / 100,
+      )
+      const grossTicketCount = entry.paidCount + entry.refundedCount
+      return {
+        partyId: party.id,
+        partyTitle: party.title,
+        totalKRW: entry.totalKRW,
+        paidCount: entry.paidCount,
+        refundedCount: entry.refundedCount,
+        refundedKRW: entry.refundedKRW,
+        grossTicketCount,
+        refundRatePercent:
+          grossTicketCount > 0 ? roundPercent((entry.refundedCount / grossTicketCount) * 100) : 0,
+        platformFeeKRW: partyPlatformFeeKRW,
+        hostPayoutKRW: Math.max(entry.totalKRW - partyPlatformFeeKRW, 0),
+      }
+    })
+
+    return {
+      totalKRW,
+      paidCount,
+      totalPaidCount,
+      totalRefundedCount,
+      totalTickets,
+      avgTicketKRW,
+      refundRatePercent,
+      partyCount: byParty.size,
+      refundedKRW,
+      platformFeeKRW,
+      refundRetentionKRW,
+      hostPayoutKRW,
+      recent,
+    }
+  }
+
+  const filterByPeriodAndParty =
+    (fromDate: number | null, toDate: number | null) => (payment: MockPayment) => {
+      const createdAt = Date.parse(payment.createdAt)
+      if (Number.isNaN(createdAt)) return false
+      if (!includeParties.has(payment.partyId)) return false
+      if (targetPartyId && payment.partyId !== targetPartyId) return false
+      if (fromDate !== null && createdAt < fromDate) return false
+      if (toDate !== null && createdAt > toDate) return false
+      return true
+    }
+
+  if (hostedIds.length === 0 || !isAuthorizedParty) {
+    return {
+      totalKRW: 0,
+      paidCount: 0,
+      totalPaidCount: 0,
+      totalRefundedCount: 0,
+      totalTickets: 0,
+      avgTicketKRW: 0,
+      refundRatePercent: 0,
+      partyCount: 0,
+      refundedKRW: 0,
+      rangeFrom: summaryFrom ? new Date(summaryFrom).toISOString() : null,
+      rangeTo: summaryTo ? new Date(summaryTo).toISOString() : null,
+      platformFeePercent: mockRevenueRules.platformFeePercent,
+      refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+      platformFeeKRW: 0,
+      refundRetentionKRW: 0,
+      hostPayoutKRW: 0,
+      previousPeriod: null,
+      comparison: baseComparison,
+      recent: [],
+    }
+  }
+
+  const currentSummary = summarizeHostRows(
+    mockPayments.filter(filterByPeriodAndParty(summaryFrom, summaryTo)),
+  )
+  const previousSummary =
+    comparisonFrom !== null && comparisonTo !== null
+      ? summarizeHostRows(mockPayments.filter(filterByPeriodAndParty(comparisonFrom, comparisonTo)))
+      : null
+  const hasPreviousPeriod = !!previousSummary && comparisonFrom !== null && comparisonTo !== null
+
+  return {
+    ...currentSummary,
+    rangeFrom: summaryFrom ? new Date(summaryFrom).toISOString() : null,
+    rangeTo: summaryTo ? new Date(summaryTo).toISOString() : null,
+    platformFeePercent: mockRevenueRules.platformFeePercent,
+    refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+    previousPeriod: hasPreviousPeriod
+      ? {
+          totalKRW: previousSummary.totalKRW,
+          paidCount: previousSummary.paidCount,
+          totalPaidCount: previousSummary.totalPaidCount,
+          totalRefundedCount: previousSummary.totalRefundedCount,
+          totalTickets: previousSummary.totalTickets,
+          avgTicketKRW: previousSummary.avgTicketKRW,
+          refundRatePercent: previousSummary.refundRatePercent,
+          refundedKRW: previousSummary.refundedKRW,
+          platformFeeKRW: previousSummary.platformFeeKRW,
+          refundRetentionKRW: previousSummary.refundRetentionKRW,
+          hostPayoutKRW: previousSummary.hostPayoutKRW,
+          partyCount: previousSummary.partyCount,
+        }
+      : null,
+    comparison: {
+      ...baseComparison,
+      enabled: hasPreviousPeriod,
+    },
+  }
+}
+
+const mockChatRooms: MockChatRoom[] = []
+const mockChatMessages: Record<string, MockChatMessage[]> = {}
+const mockPayments: MockPayment[] = []
+const mockAvoidPeople: Array<{ id: string; label: string | null; createdAt: string }> = [
+  { id: 'avoid-person-1', label: '전 직장 지인', createdAt: nowIso() },
+]
+const mockNotifications = [
+  {
+    id: 'nt_welcome',
+    kind: 'system',
+    title: 'Rotifolk에 오신 걸 환영해요',
+    body: '관심 있는 모임을 저장하고 새 소식을 받아보세요.',
+    link: '/parties',
+    isRead: false,
+    createdAt: nowIso(),
+  },
+]
+
+function ensureMockChatRoom(partyId: string): MockChatRoom {
+  const existing = mockChatRooms.find((room) => room.partyId === partyId && room.kind === 'group')
+  if (existing) return existing
+
+  const party = mockParties.find((p) => p.id === partyId)
+  const id = `room_${partyId}`
+  const room: MockChatRoom = {
+    id,
+    kind: 'group',
+    title: party?.title ?? '모임 단톡방',
+    partyId,
+    partyTitle: party?.title ?? null,
+    lastMessage: null,
+    members: mockUsers.map((user) => ({
+      userId: user.id,
+      nickname: user.nickname,
+      avatarId: user.avatarId,
+    })),
+    lastReadAt: null,
+  }
+  mockChatRooms.push(room)
+  mockChatMessages[id] = [
+    {
+      id: `msg_${partyId}_welcome`,
+      roomId: id,
+      userId: 'system',
+      nickname: 'Rotifolk',
+      body: '모임 채팅방이 열렸어요. 참가자들과 가볍게 인사해 보세요.',
+      kind: 'system',
+      meta: null,
+      createdAt: nowIso(),
+    },
+  ]
+  room.lastMessage = {
+    body: mockChatMessages[id][0].body,
+    kind: mockChatMessages[id][0].kind,
+    createdAt: mockChatMessages[id][0].createdAt,
+  }
+  return room
+}
+
+function shapePayment(payment: MockPayment) {
+  const party = mockParties.find((p) => p.id === payment.partyId)
+  return {
+    ...payment,
+    party:
+      payment.party ??
+      (party
+        ? {
+            id: party.id,
+            title: party.title,
+            category: party.config.category,
+            startAt: party.startAt,
+            coverImageUrl: party.coverImageUrl,
+          }
+        : null),
+  }
+}
+
+function updateBookingStatus(id: string, status: string, ownerMessage?: string | null) {
+  const booking = mockVenueBookings.find((item) => item.id === id)
+  const now = nowIso()
+  if (!booking) return { ok: true, id, status }
+  Object.assign(booking, {
+    status,
+    ownerMessage: ownerMessage ?? booking.ownerMessage ?? null,
+    decidedAt: status === 'confirmed' || status === 'declined' ? now : booking.decidedAt,
+    updatedAt: now,
+  })
+  return booking
 }
 
 export const handlers = [
@@ -60,6 +1048,129 @@ export const handlers = [
   http.get(`${API}/parties/hosted`, async () =>
     HttpResponse.json(await delay([mockParties[0]].map(toSummary))),
   ),
+  http.get(`${API}/parties/happening-now`, async () =>
+    HttpResponse.json(
+      await delay(mockParties.filter((party) => party.status === 'live').map(toSummary)),
+    ),
+  ),
+  http.get(`${API}/parties/by-code/:code`, async ({ params }) => {
+    const party = mockParties[0]
+    const venue = mockVenues.find((v) => v.id === party.venueId)
+    return HttpResponse.json(
+      await delay({
+        id: party.id,
+        title: party.title,
+        startAt: party.startAt,
+        venueArea: venue?.area ?? '',
+        category: party.config.category,
+        quickCode: String(params.code ?? 'MOCK-2026').toUpperCase(),
+      }),
+    )
+  }),
+  http.post(`${API}/parties/quick`, async ({ request }) => {
+    const body = (await request.json()) as {
+      category?: Party['config']['category']
+      venueId?: string
+      startInMinutes?: number
+      maxParticipants?: number
+      title?: string
+    }
+    const venue = mockVenues.find((v) => v.id === body.venueId) ?? mockVenues[0]
+    const startAt = new Date(Date.now() + (body.startInMinutes ?? 60) * 60_000)
+    const endAt = new Date(startAt.getTime() + 2 * 60 * 60_000)
+    const category = body.category ?? 'wine'
+    const id = `p_quick_${Date.now()}`
+    const quickCode = `RTF-${String(Date.now()).slice(-4)}`
+    const party: Party = {
+      id,
+      title: body.title ?? `[MOCK] ${venue.area} 즉석 ${category} 모임`,
+      description: 'MSW 즉석 개설로 생성된 모임입니다.',
+      hostId: mockUsers[0].id,
+      venueId: venue.id,
+      coverImageUrl: venue.photos[0] ?? null,
+      startAt: startAt.toISOString(),
+      endAt: endAt.toISOString(),
+      minParticipants: 2,
+      maxParticipants: body.maxParticipants ?? 8,
+      currentParticipants: 1,
+      status: 'open',
+      config: {
+        category,
+        rotationMode: 'round-robin-pair',
+        roundDurationSec: 300,
+        totalRounds: 4,
+        breakBetweenRoundsSec: 30,
+        enableMidMatching: true,
+        enableFinalMatching: true,
+        enableQuiz: true,
+        enableQuestionCards: true,
+        enableLiveOrders: true,
+        enableAvatarOnly: false,
+        format: 'rotation',
+        rotationFormat: 'one-on-one',
+        groupSize: 2,
+        matchScope: 'mutual-only',
+        maxMatchesPerPerson: 3,
+        connectionMode: 'chat',
+        groupAfterParty: false,
+        enableNotes: true,
+        noteDelivery: 'party-end',
+        enableConversationKit: true,
+      },
+      pricing: {
+        basePriceKRW: 18_000,
+        drinkPackage: 'per-glass',
+        snackPackage: 'per-plate',
+        refundDeadlineHours: 24,
+      },
+      recruitment: {
+        genderRatioTarget: 'any',
+        ratioTolerance: 1,
+        maleCap: null,
+        femaleCap: null,
+        minMale: null,
+        minFemale: null,
+        autoCancelAt: null,
+        autoCancelReason: null,
+      },
+      tags: ['#MOCK', '#즉석', `#${venue.area}`],
+      ageMin: null,
+      ageMax: null,
+      genderRatio: null,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    }
+    mockParties.unshift(party)
+    ensureMockChatRoom(id)
+    return HttpResponse.json(await delay({ id, quickCode }))
+  }),
+  http.get(`${API}/parties/me/match-cards`, async () =>
+    HttpResponse.json(
+      await delay([
+        {
+          id: 'mc_yoonseul',
+          partnerUserId: 'u_w1',
+          partnerNickname: '윤슬',
+          partnerAvatarId: 'a_w1',
+          partyId: mockParties[0].id,
+          partyTitle: mockParties[0].title,
+          matchedAt: nowIso(),
+        },
+      ]),
+    ),
+  ),
+  http.get(`${API}/parties/neighborhood`, async ({ request }) => {
+    const url = new URL(request.url)
+    const area = url.searchParams.get('area')
+    const items = mockParties
+      .filter((party) => {
+        if (!area) return true
+        const venue = mockVenues.find((v) => v.id === party.venueId)
+        return venue?.area.includes(area)
+      })
+      .map(toSummary)
+    return HttpResponse.json(await delay(items))
+  }),
   http.get(`${API}/parties/:id`, async ({ params }) => {
     const party = mockParties.find((p) => p.id === params.id)
     if (!party) return new HttpResponse('not found', { status: 404 })
@@ -90,6 +1201,130 @@ export const handlers = [
       }),
     ),
   ),
+  http.delete(`${API}/parties/:id/join`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.post(`${API}/parties/:id/lock`, async ({ params }) => {
+    const party = mockParties.find((p) => p.id === params.id)
+    if (party) {
+      party.status = 'locked'
+      party.updatedAt = nowIso()
+    }
+    return HttpResponse.json(await delay(party ?? { ok: true, id: params.id }))
+  }),
+  http.post(`${API}/parties/:id/start`, async ({ params }) => {
+    const party = mockParties.find((p) => p.id === params.id)
+    if (party) {
+      party.status = 'live'
+      party.updatedAt = nowIso()
+    }
+    return HttpResponse.json(await delay(party ?? { ok: true, id: params.id }))
+  }),
+  http.post(`${API}/parties/:id/end`, async ({ params }) => {
+    const party = mockParties.find((p) => p.id === params.id)
+    if (party) {
+      party.status = 'ended'
+      party.updatedAt = nowIso()
+    }
+    return HttpResponse.json(await delay(party ?? { ok: true, id: params.id }))
+  }),
+  http.post(`${API}/parties/:id/matching/plan`, async ({ params }) =>
+    HttpResponse.json(
+      await delay({
+        partyId: params.id,
+        rounds: [
+          { id: 'round_1', order: 1, startsAt: nowIso(), durationSec: 300 },
+          { id: 'round_2', order: 2, startsAt: nowIso(), durationSec: 300 },
+        ],
+        pairs: [{ roundId: 'round_1', userAId: mockUsers[0].id, userBId: mockUsers[1].id }],
+      }),
+    ),
+  ),
+  http.post(`${API}/parties/:id/check-in/:userId`, async ({ params, request }) => {
+    const body = (await request.json().catch(() => ({}))) as { seatNumber?: number }
+    return HttpResponse.json(
+      await delay({
+        id: `pt_${params.userId}`,
+        partyId: params.id,
+        userId: params.userId,
+        status: 'checked-in',
+        seatNumber: body.seatNumber ?? 1,
+        checkedInAt: nowIso(),
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+      }),
+    )
+  }),
+  http.get(`${API}/parties/:partyId/reviews`, async () =>
+    HttpResponse.json(
+      await delay([
+        {
+          id: 'review_party_1',
+          rating: 5,
+          body: '라운드 전환이 자연스럽고 대화 주제가 좋아서 어색하지 않았어요.',
+          anonymous: false,
+          tags: ['진행좋음', '분위기좋음'],
+          author: { nickname: '윤슬', avatarId: 'a_w1' },
+          hostReply: null,
+          hostRepliedAt: null,
+          createdAt: nowIso(),
+        },
+      ]),
+    ),
+  ),
+  http.get(`${API}/parties/:partyId/photos`, async ({ params }) =>
+    HttpResponse.json(
+      await delay([
+        {
+          id: 'photo_party_1',
+          url:
+            mockParties.find((p) => p.id === params.partyId)?.coverImageUrl ??
+            mockVenues[0].photos[0],
+          caption: '오늘의 첫 라운드',
+          createdAt: nowIso(),
+          userId: mockUsers[0].id,
+          uploader: {
+            id: mockUsers[0].id,
+            nickname: mockUsers[0].nickname,
+            avatarId: mockUsers[0].avatarId,
+          },
+        },
+      ]),
+    ),
+  ),
+  http.post(`${API}/parties/:partyId/photos`, async ({ params, request }) => {
+    const body = (await request.json()) as { url?: string; caption?: string }
+    return HttpResponse.json(
+      await delay({
+        id: `photo_${Date.now()}`,
+        url: body.url ?? mockVenues[0].photos[0],
+        caption: body.caption ?? null,
+        createdAt: nowIso(),
+        partyId: params.partyId,
+        userId: mockUsers[0].id,
+        uploader: {
+          id: mockUsers[0].id,
+          nickname: mockUsers[0].nickname,
+          avatarId: mockUsers[0].avatarId,
+        },
+      }),
+    )
+  }),
+  http.post(`${API}/parties`, async ({ request }) => {
+    const body = (await request.json()) as Partial<Party>
+    const venue = mockVenues.find((v) => v.id === body.venueId) ?? mockVenues[0]
+    const party: Party = {
+      ...mockParties[0],
+      ...body,
+      id: `p_${Date.now()}`,
+      hostId: mockUsers[0].id,
+      venueId: venue.id,
+      currentParticipants: 0,
+      status: 'open',
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    } as Party
+    mockParties.unshift(party)
+    return HttpResponse.json(await delay(party))
+  }),
 
   // Venues — 정적 라우트(recommend/mine)를 :id 보다 먼저 등록
   http.get(`${API}/venues/recommend`, async ({ request }) => {
@@ -127,6 +1362,15 @@ export const handlers = [
               (b) => b.venueId === v.id && b.status === 'requested',
             ).length,
           })),
+      ),
+    ),
+  ),
+  http.get(`${API}/venues/areas`, async () =>
+    HttpResponse.json(
+      await delay(
+        Array.from(
+          new Set(mockVenues.filter((venue) => venue.partnered).map((venue) => venue.area)),
+        ).sort((a, b) => a.localeCompare(b, 'ko-KR')),
       ),
     ),
   ),
@@ -219,8 +1463,20 @@ export const handlers = [
       }),
     )
   }),
-  http.patch(`${API}/venue-bookings/:id/:action`, async ({ params }) =>
-    HttpResponse.json(await delay({ ok: true, id: params.id, action: params.action })),
+  http.patch(`${API}/venue-bookings/:id/confirm`, async ({ params, request }) => {
+    const body = (await request.json().catch(() => ({}))) as { message?: string }
+    return HttpResponse.json(
+      await delay(updateBookingStatus(String(params.id), 'confirmed', body.message ?? null)),
+    )
+  }),
+  http.patch(`${API}/venue-bookings/:id/decline`, async ({ params, request }) => {
+    const body = (await request.json().catch(() => ({}))) as { message?: string }
+    return HttpResponse.json(
+      await delay(updateBookingStatus(String(params.id), 'declined', body.message ?? null)),
+    )
+  }),
+  http.patch(`${API}/venue-bookings/:id/cancel`, async ({ params }) =>
+    HttpResponse.json(await delay(updateBookingStatus(String(params.id), 'cancelled'))),
   ),
 
   // Question cards
@@ -228,16 +1484,137 @@ export const handlers = [
   http.get(`${API}/question-cards/draw`, async () =>
     HttpResponse.json(await delay(mockCards[Math.floor(Math.random() * mockCards.length)])),
   ),
+  http.post(`${API}/question-cards`, async ({ request }) => {
+    const body = (await request.json()) as Partial<QuestionCard>
+    const card: QuestionCard = {
+      id: `qc_${Date.now()}`,
+      partyId: body.partyId ?? null,
+      depth: body.depth ?? 'icebreaker',
+      prompt: body.prompt ?? '새로운 대화 주제를 입력해 주세요.',
+      category: body.category ?? null,
+      language: body.language ?? 'ko',
+      usedCount: 0,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    }
+    mockCards.unshift(card)
+    return HttpResponse.json(await delay(card))
+  }),
 
-  // Chat (empty by default)
-  http.get(`${API}/chat/rooms`, async () => HttpResponse.json(await delay([]))),
-  http.get(`${API}/chat/rooms/:id/messages`, async () => HttpResponse.json(await delay([]))),
-  http.get(`${API}/chat/unread-count`, async () =>
-    HttpResponse.json(await delay({ count: 0, rooms: 0 })),
+  // Chat
+  http.get(`${API}/chat/rooms`, async () => HttpResponse.json(await delay(mockChatRooms))),
+  http.get(`${API}/chat/rooms/:id/messages`, async ({ params }) =>
+    HttpResponse.json(await delay(mockChatMessages[String(params.id)] ?? [])),
   ),
+  http.post(`${API}/chat/rooms/:id/messages`, async ({ params, request }) => {
+    const body = (await request.json()) as {
+      body?: string
+      kind?: ChatMessageKind
+      meta?: Record<string, unknown>
+    }
+    const room = mockChatRooms.find((item) => item.id === params.id)
+    const createdAt = nowIso()
+    const message: MockChatMessage = {
+      id: `msg_${Date.now()}`,
+      roomId: String(params.id),
+      userId: mockUsers[0].id,
+      nickname: mockUsers[0].nickname,
+      body: body.body ?? '',
+      kind: body.kind ?? 'text',
+      meta: body.meta ?? null,
+      createdAt,
+    }
+    mockChatMessages[message.roomId] = [...(mockChatMessages[message.roomId] ?? []), message]
+    if (room) {
+      room.lastMessage = { body: message.body, kind: message.kind, createdAt }
+    }
+    return HttpResponse.json(await delay(message))
+  }),
+  http.post(`${API}/chat/rooms/:id/read`, async ({ params }) => {
+    const room = mockChatRooms.find((item) => item.id === params.id)
+    if (room) room.lastReadAt = nowIso()
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
+  http.post(`${API}/chat/parties/:partyId/ensure`, async ({ params }) =>
+    HttpResponse.json(await delay(ensureMockChatRoom(String(params.partyId)))),
+  ),
+  http.get(`${API}/chat/unread-count`, async () => {
+    const unreadRooms = mockChatRooms.filter((room) => {
+      const messages = mockChatMessages[room.id] ?? []
+      return messages.some(
+        (message) =>
+          message.userId !== mockUsers[0].id &&
+          (!room.lastReadAt || message.createdAt > room.lastReadAt),
+      )
+    })
+    const count = unreadRooms.reduce(
+      (sum, room) =>
+        sum +
+        (mockChatMessages[room.id] ?? []).filter(
+          (message) =>
+            message.userId !== mockUsers[0].id &&
+            (!room.lastReadAt || message.createdAt > room.lastReadAt),
+        ).length,
+      0,
+    )
+    return HttpResponse.json(await delay({ count, rooms: unreadRooms.length }))
+  }),
 
-  // Payments (empty by default in mock mode)
-  http.get(`${API}/payments/me`, async () => HttpResponse.json(await delay([]))),
+  // Payments
+  http.get(`${API}/payments/me`, async ({ request }) => {
+    const url = new URL(request.url)
+    const partyId = url.searchParams.get('partyId')
+    const items = mockPayments
+      .filter((payment) => (partyId ? payment.partyId === partyId : true))
+      .map(shapePayment)
+    return HttpResponse.json(await delay(items))
+  }),
+  http.post(`${API}/payments/:partyId/pay`, async ({ params, request }) => {
+    const body = (await request.json().catch(() => ({}))) as { method?: PaymentMethod }
+    const party = mockParties.find((p) => p.id === params.partyId)
+    const existing = mockPayments.find(
+      (payment) => payment.partyId === params.partyId && payment.status === 'paid',
+    )
+    if (existing) return HttpResponse.json(await delay(shapePayment(existing)))
+
+    const payment: MockPayment = {
+      id: `pay_${Date.now()}`,
+      partyId: String(params.partyId),
+      userId: mockUsers[0].id,
+      amountKRW: party?.pricing.basePriceKRW ?? 18_000,
+      status: 'paid',
+      method: body.method ?? 'card',
+      paidAt: nowIso(),
+      refundedAt: null,
+      createdAt: nowIso(),
+    }
+    mockPayments.unshift(payment)
+    return HttpResponse.json(await delay(shapePayment(payment)))
+  }),
+  http.post(`${API}/payments/:id/refund`, async ({ params }) => {
+    const payment = mockPayments.find((item) => item.id === params.id)
+    if (payment) {
+      payment.status = 'refunded'
+      payment.refundedAt = nowIso()
+    }
+    return HttpResponse.json(
+      await delay(
+        shapePayment(
+          payment ?? {
+            id: String(params.id),
+            partyId: mockParties[0].id,
+            userId: mockUsers[0].id,
+            amountKRW: mockParties[0].pricing.basePriceKRW,
+            status: 'refunded',
+            method: 'mock',
+            paidAt: nowIso(),
+            refundedAt: nowIso(),
+            createdAt: nowIso(),
+          },
+        ),
+      ),
+    )
+  }),
 
   // Safety (empty list of blocks by default; reports succeed)
   http.get(`${API}/blocks`, async () => HttpResponse.json(await delay([]))),
@@ -268,6 +1645,19 @@ export const handlers = [
 
   // Follows
   http.get(`${API}/follows/me`, async () => HttpResponse.json(await delay([]))),
+  http.get(`${API}/follows/me/followers`, async () =>
+    HttpResponse.json(
+      await delay([
+        {
+          id: mockUsers[1].id,
+          nickname: mockUsers[1].nickname,
+          avatarId: mockUsers[1].avatarId,
+          bio: mockUsers[1].bio,
+          isFollowing: false,
+        },
+      ]),
+    ),
+  ),
   http.post(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
   http.delete(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
 
@@ -278,12 +1668,22 @@ export const handlers = [
 
   // Notifications
   http.get(`${API}/notifications/unread-count`, async () =>
-    HttpResponse.json(await delay({ count: 0 })),
+    HttpResponse.json(
+      await delay({ count: mockNotifications.filter((item) => !item.isRead).length }),
+    ),
   ),
-  http.get(`${API}/notifications`, async () => HttpResponse.json(await delay([]))),
-  http.patch(`${API}/notifications/read-all`, async () =>
-    HttpResponse.json(await delay({ ok: true })),
-  ),
+  http.get(`${API}/notifications`, async () => HttpResponse.json(await delay(mockNotifications))),
+  http.post(`${API}/notifications/read-all`, async () => {
+    mockNotifications.forEach((item) => {
+      item.isRead = true
+    })
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
+  http.post(`${API}/notifications/:id/read`, async ({ params }) => {
+    const item = mockNotifications.find((notification) => notification.id === params.id)
+    if (item) item.isRead = true
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
 
   // Host profile (public)
   http.get(`${API}/hosts/:id`, async () =>
@@ -307,9 +1707,244 @@ export const handlers = [
   ),
 
   // Host revenue summary
-  http.get(`${API}/payments/host/summary`, async () =>
-    HttpResponse.json(await delay({ totalKRW: 0, paidCount: 0, refundedKRW: 0, recent: [] })),
+  http.get(`${API}/payments/host/summary`, async ({ request }) => {
+    const url = new URL(request.url)
+    return HttpResponse.json(
+      await delay(
+        getMockHostRevenueSummary({
+          hostId: mockUsers[0].id,
+          from: url.searchParams.get('from'),
+          to: url.searchParams.get('to'),
+          partyId: url.searchParams.get('partyId'),
+          compareMode: url.searchParams.get('compareMode') ?? undefined,
+        }),
+      ),
+    )
+  }),
+
+  http.get(`${API}/payments/admin/monitoring-policy`, async () =>
+    HttpResponse.json(await delay(monitoringPolicySnapshot())),
   ),
+  http.patch(`${API}/payments/admin/monitoring-policy`, async ({ request }) => {
+    const body = (await request.json().catch(() => ({}))) as MonitoringPolicyUpdateBody
+    const reason = typeof body.reason === 'string' ? body.reason.trim() : ''
+    const hasAnyField =
+      typeof body.warningRefundRatePercent !== 'undefined' ||
+      typeof body.dangerRefundRatePercent !== 'undefined' ||
+      typeof body.topPartyConcentrationPercent !== 'undefined'
+    if (!hasAnyField) {
+      return HttpResponse.json({ code: 'invalid_monitoring_policy' }, { status: 400 })
+    }
+
+    const previous = { ...mockMonitoringPolicy }
+    if (typeof body.warningRefundRatePercent !== 'undefined') {
+      const value = Number(body.warningRefundRatePercent)
+      if (!Number.isFinite(value) || value < 0 || value > 100) {
+        return HttpResponse.json({ code: 'invalid_warning_refund_rate_threshold' }, { status: 400 })
+      }
+      mockMonitoringPolicy.warningRefundRatePercent = safePercent(value)
+    }
+    if (typeof body.dangerRefundRatePercent !== 'undefined') {
+      const value = Number(body.dangerRefundRatePercent)
+      if (!Number.isFinite(value) || value < 0 || value > 100) {
+        return HttpResponse.json({ code: 'invalid_danger_refund_rate_threshold' }, { status: 400 })
+      }
+      mockMonitoringPolicy.dangerRefundRatePercent = safePercent(value)
+    }
+    if (typeof body.topPartyConcentrationPercent !== 'undefined') {
+      const value = Number(body.topPartyConcentrationPercent)
+      if (!Number.isFinite(value) || value < 0 || value > 100) {
+        return HttpResponse.json(
+          { code: 'invalid_top_party_concentration_threshold' },
+          { status: 400 },
+        )
+      }
+      mockMonitoringPolicy.topPartyConcentrationPercent = safePercent(value)
+    }
+
+    if (
+      mockMonitoringPolicy.warningRefundRatePercent > mockMonitoringPolicy.dangerRefundRatePercent
+    ) {
+      mockMonitoringPolicy = previous
+      return HttpResponse.json({ code: 'invalid_monitoring_policy_order' }, { status: 400 })
+    }
+
+    const changed =
+      previous.warningRefundRatePercent !== mockMonitoringPolicy.warningRefundRatePercent ||
+      previous.dangerRefundRatePercent !== mockMonitoringPolicy.dangerRefundRatePercent ||
+      previous.topPartyConcentrationPercent !== mockMonitoringPolicy.topPartyConcentrationPercent
+
+    if (changed) {
+      appendMonitoringPolicyHistory(previous, mockMonitoringPolicy, reason)
+      mockMonitoringPolicyUpdatedAt = nowIso()
+      mockMonitoringPolicyUpdatedBy = mockUsers[0].id
+    }
+
+    return HttpResponse.json(await delay(monitoringPolicySnapshot()))
+  }),
+
+  http.get(`${API}/payments/admin/monitoring-policy/history`, async ({ request }) => {
+    const url = new URL(request.url)
+    const limitParam = Number.parseInt(url.searchParams.get('limit') ?? '20', 10)
+    const safeLimit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 50) : 20
+    const sorted = mockMonitoringPolicyHistories
+      .slice()
+      .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())
+    return HttpResponse.json(await delay(sorted.slice(0, safeLimit)))
+  }),
+  http.post(`${API}/payments/admin/monitoring-policy/rollback`, async ({ request }) => {
+    const body = (await request.json().catch(() => ({}))) as RollbackMonitoringPolicyBody
+    const sorted = mockMonitoringPolicyHistories
+      .slice()
+      .sort((a, b) => new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime())
+    const targetHistory = body.historyId
+      ? sorted.find((history) => history.id === body.historyId)
+      : sorted[0]
+
+    if (!targetHistory) {
+      return HttpResponse.json({ code: 'monitoring_policy_history_not_found' }, { status: 404 })
+    }
+
+    const previous = { ...mockMonitoringPolicy }
+    const next = {
+      warningRefundRatePercent: targetHistory.fromWarningRefundRatePercent,
+      dangerRefundRatePercent: targetHistory.fromDangerRefundRatePercent,
+      topPartyConcentrationPercent: targetHistory.fromTopPartyConcentrationPercent,
+    }
+    const reason =
+      typeof body.reason === 'string' && body.reason.trim().length > 0
+        ? body.reason.trim()
+        : '이전 설정으로 롤백'
+
+    const changed =
+      previous.warningRefundRatePercent !== next.warningRefundRatePercent ||
+      previous.dangerRefundRatePercent !== next.dangerRefundRatePercent ||
+      previous.topPartyConcentrationPercent !== next.topPartyConcentrationPercent
+
+    if (changed) {
+      appendMonitoringPolicyHistory(previous, next, reason)
+      mockMonitoringPolicy = next
+      mockMonitoringPolicyUpdatedAt = nowIso()
+      mockMonitoringPolicyUpdatedBy = mockUsers[0].id
+    }
+
+    return HttpResponse.json(await delay(monitoringPolicySnapshot()))
+  }),
+
+  http.get(`${API}/payments/admin/revenue-rules`, async () =>
+    HttpResponse.json(await delay(revenueRuleSnapshot())),
+  ),
+  http.patch(`${API}/payments/admin/revenue-rules`, async ({ request }) => {
+    const body = (await request.json().catch(() => ({}))) as {
+      platformFeePercent?: unknown
+      refundRetentionPercent?: unknown
+      reason?: string
+    }
+    const previous = {
+      platformFeePercent: mockRevenueRules.platformFeePercent,
+      refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+    }
+
+    if (
+      typeof body.platformFeePercent === 'undefined' &&
+      typeof body.refundRetentionPercent === 'undefined'
+    ) {
+      return HttpResponse.json({ code: 'invalid_revenue_rules' }, { status: 400 })
+    }
+
+    if (typeof body.platformFeePercent !== 'undefined') {
+      const value = Number(body.platformFeePercent)
+      if (!Number.isFinite(value) || value < 0 || value > 100) {
+        return HttpResponse.json({ code: 'invalid_platform_fee' }, { status: 400 })
+      }
+      mockRevenueRules.platformFeePercent = safePercent(value)
+    }
+    if (typeof body.refundRetentionPercent !== 'undefined') {
+      const value = Number(body.refundRetentionPercent)
+      if (!Number.isFinite(value) || value < 0 || value > 100) {
+        return HttpResponse.json({ code: 'invalid_refund_retention' }, { status: 400 })
+      }
+      mockRevenueRules.refundRetentionPercent = safePercent(value)
+    }
+
+    const next = {
+      platformFeePercent: mockRevenueRules.platformFeePercent,
+      refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+    }
+    const reason = typeof body.reason === 'string' ? body.reason.trim() : ''
+    if (
+      next.platformFeePercent !== previous.platformFeePercent ||
+      next.refundRetentionPercent !== previous.refundRetentionPercent
+    ) {
+      appendRevenueRuleHistory(previous, next, reason)
+    }
+
+    mockRevenueRules.updatedAt = nowIso()
+    mockRevenueRules.updatedBy = mockUsers[0].id
+
+    return HttpResponse.json(await delay(revenueRuleSnapshot()))
+  }),
+  http.get(`${API}/payments/admin/revenue-rules/history`, async ({ request }) => {
+    const url = new URL(request.url)
+    const limitParam = Number.parseInt(url.searchParams.get('limit') ?? '20', 10)
+    const safeLimit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 50) : 20
+    return HttpResponse.json(await delay(mockRevenueRuleHistories.slice(0, safeLimit)))
+  }),
+  http.post(`${API}/payments/admin/revenue-rules/rollback`, async ({ request }) => {
+    const body = (await request.json().catch(() => ({}))) as {
+      historyId?: string
+      reason?: string
+    }
+
+    const targetHistory = body.historyId
+      ? mockRevenueRuleHistories.find((item) => item.id === body.historyId)
+      : mockRevenueRuleHistories[0]
+    if (!targetHistory) {
+      return HttpResponse.json({ code: 'revenue_rule_history_not_found' }, { status: 404 })
+    }
+
+    const previous = {
+      platformFeePercent: mockRevenueRules.platformFeePercent,
+      refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+    }
+
+    const next = {
+      platformFeePercent: targetHistory.fromPlatformFeePercent,
+      refundRetentionPercent: targetHistory.fromRefundRetentionPercent,
+    }
+
+    if (
+      next.platformFeePercent !== previous.platformFeePercent ||
+      next.refundRetentionPercent !== previous.refundRetentionPercent
+    ) {
+      const reason =
+        typeof body.reason === 'string' && body.reason.trim().length > 0
+          ? body.reason.trim()
+          : '이전 설정으로 롤백'
+
+      appendRevenueRuleHistory(previous, next, reason)
+      mockRevenueRules.platformFeePercent = next.platformFeePercent
+      mockRevenueRules.refundRetentionPercent = next.refundRetentionPercent
+      mockRevenueRules.updatedAt = nowIso()
+      mockRevenueRules.updatedBy = mockUsers[0].id
+    }
+
+    return HttpResponse.json(await delay(revenueRuleSnapshot()))
+  }),
+  http.get(`${API}/payments/admin/summary`, async ({ request }) => {
+    const url = new URL(request.url)
+    return HttpResponse.json(
+      await delay(
+        getMockAdminRevenueSummary({
+          from: url.searchParams.get('from'),
+          to: url.searchParams.get('to'),
+          partyId: url.searchParams.get('partyId'),
+          topLimit: url.searchParams.get('topLimit') ?? undefined,
+          compareMode: url.searchParams.get('compareMode') ?? undefined,
+        }),
+      ),
+    )
+  }),
 
   // Vibe matching
   http.post(`${API}/vibe`, async () =>
@@ -354,8 +1989,91 @@ export const handlers = [
 
   // Recent reviews (digest)
   http.get(`${API}/reviews/recent`, async () => HttpResponse.json(await delay([]))),
+  http.post(`${API}/reviews`, async ({ request }) => {
+    const body = (await request.json()) as {
+      partyId?: string
+      targetUserId?: string
+      rating?: number
+      body?: string
+      anonymous?: boolean
+      tags?: string[]
+    }
+    return HttpResponse.json(
+      await delay({
+        id: `review_${Date.now()}`,
+        partyId: body.partyId ?? null,
+        targetUserId: body.targetUserId ?? null,
+        rating: body.rating ?? 5,
+        body: body.body ?? '',
+        anonymous: body.anonymous ?? true,
+        tags: body.tags ?? [],
+        author: { nickname: mockUsers[0].nickname, avatarId: mockUsers[0].avatarId },
+        hostReply: null,
+        hostRepliedAt: null,
+        createdAt: nowIso(),
+      }),
+    )
+  }),
+  http.patch(`${API}/reviews/:id/reply`, async ({ params, request }) => {
+    const body = (await request.json().catch(() => ({}))) as { body?: string }
+    return HttpResponse.json(
+      await delay({
+        id: params.id,
+        hostReply: body.body ?? '',
+        hostRepliedAt: nowIso(),
+      }),
+    )
+  }),
+  http.get(`${API}/users/:id/reviews`, async () =>
+    HttpResponse.json(
+      await delay({
+        averageRating: 4.8,
+        count: 2,
+        reviews: [
+          {
+            id: 'host_review_1',
+            rating: 5,
+            body: '시간 배분과 분위기 조율이 안정적이었어요.',
+            createdAt: nowIso(),
+            author: { nickname: '참가자', avatarId: null },
+          },
+        ],
+      }),
+    ),
+  ),
 
-  // Account deletion
+  // Account / profile
+  http.get(`${API}/users/me/referral`, async () =>
+    HttpResponse.json(
+      await delay({ referralCode: 'ROTI-2026', pointsKRW: 12_000, referredCount: 3 }),
+    ),
+  ),
+  http.patch(`${API}/avatars/me`, async ({ request }) =>
+    HttpResponse.json(
+      await delay({
+        id: 'avatar_me',
+        ownerId: mockUsers[0].id,
+        mood: 'sparkling',
+        hue: '#7A1F3D',
+        pattern: 'gradient',
+        emojiBadge: '🍷',
+        faceSeed: mockUsers[0].nickname,
+        ...((await request.json()) as Record<string, unknown>),
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+      }),
+    ),
+  ),
+  http.patch(`${API}/users/me`, async ({ request }) => {
+    const body = (await request.json()) as Partial<(typeof mockUsers)[number]>
+    Object.assign(mockUsers[0], body, { updatedAt: nowIso() })
+    return HttpResponse.json(await delay(mockUsers[0]))
+  }),
+  http.post(`${API}/users/me/become-host`, async () => {
+    mockUsers[0].role = 'host'
+    mockUsers[0].updatedAt = nowIso()
+    return HttpResponse.json(await delay(mockUsers[0]))
+  }),
   http.delete(`${API}/users/me`, async () => HttpResponse.json(await delay({ ok: true }))),
 
   // Payments host summary (kakao quick create)
@@ -443,6 +2161,22 @@ export const handlers = [
   http.delete(`${API}/me/avoid-contacts/:id`, async () =>
     HttpResponse.json(await delay({ ok: true })),
   ),
+  http.get(`${API}/me/avoid-people`, async () => HttpResponse.json(await delay(mockAvoidPeople))),
+  http.post(`${API}/me/avoid-people`, async ({ request }) => {
+    const body = (await request.json()) as { label?: string }
+    const item = {
+      id: `avoid-person-${Date.now()}`,
+      label: body.label ?? null,
+      createdAt: nowIso(),
+    }
+    mockAvoidPeople.unshift(item)
+    return HttpResponse.json(await delay(item))
+  }),
+  http.delete(`${API}/me/avoid-people/:id`, async ({ params }) => {
+    const index = mockAvoidPeople.findIndex((item) => item.id === params.id)
+    if (index >= 0) mockAvoidPeople.splice(index, 1)
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
   http.get(`${API}/me/avoid-check`, async () => HttpResponse.json(await delay([]))),
   http.patch(`${API}/me/avoid-prefs`, async ({ request }) =>
     HttpResponse.json(await delay((await request.json()) as Record<string, unknown>)),
