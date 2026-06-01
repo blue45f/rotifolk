@@ -7,7 +7,7 @@ import type {
   QuestionCard,
   RevenueHealthAlertThreshold,
 } from '@rotifolk/shared'
-import { REVENUE_MONITORING_POLICY } from '@rotifolk/shared'
+import { REVENUE_MONITORING_POLICY, computeRevenueHealthScore } from '@rotifolk/shared'
 import { quoteVenueBooking, recommendVenues, suggestOffHoursSlots } from '@rotifolk/shared'
 import {
   MOCK_TOKEN,
@@ -326,6 +326,34 @@ const monitoringPolicySnapshot = (): MockMonitoringPolicySnapshot => ({
 
 function roundMoney(value: number) {
   return Math.round(value)
+}
+
+function buildMockProjectedRevenueHealthScore(
+  rules: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>,
+) {
+  const previousRules = { ...mockRevenueRules }
+  try {
+    mockRevenueRules.platformFeePercent = rules.platformFeePercent
+    mockRevenueRules.refundRetentionPercent = rules.refundRetentionPercent
+
+    const summary = getMockAdminRevenueSummary({ topLimit: 1 })
+    const topPartyConcentrationPercent =
+      summary.topParties[0] && summary.grossPaidKRW > 0
+        ? (summary.topParties[0].paidGrossKRW / summary.grossPaidKRW) * 100
+        : 0
+
+    return computeRevenueHealthScore({
+      totalPaidKRW: summary.grossPaidKRW,
+      totalTickets: summary.totalPaidCount + summary.totalRefundedCount,
+      refundRatePercent: summary.refundRatePercent,
+      platformRevenueKRW: summary.platformRevenueKRW,
+      topPartyConcentrationPercent,
+      monitoring: mockMonitoringPolicy,
+      netSalesChangePercent: null,
+    })
+  } finally {
+    mockRevenueRules = previousRules
+  }
 }
 
 function roundPercent(value: number) {
@@ -1872,6 +1900,17 @@ export const handlers = [
       refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
     }
     const reason = typeof body.reason === 'string' ? body.reason.trim() : ''
+    const projectedHealthScore = buildMockProjectedRevenueHealthScore(next)
+    if (projectedHealthScore?.level === 'critical' && !reason) {
+      return HttpResponse.json(
+        {
+          code: 'invalid_revenue_rules_reason_required',
+          message: '수익 건전성이 위험 구간입니다. 변경 사유를 반드시 입력해 주세요.',
+        },
+        { status: 400 },
+      )
+    }
+
     if (
       next.platformFeePercent !== previous.platformFeePercent ||
       next.refundRetentionPercent !== previous.refundRetentionPercent
