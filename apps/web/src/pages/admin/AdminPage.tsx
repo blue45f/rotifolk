@@ -145,6 +145,8 @@ interface RevenueRulePresetProjection {
   preset: RevenueRulePreset
   projection: RevenuePlanningProjection
   isCurrent: boolean
+  projectedHealthScore: RevenueHealthScore | null
+  healthScoreDelta: number | null
 }
 
 interface RevenueRuleUpdatePayload {
@@ -482,6 +484,26 @@ function createPlannerProjection(args: {
       targetRateRaw >= 0 &&
       targetRateRaw <= 100,
   }
+}
+
+function createProjectedRuleHealth(args: {
+  totalPaidKRW: number
+  totalTickets: number
+  refundRatePercent: number
+  platformRevenueKRW: number
+  topPartyConcentrationPercent: number
+  monitoring: RevenueHealthAlertThreshold
+  netSalesChangePercent: number | null
+}): RevenueHealthScore {
+  return computeRevenueHealthScore({
+    totalPaidKRW: args.totalPaidKRW,
+    totalTickets: args.totalTickets,
+    refundRatePercent: args.refundRatePercent,
+    platformRevenueKRW: args.platformRevenueKRW,
+    topPartyConcentrationPercent: args.topPartyConcentrationPercent,
+    monitoring: args.monitoring,
+    netSalesChangePercent: args.netSalesChangePercent,
+  })
 }
 
 function clampNumber(value: number, min: number, max: number) {
@@ -1385,9 +1407,8 @@ export default function AdminPage() {
       return []
     }
 
-    return REVENUE_RULE_PRESETS.map((preset) => ({
-      preset,
-      projection: createPlannerProjection({
+    return REVENUE_RULE_PRESETS.map((preset) => {
+      const projection = createPlannerProjection({
         transactionCount: totalTickets,
         avgTicket,
         refundRate: refundRatePercent,
@@ -1396,19 +1417,43 @@ export default function AdminPage() {
         basePlatformRevenue: platformRevenue,
         baseHostPayout: hostPayout,
         targetPlatformRevenue: null,
-      }),
-      isCurrent:
-        revenueRules?.platformFeePercent === preset.platformFeePercent &&
-        revenueRules?.refundRetentionPercent === preset.refundRetentionPercent,
-    }))
+      })
+      const projectedHealthScore = createProjectedRuleHealth({
+        totalPaidKRW: totalPaid,
+        totalTickets,
+        refundRatePercent,
+        platformRevenueKRW: projection.platformRevenueKRW,
+        topPartyConcentrationPercent,
+        monitoring: monitoringThresholds,
+        netSalesChangePercent,
+      })
+
+      return {
+        preset,
+        projection,
+        isCurrent:
+          revenueRules?.platformFeePercent === preset.platformFeePercent &&
+          revenueRules?.refundRetentionPercent === preset.refundRetentionPercent,
+        projectedHealthScore,
+        healthScoreDelta:
+          projectedHealthScore && revenueHealthScore
+            ? projectedHealthScore.score - revenueHealthScore.score
+            : null,
+      }
+    })
   }, [
     avgTicket,
     hostPayout,
     platformRevenue,
+    monitoringThresholds,
     refundRatePercent,
+    totalPaid,
+    totalTickets,
+    topPartyConcentrationPercent,
+    netSalesChangePercent,
+    revenueHealthScore,
     revenueRules,
     revenueSummary,
-    totalTickets,
   ])
 
   const projected = useMemo(() => {
@@ -1436,6 +1481,32 @@ export default function AdminPage() {
     parsedRefundRetention,
     platformRevenue,
   ])
+  const projectedHealthScore = useMemo<RevenueHealthScore | null>(() => {
+    if (!revenueSummary || !projected) return null
+    return createProjectedRuleHealth({
+      totalPaidKRW: totalPaid,
+      totalTickets,
+      refundRatePercent,
+      platformRevenueKRW: projected.nextPlatformRevenue,
+      topPartyConcentrationPercent,
+      monitoring: monitoringThresholds,
+      netSalesChangePercent,
+    })
+  }, [
+    netSalesChangePercent,
+    projected,
+    refundRatePercent,
+    totalPaid,
+    totalTickets,
+    monitoringThresholds,
+    topPartyConcentrationPercent,
+    revenueSummary,
+  ])
+  const projectedHealthDelta =
+    projectedHealthScore && revenueHealthScore
+      ? projectedHealthScore.score - revenueHealthScore.score
+      : null
+  const projectedHealthDropWarning = projectedHealthDelta !== null && projectedHealthDelta <= -10
 
   return (
     <div className={`container ${styles.page}`}>
@@ -1802,78 +1873,105 @@ export default function AdminPage() {
               </p>
               {revenueSummary && presetScenarios.length > 0 ? (
                 <div className={styles.revenuePresetGrid}>
-                  {presetScenarios.map(({ preset, projection, isCurrent }) => (
-                    <article key={preset.id} className={styles.revenuePresetCard}>
-                      <header className={styles.revenuePresetHeader}>
-                        <div>
-                          <h4 className={styles.revenuePresetTitle}>{preset.label}</h4>
-                          <p className={styles.revenuePresetMeta}>
-                            플랫폼 수수료 {preset.platformFeePercent}% / 환불보전{' '}
-                            {preset.refundRetentionPercent}%
-                          </p>
+                  {presetScenarios.map(
+                    ({ preset, projection, isCurrent, projectedHealthScore, healthScoreDelta }) => (
+                      <article key={preset.id} className={styles.revenuePresetCard}>
+                        <header className={styles.revenuePresetHeader}>
+                          <div>
+                            <h4 className={styles.revenuePresetTitle}>{preset.label}</h4>
+                            <p className={styles.revenuePresetMeta}>
+                              플랫폼 수수료 {preset.platformFeePercent}% / 환불보전{' '}
+                              {preset.refundRetentionPercent}%
+                            </p>
+                          </div>
+                          <span
+                            className={`${styles.revenuePresetBadge} ${
+                              isCurrent
+                                ? styles.revenuePresetBadgeCurrent
+                                : styles.revenuePresetBadgeMuted
+                            }`}
+                          >
+                            {isCurrent ? '현재 반영' : '검토 대상'}
+                          </span>
+                        </header>
+                        <p className={styles.sectionNote}>{preset.description}</p>
+                        <div className={styles.revenuePresetKpiGrid}>
+                          <div className={styles.kpiCard}>
+                            <span className={styles.kpiLabel}>예상 플랫폼 수익</span>
+                            <strong className={styles.kpiValue}>
+                              {projection.platformRevenueKRW.toLocaleString()}원
+                            </strong>
+                            <div className={styles.kpiCompareMeta}>
+                              <span className={styles.kpiSubLabel}>현재 대비</span>
+                              <span
+                                className={`${styles.kpiTrendDelta} ${
+                                  projection.platformDeltaKRW >= 0
+                                    ? styles.kpiTrendUp
+                                    : styles.kpiTrendDown
+                                }`}
+                              >
+                                {projection.platformDeltaKRW >= 0 ? '+' : ''}
+                                {projection.platformDeltaKRW.toLocaleString()}원
+                              </span>
+                            </div>
+                          </div>
+                          <div className={styles.kpiCard}>
+                            <span className={styles.kpiLabel}>예상 호스트 정산</span>
+                            <strong className={styles.kpiValue}>
+                              {projection.hostPayoutKRW.toLocaleString()}원
+                            </strong>
+                            <div className={styles.kpiCompareMeta}>
+                              <span className={styles.kpiSubLabel}>현재 대비</span>
+                              <span
+                                className={`${styles.kpiTrendDelta} ${
+                                  projection.hostPayoutDeltaKRW >= 0
+                                    ? styles.kpiTrendUp
+                                    : styles.kpiTrendDown
+                                }`}
+                              >
+                                {projection.hostPayoutDeltaKRW >= 0 ? '+' : ''}
+                                {projection.hostPayoutDeltaKRW.toLocaleString()}원
+                              </span>
+                            </div>
+                          </div>
+                          <div className={styles.kpiCard}>
+                            <span className={styles.kpiLabel}>예상 수익 건전성</span>
+                            <strong className={styles.kpiValue}>
+                              {projectedHealthScore
+                                ? `${projectedHealthScore.score}점 · ${projectedHealthScore.levelLabel}`
+                                : '계산 불가'}
+                            </strong>
+                            {healthScoreDelta !== null ? (
+                              <div className={styles.kpiCompareMeta}>
+                                <span className={styles.kpiSubLabel}>현재 대비</span>
+                                <span
+                                  className={`${styles.kpiTrendDelta} ${
+                                    healthScoreDelta > 0
+                                      ? styles.kpiTrendUp
+                                      : healthScoreDelta < 0
+                                        ? styles.kpiTrendDown
+                                        : styles.kpiTrendFlat
+                                  }`}
+                                >
+                                  {healthScoreDelta > 0 ? '+' : ''}
+                                  {healthScoreDelta}점
+                                </span>
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
-                        <span
-                          className={`${styles.revenuePresetBadge} ${
-                            isCurrent
-                              ? styles.revenuePresetBadgeCurrent
-                              : styles.revenuePresetBadgeMuted
-                          }`}
+                        <Button
+                          variant={isCurrent ? 'ghost' : 'primary'}
+                          size="sm"
+                          onClick={() => applyRevenueRulePreset(preset)}
+                          disabled={isCurrent || !revenueSummary || saveRule.isPending}
+                          title={isCurrent ? '현재 설정과 동일해요.' : undefined}
                         >
-                          {isCurrent ? '현재 반영' : '검토 대상'}
-                        </span>
-                      </header>
-                      <p className={styles.sectionNote}>{preset.description}</p>
-                      <div className={styles.revenuePresetKpiGrid}>
-                        <div className={styles.kpiCard}>
-                          <span className={styles.kpiLabel}>예상 플랫폼 수익</span>
-                          <strong className={styles.kpiValue}>
-                            {projection.platformRevenueKRW.toLocaleString()}원
-                          </strong>
-                          <div className={styles.kpiCompareMeta}>
-                            <span className={styles.kpiSubLabel}>현재 대비</span>
-                            <span
-                              className={`${styles.kpiTrendDelta} ${
-                                projection.platformDeltaKRW >= 0
-                                  ? styles.kpiTrendUp
-                                  : styles.kpiTrendDown
-                              }`}
-                            >
-                              {projection.platformDeltaKRW >= 0 ? '+' : ''}
-                              {projection.platformDeltaKRW.toLocaleString()}원
-                            </span>
-                          </div>
-                        </div>
-                        <div className={styles.kpiCard}>
-                          <span className={styles.kpiLabel}>예상 호스트 정산</span>
-                          <strong className={styles.kpiValue}>
-                            {projection.hostPayoutKRW.toLocaleString()}원
-                          </strong>
-                          <div className={styles.kpiCompareMeta}>
-                            <span className={styles.kpiSubLabel}>현재 대비</span>
-                            <span
-                              className={`${styles.kpiTrendDelta} ${
-                                projection.hostPayoutDeltaKRW >= 0
-                                  ? styles.kpiTrendUp
-                                  : styles.kpiTrendDown
-                              }`}
-                            >
-                              {projection.hostPayoutDeltaKRW >= 0 ? '+' : ''}
-                              {projection.hostPayoutDeltaKRW.toLocaleString()}원
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <Button
-                        variant={isCurrent ? 'ghost' : 'primary'}
-                        size="sm"
-                        onClick={() => applyRevenueRulePreset(preset)}
-                        disabled={isCurrent || !revenueSummary || saveRule.isPending}
-                        title={isCurrent ? '현재 설정과 동일해요.' : undefined}
-                      >
-                        {saveRule.isPending ? '적용 중...' : '즉시 적용'}
-                      </Button>
-                    </article>
-                  ))}
+                          {saveRule.isPending ? '적용 중...' : '즉시 적용'}
+                        </Button>
+                      </article>
+                    ),
+                  )}
                 </div>
               ) : (
                 <p className={styles.ruleHint}>
@@ -2062,7 +2160,38 @@ export default function AdminPage() {
                     <span className={styles.kpiLabel}>호스트 정산 분배율</span>
                     <strong className={styles.kpiValue}>{planningProjection.hostShareRate}%</strong>
                   </div>
+                  {projectedHealthScore ? (
+                    <div className={styles.kpiCard}>
+                      <span className={styles.kpiLabel}>예상 수익 건전성</span>
+                      <strong className={styles.kpiValue}>
+                        {projectedHealthScore.score}점 · {projectedHealthScore.levelLabel}
+                      </strong>
+                      {projectedHealthDelta !== null ? (
+                        <div className={styles.kpiCompareMeta}>
+                          <span className={styles.kpiSubLabel}>현재 대비</span>
+                          <span
+                            className={`${styles.kpiTrendDelta} ${
+                              projectedHealthDelta > 0
+                                ? styles.kpiTrendUp
+                                : projectedHealthDelta < 0
+                                  ? styles.kpiTrendDown
+                                  : styles.kpiTrendFlat
+                            }`}
+                          >
+                            {projectedHealthDelta > 0 ? '+' : ''}
+                            {projectedHealthDelta}점
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
+                {projectedHealthDropWarning ? (
+                  <p className={styles.ruleHint}>
+                    입력 수치가 현재 대비 수익 건전성 점수를 낮춰요. 저장 전에 운영 영향 검토가
+                    필요해요.
+                  </p>
+                ) : null}
                 {plannerFeeRangeText ? (
                   <p className={styles.plannerDeltaHint}>{plannerFeeRangeText}</p>
                 ) : null}
@@ -2187,6 +2316,15 @@ export default function AdminPage() {
                   {projected.hostRevenueDelta >= 0 ? '+' : ''}
                   {projected.hostRevenueDelta.toLocaleString()}원)
                 </span>
+                {projectedHealthScore ? (
+                  <span>
+                    수익 건전성 {projectedHealthScore.score}점 · {projectedHealthScore.levelLabel}(
+                    {projectedHealthDelta !== null
+                      ? `${projectedHealthDelta >= 0 ? '+' : ''}${projectedHealthDelta}점`
+                      : '변화량 계산 불가'}
+                    )
+                  </span>
+                ) : null}
               </div>
             ) : null}
             {!hasRuleInput && (
@@ -2334,18 +2472,54 @@ export default function AdminPage() {
             <ul className={styles.historyList}>
               {revenueRuleHistory.map((history) => (
                 <li key={history.id} className={styles.historyItem}>
-                  <span className={styles.historyTime}>
-                    {new Date(history.changedAt).toLocaleString('ko-KR')}
-                  </span>
-                  <span className={styles.historyMeta}>
-                    플랫폼 수수료 {history.fromPlatformFeePercent}% → {history.toPlatformFeePercent}
-                    %
-                  </span>
-                  <span className={styles.historyMeta}>
-                    환불보전 {history.fromRefundRetentionPercent}% →{' '}
-                    {history.toRefundRetentionPercent}%
-                  </span>
-                  <span className={styles.historyMeta}>사유: {history.reason ?? '사유 없음'}</span>
+                  {(() => {
+                    const projected = createPlannerProjection({
+                      transactionCount: totalTickets,
+                      avgTicket,
+                      refundRate: refundRatePercent,
+                      platformFeePercent: history.toPlatformFeePercent,
+                      refundRetentionPercent: history.toRefundRetentionPercent,
+                      basePlatformRevenue: platformRevenue,
+                      baseHostPayout: hostPayout,
+                      targetPlatformRevenue: null,
+                    })
+                    const toHealth = createProjectedRuleHealth({
+                      totalPaidKRW: totalPaid,
+                      totalTickets,
+                      refundRatePercent,
+                      platformRevenueKRW: projected.platformRevenueKRW,
+                      topPartyConcentrationPercent,
+                      monitoring: monitoringThresholds,
+                      netSalesChangePercent,
+                    })
+                    return (
+                      <>
+                        <span className={styles.historyTime}>
+                          {new Date(history.changedAt).toLocaleString('ko-KR')}
+                        </span>
+                        <span className={styles.historyMeta}>
+                          플랫폼 수수료 {history.fromPlatformFeePercent}% →{' '}
+                          {history.toPlatformFeePercent}%
+                        </span>
+                        <span className={styles.historyMeta}>
+                          환불보전 {history.fromRefundRetentionPercent}% →{' '}
+                          {history.toRefundRetentionPercent}%
+                        </span>
+                        <span className={styles.historyMeta}>
+                          적용 예상 플랫폼 수익 {projected.platformRevenueKRW.toLocaleString()}원 /
+                          정산 {projected.hostPayoutKRW.toLocaleString()}원
+                        </span>
+                        <span className={styles.historyMeta}>
+                          {toHealth
+                            ? `적용 시 수익 건전성 ${toHealth.score}점 · ${toHealth.levelLabel}`
+                            : '수익 건전성 계산 불가'}
+                        </span>
+                        <span className={styles.historyMeta}>
+                          사유: {history.reason ?? '사유 없음'}
+                        </span>
+                      </>
+                    )
+                  })()}
                   <div className={styles.historyActions}>
                     <label className={styles.historyField}>
                       <span className={styles.historyFieldLabel}>롤백 사유(선택)</span>
