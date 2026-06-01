@@ -2,9 +2,10 @@ import { NavLink } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@store/authStore'
 import { api } from '@services/api'
+import { chatKeys } from '@features/chat/queries'
 import styles from './BottomNav.module.css'
 
-const items = [
+const BASE_ITEMS = [
   { to: '/', label: '홈', icon: '🏠', end: true, key: 'home' },
   { to: '/neighborhood', label: '내 동네', icon: '📍', key: 'hood' },
   { to: '/quick', label: '즉석', icon: '⚡', emphasize: true, key: 'quick' },
@@ -12,14 +13,17 @@ const items = [
   { to: '/me', label: '나', icon: '🌙', key: 'me' },
 ] as const
 
+const ADMIN_ITEM = { to: '/admin', label: '관리', icon: '🛡️', key: 'admin' } as const
+
 export function BottomNav() {
   const me = useAuthStore((s) => s.user)
+  const isAdmin = me?.role === 'admin'
   const { data: chatUnread } = useQuery({
-    queryKey: ['chat', 'unread-count'],
+    queryKey: chatKeys.unread,
     queryFn: () => api.get<{ count: number; rooms: number }>('chat/unread-count'),
     enabled: !!me,
-    refetchInterval: 30_000,
   })
+  const items = isAdmin ? [...BASE_ITEMS, ADMIN_ITEM] : BASE_ITEMS
 
   return (
     <nav className={styles.nav} aria-label="하단 메뉴">
@@ -41,7 +45,10 @@ export function BottomNav() {
                 {it.icon}
               </span>
               {showBadge && (
-                <span className={styles.badge} aria-label={`읽지 않은 메시지 ${chatUnread!.count}개`}>
+                <span
+                  className={styles.badge}
+                  aria-label={`읽지 않은 메시지 ${chatUnread!.count}개`}
+                >
                   {chatUnread!.count > 9 ? '9+' : chatUnread!.count}
                 </span>
               )}

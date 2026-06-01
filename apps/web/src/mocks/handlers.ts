@@ -89,6 +89,37 @@ interface MockRevenueRuleHistory {
   reason: string | null
 }
 
+interface MockRevenueRuleSimulationRequest {
+  platformFeePercent?: number
+  refundRetentionPercent?: number
+  from?: string | null
+  to?: string | null
+  partyId?: string | null
+  topLimit?: number | string
+}
+
+interface MockRevenueRuleSimulationResponse {
+  currentRules: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>
+  nextRules: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>
+  currentHealthScore: {
+    score: number
+    level: 'good' | 'warning' | 'critical'
+    levelLabel: string
+    topPartyConcentrationPercent: number
+    reasons: string[]
+    summary: string
+  }
+  simulatedHealthScore: {
+    score: number
+    level: 'good' | 'warning' | 'critical'
+    levelLabel: string
+    topPartyConcentrationPercent: number
+    reasons: string[]
+    summary: string
+  }
+  scoreDelta: number
+}
+
 interface MockAdminRevenueSummaryParty {
   partyId: string
   partyTitle: string
@@ -330,13 +361,25 @@ function roundMoney(value: number) {
 
 function buildMockProjectedRevenueHealthScore(
   rules: Pick<MockRevenueRuleConfig, 'platformFeePercent' | 'refundRetentionPercent'>,
+  summaryOptions?: {
+    from?: string | null
+    to?: string | null
+    partyId?: string | null
+    topLimit?: string | number
+  },
 ) {
   const previousRules = { ...mockRevenueRules }
   try {
     mockRevenueRules.platformFeePercent = rules.platformFeePercent
     mockRevenueRules.refundRetentionPercent = rules.refundRetentionPercent
 
-    const summary = getMockAdminRevenueSummary({ topLimit: 1 })
+    const summary = getMockAdminRevenueSummary({
+      topLimit: summaryOptions?.topLimit ?? 12,
+      from: summaryOptions?.from ?? null,
+      to: summaryOptions?.to ?? null,
+      partyId: summaryOptions?.partyId ?? null,
+      compareMode: 'none',
+    })
     const topPartyConcentrationPercent =
       summary.topParties[0] && summary.grossPaidKRW > 0
         ? (summary.topParties[0].paidGrossKRW / summary.grossPaidKRW) * 100
@@ -1862,6 +1905,87 @@ export const handlers = [
   http.get(`${API}/payments/admin/revenue-rules`, async () =>
     HttpResponse.json(await delay(revenueRuleSnapshot())),
   ),
+  http.post(`${API}/payments/admin/revenue-rules/simulate`, async ({ request }) => {
+    const body = (await request.json().catch(() => ({}))) as MockRevenueRuleSimulationRequest
+    if (!body || typeof body !== 'object') {
+      return HttpResponse.json({ code: 'invalid_revenue_rules_payload' }, { status: 400 })
+    }
+
+    const platformFeePercent =
+      typeof body.platformFeePercent === 'number'
+        ? Number(body.platformFeePercent)
+        : typeof body.platformFeePercent === 'string'
+          ? Number(body.platformFeePercent)
+          : undefined
+    const refundRetentionPercent =
+      typeof body.refundRetentionPercent === 'number'
+        ? Number(body.refundRetentionPercent)
+        : typeof body.refundRetentionPercent === 'string'
+          ? Number(body.refundRetentionPercent)
+          : undefined
+
+    if (
+      typeof platformFeePercent === 'undefined' &&
+      typeof refundRetentionPercent === 'undefined'
+    ) {
+      return HttpResponse.json({ code: 'invalid_revenue_rules' }, { status: 400 })
+    }
+
+    if (typeof platformFeePercent !== 'undefined') {
+      if (
+        !Number.isFinite(platformFeePercent) ||
+        platformFeePercent < 0 ||
+        platformFeePercent > 100
+      ) {
+        return HttpResponse.json({ code: 'invalid_platform_fee' }, { status: 400 })
+      }
+    }
+
+    if (typeof refundRetentionPercent !== 'undefined') {
+      if (
+        !Number.isFinite(refundRetentionPercent) ||
+        refundRetentionPercent < 0 ||
+        refundRetentionPercent > 100
+      ) {
+        return HttpResponse.json({ code: 'invalid_refund_retention' }, { status: 400 })
+      }
+    }
+
+    const previous = {
+      platformFeePercent: mockRevenueRules.platformFeePercent,
+      refundRetentionPercent: mockRevenueRules.refundRetentionPercent,
+    }
+    const next = {
+      platformFeePercent:
+        typeof platformFeePercent === 'number'
+          ? safePercent(platformFeePercent)
+          : previous.platformFeePercent,
+      refundRetentionPercent:
+        typeof refundRetentionPercent === 'number'
+          ? safePercent(refundRetentionPercent)
+          : previous.refundRetentionPercent,
+    }
+
+    const currentSummaryOptions = {
+      from: body.from ?? null,
+      to: body.to ?? null,
+      partyId: body.partyId ?? null,
+      topLimit: body.topLimit ?? 12,
+      compareMode: 'none',
+    }
+    const currentHealthScore = buildMockProjectedRevenueHealthScore(previous, currentSummaryOptions)
+    const simulatedHealthScore = buildMockProjectedRevenueHealthScore(next, currentSummaryOptions)
+
+    return HttpResponse.json(
+      await delay({
+        currentRules: previous,
+        nextRules: next,
+        currentHealthScore,
+        simulatedHealthScore,
+        scoreDelta: simulatedHealthScore.score - currentHealthScore.score,
+      } as MockRevenueRuleSimulationResponse),
+    )
+  }),
   http.patch(`${API}/payments/admin/revenue-rules`, async ({ request }) => {
     const body = (await request.json().catch(() => ({}))) as {
       platformFeePercent?: unknown

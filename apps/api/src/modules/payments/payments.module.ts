@@ -99,6 +99,23 @@ interface RollbackMonitoringPolicyBody {
   reason?: string
 }
 
+interface RevenueRuleSimulationInput {
+  platformFeePercent?: number
+  refundRetentionPercent?: number
+  from?: string
+  to?: string
+  partyId?: string
+  topLimit?: number | string
+}
+
+interface RevenueRuleSimulationResponse {
+  currentRules: RevenueRules
+  nextRules: RevenueRules
+  currentHealthScore: ReturnType<typeof computeRevenueHealthScore>
+  simulatedHealthScore: ReturnType<typeof computeRevenueHealthScore>
+  scoreDelta: number
+}
+
 type RevenueComparisonMode = 'none' | 'previous_period' | 'previous_month' | 'previous_year'
 
 interface AdminRevenueComparison {
@@ -478,6 +495,43 @@ class PaymentsController {
   async getRevenueRules(@CurrentUser() me: JwtUserPayload) {
     this.assertAdmin(me)
     return this.revenueRuleSnapshot()
+  }
+
+  @Post('admin/revenue-rules/simulate')
+  async simulateRevenueRules(
+    @CurrentUser() me: JwtUserPayload,
+    @Body() body: RevenueRuleSimulationInput,
+  ): Promise<RevenueRuleSimulationResponse> {
+    this.assertAdmin(me)
+
+    const current = await this.currentRules()
+    const next = this.normalizeRevenueRules(current, {
+      platformFeePercent: body.platformFeePercent,
+      refundRetentionPercent: body.refundRetentionPercent,
+    })
+
+    const [currentHealthScore, simulatedHealthScore] = await Promise.all([
+      this.buildProjectedRuleHealthScore(current, {
+        from: body.from,
+        to: body.to,
+        partyId: body.partyId,
+        topLimit: body.topLimit,
+      }),
+      this.buildProjectedRuleHealthScore(next, {
+        from: body.from,
+        to: body.to,
+        partyId: body.partyId,
+        topLimit: body.topLimit,
+      }),
+    ])
+
+    return {
+      currentRules: current,
+      nextRules: next,
+      currentHealthScore,
+      simulatedHealthScore,
+      scoreDelta: simulatedHealthScore.score - currentHealthScore.score,
+    }
   }
 
   @Patch('admin/revenue-rules')
@@ -1155,7 +1209,20 @@ class PaymentsController {
     return next
   }
 
-  private async buildProjectedRuleHealthScore(nextRules: RevenueRules) {
+  private async buildProjectedRuleHealthScore(
+    nextRules: RevenueRules,
+    context: { from?: string; to?: string; partyId?: string; topLimit?: number | string } = {},
+  ) {
+    const summaryRangeFrom = normalizeDateBoundary(context.from, 'from')
+    const summaryRangeTo = normalizeDateBoundary(context.to, 'to', true)
+    if (summaryRangeFrom && summaryRangeTo && summaryRangeFrom > summaryRangeTo) {
+      throw new BadRequestException({
+        code: 'invalid_date_range',
+        message: 'from 날짜는 to 날짜보다 늦을 수 없어요.',
+      })
+    }
+    const topLimit = clampSummaryTopLimit(context.topLimit)
+
     const rows = await this.prisma.payment.findMany({
       select: {
         amountKRW: true,
@@ -1169,10 +1236,14 @@ class PaymentsController {
           },
         },
       },
+      where: {
+        ...buildRangeFilter(summaryRangeFrom, summaryRangeTo),
+        ...(context.partyId ? { partyId: context.partyId } : {}),
+      },
       orderBy: { createdAt: 'desc' },
     })
 
-    const summary = calculateRevenueSummary(rows as PaymentAdminSummaryRow[], nextRules, 1)
+    const summary = calculateRevenueSummary(rows as PaymentAdminSummaryRow[], nextRules, topLimit)
     const policy = await this.currentMonitoringPolicy()
     const topPartyConcentrationPercent =
       summary.topParties.length > 0 && summary.grossPaidKRW > 0
@@ -1290,6 +1361,12 @@ function clampPercent(value: number | string | undefined, fallback?: number): nu
   const raw = typeof value === 'string' ? Number(value) : value
   const base = Number.isFinite(raw as number) ? (raw as number) : (fallback ?? 0)
   return Math.round(Math.max(0, Math.min(100, base)) * 100) / 100
+}
+
+function clampSummaryTopLimit(topLimit?: number | string | null): number {
+  const parsed = Number.parseInt(String(topLimit ?? '12'), 10)
+  if (!Number.isFinite(parsed)) return 12
+  return Math.max(1, Math.min(parsed, 50))
 }
 
 function roundPercent(value: number): number {
