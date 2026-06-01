@@ -15,6 +15,10 @@ pnpm dev                        # web + api 동시 실행
 pnpm dev:mock                   # API 없이 MSW 모드 실행
 pnpm typecheck                  # 전체 타입 체크
 pnpm test                       # 전체 테스트
+pnpm test:api-contracts         # API 계약 감사 로직 단위 테스트
+pnpm test:frontend-a11y         # 정적 접근성 감사 로직 단위 테스트
+pnpm audit:api-contracts        # Web API 호출 ↔ API/MSW 라우트 계약 감사
+pnpm audit:frontend-a11y        # 클릭 가능한 비시맨틱 요소 정적 접근성 감사
 pnpm lint                       # 코드 린트
 pnpm build                      # 전체 빌드
 pnpm verify                     # 구조 + CI 검증 합성 게이트
@@ -30,7 +34,13 @@ pnpm validate:architecture      # 아키텍처/문서/스크립트 최소 규칙
    - 비즈니스 규칙은 반드시 API에서 계산됩니다.
 3. 실시간 이벤트
    - Socket 이벤트 이름/페이로드 변경 시 API와 Web 양측에서 계약 테스트 범위를 갱신합니다.
-4. 시드/DB 변경
+4. API 호출 계약
+   - Web에서 `api.get/post/patch/delete` 호출을 추가하거나 변경하면 실제 Nest 라우트와 MSW 핸들러를 함께 갱신합니다.
+   - `pnpm audit:api-contracts`가 통과해야 목 모드와 실제 API 모드의 동작 차이가 생기지 않습니다.
+5. 접근성 회귀 방지
+   - 클릭 가능한 UI는 `button`, `a`, `Link` 같은 시맨틱 요소를 우선 사용합니다.
+   - `pnpm audit:frontend-a11y`가 통과해야 키보드/스크린리더 접근성 회귀를 줄일 수 있습니다.
+6. 시드/DB 변경
    - `pnpm db:generate`, `pnpm db:push`, `pnpm seed` 순으로 진행 후 검증을 남깁니다.
 
 ## PR 체크 (기본)

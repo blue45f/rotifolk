@@ -5,16 +5,15 @@ const packageJsonPath = `${ROOT}/package.json`
 const pkg = JSON.parse(fs.readFileSync(packageJsonPath, `utf8`))
 const scripts = pkg.scripts || {}
 
-const requiredPaths = [
-  'README.md',
-  'docs/ARCHITECTURE.md',
-  'docs/DEVELOPMENT.md',
-  'package.json',
-]
+const requiredPaths = ['README.md', 'docs/ARCHITECTURE.md', 'docs/DEVELOPMENT.md', 'package.json']
 
 const requiredScripts = [
   'verify',
   'ci',
+  'test:api-contracts',
+  'test:frontend-a11y',
+  'audit:api-contracts',
+  'audit:frontend-a11y',
 ]
 
 const missing = []
@@ -39,7 +38,7 @@ if (pkg.workspaces) {
 }
 
 if (missing.length > 0) {
-  console.error(`architecture validation failed: ${missing.length} issue(s)`) 
+  console.error(`architecture validation failed: ${missing.length} issue(s)`)
   for (const item of missing) {
     console.error(` - missing: ${item}`)
   }
