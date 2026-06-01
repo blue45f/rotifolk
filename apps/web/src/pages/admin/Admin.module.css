@@ -1,31 +1,143 @@
-.page { padding-block: var(--space-8) var(--space-16); }
+.page {
+  position: relative;
+  isolation: isolate;
+  padding-block: var(--space-8) var(--space-16);
+  overflow: hidden;
+}
+
+.page::before,
+.page::after {
+  content: '';
+  position: absolute;
+  border-radius: 999px;
+  z-index: -2;
+  pointer-events: none;
+}
+
+.page::before {
+  width: 38rem;
+  height: 38rem;
+  top: -12rem;
+  left: -9rem;
+  background: radial-gradient(circle at top left, color-mix(in oklab, var(--brand-gold-500) 42%, transparent), transparent 60%);
+  filter: blur(1px);
+}
+
+.page::after {
+  width: 35rem;
+  height: 35rem;
+  bottom: 5vh;
+  right: -10rem;
+  background: radial-gradient(circle at 80% 20%, color-mix(in oklab, var(--brand-burgundy-600) 35%, transparent), transparent 60%);
+  filter: blur(1px);
+}
+
+.head {
+  position: relative;
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--color-surface-elev) 88%, transparent), color-mix(in oklab, var(--color-surface-soft) 92%, transparent));
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(6px);
+}
+
+.head::before {
+  content: '✦ ✦ ✦';
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  font-size: 0.78rem;
+  letter-spacing: 0.2em;
+  color: color-mix(in oklab, var(--brand-gold-500) 75%, transparent);
+  opacity: 0.7;
+}
+
+.head::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in oklab, var(--brand-gold-500) 52%, transparent),
+    var(--brand-burgundy-600),
+    transparent);
+  opacity: 0.5;
+}
+
 .head h1 {
+  margin: 0;
   font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: var(--fw-black);
   letter-spacing: -0.03em;
+  line-height: var(--lh-tight);
+  color: var(--color-text);
+  font-family: var(--font-display);
 }
-.head p { color: var(--color-text-muted); margin-top: 4px; }
-.list { margin-top: var(--space-6); display: flex; flex-direction: column; gap: var(--space-3); }
-.head2 { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); }
-.head2 time { color: var(--color-text-muted); font-size: var(--fs-xs); margin-left: auto; }
-.body { white-space: pre-wrap; line-height: var(--lh-relaxed); }
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  margin-top: var(--space-4);
-  padding: var(--space-3);
-  background: var(--color-surface-soft);
-  border-radius: var(--radius-md);
+
+.head p {
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
 }
-.meta dt { color: var(--color-text-muted); font-size: var(--fs-xs); }
-.meta dd { font-weight: var(--fw-semibold); }
-.actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4); }
 
 .statsRow {
-  display: flex;
+  display: grid;
   gap: var(--space-3);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-block: var(--space-5) var(--space-6);
+}
+
+.statCard {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-4);
+  background:
+    linear-gradient(150deg, color-mix(in oklab, var(--brand-cream-100) 72%, transparent), color-mix(in oklab, var(--brand-burgundy-50) 55%, transparent)),
+    var(--color-surface);
+  border: 1px solid color-mix(in oklab, var(--color-border) 72%, transparent);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+
+.statCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.statCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.35;
+  background: linear-gradient(130deg, transparent 58%, color-mix(in oklab, var(--brand-gold-500) 22%, transparent));
+}
+
+.statNum {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: var(--fw-black);
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+
+.statLabel {
+  position: relative;
+  z-index: 1;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
 }
 
 .revenueSection {
@@ -34,18 +146,46 @@
   margin-bottom: var(--space-6);
 }
 
+.panelCard,
+.revenuePanel,
+.panelSection {
+  position: relative;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
+  background:
+    linear-gradient(150deg, color-mix(in oklab, var(--brand-burgundy-50) 40%, transparent), color-mix(in oklab, var(--brand-gold-100) 24%, transparent)),
+    var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  animation: adminPanelFade 0.45s var(--ease-out) both;
+}
+
 .revenuePanel {
   display: grid;
   gap: var(--space-3);
+  overflow: hidden;
+}
+
+.revenuePanel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(80% 70% at 15% 0%, color-mix(in oklab, var(--brand-gold-500) 13%, transparent), transparent 62%),
+    radial-gradient(95% 65% at 90% 100%, color-mix(in oklab, var(--brand-burgundy-500) 12%, transparent), transparent 72%);
 }
 
 .sectionTitle {
+  position: relative;
   margin: 0;
   font-size: var(--fs-lg);
   font-weight: var(--fw-bold);
+  color: var(--color-text);
 }
 
 .sectionNote {
+  position: relative;
   margin: 0;
   color: var(--color-text-muted);
   font-size: var(--fs-xs);
@@ -54,9 +194,10 @@
 .healthScorePanel {
   margin-top: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in oklab, var(--color-border) 88%, transparent);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, #f8fafc 86%, #fff2cf);
+  background:
+    linear-gradient(120deg, color-mix(in oklab, var(--color-warning-bg) 45%, transparent), color-mix(in oklab, var(--color-surface) 82%, transparent));
   display: grid;
   gap: var(--space-2);
 }
@@ -84,20 +225,20 @@
 }
 
 .healthScoreBadgeGood {
-  border-color: color-mix(in srgb, var(--color-success) 50%, transparent);
-  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-success) 50%, transparent);
+  background: color-mix(in oklab, var(--color-success) 12%, transparent);
   color: var(--color-success);
 }
 
 .healthScoreBadgeWarning {
-  border-color: color-mix(in srgb, var(--color-warning) 60%, transparent);
-  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-warning) 60%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 12%, transparent);
   color: var(--color-warning);
 }
 
 .healthScoreBadgeCritical {
-  border-color: color-mix(in srgb, var(--color-danger) 60%, transparent);
-  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-danger) 60%, transparent);
+  background: color-mix(in oklab, var(--color-danger) 12%, transparent);
   color: var(--color-danger);
 }
 
@@ -118,13 +259,26 @@
   display: grid;
   gap: var(--space-3);
   margin-top: var(--space-2);
-  border: 1px dashed color-mix(in srgb, var(--color-border) 60%, transparent);
+  border: 1px dashed color-mix(in oklab, var(--color-border) 60%, transparent);
   border-radius: var(--radius-md);
   padding: var(--space-3);
-  background: color-mix(in srgb, var(--color-surface) 95%, #e2e8f0);
+  background:
+    linear-gradient(120deg, color-mix(in oklab, var(--color-info-bg) 40%, transparent), color-mix(in oklab, var(--color-surface) 90%, transparent));
+  position: relative;
+  overflow: hidden;
+}
+
+.monitoringSimulationPanel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 40%, color-mix(in oklab, var(--brand-cream-100) 56%, transparent));
 }
 
 .monitoringSimulationHeader {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -142,8 +296,8 @@
 }
 
 .monitoringSimulationBadgeGood {
-  border-color: color-mix(in srgb, var(--color-success) 40%, transparent);
-  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  border-color: color-mix(in oklab, var(--color-success) 40%, transparent);
+  background: color-mix(in oklab, var(--color-success) 14%, transparent);
   color: var(--color-success);
 }
 
@@ -154,12 +308,14 @@
 }
 
 .monitoringSimulationBadgeCritical {
-  border-color: color-mix(in srgb, var(--color-danger) 50%, transparent);
-  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-danger) 50%, transparent);
+  background: color-mix(in oklab, var(--color-danger) 12%, transparent);
   color: var(--color-danger);
 }
 
 .monitoringSimulationGrid {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: var(--space-3);
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -172,13 +328,14 @@
   border-radius: var(--radius-md);
   padding: var(--space-2);
   background: var(--color-surface);
+  transition: transform var(--dur-base) var(--ease-out);
 }
 
-.monitoringSimulationLabel {
-  color: var(--color-text-muted);
-  font-size: var(--fs-xxs);
+.monitoringSimulationItem:hover {
+  transform: translateY(-2px);
 }
 
+.monitoringSimulationLabel,
 .monitoringSimulationSubLabel {
   color: var(--color-text-muted);
   font-size: var(--fs-xxs);
@@ -214,26 +371,30 @@
 .filterField span {
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
 }
 
-.filterField input {
-  width: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
-  padding: 8px 12px;
-  max-width: 220px;
-}
-
+.filterField input,
 .filterField select {
   width: 100%;
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in oklab, var(--color-border) 70%, transparent);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background:
+    linear-gradient(180deg, var(--color-surface), color-mix(in oklab, var(--color-surface-soft) 80%, transparent));
   color: var(--color-text);
   padding: 8px 12px;
-  max-width: 220px;
+}
+
+.filterField input::placeholder,
+.filterField input::-webkit-input-placeholder {
+  color: color-mix(in oklab, var(--color-text-muted) 75%, transparent);
+}
+
+.filterField input:focus-visible,
+.filterField select:focus-visible {
+  outline: none;
+  border-color: color-mix(in oklab, var(--color-primary) 60%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 20%, transparent);
 }
 
 .filterActions {
@@ -244,12 +405,33 @@
 }
 
 .kpiCard {
+  position: relative;
+  overflow: hidden;
   padding: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background:
+    linear-gradient(160deg, var(--color-surface), color-mix(in oklab, var(--color-surface-soft) 65%, transparent));
   display: grid;
   gap: 4px;
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+}
+
+.kpiCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.kpiCard::after {
+  content: '';
+  position: absolute;
+  right: -26px;
+  top: -18px;
+  width: 60px;
+  height: 60px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--brand-burgundy-400) 28%, transparent);
+  opacity: 0.15;
 }
 
 .kpiLabel {
@@ -262,6 +444,7 @@
   color: var(--color-text);
   font-weight: var(--fw-bold);
   word-break: keep-all;
+  position: relative;
 }
 
 .kpiCompareMeta {
@@ -291,10 +474,7 @@
   color: var(--color-danger);
 }
 
-.kpiTrendFlat {
-  color: var(--color-text-muted);
-}
-
+.kpiTrendFlat,
 .kpiTrendNone {
   color: var(--color-text-muted);
 }
@@ -315,16 +495,26 @@
 .ruleField span {
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
 }
 
-.ruleField input {
+.ruleField input,
+.historyReasonInput {
   width: 100%;
-  max-width: 240px;
+  max-width: 100%;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background:
+    linear-gradient(180deg, var(--color-surface), color-mix(in oklab, var(--color-surface-soft) 88%, transparent));
   color: var(--color-text);
   padding: 8px 12px;
+}
+
+.ruleField input:focus-visible,
+.historyReasonInput:focus-visible {
+  outline: none;
+  border-color: color-mix(in oklab, var(--color-primary) 65%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 20%, transparent);
 }
 
 .ruleMeta {
@@ -337,7 +527,12 @@
   flex-wrap: wrap;
 }
 
-.ruleHint {
+.ruleMeta span {
+  max-width: 100%;
+}
+
+.ruleHint,
+.plannerDeltaHint {
   margin: 0;
   color: var(--color-danger);
   font-size: var(--fs-xs);
@@ -383,14 +578,14 @@
 }
 
 .alertBadgeWarning {
-  border-color: color-mix(in srgb, var(--color-warning) 70%, transparent);
-  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  border-color: color-mix(in oklab, var(--color-warning) 70%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 8%, transparent);
   color: var(--color-warning);
 }
 
 .alertBadgeDanger {
-  border-color: color-mix(in srgb, var(--color-danger) 70%, transparent);
-  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  border-color: color-mix(in oklab, var(--color-danger) 70%, transparent);
+  background: color-mix(in oklab, var(--color-danger) 8%, transparent);
   color: var(--color-danger);
 }
 
@@ -429,15 +624,37 @@
 }
 
 .revenuePresetCard {
+  position: relative;
   display: grid;
   gap: var(--space-2);
   padding: var(--space-3);
   border: 1px solid var(--color-border-soft);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background:
+    linear-gradient(150deg, color-mix(in oklab, var(--color-surface) 96%, transparent), color-mix(in oklab, var(--brand-cream-100) 55%, transparent));
+  overflow: hidden;
+  transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+}
+
+.revenuePresetCard::before {
+  content: '';
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--brand-gold-500) 24%, transparent);
+  filter: blur(4px);
+}
+
+.revenuePresetCard:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--brand-burgundy-700) 42%, transparent);
 }
 
 .revenuePresetHeader {
+  position: relative;
   display: flex;
   justify-content: space-between;
   gap: var(--space-2);
@@ -459,6 +676,7 @@
 }
 
 .revenuePresetBadge {
+  position: relative;
   border: 1px solid transparent;
   border-radius: 999px;
   padding: 4px 10px;
@@ -468,8 +686,8 @@
 }
 
 .revenuePresetBadgeCurrent {
-  border-color: color-mix(in srgb, var(--color-success) 55%, transparent);
-  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-success) 55%, transparent);
+  background: color-mix(in oklab, var(--color-success) 12%, transparent);
   color: var(--color-success);
 }
 
@@ -491,12 +709,6 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.plannerDeltaHint {
-  margin: 0;
-  color: var(--color-text);
-  font-size: var(--fs-xs);
-}
-
 .plannerMetaRow {
   display: flex;
   justify-content: space-between;
@@ -512,7 +724,7 @@
 
 .plannerTargetBadge {
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--color-border) 80%, var(--color-text) 20%);
+  border: 1px solid color-mix(in oklab, var(--color-border) 80%, var(--color-text) 20%);
   padding: 5px 10px;
   font-size: var(--fs-xs);
   color: var(--color-text);
@@ -577,25 +789,25 @@
 }
 
 .historyScoreBadgeGood {
-  border-color: color-mix(in srgb, var(--color-success) 55%, transparent);
-  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-success) 55%, transparent);
+  background: color-mix(in oklab, var(--color-success) 12%, transparent);
   color: var(--color-success);
 }
 
 .historyScoreBadgeWarning {
-  border-color: color-mix(in srgb, var(--color-warning) 65%, transparent);
-  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-warning) 65%, transparent);
+  background: color-mix(in oklab, var(--color-warning) 12%, transparent);
   color: var(--color-warning);
 }
 
 .historyScoreBadgeCritical {
-  border-color: color-mix(in srgb, var(--color-danger) 60%, transparent);
-  background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  border-color: color-mix(in oklab, var(--color-danger) 60%, transparent);
+  background: color-mix(in oklab, var(--color-danger) 12%, transparent);
   color: var(--color-danger);
 }
 
 .historyScoreBadgeNeutral {
-  border-color: color-mix(in srgb, var(--color-border) 80%, var(--color-text) 20%);
+  border-color: color-mix(in oklab, var(--color-border) 80%, var(--color-text) 20%);
   background: var(--color-surface-soft);
   color: var(--color-text-muted);
 }
@@ -623,16 +835,6 @@
 .historyFieldLabel {
   font-size: var(--fs-xxs);
   color: var(--color-text-muted);
-}
-
-.historyReasonInput {
-  width: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
-  padding: 8px 12px;
-  font-size: var(--fs-sm);
 }
 
 .topPartyList {
@@ -670,46 +872,101 @@
   align-items: center;
 }
 
-.statCard {
-  flex: 1;
+.list {
+  margin-top: var(--space-6);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  gap: var(--space-3);
+}
+
+.reportCard,
+.head2,
+.actions,
+.meta,
+.userLink,
+.body {
+  position: relative;
+}
+
+.reportCard {
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
 }
-.statNum {
-  font-size: clamp(1.6rem, 3vw, 2rem);
-  font-weight: var(--fw-black);
-  letter-spacing: -0.03em;
-  color: var(--color-text);
+
+.head2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
-.statLabel {
-  font-size: var(--fs-xs);
+
+.head2 time {
   color: var(--color-text-muted);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-xs);
+  margin-left: auto;
 }
+
+.body {
+  white-space: pre-wrap;
+  line-height: var(--lh-relaxed);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-surface-soft) 80%, transparent);
+}
+
+.meta dt {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+
+.meta dd {
+  font-weight: var(--fw-semibold);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
 .userLink {
   color: var(--color-primary);
   text-decoration: none;
   font-weight: var(--fw-semibold);
 }
-.userLink:hover { text-decoration: underline; }
+
+.userLink:hover {
+  text-decoration: underline;
+}
+
+@keyframes adminPanelFade {
+  from {
+    opacity: 0.4;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 @media (max-width: 960px) {
-  .statsRow {
-    flex-wrap: wrap;
-  }
-
-  .kpiGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .filterPanel {
+  .statsRow,
+  .filterPanel,
+  .kpiGrid,
+  .plannerInputs,
+  .revenuePresetGrid,
+  .revenuePresetKpiGrid,
+  .plannerSensitivityGrid,
+  .plannerResultGrid,
+  .monitoringSimulationGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -717,66 +974,37 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .revenuePresetGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .revenuePresetKpiGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .monitoringSimulationGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .plannerResultGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .plannerSensitivityGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .monitoringSimulationGrid {
-    grid-template-columns: 1fr;
+  .statsRow {
+    gap: var(--space-2);
   }
 }
 
 @media (max-width: 560px) {
-  .kpiGrid {
+  .head {
+    padding: var(--space-5);
+  }
+
+  .statsRow,
+  .filterPanel,
+  .plannerInputs,
+  .plannerResultGrid,
+  .plannerSensitivityGrid,
+  .kpiGrid,
+  .revenuePresetGrid,
+  .revenuePresetKpiGrid,
+  .monitoringSimulationGrid {
     grid-template-columns: 1fr;
   }
 
-  .filterPanel {
-    grid-template-columns: 1fr;
-  }
-
-  .plannerInputs {
-    grid-template-columns: 1fr;
-  }
-
-  .plannerResultGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .plannerSensitivityGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .filterField input {
+  .filterField input,
+  .filterField select,
+  .ruleField input {
     max-width: 100%;
   }
 
-  .plannerSection {
-    gap: var(--space-2);
-  }
-
-  .revenuePresetGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .revenuePresetKpiGrid {
-    grid-template-columns: 1fr;
+  .ruleMeta {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .plannerMetaRow {
@@ -787,5 +1015,9 @@
   .plannerMetaStrong {
     display: inline-block;
     margin-left: 4px;
+  }
+
+  .revenuePanel {
+    padding: var(--space-2);
   }
 }

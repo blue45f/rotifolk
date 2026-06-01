@@ -2546,7 +2546,7 @@ export default function AdminPage() {
         </Card>
 
         {topParties.length > 0 && (
-          <Card padding="lg">
+          <Card padding="lg" className={styles.panelCard}>
             <h3 className={styles.sectionTitle}>실시간 파티 매출 Top</h3>
             <ul className={styles.topPartyList}>
               {topParties.map((party) => (
@@ -2580,7 +2580,7 @@ export default function AdminPage() {
           </Card>
         )}
 
-        <Card padding="lg">
+        <Card padding="lg" className={styles.panelCard}>
           <h3 className={styles.sectionTitle}>수익 정책 변경 이력</h3>
           <p className={styles.sectionNote}>
             최근 정책 변경 내역입니다. 운영 판단 근거를 남겨두기 위한 기록용 데이터입니다.
@@ -2726,7 +2726,7 @@ export default function AdminPage() {
             </ul>
           )}
         </Card>
-        <Card padding="lg">
+        <Card padding="lg" className={styles.panelCard}>
           <h3 className={styles.sectionTitle}>모니터링 임계값 변경 이력</h3>
           <p className={styles.sectionNote}>
             환불률 임계값/파티 집중 임계값 변경 이력입니다. 이전 설정으로 즉시 롤백할 수 있어요.
@@ -2853,7 +2853,7 @@ export default function AdminPage() {
               <EmptyState emoji="🕊️" title="처리할 신고가 없어요" />
             ) : (
               data.map((r) => (
-                <Card key={r.id} padding="lg">
+                <Card key={r.id} padding="lg" className={styles.reportCard}>
                   <div className={styles.head2}>
                     <Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>
                     <Badge tone="neutral">{KIND_LABEL[r.kind] ?? r.kind}</Badge>
