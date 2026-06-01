@@ -24,8 +24,19 @@ export const RotationModeEnum = z.enum([
 
 export const PartyFormatEnum = z.enum(['rotation', 'note-ting', 'mixer'])
 export const RotationFormatEnum = z.enum(['one-on-one', 'many-to-one', 'many-to-many'])
-export const MatchScopeEnum = z.enum(['mutual-only', 'top-n', 'all-participants'])
+export const MatchScopeEnum = z.enum([
+  'mutual-only',
+  'top-n',
+  'all-participants',
+  'mutual-plus-top-n',
+])
 export const ConnectionModeEnum = z.enum(['chat', 'phone', 'both'])
+export const ContactExchangePolicyEnum = z.enum([
+  'mutual-consent',
+  'chat-only',
+  'open-after-match',
+  'request-approval',
+])
 export const ConnectionChannelEnum = z.enum(['chat', 'instagram', 'kakao', 'phone'])
 export const NoteDeliveryEnum = z.enum(['instant', 'party-end'])
 export const DrinkPackageEnum = z.enum(['none', 'per-glass', 'unlimited', 'paired'])
@@ -64,6 +75,7 @@ export const PartyConfigSchema = z.object({
   groupSize: z.number().int().min(2).max(12).default(2),
   matchScope: MatchScopeEnum.default('mutual-only'),
   maxMatchesPerPerson: z.number().int().min(1).max(20).default(3),
+  contactExchangePolicy: ContactExchangePolicyEnum.default('mutual-consent'),
   connectionMode: ConnectionModeEnum.default('chat'),
   connectionChannels: z.array(ConnectionChannelEnum).min(1).max(4).default(['chat']),
   groupAfterParty: z.boolean().default(false),
@@ -176,3 +188,13 @@ export const FinalMatchVoteSchema = z.object({
   toUserId: z.string(),
 })
 export type FinalMatchVoteDto = z.infer<typeof FinalMatchVoteSchema>
+
+export const ContactExchangeRequestSchema = z.object({
+  channel: ConnectionChannelEnum,
+})
+export type ContactExchangeRequestDto = z.infer<typeof ContactExchangeRequestSchema>
+
+export const ContactExchangeDecisionSchema = z.object({
+  action: z.enum(['approve', 'reject']),
+})
+export type ContactExchangeDecisionDto = z.infer<typeof ContactExchangeDecisionSchema>

@@ -431,6 +431,14 @@
   border-color: var(--brand-burgundy-300);
   background: color-mix(in oklab, var(--color-primary) 4%, var(--color-surface));
 }
+.modeDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.modeDisabled:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+}
 .modeBtn:active {
   transform: scale(0.99);
 }

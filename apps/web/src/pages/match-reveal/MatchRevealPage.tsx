@@ -1,12 +1,21 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { CONNECTION_CHANNELS, type ConnectionChannel } from '@rotifolk/shared'
+import {
+  CONNECTION_CHANNELS,
+  CONTACT_EXCHANGE_POLICY_LABEL,
+  type ConnectionChannel,
+  type ContactExchangeChannelState,
+  type ContactExchangePolicy,
+  type MatchScope,
+} from '@rotifolk/shared'
 import { useParty } from '@features/parties/queries'
 import { useEnsurePartyRoom } from '@features/chat/queries'
 import {
+  useDecideContactExchangeRequest,
   useMyPartyMatches,
   usePartyPopular,
+  useRequestContactExchange,
   type MatchChannel,
   type MatchResult,
   type PartyMatch,
@@ -22,14 +31,33 @@ import styles from './MatchReveal.module.css'
 const EASE = [0.19, 1, 0.22, 1] as const
 
 const RESULT_LABEL: Record<MatchResult, string> = {
-  mutual: '서로 골랐어요',
-  'top-pick': '오늘의 상위 선택',
+  mutual: '서로 선택',
+  'top-pick': '상위 인연',
   all: '함께한 인연',
 }
-const SCOPE_LEAD: Record<string, string> = {
-  'mutual-only': '서로를 고른 사람만 이어집니다.',
-  'top-n': '오늘 마음이 모인 상위 인연이에요.',
-  'all-participants': '오늘 함께한 모두와 이어집니다.',
+
+const SCOPE_LEAD: Record<MatchScope, string> = {
+  'mutual-only': '서로를 고른 사람만 보여드려요.',
+  'top-n': '오늘 호감이 모인 인연까지 보여드려요.',
+  'all-participants': '오늘 함께한 사람들과 이어질 수 있어요.',
+  'mutual-plus-top-n': '상호 매칭을 먼저, 부족하면 상위 인연을 더 보여드려요.',
+}
+
+const POLICY_LEAD: Record<ContactExchangePolicy, string> = {
+  'mutual-consent': '외부 연락처는 양쪽이 공개 동의했을 때만 보여요.',
+  'chat-only': '오늘은 앱 안 채팅으로만 이어져요.',
+  'open-after-match': '매칭된 사람의 공개 채널을 바로 볼 수 있어요.',
+  'request-approval': '채팅은 바로 시작하고, 외부 연락처는 상대가 승인하면 보여요.',
+}
+
+const STATE_LABEL: Record<ContactExchangeChannelState, string> = {
+  open: '바로 가능',
+  requestable: '요청 가능',
+  pending_me: '승인 대기',
+  pending_them: '승인 필요',
+  approved: '승인됨',
+  rejected: '거절됨',
+  locked: '준비 안 됨',
 }
 
 export default function MatchRevealPage() {
@@ -41,11 +69,15 @@ export default function MatchRevealPage() {
   const { data, isLoading } = useMyPartyMatches(partyId)
   const { data: popular } = usePartyPopular(partyId)
   const ensureRoom = useEnsurePartyRoom()
+  const requestContact = useRequestContactExchange(partyId)
+  const decideContact = useDecideContactExchangeRequest(partyId)
+  const [busyKey, setBusyKey] = useState<string | null>(null)
 
   if (isLoading) return <Loading />
 
   const matches = data?.matches ?? []
   const title = party?.party.title ?? '오늘의 모임'
+  const policy = data?.contactExchangePolicy ?? 'mutual-consent'
 
   const copyHandle = async (handle: string) => {
     try {
@@ -66,22 +98,80 @@ export default function MatchRevealPage() {
     }
   }
 
+  const requestExternalContact = async (partnerId: string, channel: ConnectionChannel) => {
+    const key = `${partnerId}:${channel}:request`
+    setBusyKey(key)
+    try {
+      await requestContact.mutateAsync({ partnerId, channel })
+      toast.show('요청을 보냈어요. 상대가 승인하면 바로 보여드릴게요.', 'success')
+    } catch (e) {
+      toast.show((e as Error).message, 'error')
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  const decideExternalContact = async (
+    requestId: string,
+    action: 'approve' | 'reject',
+    partnerId: string,
+    channel: ConnectionChannel,
+  ) => {
+    const key = `${partnerId}:${channel}:${action}`
+    setBusyKey(key)
+    try {
+      await decideContact.mutateAsync({ requestId, action })
+      toast.show(
+        action === 'approve' ? '승인했어요' : '거절했어요',
+        action === 'approve' ? 'success' : 'info',
+      )
+    } catch (e) {
+      toast.show((e as Error).message, 'error')
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
   return (
     <div className={styles.page}>
-      <div className={styles.glow} aria-hidden="true" />
       <header className={`container ${styles.head}`}>
-        <span className={styles.kicker}>AFTER THE ROUNDS</span>
+        <div className={styles.headTop}>
+          <span className={styles.kicker}>MATCH RESULT</span>
+          {data && (
+            <Badge tone={policy === 'request-approval' ? 'gold' : 'primary'} size="md">
+              {CONTACT_EXCHANGE_POLICY_LABEL[policy]}
+            </Badge>
+          )}
+        </div>
         <motion.h1
           className={styles.title}
-          initial={reduce ? false : { opacity: 0, y: 16 }}
+          initial={reduce ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE }}
+          transition={{ duration: 0.35, ease: EASE }}
         >
-          🌹 오늘의 인연
+          이제 이렇게 이어가면 돼요
         </motion.h1>
         <p className={styles.lead}>
-          {title} · {data ? (SCOPE_LEAD[data.scope] ?? '오늘의 인연이에요.') : ''}
+          {title}. {data ? SCOPE_LEAD[data.scope] : '오늘 이어질 인연을 확인해요.'}
         </p>
+
+        {data && (
+          <div className={styles.summary} aria-label="매칭 요약">
+            <div className={styles.summaryItem}>
+              <span>이어진 사람</span>
+              <strong>{matches.length}명</strong>
+            </div>
+            <div className={styles.summaryItem}>
+              <span>받은 호감</span>
+              <strong>{data.myLikesReceived ?? 0}개</strong>
+            </div>
+            <div className={styles.summaryItem}>
+              <span>연결 방식</span>
+              <strong>{CONTACT_EXCHANGE_POLICY_LABEL[policy]}</strong>
+            </div>
+          </div>
+        )}
+        <p className={styles.policyNote}>{POLICY_LEAD[policy]}</p>
       </header>
 
       <PopularBanner popular={popular} reduce={reduce} />
@@ -89,48 +179,44 @@ export default function MatchRevealPage() {
       <section className={`container ${styles.body}`}>
         {matches.length === 0 ? (
           <div className={styles.empty}>
-            <div className={styles.emptyOrb} aria-hidden="true">
-              🌙
-            </div>
-            <h2>이번엔 인연이 닿지 않았어요</h2>
-            <p>
-              괜찮아요. 좋은 대화는 그 자체로 남으니까요. 다음 라운드에서 또 다른 한 잔을 기울여
-              봐요.
-            </p>
+            <span className={styles.emptyMark} aria-hidden="true">
+              0
+            </span>
+            <h2>이번엔 최종 매칭이 없어요</h2>
+            <p>라운드 기록은 남아 있어요. 다음 모임에서는 더 편하게 선택해 보세요.</p>
             <Link to="/discover">
               <Button variant="primary" size="lg">
-                다음 모임 둘러보기
+                다음 모임 보기
               </Button>
             </Link>
           </div>
         ) : (
           <>
-            <p className={styles.count}>
-              <strong>{matches.length}</strong>명과 이어졌어요
-            </p>
-            {(data?.myLikesReceived ?? 0) > 0 && (
-              <p className={styles.count}>
-                오늘 당신은 <strong>{data?.myLikesReceived}</strong>명의 마음을 얻었어요 💗
-              </p>
-            )}
+            <div className={styles.resultBar}>
+              <strong>먼저 채팅으로 인사해 보세요.</strong>
+              <span>외부 연락처는 각 카드에서 상태를 확인할 수 있어요.</span>
+            </div>
             <div className={styles.grid}>
-              {matches.map((m, i) => (
+              {matches.map((match, index) => (
                 <MatchCard
-                  key={m.partnerId}
-                  match={m}
-                  index={i}
+                  key={match.partnerId}
+                  match={match}
+                  index={index}
                   reduce={reduce}
+                  busyKey={busyKey}
                   onChat={() => navigate('/chats')}
                   onCopyHandle={copyHandle}
+                  onRequestContact={requestExternalContact}
+                  onDecideContact={decideExternalContact}
                 />
               ))}
             </div>
 
             {data?.groupAfterParty && (
-              <div className={styles.groupCard}>
+              <div className={styles.groupPanel}>
                 <div>
-                  <strong>👥 오늘 모두와 한 방에서</strong>
-                  <span>종료 후 전원 단톡으로 여운을 이어가요.</span>
+                  <strong>전원 채팅방도 열 수 있어요</strong>
+                  <span>오늘 만난 사람들과 한 방에서 가볍게 이어가요.</span>
                 </div>
                 <Button
                   variant="gold"
@@ -138,7 +224,7 @@ export default function MatchRevealPage() {
                   isLoading={ensureRoom.isPending}
                   onClick={openGroup}
                 >
-                  전원 단톡 열기
+                  전원 채팅방 열기
                 </Button>
               </div>
             )}
@@ -148,7 +234,7 @@ export default function MatchRevealPage() {
 
       <footer className={`container ${styles.footer}`}>
         <Link to="/me/cards">
-          <Button variant="soft">내 매칭 명함 보기</Button>
+          <Button variant="soft">내 매칭 명함</Button>
         </Link>
         <Link to={`/parties/${partyId}`}>
           <Button variant="ghost">파티로 돌아가기</Button>
@@ -171,25 +257,24 @@ function PopularBanner({
 }) {
   if (!popular?.revealPopular) return null
   const winners: Array<{ person: PopularPerson; label: string }> = []
-  if (popular.popularMale) winners.push({ person: popular.popularMale, label: '오늘의 인기남' })
-  if (popular.popularFemale) winners.push({ person: popular.popularFemale, label: '오늘의 인기녀' })
+  if (popular.popularMale)
+    winners.push({ person: popular.popularMale, label: '가장 많이 선택된 남성' })
+  if (popular.popularFemale)
+    winners.push({ person: popular.popularFemale, label: '가장 많이 선택된 여성' })
   if (winners.length === 0) return null
 
   return (
     <motion.section
       className={`container ${styles.popular}`}
-      initial={reduce ? false : { opacity: 0, y: 14 }}
+      initial={reduce ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, delay: 0.15, ease: EASE }}
-      aria-label="오늘의 인기 멤버"
+      transition={{ duration: 0.32, delay: 0.08, ease: EASE }}
+      aria-label="오늘 많이 선택된 멤버"
     >
-      <span className={styles.popularKicker}>👑 오늘 가장 사랑받은</span>
+      <span className={styles.popularKicker}>오늘 많이 선택된 멤버</span>
       <div className={styles.popularRow}>
         {winners.map(({ person, label }) => (
           <div key={person.userId} className={styles.popularCard}>
-            <div className={styles.crown} aria-hidden="true">
-              👑
-            </div>
             <Avatar
               size="lg"
               hue="#7A1F3D"
@@ -200,7 +285,7 @@ function PopularBanner({
             <span className={styles.popularLabel}>{label}</span>
             <strong className={styles.popularName}>{person.nickname}</strong>
             <span className={styles.popularLikes}>
-              {person.likes == null ? '많은 호감을 받았어요' : `${person.likes}명에게 호감`}
+              {person.likes == null ? '많은 호감을 받았어요' : `${person.likes}명이 선택`}
             </span>
           </div>
         ))}
@@ -213,68 +298,98 @@ function MatchCard({
   match,
   index,
   reduce,
+  busyKey,
   onChat,
   onCopyHandle,
+  onRequestContact,
+  onDecideContact,
 }: {
   match: PartyMatch
   index: number
   reduce: boolean
+  busyKey: string | null
   onChat: () => void
   onCopyHandle: (handle: string) => void
+  onRequestContact: (partnerId: string, channel: ConnectionChannel) => void
+  onDecideContact: (
+    requestId: string,
+    action: 'approve' | 'reject',
+    partnerId: string,
+    channel: ConnectionChannel,
+  ) => void
 }) {
+  const chat = match.channels.find((channel) => channel.channel === 'chat')
+  const externalChannels = match.channels.filter((channel) => channel.channel !== 'chat')
+
   return (
     <motion.article
       className={`${styles.card} ${match.result === 'mutual' ? styles.cardMutual : ''}`}
-      initial={reduce ? false : { opacity: 0, y: 24, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, delay: Math.min(index * 0.09, 0.6), ease: EASE }}
+      initial={reduce ? false : { opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.25), ease: EASE }}
     >
-      <Avatar
-        size="xl"
-        hue="#7A1F3D"
-        pattern="gradient"
-        emoji={match.nickname[0]}
-        ring={match.result === 'mutual' ? 'glow' : 'gold'}
-      />
-      <h3 className={styles.name}>{match.nickname}</h3>
-      <div
-        style={{
-          display: 'flex',
-          gap: 'var(--space-1)',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-        }}
-      >
-        <Badge tone={match.result === 'mutual' ? 'gold' : 'wine'} size="sm">
-          {RESULT_LABEL[match.result]}
-        </Badge>
-        {match.verified && (
-          <Badge tone="info" size="sm">
-            ✓ 본인인증
-          </Badge>
-        )}
+      <div className={styles.cardTop}>
+        <Avatar
+          size="xl"
+          hue="#7A1F3D"
+          pattern="gradient"
+          emoji={match.nickname[0]}
+          ring={match.result === 'mutual' ? 'glow' : 'gold'}
+        />
+        <div className={styles.identity}>
+          <h3 className={styles.name}>{match.nickname}</h3>
+          <div className={styles.badgeRow}>
+            <Badge tone={match.result === 'mutual' ? 'gold' : 'wine'} size="sm">
+              {RESULT_LABEL[match.result]}
+            </Badge>
+            {match.verified && (
+              <Badge tone="info" size="sm">
+                본인인증
+              </Badge>
+            )}
+          </div>
+        </div>
       </div>
 
       {match.compatibility && (
         <div className={styles.compatGroup}>
-          <div className={styles.compat}>
-            💞 궁합 {match.compatibility.score} · {match.compatibility.title}
-          </div>
-          {match.compatibility.blurb && (
-            <p className={styles.compatBlurb}>{match.compatibility.blurb}</p>
-          )}
+          <strong>
+            궁합 {match.compatibility.score}점, {match.compatibility.title}
+          </strong>
+          {match.compatibility.blurb && <p>{match.compatibility.blurb}</p>}
           {match.compatibility.factors && match.compatibility.factors.length > 0 && (
-            <p className={styles.compatFactors}>{match.compatibility.factors.join(' · ')}</p>
+            <span>{match.compatibility.factors.join(' · ')}</span>
           )}
         </div>
       )}
 
-      <div className={styles.actions}>
-        {match.channels.length === 0 ? (
-          <span className={styles.channelLocked}>아직 열린 연결 채널이 없어요</span>
+      <div className={styles.primaryAction}>
+        <Button variant="primary" size="lg" fullWidth onClick={onChat} disabled={!chat}>
+          채팅 시작하기
+        </Button>
+        {!chat && <span>이 모임은 채팅 채널을 제공하지 않아요.</span>}
+      </div>
+
+      <div className={styles.connections}>
+        <div className={styles.connectionHeader}>
+          <strong>외부 연락처</strong>
+          <span>
+            {externalChannels.length > 0 ? '필요한 채널만 열어보세요' : '제공된 외부 채널 없음'}
+          </span>
+        </div>
+        {externalChannels.length === 0 ? (
+          <span className={styles.channelLocked}>채팅으로 먼저 인사할 수 있어요.</span>
         ) : (
-          match.channels.map((ch) => (
-            <ChannelRow key={ch.channel} channel={ch} onChat={onChat} onCopyHandle={onCopyHandle} />
+          externalChannels.map((channel) => (
+            <ChannelRow
+              key={channel.channel}
+              partnerId={match.partnerId}
+              channel={channel}
+              busyKey={busyKey}
+              onCopyHandle={onCopyHandle}
+              onRequestContact={onRequestContact}
+              onDecideContact={onDecideContact}
+            />
           ))
         )}
       </div>
@@ -283,62 +398,122 @@ function MatchCard({
 }
 
 function ChannelRow({
+  partnerId,
   channel,
-  onChat,
+  busyKey,
   onCopyHandle,
+  onRequestContact,
+  onDecideContact,
 }: {
+  partnerId: string
   channel: MatchChannel
-  onChat: () => void
+  busyKey: string | null
   onCopyHandle: (handle: string) => void
+  onRequestContact: (partnerId: string, channel: ConnectionChannel) => void
+  onDecideContact: (
+    requestId: string,
+    action: 'approve' | 'reject',
+    partnerId: string,
+    channel: ConnectionChannel,
+  ) => void
 }) {
-  const meta = CONNECTION_CHANNELS[channel.channel as ConnectionChannel]
+  const meta = CONNECTION_CHANNELS[channel.channel]
   const [revealed, setRevealed] = useState(false)
-
-  // 앱 내 채팅: 핸들 없이 바로 채팅으로 이어짐
-  if (channel.channel === 'chat') {
-    return (
-      <div className={styles.channel}>
-        <Button variant="primary" size="sm" fullWidth onClick={onChat}>
-          {meta.icon} 채팅으로 이어가기
-        </Button>
-        <span className={styles.commitTag}>{meta.commitmentLabel}</span>
-      </div>
-    )
-  }
-
-  // 외부 채널인데 상대가 아직 공개하지 않은 경우
-  if (channel.handle == null) {
-    return (
-      <div className={styles.channel}>
-        <span className={styles.channelLocked}>
-          {meta.icon} {meta.label} · 상대가 아직 공개하지 않았어요
-        </span>
-      </div>
-    )
-  }
+  const state = channel.state ?? (channel.handle ? 'open' : 'locked')
+  const canShowHandle = !!channel.handle && (state === 'open' || state === 'approved')
+  const requestKey = `${partnerId}:${channel.channel}:request`
+  const approveKey = `${partnerId}:${channel.channel}:approve`
+  const rejectKey = `${partnerId}:${channel.channel}:reject`
 
   return (
     <div className={styles.channel}>
-      {revealed ? (
-        <button
-          type="button"
-          className={styles.handleReveal}
-          onClick={() => onCopyHandle(channel.handle as string)}
-          title="탭하면 복사돼요"
+      <div className={styles.channelTop}>
+        <div className={styles.channelMeta}>
+          <strong>
+            {meta.icon} {meta.label}
+          </strong>
+          <span>{channelHelpText(state, meta.commitmentLabel)}</span>
+        </div>
+        <span className={`${styles.statusPill} ${styles[`state_${state}`]}`}>
+          {STATE_LABEL[state]}
+        </span>
+      </div>
+
+      {canShowHandle ? (
+        revealed ? (
+          <button
+            type="button"
+            className={styles.handleReveal}
+            onClick={() => onCopyHandle(channel.handle as string)}
+            title="누르면 복사돼요"
+          >
+            <span className={styles.handleValue}>{channel.handle}</span>
+            <span className={styles.handleCopy}>복사</span>
+          </button>
+        ) : (
+          <Button variant="soft" size="sm" fullWidth onClick={() => setRevealed(true)}>
+            {meta.short} 보기
+          </Button>
+        )
+      ) : state === 'requestable' || (state === 'rejected' && channel.canRequest) ? (
+        <Button
+          variant="soft"
+          size="sm"
+          fullWidth
+          isLoading={busyKey === requestKey}
+          onClick={() => onRequestContact(partnerId, channel.channel)}
         >
-          <span className={styles.handleIcon}>{meta.icon}</span>
-          <span className={styles.handleValue}>{channel.handle}</span>
-          <span className={styles.handleCopy}>복사</span>
-        </button>
-      ) : (
-        <Button variant="soft" size="sm" fullWidth onClick={() => setRevealed(true)}>
-          {meta.icon} {meta.label} 보기
+          {state === 'rejected' ? `${meta.short} 다시 요청` : `${meta.short} 요청하기`}
         </Button>
+      ) : state === 'pending_them' && channel.requestId ? (
+        <div className={styles.buttonRow}>
+          <Button
+            variant="primary"
+            size="sm"
+            fullWidth
+            isLoading={busyKey === approveKey}
+            onClick={() =>
+              onDecideContact(channel.requestId as string, 'approve', partnerId, channel.channel)
+            }
+          >
+            승인
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            fullWidth
+            isLoading={busyKey === rejectKey}
+            onClick={() =>
+              onDecideContact(channel.requestId as string, 'reject', partnerId, channel.channel)
+            }
+          >
+            거절
+          </Button>
+        </div>
+      ) : (
+        <span className={styles.channelLocked}>{lockedText(state, channel.requestedBy)}</span>
       )}
-      <span className={styles.commitTag}>{meta.commitmentLabel}</span>
+
       {channel.channel === 'phone' && meta.note && (
-        <span className={styles.channelNote}>⚠️ {meta.note}</span>
+        <p className={styles.channelNote}>{meta.note}</p>
       )}
     </div>
   )
+}
+
+function channelHelpText(state: ContactExchangeChannelState, commitment: string) {
+  if (state === 'pending_them') return '상대가 공개를 요청했어요'
+  if (state === 'pending_me') return '상대 승인 대기 중'
+  if (state === 'approved') return '승인되어 확인 가능'
+  if (state === 'requestable') return `${commitment}, 승인 후 공개`
+  if (state === 'rejected') return '요청이 거절됐어요'
+  if (state === 'locked') return '아직 사용할 수 없어요'
+  return commitment
+}
+
+function lockedText(state: ContactExchangeChannelState, requestedBy?: 'me' | 'them' | null) {
+  if (state === 'pending_me') return '요청을 보냈어요. 승인되면 연락처가 보여요.'
+  if (state === 'rejected' && requestedBy === 'them') return '이 요청은 거절했어요.'
+  if (state === 'rejected') return '상대가 이번 요청은 거절했어요.'
+  return '서로의 연락처 공개 설정이 준비되면 요청할 수 있어요.'
 }

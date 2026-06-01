@@ -38,6 +38,7 @@ async function main() {
   await prisma.quizAnswer.deleteMany()
   await prisma.quizQuestion.deleteMany()
   await prisma.finalMatch.deleteMany()
+  await prisma.contactExchangeRequest.deleteMany()
   await prisma.finalMatchVote.deleteMany()
   await prisma.midMatchVote.deleteMany()
   await prisma.pair.deleteMany()
@@ -47,13 +48,18 @@ async function main() {
   await prisma.menuItem.deleteMany()
   await prisma.party.deleteMany()
   await prisma.venue.deleteMany()
+  await prisma.payment.deleteMany()
   await prisma.avatar.deleteMany()
+  await prisma.revenueRuleHistory.deleteMany()
+  await prisma.monitoringPolicyHistory.deleteMany()
+  await prisma.revenueRuleConfig.deleteMany()
+  await prisma.monitoringPolicyConfig.deleteMany()
   await prisma.user.deleteMany()
 
   const pw = await argon2.hash('rotifolk1234!')
 
   // ============ Users (admin + 5W + 5M + host) ============
-  await createUserWithAvatar(
+  const admin = await createUserWithAvatar(
     {
       email: 'admin@rotifolk.dev',
       passwordHash: pw,
@@ -550,6 +556,13 @@ async function main() {
       roundDurationSec: 300,
       totalRounds: 5,
       breakBetweenRoundsSec: 30,
+      matchScope: 'mutual-only',
+      maxMatchesPerPerson: 3,
+      contactExchangePolicy: 'mutual-consent',
+      connectionMode: 'both',
+      connectionChannelsJson: JSON.stringify(['chat', 'instagram', 'kakao', 'phone']),
+      groupAfterParty: false,
+      revealPopular: true,
       enableMidMatching: true,
       enableFinalMatching: true,
       enableQuiz: true,
@@ -582,6 +595,13 @@ async function main() {
       roundDurationSec: 360,
       totalRounds: 5,
       breakBetweenRoundsSec: 60,
+      matchScope: 'top-n',
+      maxMatchesPerPerson: 5,
+      contactExchangePolicy: 'open-after-match',
+      connectionMode: 'both',
+      connectionChannelsJson: JSON.stringify(['chat', 'instagram', 'phone']),
+      groupAfterParty: true,
+      revealPopular: false,
       enableMidMatching: true,
       enableFinalMatching: true,
       enableQuiz: true,
@@ -613,6 +633,13 @@ async function main() {
       roundDurationSec: 480,
       totalRounds: 4,
       breakBetweenRoundsSec: 120,
+      matchScope: 'mutual-plus-top-n',
+      maxMatchesPerPerson: 4,
+      contactExchangePolicy: 'mutual-consent',
+      connectionMode: 'both',
+      connectionChannelsJson: JSON.stringify(['chat', 'instagram', 'kakao']),
+      groupAfterParty: true,
+      revealPopular: true,
       enableMidMatching: true,
       enableFinalMatching: true,
       enableQuiz: false,
@@ -623,6 +650,46 @@ async function main() {
       drinkPackage: 'paired',
       snackPackage: 'course',
       tagsJson: JSON.stringify(['#차', '#한옥', '#코스']),
+    },
+  })
+
+  const approvalStart = inDays(-1)
+  const approvalParty = await prisma.party.create({
+    data: {
+      id: 'p_request',
+      title: '요청 승인형 연락처 교환 데모',
+      description:
+        '매칭 후 채팅은 바로 시작하고, 인스타·카톡·번호는 상대가 승인할 때만 공개되는 안전형 데모 파티.',
+      hostId: host.id,
+      venueId: venues[2].id,
+      coverImageUrl: 'https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=1200',
+      startAt: approvalStart,
+      endAt: afterHours(approvalStart, 2),
+      minParticipants: 4,
+      maxParticipants: 8,
+      status: 'ended',
+      category: 'tea',
+      rotationMode: 'round-robin-pair',
+      roundDurationSec: 360,
+      totalRounds: 4,
+      breakBetweenRoundsSec: 60,
+      matchScope: 'mutual-only',
+      maxMatchesPerPerson: 3,
+      contactExchangePolicy: 'request-approval',
+      connectionMode: 'both',
+      connectionChannelsJson: JSON.stringify(['chat', 'instagram', 'kakao', 'phone']),
+      groupAfterParty: false,
+      revealPopular: true,
+      enableMidMatching: true,
+      enableFinalMatching: true,
+      enableQuiz: false,
+      enableQuestionCards: true,
+      enableLiveOrders: true,
+      enableAvatarOnly: true,
+      basePriceKRW: 28_000,
+      drinkPackage: 'paired',
+      snackPackage: 'pairing-bites',
+      tagsJson: JSON.stringify(['#요청승인', '#연락처교환', '#데모']),
     },
   })
 
@@ -644,6 +711,13 @@ async function main() {
       roundDurationSec: 420,
       totalRounds: 5,
       breakBetweenRoundsSec: 90,
+      matchScope: 'all-participants',
+      maxMatchesPerPerson: 6,
+      contactExchangePolicy: 'chat-only',
+      connectionMode: 'chat',
+      connectionChannelsJson: JSON.stringify(['chat']),
+      groupAfterParty: false,
+      revealPopular: false,
       enableMidMatching: true,
       enableFinalMatching: true,
       enableQuiz: true,
@@ -676,6 +750,13 @@ async function main() {
       roundDurationSec: 600,
       totalRounds: 3,
       breakBetweenRoundsSec: 120,
+      matchScope: 'mutual-only',
+      maxMatchesPerPerson: 3,
+      contactExchangePolicy: 'chat-only',
+      connectionMode: 'chat',
+      connectionChannelsJson: JSON.stringify(['chat']),
+      groupAfterParty: false,
+      revealPopular: false,
       enableMidMatching: false,
       enableFinalMatching: false,
       enableQuiz: false,
@@ -709,6 +790,14 @@ async function main() {
   for (let i = 0; i < 4; i++) {
     await prisma.participation.create({
       data: { partyId: teaParty.id, userId: i % 2 === 0 ? W[i].id : M[i].id, status: 'confirmed' },
+    })
+  }
+  for (let i = 0; i < 2; i++) {
+    await prisma.participation.create({
+      data: { partyId: approvalParty.id, userId: W[i].id, status: 'checked-in', seatNumber: i + 1 },
+    })
+    await prisma.participation.create({
+      data: { partyId: approvalParty.id, userId: M[i].id, status: 'checked-in', seatNumber: i + 3 },
     })
   }
 
@@ -778,6 +867,8 @@ async function main() {
         shareContact: true,
         kakaoId: 'dohyun_m',
         shareKakao: true,
+        instagram: 'dohyun.cellar',
+        shareInstagram: true,
       },
     })
   if (w2)
@@ -788,6 +879,273 @@ async function main() {
   // 민감 정보 설정 데모: w3은 인기 랭킹 비참여, m3은 받은 호감 수 비공개
   if (w3) await prisma.user.update({ where: { id: w3.id }, data: { joinPopularityRanking: false } })
   if (m3) await prisma.user.update({ where: { id: m3.id }, data: { showLikesReceived: false } })
+
+  // ============ 샘플 결제 데이터 ============
+  const paymentNow = new Date()
+  const paymentDateFrom = (dayOffset: number, hour = 19) => {
+    const value = new Date(paymentNow)
+    value.setDate(value.getDate() + dayOffset)
+    value.setHours(hour, 0, 0, 0)
+    return value
+  }
+
+  const whiskyParty = await prisma.party.findFirst({
+    where: { title: '미드나잇 위스키 무제한 페어링' },
+  })
+
+  await prisma.payment.createMany({
+    data: [
+      // wine party: 실제 결제 데이터 8건, 환불 2건
+      {
+        partyId: wineParty.id,
+        userId: W[0].id,
+        amountKRW: 18_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-18),
+        createdAt: paymentDateFrom(-18),
+      },
+      {
+        partyId: wineParty.id,
+        userId: W[1].id,
+        amountKRW: 18_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-16),
+        createdAt: paymentDateFrom(-16),
+      },
+      {
+        partyId: wineParty.id,
+        userId: W[2].id,
+        amountKRW: 18_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-14),
+        createdAt: paymentDateFrom(-14),
+      },
+      {
+        partyId: wineParty.id,
+        userId: M[0].id,
+        amountKRW: 18_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-14),
+        createdAt: paymentDateFrom(-14),
+      },
+      {
+        partyId: wineParty.id,
+        userId: M[1].id,
+        amountKRW: 18_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-12),
+        createdAt: paymentDateFrom(-12),
+      },
+      {
+        partyId: wineParty.id,
+        userId: M[2].id,
+        amountKRW: 18_000,
+        status: 'refunded',
+        refundedAt: paymentDateFrom(-10),
+        createdAt: paymentDateFrom(-10),
+      },
+      {
+        partyId: wineParty.id,
+        userId: M[3].id,
+        amountKRW: 18_000,
+        status: 'refunded',
+        refundedAt: paymentDateFrom(-8),
+        createdAt: paymentDateFrom(-8),
+      },
+      {
+        partyId: wineParty.id,
+        userId: M[4].id,
+        amountKRW: 18_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-6),
+        createdAt: paymentDateFrom(-6),
+      },
+      // coffee party: 결제 5건
+      {
+        partyId: coffeeParty.id,
+        userId: W[3].id,
+        amountKRW: 32_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-12, 18),
+        createdAt: paymentDateFrom(-12, 18),
+      },
+      {
+        partyId: coffeeParty.id,
+        userId: W[4].id,
+        amountKRW: 32_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-11, 18),
+        createdAt: paymentDateFrom(-11, 18),
+      },
+      {
+        partyId: coffeeParty.id,
+        userId: M[0].id,
+        amountKRW: 32_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-10, 18),
+        createdAt: paymentDateFrom(-10, 18),
+      },
+      {
+        partyId: coffeeParty.id,
+        userId: M[1].id,
+        amountKRW: 32_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-9, 18),
+        createdAt: paymentDateFrom(-9, 18),
+      },
+      // tea party: 결제 3건
+      {
+        partyId: teaParty.id,
+        userId: W[0].id,
+        amountKRW: 42_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-4, 17),
+        createdAt: paymentDateFrom(-4, 17),
+      },
+      {
+        partyId: teaParty.id,
+        userId: M[2].id,
+        amountKRW: 42_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-4, 17),
+        createdAt: paymentDateFrom(-4, 17),
+      },
+      {
+        partyId: teaParty.id,
+        userId: M[3].id,
+        amountKRW: 42_000,
+        status: 'paid',
+        paidAt: paymentDateFrom(-3, 17),
+        createdAt: paymentDateFrom(-3, 17),
+      },
+      // whisky party: 결제 2건
+      ...(whiskyParty
+        ? [
+            {
+              partyId: whiskyParty.id,
+              userId: W[4].id,
+              amountKRW: 88_000,
+              status: 'paid',
+              paidAt: paymentDateFrom(-2, 20),
+              createdAt: paymentDateFrom(-2, 20),
+            },
+            {
+              partyId: whiskyParty.id,
+              userId: M[4].id,
+              amountKRW: 88_000,
+              status: 'paid',
+              paidAt: paymentDateFrom(-1, 20),
+              createdAt: paymentDateFrom(-1, 20),
+            },
+          ]
+        : []),
+    ],
+  })
+
+  const winePartyData = await prisma.party.findFirst({
+    where: { title: '한남 루프탑 와인 로테이션 vol.12' },
+  })
+  const coffeePartyData = await prisma.party.findFirst({
+    where: { title: '연남 스페셜티 6종 블라인드 코스' },
+  })
+
+  // ============ 샘플 신고 데이터 ============
+  if (w1 && M[0] && winePartyData) {
+    await prisma.report.create({
+      data: {
+        reporterId: w1.id,
+        targetUserId: M[0].id,
+        partyId: winePartyData.id,
+        kind: 'inappropriate',
+        body: '메시지 톤이 지나치게 공격적이에요.',
+        status: 'open',
+      },
+    })
+  }
+  if (w2 && M[1] && coffeePartyData) {
+    await prisma.report.create({
+      data: {
+        reporterId: w2.id,
+        targetUserId: M[1].id,
+        partyId: coffeePartyData.id,
+        kind: 'spam',
+        body: '홍보성 DM이 반복돼요.',
+        status: 'reviewing',
+      },
+    })
+  }
+  if (w3 && m1) {
+    await prisma.report.create({
+      data: {
+        reporterId: w3.id,
+        targetUserId: m1.id,
+        kind: 'harassment',
+        body: '과도한 개인 질문이 들어왔습니다.',
+        status: 'resolved',
+      },
+    })
+  }
+  if (m2 && W[3]) {
+    await prisma.report.create({
+      data: {
+        reporterId: m2.id,
+        targetUserId: W[3].id,
+        kind: 'other',
+        body: '신고 사유가 모호합니다.',
+        status: 'dismissed',
+      },
+    })
+  }
+
+  // ============ 샘플 수익 정책 히스토리 ============
+  await prisma.revenueRuleConfig.create({
+    data: {
+      key: 'global',
+      platformFeePercent: 8.5,
+      refundRetentionPercent: 5,
+      minimumHostPayoutPercent: 84,
+      updatedBy: admin.id,
+      updatedAt: paymentDateFrom(-20, 9),
+    },
+  })
+  await prisma.monitoringPolicyConfig.create({
+    data: {
+      key: 'global',
+      warningRefundRatePercent: 11,
+      dangerRefundRatePercent: 22,
+      topPartyConcentrationPercent: 68,
+      updatedBy: admin.id,
+      updatedAt: paymentDateFrom(-20, 10),
+    },
+  })
+  await prisma.revenueRuleHistory.create({
+    data: {
+      key: 'global',
+      fromPlatformFeePercent: 7.5,
+      toPlatformFeePercent: 8.5,
+      fromRefundRetentionPercent: 4,
+      toRefundRetentionPercent: 5,
+      fromMinimumHostPayoutPercent: 88,
+      toMinimumHostPayoutPercent: 84,
+      changedBy: admin.id,
+      reason: '분기 테스트용 정책 변경(베이직값 조정)',
+      changedAt: paymentDateFrom(-14, 9),
+    },
+  })
+  await prisma.monitoringPolicyHistory.create({
+    data: {
+      key: 'global',
+      fromWarningRefundRatePercent: 12,
+      toWarningRefundRatePercent: 11,
+      fromDangerRefundRatePercent: 25,
+      toDangerRefundRatePercent: 22,
+      fromTopPartyConcentrationPercent: 70,
+      toTopPartyConcentrationPercent: 68,
+      changedBy: admin.id,
+      reason: '분기 테스트용 임계값 완화',
+      changedAt: paymentDateFrom(-14, 10),
+    },
+  })
 
   // 파티: 연결 채널 4종 모두 제공 + 인기 공개
   await prisma.party.update({
@@ -800,20 +1158,47 @@ async function main() {
   })
 
   // 최종 호감 투표 — m1(인기남)·w1(인기녀)에 표를 모으고 w1↔m1 상호 매칭
-  const mkVote = (fromUserId: string, toUserId: string) =>
+  const mkVoteFor = (partyId: string, fromUserId: string, toUserId: string) =>
     prisma.finalMatchVote.upsert({
-      where: { partyId_fromUserId_toUserId: { partyId: wineParty.id, fromUserId, toUserId } },
-      create: { partyId: wineParty.id, fromUserId, toUserId },
+      where: { partyId_fromUserId_toUserId: { partyId, fromUserId, toUserId } },
+      create: { partyId, fromUserId, toUserId },
       update: {},
     })
+  const mkVote = (fromUserId: string, toUserId: string) =>
+    mkVoteFor(wineParty.id, fromUserId, toUserId)
   if (w1 && m1) {
     await mkVote(w1.id, m1.id)
     await mkVote(m1.id, w1.id) // 상호 매칭
+    await mkVoteFor(approvalParty.id, w1.id, m1.id)
+    await mkVoteFor(approvalParty.id, m1.id, w1.id)
   }
   if (w2 && m1) await mkVote(w2.id, m1.id)
   if (w3 && m1) await mkVote(w3.id, m1.id) // m1 = 인기남 (3표)
   if (m2 && w1) await mkVote(m2.id, w1.id)
   if (m3 && w1) await mkVote(m3.id, w1.id) // w1 = 인기녀 (3표)
+
+  if (w1 && m1) {
+    await prisma.contactExchangeRequest.create({
+      data: {
+        partyId: approvalParty.id,
+        requesterId: m1.id,
+        receiverId: w1.id,
+        channel: 'instagram',
+        status: 'pending',
+      },
+    })
+    await prisma.contactExchangeRequest.create({
+      data: {
+        partyId: approvalParty.id,
+        requesterId: w1.id,
+        receiverId: m1.id,
+        channel: 'kakao',
+        status: 'approved',
+        decidedById: m1.id,
+        decidedAt: new Date(),
+      },
+    })
+  }
 
   // 회피 목록 데모 (라벨만 — 해시는 데모용 임의값)
   if (w1)

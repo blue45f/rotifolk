@@ -61,6 +61,14 @@ export type MatchScope =
   | 'mutual-only' // 서로 지목한 상호 매칭만
   | 'top-n' // 누적 호감 상위 N명까지 연결(상호 아니어도)
   | 'all-participants' // 참가자 전원 연결
+  | 'mutual-plus-top-n' // 상호 매칭 + 상호가 아닌 상위 N명 보완
+
+/** 연락처 교환 방식. */
+export type ContactExchangePolicy =
+  | 'mutual-consent' // 둘 다 공개 동의 + 상대 핸들 존재
+  | 'chat-only' // 앱 내 채팅만 열고 외부 채널 잠금
+  | 'open-after-match' // 라운드 성사 시 제공된 채널을 즉시 공개
+  | 'request-approval' // 외부 채널은 상대 요청-승인으로 공개
 
 /** 연결 매체 (레거시 단일 선택). */
 export type ConnectionMode = 'chat' | 'phone' | 'both'
@@ -133,6 +141,25 @@ export const CONNECTION_CHANNELS: Record<ConnectionChannel, ConnectionChannelMet
   },
 }
 
+export const CONTACT_EXCHANGE_POLICY_LABEL: Record<ContactExchangePolicy, string> = {
+  'mutual-consent': '상호 동의',
+  'chat-only': '채팅만',
+  'open-after-match': '매칭 즉시 공개',
+  'request-approval': '요청 승인',
+}
+
+/** 연락처 요청형 공개 상태 (매칭 후 요청·승인 워크플로우용). */
+export type ContactExchangeChannelState =
+  | 'open'
+  | 'requestable'
+  | 'pending_me'
+  | 'pending_them'
+  | 'approved'
+  | 'rejected'
+  | 'locked'
+
+export type ContactExchangeRequestStatus = 'pending' | 'approved' | 'rejected'
+
 /** 레거시 connectionMode → 채널 배열 (하위호환). */
 export function channelsFromLegacyMode(mode: ConnectionMode): ConnectionChannel[] {
   if (mode === 'phone') return ['phone']
@@ -179,6 +206,7 @@ export interface PartyConfig {
   // ── 매칭 결과 정책 ──
   matchScope: MatchScope
   maxMatchesPerPerson: number
+  contactExchangePolicy: ContactExchangePolicy
   /** @deprecated connectionChannels 사용. 하위호환 위해 유지. */
   connectionMode: ConnectionMode
   /** 호스트가 이 파티에서 제공하는 연결 채널 (다중). 미지정 시 connectionMode에서 유도. */

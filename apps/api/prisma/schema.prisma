@@ -96,6 +96,9 @@ model User {
   notesSent         PartyNote[]       @relation("NoteFrom")
   notesReceived     PartyNote[]       @relation("NoteTo")
   avoidContacts     AvoidContact[]    @relation("AvoidOwner")
+  contactExchangeRequestsSent     ContactExchangeRequest[] @relation("ContactExchangeRequester")
+  contactExchangeRequestsReceived ContactExchangeRequest[] @relation("ContactExchangeReceiver")
+  contactExchangeRequestsDecided  ContactExchangeRequest[] @relation("ContactExchangeDecider")
 
   @@index([role])
   @@index([createdAt])
@@ -221,7 +224,8 @@ model Party {
   enableAvatarOnly      Boolean @default(false)
 
   // ── 매칭 결과 정책 (차별화) ──
-  matchScope             String  @default("mutual-only") // mutual-only | top-n | all-participants
+  matchScope             String  @default("mutual-only") // mutual-only | top-n | all-participants | mutual-plus-top-n
+  contactExchangePolicy  String  @default("mutual-consent") // mutual-consent | chat-only | open-after-match
   maxMatchesPerPerson    Int     @default(3) // top-n일 때 1인당 최대 연결 수
   connectionMode         String  @default("chat") // (레거시) chat | phone | both
   connectionChannelsJson String  @default("[\"chat\"]") // 제공 연결 채널 ["chat","instagram","kakao","phone"]
@@ -299,6 +303,7 @@ model Party {
   payments        Payment[]
   notes           PartyNote[]
   venueBooking    VenueBooking?
+  contactExchangeRequests ContactExchangeRequest[]
 
   @@index([status, startAt])
   @@index([category])
@@ -401,6 +406,28 @@ model FinalMatch {
 
   @@unique([partyId, userAId, userBId])
   @@index([partyId])
+}
+
+model ContactExchangeRequest {
+  id          String   @id @default(cuid())
+  partyId     String
+  party       Party    @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  requesterId String
+  requester   User     @relation("ContactExchangeRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User     @relation("ContactExchangeReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  decidedById String?
+  decidedBy   User?    @relation("ContactExchangeDecider", fields: [decidedById], references: [id], onDelete: SetNull)
+  channel     String
+  status      String   @default("pending") // pending | approved | rejected
+  decidedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([partyId, requesterId, receiverId, channel])
+  @@index([partyId, receiverId, status])
+  @@index([partyId, requesterId, status])
+  @@index([decidedById])
 }
 
 // ======================== QUIZ ========================

@@ -1,4 +1,5 @@
-import type { ConnectionChannel, MatchScope } from '../domain/party'
+import type { ConnectionChannel, ContactExchangeChannelState, MatchScope } from '../domain/party'
+import type { ContactExchangePolicy } from '../domain/party'
 import { CONNECTION_CHANNEL_ORDER } from '../domain/party'
 import { findMutualMatches, type RawVote } from './final-match'
 
@@ -57,6 +58,13 @@ export function computeConnections(input: ComputeConnectionsInput): Connection[]
     return out
   }
 
+  if (scope === 'mutual-plus-top-n') {
+    const mutual = computeMutualConnections(votes)
+    const top = computeTopN(input)
+    const seen = new Set<string>(mutual.map((c) => pairKey(c.userAId, c.userBId)))
+    return [...mutual, ...top.filter((c) => !seen.has(pairKey(c.userAId, c.userBId)))]
+  }
+
   // top-n: 각 사용자의 호감 상위 N명 (아래 함수와 분리)
   return computeTopN(input)
 }
@@ -88,6 +96,10 @@ function computeTopN(input: ComputeConnectionsInput): Connection[] {
   return out
 }
 
+function computeMutualConnections(votes: readonly RawVote[]): Connection[] {
+  return findMutualMatches(votes).map((m) => ({ ...m, result: 'mutual' as const }))
+}
+
 // ──────────────────────── 연결 채널 공개 (상호 동의) ────────────────────────
 
 /** 한 사용자의 채널별 공개 동의 + 핸들 값. */
@@ -104,6 +116,11 @@ export interface RevealedChannel {
   channel: ConnectionChannel
   /** chat은 앱 내에서 바로 열리므로 null. 그 외는 상대 핸들(양쪽 동의 시에만). */
   handle: string | null
+  /** 요청 승인형 정책에서 UI가 표시할 채널 상태. 기존 정책은 생략 가능. */
+  state?: ContactExchangeChannelState
+  requestId?: string | null
+  requestedBy?: 'me' | 'them' | null
+  canRequest?: boolean
 }
 
 function handleFor(channel: ConnectionChannel, them: UserContact): string | null {
@@ -141,6 +158,41 @@ export function resolveSharedChannels(
     out.push({ channel, handle })
   }
   return out
+}
+
+export function resolveChannelsByPolicy(
+  policy: ContactExchangePolicy,
+  offered: readonly ConnectionChannel[],
+  me: UserContact,
+  them: UserContact,
+): RevealedChannel[] {
+  switch (policy) {
+    case 'chat-only': {
+      return offered.includes('chat') ? [{ channel: 'chat', handle: null }] : []
+    }
+    case 'open-after-match': {
+      const out: RevealedChannel[] = []
+      for (const channel of CONNECTION_CHANNEL_ORDER) {
+        if (!offered.includes(channel)) continue
+        if (channel === 'chat') {
+          out.push({ channel, handle: null })
+          continue
+        }
+        const handle = handleFor(channel, them)
+        if (!handle) continue
+        out.push({ channel, handle })
+      }
+      return out
+    }
+    case 'request-approval': {
+      // 연락처 요청·승인 방식은 매칭 직후 바로 노출하지 않고, 별도 승인 플로우에서 처리.
+      // 기본 채널은 앱 내 채팅만 공개 상태를 유지.
+      return offered.includes('chat') ? [{ channel: 'chat', handle: null }] : []
+    }
+    case 'mutual-consent':
+    default:
+      return resolveSharedChannels(offered, me, them)
+  }
 }
 
 // ──────────────────────── 회피 제외 ────────────────────────

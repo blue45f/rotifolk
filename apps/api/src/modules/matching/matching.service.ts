@@ -18,19 +18,21 @@ import {
   computeForbiddenPairs,
   computePopularity,
   filterConnectionsExcluding,
-  findMutualMatches,
   groupByN,
   repairForbiddenPairs,
-  resolveSharedChannels,
+  CONNECTION_CHANNEL_ORDER,
+  resolveChannelsByPolicy,
   shuffle,
 } from '@rotifolk/shared'
 import type {
   ConnectionChannel,
   ConnectionMode,
+  ContactExchangePolicy,
   ForbiddenParticipant,
   Gender,
   HeteroParticipant,
   MatchScope,
+  RevealedChannel,
   UserContact,
 } from '@rotifolk/shared'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
@@ -271,16 +273,30 @@ export class MatchingService {
     if (!party || party.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트 권한이 필요해요' })
 
-    const votes = await this.prisma.finalMatchVote.findMany({ where: { partyId } })
-    const mutuals = findMutualMatches(
-      votes.map((v) => ({ fromUserId: v.fromUserId, toUserId: v.toUserId })),
+    const [votes, participants, forbiddenPairs] = await Promise.all([
+      this.prisma.finalMatchVote.findMany({ where: { partyId } }),
+      this.prisma.participation.findMany({
+        where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
+        select: { userId: true },
+      }),
+      this.forbiddenPairsForParty(partyId),
+    ])
+    const normalizedVotes = votes.map((v) => ({ fromUserId: v.fromUserId, toUserId: v.toUserId }))
+    const connections = filterConnectionsExcluding(
+      computeConnections({
+        scope: party.matchScope as MatchScope,
+        votes: normalizedVotes,
+        allUserIds: participants.map((p) => p.userId),
+        maxPerPerson: party.maxMatchesPerPerson,
+      }),
+      forbiddenPairs,
     )
 
     // 기존 매칭 삭제 + 새 매칭 생성을 한 트랜잭션으로 — 중간 실패 시 매칭이 유실되지 않게.
     const created = await this.prisma.$transaction(async (tx) => {
       await tx.finalMatch.deleteMany({ where: { partyId } })
       return Promise.all(
-        mutuals.map((m) =>
+        connections.map((m) =>
           tx.finalMatch.create({
             data: {
               partyId,
@@ -339,7 +355,7 @@ export class MatchingService {
     if (!party)
       throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
 
-    const [votes, participants, me, forbiddenPairs] = await Promise.all([
+    const [votes, participants, me, forbiddenPairs, contactRequests] = await Promise.all([
       this.prisma.finalMatchVote.findMany({
         where: { partyId },
         select: { fromUserId: true, toUserId: true },
@@ -354,12 +370,21 @@ export class MatchingService {
           shareContact: true,
           shareKakao: true,
           shareInstagram: true,
+          phone: true,
+          kakaoId: true,
+          instagram: true,
           mbti: true,
           interestsJson: true,
           birthYear: true,
         },
       }),
       this.forbiddenPairsForParty(partyId),
+      this.prisma.contactExchangeRequest.findMany({
+        where: {
+          partyId,
+          status: { in: ['pending', 'approved', 'rejected'] },
+        },
+      }),
     ])
 
     const connections = filterConnectionsExcluding(
@@ -381,10 +406,15 @@ export class MatchingService {
       parsedChannels.length > 0
         ? parsedChannels
         : channelsFromLegacyMode(party.connectionMode as ConnectionMode)
+    const contactExchangePolicy = (party.contactExchangePolicy ??
+      'mutual-consent') as ContactExchangePolicy
     const meContact: UserContact = {
       shareContact: me?.shareContact ?? false,
       shareKakao: me?.shareKakao ?? false,
       shareInstagram: me?.shareInstagram ?? false,
+      phone: me?.phone ?? null,
+      kakaoId: me?.kakaoId ?? null,
+      instagram: me?.instagram ?? null,
     }
 
     const partners = await this.prisma.user.findMany({
@@ -424,7 +454,17 @@ export class MatchingService {
     const matches = partnerIds.map((pid) => {
       const p = pmap.get(pid)
       const conn = mine.find((c) => c.userAId === pid || c.userBId === pid)
-      const channels = resolveSharedChannels(offeredChannels, meContact, p ?? {})
+      const channels =
+        contactExchangePolicy === 'request-approval'
+          ? this.resolveRequestApprovalChannels({
+              requesterId: userId,
+              partnerId: pid,
+              requester: meContact,
+              partner: p,
+              offeredChannels,
+              requests: contactRequests,
+            })
+          : resolveChannelsByPolicy(contactExchangePolicy, offeredChannels, meContact, p ?? {})
       const phone = channels.find((c) => c.channel === 'phone')?.handle ?? null
       const compat = computeCompatibility(
         meCompat,
@@ -454,6 +494,7 @@ export class MatchingService {
 
     return {
       scope: party.matchScope,
+      contactExchangePolicy,
       connectionChannels: offeredChannels,
       groupAfterParty: party.groupAfterParty,
       popularity,
@@ -461,6 +502,356 @@ export class MatchingService {
       myLikesReceived: votes.filter((v) => v.toUserId === userId).length,
       matches,
     }
+  }
+
+  async requestContactExchange(
+    requesterId: string,
+    partyId: string,
+    partnerId: string,
+    channel: ConnectionChannel,
+  ) {
+    if (requesterId === partnerId) {
+      throw new BadRequestException({ code: 'self_request', message: '본인은 요청할 수 없어요' })
+    }
+
+    const party = await this.prisma.party.findUnique({
+      where: { id: partyId },
+      select: {
+        id: true,
+        connectionChannelsJson: true,
+        connectionMode: true,
+        contactExchangePolicy: true,
+      },
+    })
+    if (!party) {
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    }
+    if ((party.contactExchangePolicy ?? 'mutual-consent') !== 'request-approval') {
+      throw new BadRequestException({
+        code: 'policy_not_request_approval',
+        message: '이 파티는 요청 승인 방식이 아니에요',
+      })
+    }
+    if (channel === 'chat') {
+      throw new BadRequestException({
+        code: 'chat_channel_not_requestable',
+        message: '앱 내 채팅은 바로 열 수 있어요',
+      })
+    }
+
+    const offeredChannels = parseJsonArray<ConnectionChannel>(party.connectionChannelsJson).filter(
+      Boolean,
+    )
+    if (offeredChannels.length === 0) {
+      const fallback = channelsFromLegacyMode((party.connectionMode ?? 'chat') as ConnectionMode)
+      offeredChannels.push(...fallback)
+    }
+    if (!offeredChannels.includes(channel)) {
+      throw new BadRequestException({
+        code: 'channel_not_offered',
+        message: '이 채널은 이 모임에서 제공되지 않는 채널이에요',
+      })
+    }
+
+    await Promise.all([
+      this.assertParticipant(partyId, requesterId),
+      this.assertParticipant(partyId, partnerId),
+    ])
+    await this.ensureMatchedPair(partyId, requesterId, partnerId)
+
+    const [requester, partner] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id: requesterId },
+        select: {
+          shareContact: true,
+          shareKakao: true,
+          shareInstagram: true,
+          phone: true,
+          kakaoId: true,
+          instagram: true,
+        },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: partnerId },
+        select: {
+          shareContact: true,
+          shareKakao: true,
+          shareInstagram: true,
+          phone: true,
+          kakaoId: true,
+          instagram: true,
+        },
+      }),
+    ])
+    if (!requester || !partner) {
+      throw new NotFoundException({
+        code: 'user_not_found',
+        message: '상대 사용자 정보를 찾을 수 없어요',
+      })
+    }
+
+    if (!this.hasContactHandle(requester, channel) || !this.hasContactHandle(partner, channel)) {
+      throw new BadRequestException({
+        code: 'contact_not_available',
+        message: '서로의 연락처 공개 설정이 준비되어 있지 않아요',
+      })
+    }
+
+    const existing = await this.prisma.contactExchangeRequest.findUnique({
+      where: {
+        partyId_requesterId_receiverId_channel: {
+          partyId,
+          requesterId,
+          receiverId: partnerId,
+          channel,
+        },
+      },
+    })
+
+    if (existing && existing.status === 'approved') {
+      return { requestId: existing.id, status: existing.status, channel: existing.channel }
+    }
+    if (existing && existing.status === 'pending') {
+      return { requestId: existing.id, status: existing.status, channel: existing.channel }
+    }
+
+    const record =
+      existing?.status === 'rejected'
+        ? await this.prisma.contactExchangeRequest.update({
+            where: { id: existing.id },
+            data: { status: 'pending', decidedAt: null, decidedById: null },
+          })
+        : await this.prisma.contactExchangeRequest.create({
+            data: {
+              partyId,
+              requesterId,
+              receiverId: partnerId,
+              channel,
+              status: 'pending',
+            },
+          })
+
+    return { requestId: record.id, status: record.status, channel: record.channel }
+  }
+
+  async decideContactExchangeRequest(
+    deciderId: string,
+    partyId: string,
+    requestId: string,
+    action: 'approve' | 'reject',
+  ) {
+    const request = await this.prisma.contactExchangeRequest.findUnique({
+      where: { id: requestId },
+      select: {
+        id: true,
+        partyId: true,
+        requesterId: true,
+        receiverId: true,
+        channel: true,
+        status: true,
+      },
+    })
+    if (!request || request.partyId !== partyId) {
+      throw new NotFoundException({
+        code: 'contact_request_not_found',
+        message: '연락처 요청 내역이 없어요',
+      })
+    }
+    if (request.receiverId !== deciderId) {
+      throw new ForbiddenException({
+        code: 'not_request_receiver',
+        message: '요청을 승인/거절할 수 있는 상대가 아니에요',
+      })
+    }
+    if (request.status !== 'pending') {
+      return {
+        requestId: request.id,
+        status: request.status,
+        channel: request.channel,
+      }
+    }
+    if (action !== 'approve' && action !== 'reject') {
+      throw new BadRequestException({
+        code: 'invalid_action',
+        message: '허용되지 않은 처리 방식이에요',
+      })
+    }
+
+    const updated = await this.prisma.contactExchangeRequest.update({
+      where: { id: requestId },
+      data: {
+        status: action === 'approve' ? 'approved' : 'rejected',
+        decidedAt: new Date(),
+        decidedById: deciderId,
+      },
+    })
+    return {
+      requestId: updated.id,
+      status: updated.status,
+      channel: updated.channel,
+      decidedById: updated.decidedById,
+    }
+  }
+
+  private resolveRequestApprovalChannels(input: {
+    requesterId: string
+    partnerId: string
+    requester: UserContact
+    partner?: UserContact | null
+    offeredChannels: readonly ConnectionChannel[]
+    requests: readonly {
+      id: string
+      requesterId: string
+      receiverId: string
+      channel: string
+      status: string
+    }[]
+  }): RevealedChannel[] {
+    const offered = new Set(input.offeredChannels)
+    const out: RevealedChannel[] = []
+
+    for (const channel of CONNECTION_CHANNEL_ORDER) {
+      if (!offered.has(channel)) continue
+      if (channel === 'chat') {
+        out.push({ channel, handle: null, state: 'open', canRequest: false })
+        continue
+      }
+
+      const pairRequests = input.requests.filter(
+        (r) =>
+          r.channel === channel &&
+          ((r.requesterId === input.requesterId && r.receiverId === input.partnerId) ||
+            (r.requesterId === input.partnerId && r.receiverId === input.requesterId)),
+      )
+      const approved = pairRequests.find((r) => r.status === 'approved')
+      if (approved) {
+        out.push({
+          channel,
+          handle: this.contactHandleFor(input.partner, channel),
+          state: this.hasContactHandle(input.partner, channel) ? 'approved' : 'locked',
+          requestId: approved.id,
+          requestedBy: approved.requesterId === input.requesterId ? 'me' : 'them',
+          canRequest: false,
+        })
+        continue
+      }
+
+      const incomingPending = pairRequests.find(
+        (r) =>
+          r.status === 'pending' &&
+          r.requesterId === input.partnerId &&
+          r.receiverId === input.requesterId,
+      )
+      if (incomingPending) {
+        out.push({
+          channel,
+          handle: null,
+          state: 'pending_them',
+          requestId: incomingPending.id,
+          requestedBy: 'them',
+          canRequest: false,
+        })
+        continue
+      }
+
+      const outgoingPending = pairRequests.find(
+        (r) =>
+          r.status === 'pending' &&
+          r.requesterId === input.requesterId &&
+          r.receiverId === input.partnerId,
+      )
+      if (outgoingPending) {
+        out.push({
+          channel,
+          handle: null,
+          state: 'pending_me',
+          requestId: outgoingPending.id,
+          requestedBy: 'me',
+          canRequest: false,
+        })
+        continue
+      }
+
+      const rejected = pairRequests.find((r) => r.status === 'rejected')
+      const canRequest =
+        this.hasContactHandle(input.requester, channel) &&
+        this.hasContactHandle(input.partner, channel)
+      out.push({
+        channel,
+        handle: null,
+        state: rejected ? 'rejected' : canRequest ? 'requestable' : 'locked',
+        requestId: rejected?.id ?? null,
+        requestedBy: rejected ? (rejected.requesterId === input.requesterId ? 'me' : 'them') : null,
+        canRequest: canRequest && (!rejected || rejected.requesterId === input.requesterId),
+      })
+    }
+
+    return out
+  }
+
+  private async ensureMatchedPair(partyId: string, userAId: string, userBId: string) {
+    const [party, votes, participants, forbiddenPairs] = await Promise.all([
+      this.prisma.party.findUnique({
+        where: { id: partyId },
+        select: { matchScope: true, maxMatchesPerPerson: true },
+      }),
+      this.prisma.finalMatchVote.findMany({
+        where: { partyId },
+        select: { fromUserId: true, toUserId: true },
+      }),
+      this.prisma.participation.findMany({
+        where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
+        select: { userId: true },
+      }),
+      this.forbiddenPairsForParty(partyId),
+    ])
+    if (!party) {
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    }
+
+    const connections = filterConnectionsExcluding(
+      computeConnections({
+        scope: party.matchScope as MatchScope,
+        votes,
+        allUserIds: participants.map((p) => p.userId),
+        maxPerPerson: party.maxMatchesPerPerson,
+      }),
+      forbiddenPairs,
+    )
+    const isMatched = connections.some(
+      (c) =>
+        (c.userAId === userAId && c.userBId === userBId) ||
+        (c.userAId === userBId && c.userBId === userAId),
+    )
+    if (!isMatched) {
+      throw new BadRequestException({
+        code: 'not_matched_pair',
+        message: '매칭된 상대에게만 연락처를 요청할 수 있어요',
+      })
+    }
+  }
+
+  private hasContactHandle(
+    user: UserContact | null | undefined,
+    channel: ConnectionChannel,
+  ): boolean {
+    if (channel === 'chat') return true
+    if (!user) return false
+    if (channel === 'instagram') return !!user.shareInstagram && !!user.instagram
+    if (channel === 'kakao') return !!user.shareKakao && !!user.kakaoId
+    if (channel === 'phone') return !!user.shareContact && !!user.phone
+    return false
+  }
+
+  private contactHandleFor(
+    user: UserContact | null | undefined,
+    channel: ConnectionChannel,
+  ): string | null {
+    if (!this.hasContactHandle(user, channel)) return null
+    if (channel === 'instagram') return user?.instagram ?? null
+    if (channel === 'kakao') return user?.kakaoId ?? null
+    if (channel === 'phone') return user?.phone ?? null
+    return null
   }
 
   /**

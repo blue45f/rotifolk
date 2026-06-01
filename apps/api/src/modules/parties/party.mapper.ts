@@ -19,6 +19,7 @@ import type {
   MatchScope,
   ConnectionMode,
   ConnectionChannel,
+  ContactExchangePolicy,
   NoteDelivery,
   PricingRule,
   VerificationField,
@@ -90,6 +91,8 @@ export function toParty(row: PartyRow, participationCount?: number): Party {
       groupSize: row.groupSize,
       matchScope: row.matchScope as MatchScope,
       maxMatchesPerPerson: row.maxMatchesPerPerson,
+      contactExchangePolicy:
+        (row.contactExchangePolicy as ContactExchangePolicy) ?? 'mutual-consent',
       connectionMode,
       connectionChannels,
       revealPopular: row.revealPopular,

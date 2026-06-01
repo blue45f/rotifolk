@@ -6,6 +6,7 @@ import type {
   PartySummary,
   QuestionCard,
   RevenueHealthAlertThreshold,
+  ConnectionChannel,
 } from '@rotifolk/shared'
 import { REVENUE_MONITORING_POLICY, computeRevenueHealthScore } from '@rotifolk/shared'
 import { quoteVenueBooking, recommendVenues, suggestOffHoursSlots } from '@rotifolk/shared'
@@ -68,6 +69,18 @@ interface MockPayment {
     startAt: string
     coverImageUrl: string | null | undefined
   } | null
+}
+
+interface MockContactExchangeRequest {
+  id: string
+  partyId: string
+  requesterId: string
+  receiverId: string
+  channel: ConnectionChannel
+  status: 'pending' | 'approved' | 'rejected'
+  decidedById: string | null
+  decidedAt: string | null
+  createdAt: string
 }
 
 interface MockRevenueRuleConfig {
@@ -1029,6 +1042,30 @@ function getMockHostRevenueSummary({
 const mockChatRooms: MockChatRoom[] = []
 const mockChatMessages: Record<string, MockChatMessage[]> = {}
 const mockPayments: MockPayment[] = []
+const mockContactExchangeRequests: MockContactExchangeRequest[] = [
+  {
+    id: 'cx_mock_pending_instagram',
+    partyId: 'p_request',
+    requesterId: 'u_w1',
+    receiverId: 'u_host',
+    channel: 'instagram',
+    status: 'pending',
+    decidedById: null,
+    decidedAt: null,
+    createdAt: nowIso(),
+  },
+  {
+    id: 'cx_mock_approved_kakao',
+    partyId: 'p_request',
+    requesterId: 'u_host',
+    receiverId: 'u_w1',
+    channel: 'kakao',
+    status: 'approved',
+    decidedById: 'u_w1',
+    decidedAt: nowIso(),
+    createdAt: nowIso(),
+  },
+]
 const mockAvoidPeople: Array<{ id: string; label: string | null; createdAt: string }> = [
   { id: 'avoid-person-1', label: '전 직장 지인', createdAt: nowIso() },
 ]
@@ -1083,6 +1120,92 @@ function ensureMockChatRoom(partyId: string): MockChatRoom {
     createdAt: mockChatMessages[id][0].createdAt,
   }
   return room
+}
+
+function mockContactHandle(userId: string, channel: ConnectionChannel): string | null {
+  const user = mockUsers.find((item) => item.id === userId)
+  if (!user) return null
+  if (channel === 'instagram') return user.shareInstagram ? (user.instagram ?? null) : null
+  if (channel === 'kakao') return user.shareKakao ? (user.kakaoId ?? null) : null
+  if (channel === 'phone') return user.shareContact ? (user.phone ?? null) : null
+  return null
+}
+
+function mockCanRequestContact(userId: string, partnerId: string, channel: ConnectionChannel) {
+  return !!mockContactHandle(userId, channel) && !!mockContactHandle(partnerId, channel)
+}
+
+function buildMockRequestApprovalChannels(
+  partyId: string,
+  userId: string,
+  partnerId: string,
+  offeredChannels: ConnectionChannel[],
+) {
+  return offeredChannels.map((channel) => {
+    if (channel === 'chat') {
+      return { channel, handle: null, state: 'open', canRequest: false }
+    }
+    const pairRequests = mockContactExchangeRequests.filter(
+      (request) =>
+        request.partyId === partyId &&
+        request.channel === channel &&
+        ((request.requesterId === userId && request.receiverId === partnerId) ||
+          (request.requesterId === partnerId && request.receiverId === userId)),
+    )
+    const approved = pairRequests.find((request) => request.status === 'approved')
+    if (approved) {
+      return {
+        channel,
+        handle: mockContactHandle(partnerId, channel),
+        state: 'approved',
+        requestId: approved.id,
+        requestedBy: approved.requesterId === userId ? 'me' : 'them',
+        canRequest: false,
+      }
+    }
+    const incoming = pairRequests.find(
+      (request) =>
+        request.status === 'pending' &&
+        request.requesterId === partnerId &&
+        request.receiverId === userId,
+    )
+    if (incoming) {
+      return {
+        channel,
+        handle: null,
+        state: 'pending_them',
+        requestId: incoming.id,
+        requestedBy: 'them',
+        canRequest: false,
+      }
+    }
+    const outgoing = pairRequests.find(
+      (request) =>
+        request.status === 'pending' &&
+        request.requesterId === userId &&
+        request.receiverId === partnerId,
+    )
+    if (outgoing) {
+      return {
+        channel,
+        handle: null,
+        state: 'pending_me',
+        requestId: outgoing.id,
+        requestedBy: 'me',
+        canRequest: false,
+      }
+    }
+    const rejected = pairRequests.find((request) => request.status === 'rejected')
+    const canRequest = mockCanRequestContact(userId, partnerId, channel)
+    return {
+      channel,
+      handle: null,
+      state: rejected ? 'rejected' : canRequest ? 'requestable' : 'locked',
+      requestId: rejected?.id ?? null,
+      requestedBy: rejected ? (rejected.requesterId === userId ? 'me' : 'them') : null,
+      canRequest: canRequest && (!rejected || rejected.requesterId === userId),
+    }
+  })
 }
 
 function shapePayment(payment: MockPayment) {
@@ -1220,8 +1343,10 @@ export const handlers = [
         rotationFormat: 'one-on-one',
         groupSize: 2,
         matchScope: 'mutual-only',
+        contactExchangePolicy: 'mutual-consent',
         maxMatchesPerPerson: 3,
         connectionMode: 'chat',
+        connectionChannels: ['chat', 'instagram'],
         groupAfterParty: false,
         enableNotes: true,
         noteDelivery: 'party-end',
@@ -2328,37 +2453,145 @@ export const handlers = [
   }),
 
   // Match reveal — 내 인연 (파티 정책대로 산출; mock은 상호 매칭 1건)
-  http.get(`${API}/parties/:partyId/matching/my-matches`, async () =>
-    HttpResponse.json(
+  http.get(`${API}/parties/:partyId/matching/my-matches`, async ({ params }) => {
+    const partyId = String(params.partyId)
+    const party = mockParties.find((p) => p.id === partyId)
+    const scope = party?.config?.matchScope ?? 'mutual-only'
+    const contactExchangePolicy = party?.config?.contactExchangePolicy ?? 'mutual-consent'
+    const connectionChannels = party?.config?.connectionChannels ?? ['chat', 'instagram']
+    const isChatOnly = contactExchangePolicy === 'chat-only'
+    const userId = 'u_host'
+    const partnerId = 'u_w1'
+    const channels =
+      contactExchangePolicy === 'request-approval'
+        ? buildMockRequestApprovalChannels(partyId, userId, partnerId, connectionChannels)
+        : connectionChannels.map((channel) => ({
+            channel,
+            handle:
+              channel === 'chat' || isChatOnly
+                ? null
+                : mockContactHandle(partnerId, channel as ConnectionChannel),
+          }))
+
+    return HttpResponse.json(
       await delay({
-        scope: 'mutual-only',
-        connectionMode: 'both',
-        connectionChannels: ['chat', 'instagram', 'kakao', 'phone'],
-        groupAfterParty: true,
+        scope,
+        contactExchangePolicy,
+        connectionChannels,
+        groupAfterParty: Boolean(party?.config?.groupAfterParty),
         myLikesReceived: 3,
         matches: [
           {
-            partnerId: 'u_w1',
+            partnerId,
             nickname: '윤슬',
             avatarId: 'a_w1',
-            result: 'mutual',
-            phone: '010-1234-5678',
+            result:
+              scope === 'top-n' ? 'top-pick' : scope === 'all-participants' ? 'all' : 'mutual',
+            phone: isChatOnly ? null : '010-1234-5678',
             compatibility: {
               score: 87,
               title: '천생연분 ✨',
               blurb: '오늘 같은 흐름, 흔치 않아요.',
             },
             verified: true,
-            channels: [
-              { channel: 'chat', handle: null },
-              { channel: 'kakao', handle: 'yoonseul_wine' },
-              { channel: 'instagram', handle: null },
-              { channel: 'phone', handle: '010-1234-5678' },
-            ],
+            channels,
           },
+          ...(scope === 'top-n' || scope === 'mutual-plus-top-n'
+            ? [
+                {
+                  partnerId: 'u_w2',
+                  nickname: '안개',
+                  avatarId: 'a_w2',
+                  result: 'top-pick',
+                  phone: isChatOnly ? null : '010-9999-8888',
+                  compatibility: {
+                    score: 74,
+                    title: '탐색 가능성',
+                    blurb: '대화 주제 호환성이 높은 편이에요.',
+                  },
+                  verified: false,
+                  channels: [
+                    { channel: 'chat', handle: null },
+                    { channel: 'instagram', handle: isChatOnly ? null : 'haeun_pic' },
+                    { channel: 'kakao', handle: isChatOnly ? null : null },
+                    { channel: 'phone', handle: isChatOnly ? null : '010-9999-8888' },
+                  ],
+                },
+              ]
+            : []),
         ],
       }),
-    ),
+    )
+  }),
+
+  http.post(
+    `${API}/parties/:partyId/matching/contact-requests/:partnerId`,
+    async ({ params, request }) => {
+      const partyId = String(params.partyId)
+      const partnerId = String(params.partnerId)
+      const body = (await request.json()) as { channel: ConnectionChannel }
+      const userId = 'u_host'
+      const existing = mockContactExchangeRequests.find(
+        (item) =>
+          item.partyId === partyId &&
+          item.requesterId === userId &&
+          item.receiverId === partnerId &&
+          item.channel === body.channel,
+      )
+      if (existing) {
+        existing.status = 'pending'
+        existing.decidedAt = null
+        existing.decidedById = null
+        return HttpResponse.json(
+          await delay({
+            requestId: existing.id,
+            status: existing.status,
+            channel: existing.channel,
+          }),
+        )
+      }
+
+      const record: MockContactExchangeRequest = {
+        id: `cx_mock_${Date.now()}`,
+        partyId,
+        requesterId: userId,
+        receiverId: partnerId,
+        channel: body.channel,
+        status: 'pending',
+        decidedById: null,
+        decidedAt: null,
+        createdAt: nowIso(),
+      }
+      mockContactExchangeRequests.push(record)
+      return HttpResponse.json(
+        await delay({ requestId: record.id, status: record.status, channel: record.channel }),
+      )
+    },
+  ),
+
+  http.post(
+    `${API}/parties/:partyId/matching/contact-requests/:requestId/decision`,
+    async ({ params, request }) => {
+      const body = (await request.json()) as { action: 'approve' | 'reject' }
+      const record = mockContactExchangeRequests.find((item) => item.id === params.requestId)
+      if (!record) {
+        return HttpResponse.json(
+          { code: 'contact_request_not_found', message: '요청을 찾을 수 없어요' },
+          { status: 404 },
+        )
+      }
+      record.status = body.action === 'approve' ? 'approved' : 'rejected'
+      record.decidedAt = nowIso()
+      record.decidedById = 'u_host'
+      return HttpResponse.json(
+        await delay({
+          requestId: record.id,
+          status: record.status,
+          channel: record.channel,
+          decidedById: record.decidedById,
+        }),
+      )
+    },
   ),
 
   // Match reveal — 오늘의 인기남/인기녀 (성별별 최다 호감 1인)

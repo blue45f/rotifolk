@@ -1,5 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
-import type { ConnectionChannel } from '@rotifolk/shared'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type {
+  ConnectionChannel,
+  ContactExchangeChannelState,
+  ContactExchangePolicy,
+  ContactExchangeRequestStatus,
+  MatchScope,
+} from '@rotifolk/shared'
 import { api } from '@services/api'
 
 export type MatchResult = 'mutual' | 'top-pick' | 'all'
@@ -8,6 +14,10 @@ export type MatchResult = 'mutual' | 'top-pick' | 'all'
 export interface MatchChannel {
   channel: ConnectionChannel
   handle: string | null
+  state?: ContactExchangeChannelState
+  requestId?: string | null
+  requestedBy?: 'me' | 'them' | null
+  canRequest?: boolean
 }
 
 export interface PartyMatch {
@@ -26,7 +36,8 @@ export interface PartyMatch {
 }
 
 export interface MyPartyMatches {
-  scope: 'mutual-only' | 'top-n' | 'all-participants' | string
+  scope: MatchScope
+  contactExchangePolicy: ContactExchangePolicy
   /** 호스트가 이 파티에서 제공한 연결 채널 (다중). */
   connectionChannels: ConnectionChannel[]
   groupAfterParty: boolean
@@ -51,6 +62,13 @@ export interface PopularToday {
   popularFemale: PopularPerson | null
 }
 
+export interface ContactExchangeRequestResult {
+  requestId: string
+  status: ContactExchangeRequestStatus
+  channel: ConnectionChannel
+  decidedById?: string | null
+}
+
 export function useMyPartyMatches(partyId?: string) {
   return useQuery({
     queryKey: ['party-matches', partyId],
@@ -64,5 +82,33 @@ export function usePartyPopular(partyId?: string) {
     queryKey: ['party-popular', partyId],
     queryFn: () => api.get<PopularToday>(`parties/${partyId}/matching/popular`),
     enabled: !!partyId,
+  })
+}
+
+export function useRequestContactExchange(partyId?: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ partnerId, channel }: { partnerId: string; channel: ConnectionChannel }) =>
+      api.post<ContactExchangeRequestResult>(
+        `parties/${partyId}/matching/contact-requests/${partnerId}`,
+        { channel },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['party-matches', partyId] })
+    },
+  })
+}
+
+export function useDecideContactExchangeRequest(partyId?: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ requestId, action }: { requestId: string; action: 'approve' | 'reject' }) =>
+      api.post<ContactExchangeRequestResult>(
+        `parties/${partyId}/matching/contact-requests/${requestId}/decision`,
+        { action },
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['party-matches', partyId] })
+    },
   })
 }

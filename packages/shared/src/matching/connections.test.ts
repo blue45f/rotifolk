@@ -3,6 +3,7 @@ import {
   computeConnections,
   filterConnectionsExcluding,
   resolveSharedChannels,
+  resolveChannelsByPolicy,
   type Connection,
 } from './connections'
 
@@ -32,6 +33,26 @@ describe('computeConnections', () => {
     })
     expect(out).toHaveLength(1)
     expect(out[0]).toMatchObject({ userAId: 'a', userBId: 'b', result: 'top-pick' })
+  })
+
+  it('mutual-plus-top-n: 상호 + 상위 후보 결합', () => {
+    const out = computeConnections({
+      scope: 'mutual-plus-top-n',
+      maxPerPerson: 1,
+      votes: [
+        { fromUserId: 'a', toUserId: 'b' },
+        { fromUserId: 'b', toUserId: 'a' }, // 상호
+        { fromUserId: 'a', toUserId: 'c' }, // a의 상위 후보
+        { fromUserId: 'd', toUserId: 'a' }, // a에게 투표
+        { fromUserId: 'c', toUserId: 'b' },
+      ],
+    })
+    expect(out).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ result: 'mutual', userAId: 'a', userBId: 'b' }),
+      ]),
+    )
+    expect(out.length).toBeGreaterThanOrEqual(2)
   })
 
   it('all-participants: 전원 상호 연결', () => {
@@ -85,6 +106,45 @@ describe('resolveSharedChannels', () => {
     }
     const out = resolveSharedChannels(['phone', 'kakao', 'instagram', 'chat'], me, them)
     expect(out.map((c) => c.channel)).toEqual(['chat', 'instagram', 'kakao', 'phone'])
+  })
+
+  it('resolveChannelsByPolicy: 정책별 공개 채널 동작', () => {
+    const me = {
+      shareKakao: true,
+      shareInstagram: true,
+      shareContact: true,
+      kakaoId: 'meK',
+      instagram: 'meI',
+      phone: '01011111111',
+    }
+    const partner = {
+      shareKakao: true,
+      shareInstagram: true,
+      shareContact: true,
+      kakaoId: 'youK',
+      instagram: 'youI',
+      phone: '01022222222',
+    }
+    const offered = ['chat', 'instagram', 'kakao', 'phone'] as const
+
+    expect(resolveChannelsByPolicy('chat-only', offered, me, partner)).toEqual([
+      { channel: 'chat', handle: null },
+    ])
+    expect(resolveChannelsByPolicy('open-after-match', offered, me, partner)).toEqual([
+      { channel: 'chat', handle: null },
+      { channel: 'instagram', handle: 'youI' },
+      { channel: 'kakao', handle: 'youK' },
+      { channel: 'phone', handle: '01022222222' },
+    ])
+    expect(resolveChannelsByPolicy('request-approval', offered, me, partner)).toEqual([
+      { channel: 'chat', handle: null },
+    ])
+    expect(resolveChannelsByPolicy('mutual-consent', offered, me, partner)).toEqual([
+      { channel: 'chat', handle: null },
+      { channel: 'instagram', handle: 'youI' },
+      { channel: 'kakao', handle: 'youK' },
+      { channel: 'phone', handle: '01022222222' },
+    ])
   })
 })
 

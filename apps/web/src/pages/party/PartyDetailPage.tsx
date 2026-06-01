@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AVOID_REASON_LABEL,
   CHILDREN_POLICY_LABEL,
+  CONTACT_EXCHANGE_POLICY_LABEL,
   CONNECTION_CHANNELS,
   ELIGIBILITY_REASON_LABEL,
   MARITAL_STATUS_LABEL,
@@ -17,6 +18,7 @@ import {
   formatKRW,
   resolveParticipantPrice,
   type AvoidReason,
+  type ContactExchangePolicy,
   type ConnectionChannel,
   type Party,
 } from '@rotifolk/shared'
@@ -460,8 +462,36 @@ export default function PartyDetailPage() {
                 </span>
               </div>
               <div className={styles.signal}>
-                <span className={styles.signalLabel}>매칭 · 연결</span>
+                <span className={styles.signalLabel}>매칭 방식</span>
                 <strong>{MATCH_SCOPE_LABEL[party.config.matchScope]}</strong>
+                <span className={styles.signalSub}>
+                  {MATCH_SCOPE_HELP[party.config.matchScope ?? 'mutual-only']}
+                </span>
+              </div>
+              <div className={styles.signal}>
+                <span className={styles.signalLabel}>연락처 공개 방식</span>
+                <strong>
+                  {
+                    CONTACT_EXCHANGE_POLICY_LABEL[
+                      (party.config.contactExchangePolicy as ContactExchangePolicy) ??
+                        'mutual-consent'
+                    ]
+                  }
+                </strong>
+                <span className={styles.signalSub}>
+                  {
+                    CONTACT_EXCHANGE_HELP[
+                      (party.config.contactExchangePolicy as ContactExchangePolicy) ??
+                        'mutual-consent'
+                    ]
+                  }
+                </span>
+                {(party.config.groupAfterParty || false) && (
+                  <span className={styles.signalSub}>종료 후 그룹채팅 개설</span>
+                )}
+              </div>
+              <div className={styles.signal}>
+                <span className={styles.signalLabel}>연결 채널</span>
                 <span className={styles.signalSub}>
                   {(party.config.connectionChannels?.length
                     ? party.config.connectionChannels
@@ -472,7 +502,7 @@ export default function PartyDetailPage() {
                         `${CONNECTION_CHANNELS[c].icon} ${CONNECTION_CHANNELS[c].short}`,
                     )
                     .join(' · ')}
-                  {party.config.groupAfterParty && ' · 종료 후 그룹채팅'}
+                  {!((party.config.connectionChannels?.length || 0) > 0) && '채널 정보 없음'}
                 </span>
               </div>
             </div>
@@ -955,6 +985,19 @@ const MATCH_SCOPE_LABEL: Record<string, string> = {
   'mutual-only': '상호 매칭만',
   'top-n': '상위 N명 연결',
   'all-participants': '참가자 전원 연결',
+  'mutual-plus-top-n': '상호+상위 N명 연결',
+}
+const MATCH_SCOPE_HELP: Record<string, string> = {
+  'mutual-only': '서로가 상대를 골랐을 때만 공개',
+  'top-n': '누적 호감 상위 N명을 보완 연결',
+  'all-participants': '전원과 연결로 사전 압박을 낮춤',
+  'mutual-plus-top-n': '상호 먼저, 부족하면 상위 N명으로 보완',
+}
+const CONTACT_EXCHANGE_HELP: Record<ContactExchangePolicy, string> = {
+  'mutual-consent': '양쪽이 모두 공개 동의해야 외부 채널이 보입니다.',
+  'chat-only': '안전하게 앱 내 채팅만 우선 공개합니다.',
+  'open-after-match': '매칭 성사 즉시 지정 채널을 공개합니다.',
+  'request-approval': '채팅은 바로 열리고, 외부 연락처는 요청 후 상대 승인으로 공개됩니다.',
 }
 
 function EligibilityPriceCard({ party }: { party: Party }) {

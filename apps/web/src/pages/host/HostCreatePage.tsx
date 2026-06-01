@@ -6,6 +6,7 @@ import type {
   CreatePartyDto,
   PartyFormat,
   RotationFormat,
+  ContactExchangePolicy,
   MatchScope,
   ConnectionChannel,
   ConnectionMode,
@@ -21,6 +22,7 @@ import {
   CHILDREN_POLICY_LABEL,
   MARITAL_STATUS_LABEL,
   VERIFICATION_FIELD_LABEL,
+  CONTACT_EXCHANGE_POLICY_LABEL,
   PARTY_FORMAT_LABEL,
   ROTATION_FORMAT_LABEL,
 } from '@rotifolk/shared'
@@ -52,6 +54,7 @@ const DEFAULTS: Partial<CreatePartyDto> = {
     groupSize: 2,
     matchScope: 'mutual-only',
     maxMatchesPerPerson: 3,
+    contactExchangePolicy: 'mutual-consent',
     connectionMode: 'chat',
     connectionChannels: ['chat'],
     groupAfterParty: false,
@@ -106,7 +109,39 @@ const ROTATION_FORMAT_OPTIONS: { value: RotationFormat; desc: string }[] = [
 const MATCH_SCOPE_OPTIONS: { value: MatchScope; label: string; desc: string }[] = [
   { value: 'mutual-only', label: '상호 매칭만', desc: '서로 지목한 사이만 연결돼요' },
   { value: 'top-n', label: '상위 N명', desc: '누적 호감 상위 N명까지 연결' },
+  {
+    value: 'mutual-plus-top-n',
+    label: '상호+상위N',
+    desc: '상호는 우선, 부족하면 상위 N명으로 보완',
+  },
   { value: 'all-participants', label: '전원 연결', desc: '참가자 모두를 연결' },
+]
+
+const CONTACT_EXCHANGE_OPTIONS: {
+  value: ContactExchangePolicy
+  label: string
+  desc: string
+}[] = [
+  {
+    value: 'mutual-consent',
+    label: `연락처 ${CONTACT_EXCHANGE_POLICY_LABEL['mutual-consent']}`,
+    desc: '양쪽 모두 공개 동의할 때만 보입니다.',
+  },
+  {
+    value: 'chat-only',
+    label: `연결 ${CONTACT_EXCHANGE_POLICY_LABEL['chat-only']}`,
+    desc: '매칭 후 앱 내 채팅만 열고 외부 채널은 잠급니다.',
+  },
+  {
+    value: 'open-after-match',
+    label: `즉시 공개 ${CONTACT_EXCHANGE_POLICY_LABEL['open-after-match']}`,
+    desc: '마감 후 매칭에 등록된 채널을 바로 공개해요.',
+  },
+  {
+    value: 'request-approval',
+    label: `요청 후 승인`,
+    desc: '채팅은 바로 열고, 외부 연락처는 상대가 승인할 때만 공개해요.',
+  },
 ]
 
 const NOTE_DELIVERY_OPTIONS: { value: NoteDelivery; label: string; desc: string }[] = [
@@ -590,7 +625,8 @@ export default function HostCreatePage() {
                     </div>
                   )}
                 />
-                {watched.config?.matchScope === 'top-n' && (
+                {(watched.config?.matchScope === 'top-n' ||
+                  watched.config?.matchScope === 'mutual-plus-top-n') && (
                   <div className={styles.subField}>
                     <Input
                       type="number"
@@ -603,10 +639,48 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
+                <label className={styles.fieldLabel}>연락처 공개 방식</label>
+                <Controller
+                  control={control}
+                  name="config.contactExchangePolicy"
+                  render={({ field }) => (
+                    <div className={styles.modeList} role="group" aria-label="연락처 공개 방식">
+                      {CONTACT_EXCHANGE_OPTIONS.map((o) => {
+                        const isActive = field.value === o.value
+                        return (
+                          <button
+                            type="button"
+                            key={o.value}
+                            aria-pressed={isActive}
+                            className={`${styles.modeBtn} ${isActive ? styles.modeActive : ''}`}
+                            onClick={() => {
+                              field.onChange(o.value)
+                              if (o.value === 'chat-only') {
+                                setValue('config.connectionChannels', ['chat'])
+                              }
+                            }}
+                          >
+                            <strong>{o.label}</strong>
+                            <span>{o.desc}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                />
+              </div>
+
+              <div className={styles.group}>
                 <div className={styles.groupHead}>
                   <label className={styles.fieldLabel}>연결 매체</label>
                   <p className={styles.fieldHelp}>
-                    매칭되면 양쪽이 동의한 채널만 단계적으로 열려요. 채팅은 늘 켜져요(가장 안전).
+                    {watched.config?.contactExchangePolicy === 'chat-only'
+                      ? '현재 정책상 채팅만 공개됩니다. 외부 채널은 잠긴 상태입니다.'
+                      : watched.config?.contactExchangePolicy === 'open-after-match'
+                        ? '매칭 성사 즉시 공개 가능한 채널을 바로 노출해요.'
+                        : watched.config?.contactExchangePolicy === 'request-approval'
+                          ? '채팅은 바로 열고, 인스타·카톡·번호는 상대에게 요청한 뒤 승인되면 보여요.'
+                          : '양쪽이 동의하고 공개 동의한 채널만 단계적으로 열려요. 채팅은 늘 켜져요.'}
                   </p>
                 </div>
                 <Controller
@@ -614,8 +688,9 @@ export default function HostCreatePage() {
                   name="config.connectionChannels"
                   render={({ field }) => {
                     const selected: ConnectionChannel[] = field.value ?? ['chat']
+                    const policy = watched.config?.contactExchangePolicy
                     const toggle = (ch: ConnectionChannel) => {
-                      if (ch === 'chat') return // 항상 켜짐
+                      if (policy === 'chat-only' || ch === 'chat') return
                       const next = selected.includes(ch)
                         ? selected.filter((c) => c !== ch)
                         : [...selected, ch]
@@ -642,8 +717,11 @@ export default function HostCreatePage() {
                               type="button"
                               key={ch}
                               aria-pressed={on}
-                              className={`${styles.modeBtn} ${on ? styles.modeActive : ''}`}
+                              className={`${styles.modeBtn} ${on ? styles.modeActive : ''} ${
+                                policy === 'chat-only' ? styles.modeDisabled : ''
+                              }`}
                               onClick={() => toggle(ch)}
+                              disabled={policy === 'chat-only' && ch !== 'chat'}
                             >
                               <strong>
                                 {meta.icon} {meta.label}
