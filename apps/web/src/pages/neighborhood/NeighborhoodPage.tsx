@@ -4,6 +4,7 @@ import type { PartySummary } from '@rotifolk/shared'
 import { SEOUL_AREAS, formatDistanceKm, haversineKm } from '@rotifolk/shared'
 import { api } from '@services/api'
 import { useGeolocation } from '@features/geo/useGeolocation'
+import { useVenueAreas } from '@features/venues/queries'
 import { PartyCard } from '@features/parties/PartyCard'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Badge } from '@components/ui/Badge/Badge'
@@ -13,22 +14,25 @@ import { Link } from 'react-router-dom'
 import { Button } from '@components/ui/Button/Button'
 import styles from './Neighborhood.module.css'
 
-const AREAS = ['한남동', '연남동', '북촌', '강남', '성수', '망원', '이태원', '홍대']
-
 const AREA_DESC: Record<string, string> = {
-  '한남동': '조용한 와인바와 갤러리가 많은 한강변 골목',
-  '연남동': '스페셜티 카페와 감성 공간이 밀집한 경의선 숲길',
-  '북촌': '한옥과 다실이 어우러진 고즈넉한 역사 마을',
-  '강남': '세련된 라운지와 위스키바가 모인 도심',
-  '성수': '뉴욕 브루클린 감성의 루프탑과 브루어리',
-  '망원': '로컬 감성 가득한 한강뷰 소셜 공간',
-  '이태원': '다국적 음식과 칵테일 바가 공존하는 글로벌 존',
-  '홍대': '라이브 뮤직과 인디 카페가 넘치는 젊음의 거리',
+  한남동: '조용한 와인바와 갤러리가 많은 한강변 골목',
+  연남동: '스페셜티 카페와 감성 공간이 밀집한 경의선 숲길',
+  북촌: '한옥과 다실이 어우러진 고즈넉한 역사 마을',
+  강남: '세련된 라운지와 위스키바가 모인 도심',
+  성수: '뉴욕 브루클린 감성의 루프탑과 브루어리',
+  망원: '로컬 감성 가득한 한강뷰 소셜 공간',
+  이태원: '다국적 음식과 칵테일 바가 공존하는 글로벌 존',
+  홍대: '라이브 뮤직과 인디 카페가 넘치는 젊음의 거리',
 }
 
 export default function NeighborhoodPage() {
   const [area, setArea] = useState<string | null>(null)
   const geo = useGeolocation(true)
+  const { data: venueAreas } = useVenueAreas()
+  const areaOptions = useMemo(
+    () => (venueAreas?.length ? venueAreas : Object.keys(SEOUL_AREAS)),
+    [venueAreas],
+  )
 
   const distanceMap = useMemo(() => {
     if (!geo.coords) return null
@@ -40,9 +44,9 @@ export default function NeighborhoodPage() {
   }, [geo.coords])
 
   const sortedAreas = useMemo(() => {
-    if (!distanceMap) return AREAS
-    return [...AREAS].sort((a, b) => (distanceMap[a] ?? 999) - (distanceMap[b] ?? 999))
-  }, [distanceMap])
+    if (!distanceMap) return areaOptions
+    return [...areaOptions].sort((a, b) => (distanceMap[a] ?? 999) - (distanceMap[b] ?? 999))
+  }, [areaOptions, distanceMap])
 
   const { data, isLoading } = useQuery({
     queryKey: ['neighborhood', area],
@@ -52,7 +56,9 @@ export default function NeighborhoodPage() {
       ),
   })
 
-  const selectedDesc = area ? AREA_DESC[area] : null
+  const selectedDesc = area
+    ? (AREA_DESC[area] ?? `${area}에서 열리는 로테이션 모임을 모아봤어요.`)
+    : null
 
   return (
     <div className={styles.page}>
@@ -65,9 +71,7 @@ export default function NeighborhoodPage() {
         <p className={styles.lead}>
           {selectedDesc ?? '걸어서 갈 만한 거리의 로테이션 모임만 모아봤어요.'}
         </p>
-        {geo.status === 'pending' && (
-          <p className={styles.geoStatus}>📡 현재 위치 감지 중…</p>
-        )}
+        {geo.status === 'pending' && <p className={styles.geoStatus}>📡 현재 위치 감지 중…</p>}
         {geo.status === 'denied' && (
           <p className={styles.geoStatus}>위치 권한 없이 보는 중 · 거리 표시 불가</p>
         )}
@@ -80,15 +84,9 @@ export default function NeighborhoodPage() {
         {sortedAreas.map((a) => {
           const km = distanceMap?.[a]
           return (
-            <Chip
-              key={a}
-              selected={area === a}
-              onClick={() => setArea(area === a ? null : a)}
-            >
+            <Chip key={a} selected={area === a} onClick={() => setArea(area === a ? null : a)}>
               📍 {a}
-              {km != null && (
-                <span className={styles.chipDist}>{formatDistanceKm(km)}</span>
-              )}
+              {km != null && <span className={styles.chipDist}>{formatDistanceKm(km)}</span>}
             </Chip>
           )
         })}

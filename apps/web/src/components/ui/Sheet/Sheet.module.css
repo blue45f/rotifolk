@@ -10,6 +10,13 @@
   justify-content: center;
   animation: fade-up var(--dur-base) var(--ease-out);
 }
+.scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
 .panel {
   background: var(--color-surface);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
@@ -20,6 +27,7 @@
   box-shadow: var(--shadow-xl);
   animation: slide-up var(--dur-slow) var(--ease-out);
   position: relative;
+  z-index: 1;
 }
 
 .v_modal {
@@ -27,9 +35,15 @@
   max-height: 86dvh;
   margin: auto;
 }
-.v_modal.s_sm { max-width: 360px; }
-.v_modal.s_md { max-width: 480px; }
-.v_modal.s_lg { max-width: 720px; }
+.v_modal.s_sm {
+  max-width: 360px;
+}
+.v_modal.s_md {
+  max-width: 480px;
+}
+.v_modal.s_lg {
+  max-width: 720px;
+}
 
 .v_sheet {
   max-width: 560px;
@@ -85,6 +99,12 @@
 }
 
 @keyframes slide-up {
-  from { transform: translateY(20%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }

@@ -2,22 +2,14 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@services/api'
+import { notificationKeys } from '@features/notifications/useNotificationsRealtime'
+import type { NotificationItem } from '@features/notifications/realtime-cache'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Notifications.module.css'
-
-interface NotificationItem {
-  id: string
-  kind: string
-  title: string
-  body: string | null
-  link: string | null
-  isRead: boolean
-  createdAt: string
-}
 
 const KIND_EMOJI: Record<string, string> = {
   party_join: '🎟️',
@@ -44,20 +36,25 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState<FilterKey>('all')
 
   const { data, isLoading } = useQuery({
-    queryKey: ['notifications'],
+    queryKey: notificationKeys.list,
     queryFn: () => api.get<NotificationItem[]>('notifications'),
-    refetchInterval: 30_000,
+    staleTime: 60_000,
   })
   const markAllRead = useMutation({
     mutationFn: () => api.post('notifications/read-all'),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.list })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unread })
+    },
   })
   const markOne = useMutation({
     mutationFn: (id: string) => api.post(`notifications/${id}/read`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: notificationKeys.list })
+      queryClient.invalidateQueries({ queryKey: notificationKeys.unread })
+    },
   })
 
-  if (isLoading) return <Loading />
   const all = data ?? []
   const unread = all.filter((n) => !n.isRead).length
 
@@ -91,6 +88,8 @@ export default function NotificationsPage() {
     }
     return groups.filter((g) => g.items.length > 0)
   }, [filtered])
+
+  if (isLoading) return <Loading />
 
   return (
     <div className={`container ${styles.page}`}>
@@ -126,11 +125,7 @@ export default function NotificationsPage() {
       {filtered.length === 0 ? (
         <EmptyState
           emoji="🔕"
-          title={
-            all.length === 0
-              ? '아직 알림이 없어요'
-              : '이 필터에 해당하는 알림이 없어요'
-          }
+          title={all.length === 0 ? '아직 알림이 없어요' : '이 필터에 해당하는 알림이 없어요'}
           description={
             all.length === 0
               ? '모임이 곧 시작되거나 매칭이 성사되면 여기로 알려드릴게요.'
@@ -167,30 +162,32 @@ export default function NotificationsPage() {
                           })}
                         </time>
                       </div>
-                      {!n.isRead && (
-                        <button
-                          type="button"
-                          className={styles.dismissBtn}
-                          onClick={handleDismiss}
-                          aria-label="읽음으로 표시"
-                          title="읽음으로 표시"
-                        >
-                          ✕
-                        </button>
-                      )}
                     </>
                   )
                   return (
                     <li key={n.id} className={n.isRead ? '' : styles.unread}>
-                      {n.link ? (
-                        <Link to={n.link} className={styles.row} onClick={handleClick}>
-                          {inner}
-                        </Link>
-                      ) : (
-                        <div className={styles.row} onClick={handleClick}>
-                          {inner}
-                        </div>
-                      )}
+                      <div className={styles.row}>
+                        {n.link ? (
+                          <Link to={n.link} className={styles.rowMain} onClick={handleClick}>
+                            {inner}
+                          </Link>
+                        ) : (
+                          <button type="button" className={styles.rowMain} onClick={handleClick}>
+                            {inner}
+                          </button>
+                        )}
+                        {!n.isRead && (
+                          <button
+                            type="button"
+                            className={styles.dismissBtn}
+                            onClick={handleDismiss}
+                            aria-label="읽음으로 표시"
+                            title="읽음으로 표시"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
                     </li>
                   )
                 })}
@@ -201,9 +198,7 @@ export default function NotificationsPage() {
       )}
 
       <Card padding="md" variant="soft" className={styles.permission}>
-        <p>
-          브라우저 알림을 켜면 모임 시작 30분 전과 매칭 성사 알림을 받을 수 있어요.
-        </p>
+        <p>브라우저 알림을 켜면 모임 시작 30분 전과 매칭 성사 알림을 받을 수 있어요.</p>
         <Button
           variant="soft"
           onClick={async () => {

@@ -41,15 +41,21 @@ function toParams(brief: VenueBrief): string {
   if (brief.endAt) p.set('endAt', brief.endAt)
   if (brief.lat != null) p.set('lat', String(brief.lat))
   if (brief.lng != null) p.set('lng', String(brief.lng))
-  if (brief.maxBudgetKRW != null) p.set('maxBudgetKRW', String(brief.maxBudgetKRW))
+  if (brief.maxBudgetKRW != null && Number.isFinite(brief.maxBudgetKRW))
+    p.set('maxBudgetKRW', String(brief.maxBudgetKRW))
   return p.toString()
 }
 
 export function useRecommendVenues(brief: VenueBrief | null) {
+  const hasValidTimeRange = !(
+    brief?.startAt &&
+    brief?.endAt &&
+    new Date(brief.endAt).getTime() <= new Date(brief.startAt).getTime()
+  )
   return useQuery({
     queryKey: brief ? vbKeys.recommend(brief) : ['venue-rec', 'idle'],
     queryFn: () => api.get<VenueRecommendation[]>(`venues/recommend?${toParams(brief!)}`),
-    enabled: !!brief && brief.partySize > 0,
+    enabled: !!brief && brief.partySize > 0 && hasValidTimeRange,
     staleTime: 15_000,
   })
 }
@@ -95,7 +101,10 @@ export function useDecideBooking() {
       id: string
       action: 'confirm' | 'decline'
       message?: string
-    }) => api.patch<VenueBooking>(`venue-bookings/${id}/${action}`, { message }),
+    }) =>
+      action === 'confirm'
+        ? api.patch<VenueBooking>(`venue-bookings/${id}/confirm`, { message })
+        : api.patch<VenueBooking>(`venue-bookings/${id}/decline`, { message }),
     onSuccess: () => qc.invalidateQueries({ queryKey: vbKeys.bookings('owner') }),
   })
 }

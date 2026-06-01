@@ -509,7 +509,7 @@ export const mockParties: Party[] = [
     title: '[MOCK] 미드나잇 위스키 무제한',
     description: '6종 위스키 무제한 + 다크초콜릿 코스. 5:5 이성 매칭.',
     venueId: 'v_whisky',
-    coverImageUrl: 'https://images.unsplash.com/photo-1582819509237-d6b13f681c25?w=1200',
+    coverImageUrl: null,
     currentParticipants: 6,
     genderRatio: '5:5',
     tags: ['#MOCK', '#위스키', '#무제한'],

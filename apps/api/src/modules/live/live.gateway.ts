@@ -24,6 +24,7 @@ import { MatchingService } from '../matching/matching.service'
 import { QuizService } from '../quiz/quiz.service'
 import { OrdersService } from '../orders/orders.service'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
+import { ChatEventsEmitter } from '../chat/chat-events.emitter'
 import { LiveOrchestrator } from './live.orchestrator'
 
 type AuthedSocket = Socket<ClientToServerEvents, ServerToClientEvents> & {
@@ -47,18 +48,21 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly quiz: QuizService,
     private readonly orders: OrdersService,
     private readonly notifEmitter: NotificationsEmitter,
+    private readonly chatEvents: ChatEventsEmitter,
     private readonly orchestrator: LiveOrchestrator,
   ) {}
 
   afterInit(server: Server<ClientToServerEvents, ServerToClientEvents>) {
     this.notifEmitter.setServer(server)
+    this.chatEvents.setServer(server)
   }
 
   async handleConnection(client: AuthedSocket) {
     try {
       const token =
         (client.handshake.auth?.token as string | undefined) ??
-        (client.handshake.headers.authorization?.replace(/^Bearer\s+/i, '') ?? '')
+        client.handshake.headers.authorization?.replace(/^Bearer\s+/i, '') ??
+        ''
       if (!token) {
         client.disconnect()
         return
@@ -77,10 +81,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('party:join')
-  async onJoin(
-    @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string },
-  ) {
+  async onJoin(@ConnectedSocket() client: AuthedSocket, @MessageBody() data: { partyId: string }) {
     if (!client.data.user) return
     client.join(PARTY_ROOM(data.partyId))
     const party = await this.prisma.party.findUnique({
@@ -211,16 +212,20 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       endsAtIso: endsAt.toISOString(),
     })
     // 결과 집계는 일정 후 leaderboard 푸시
-    setTimeout(async () => {
-      const board = await this.quiz.leaderboard(data.partyId)
-      this.server.to(PARTY_ROOM(data.partyId)).emit('quiz:leaderboard', { entries: board })
-    }, q.durationSec * 1000 + 1000)
+    setTimeout(
+      async () => {
+        const board = await this.quiz.leaderboard(data.partyId)
+        this.server.to(PARTY_ROOM(data.partyId)).emit('quiz:leaderboard', { entries: board })
+      },
+      q.durationSec * 1000 + 1000,
+    )
   }
 
   @SubscribeMessage('participant:quiz:answer')
   async onQuizAnswer(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: {
+    @MessageBody()
+    data: {
       partyId: string
       questionId: string
       selectedOptionIndex?: number | null
@@ -258,7 +263,8 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('participant:order:create')
   async onOrderCreate(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: {
+    @MessageBody()
+    data: {
       partyId: string
       items: Array<{ menuItemId: string; quantity: number; note?: string | null }>
       note?: string | null

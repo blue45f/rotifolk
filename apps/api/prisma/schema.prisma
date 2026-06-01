@@ -544,6 +544,32 @@ model HostApplication {
   @@index([userId])
 }
 
+// ======================== REVENUE RULE CONFIG ========================
+model RevenueRuleConfig {
+  key                    String   @id
+  platformFeePercent     Float    @default(8)
+  refundRetentionPercent Float    @default(0)
+  updatedBy              String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([updatedAt])
+}
+
+model RevenueRuleHistory {
+  id                      String   @id @default(cuid())
+  key                     String
+  fromPlatformFeePercent   Float
+  toPlatformFeePercent     Float
+  fromRefundRetentionPercent Float
+  toRefundRetentionPercent Float
+  changedBy               String?
+  reason                  String?
+  changedAt               DateTime @default(now())
+
+  @@index([key, changedAt(sort: Desc)])
+}
+
 // ======================== PAYMENT ========================
 model Payment {
   id         String    @id @default(cuid())

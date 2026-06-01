@@ -10,8 +10,17 @@
   justify-content: center;
 }
 
+.scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+
 .panel {
   position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 480px;
   margin-inline: auto;

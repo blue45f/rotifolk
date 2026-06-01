@@ -87,14 +87,14 @@ export function ShareSheet({
   }
 
   return createPortal(
-    <div
-      className={styles.backdrop}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="share-sheet-title"
-    >
-      <div className={styles.panel}>
+    <div className={styles.backdrop}>
+      <button type="button" className={styles.scrim} aria-label="배경 닫기" onClick={onClose} />
+      <div
+        className={styles.panel}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="share-sheet-title"
+      >
         <header className={styles.header}>
           <h2 id="share-sheet-title" className={styles.heading}>
             모임 공유하기

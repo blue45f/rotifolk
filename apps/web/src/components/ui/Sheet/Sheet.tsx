@@ -38,14 +38,14 @@ export function Sheet({
   if (!open) return null
 
   return createPortal(
-    <div
-      className={styles.backdrop}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? 'sheet-title' : undefined}
-    >
-      <div className={`${styles.panel} ${styles[`v_${variant}`]} ${styles[`s_${size}`]}`}>
+    <div className={styles.backdrop}>
+      <button type="button" className={styles.scrim} aria-label="배경 닫기" onClick={onClose} />
+      <div
+        className={`${styles.panel} ${styles[`v_${variant}`]} ${styles[`s_${size}`]}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? 'sheet-title' : undefined}
+      >
         {(title || description) && (
           <header className={styles.header}>
             {title && (
@@ -58,12 +58,7 @@ export function Sheet({
         )}
         <div className={styles.body}>{children}</div>
         {footer && <footer className={styles.footer}>{footer}</footer>}
-        <button
-          type="button"
-          aria-label="닫기"
-          className={styles.close}
-          onClick={onClose}
-        >
+        <button type="button" aria-label="닫기" className={styles.close} onClick={onClose}>
           ✕
         </button>
       </div>

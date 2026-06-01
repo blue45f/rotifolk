@@ -1,15 +1,13 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { VenueKind } from '@rotifolk/shared'
-import { useVenues } from '@features/venues/queries'
+import { useVenueAreas, useVenues } from '@features/venues/queries'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Card } from '@components/ui/Card/Card'
 import { Badge } from '@components/ui/Badge/Badge'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Venues.module.css'
-
-const AREAS = ['강남', '한남', '연남', '성수', '북촌', '망원', '이태원', '홍대']
 
 const KIND_META: Record<VenueKind, { emoji: string; label: string }> = {
   'wine-bar': { emoji: '🍷', label: '와인바' },
@@ -29,7 +27,9 @@ const KIND_META: Record<VenueKind, { emoji: string; label: string }> = {
 export default function VenuesPage() {
   const [kind, setKind] = useState<VenueKind | undefined>()
   const [area, setArea] = useState<string | undefined>()
+  const { data: venueAreas } = useVenueAreas()
   const { data, isLoading } = useVenues({ kind, area, partnered: true })
+  const areaOptions = useMemo(() => venueAreas ?? [], [venueAreas])
 
   return (
     <div className={styles.page}>
@@ -45,7 +45,7 @@ export default function VenuesPage() {
           <Chip selected={!area} onClick={() => setArea(undefined)}>
             전체
           </Chip>
-          {AREAS.map((a) => (
+          {areaOptions.map((a) => (
             <Chip key={a} selected={area === a} onClick={() => setArea(area === a ? undefined : a)}>
               {a}
             </Chip>

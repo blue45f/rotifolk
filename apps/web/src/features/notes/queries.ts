@@ -41,7 +41,7 @@ export function useSendNote() {
 export function useDeliverNotes(partyId: string | undefined) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: () => api.post<{ delivered: number }>(`parties/${partyId}/notes/deliver`, {}),
+    mutationFn: () => api.post<{ delivered: number }>(`notes/party/${partyId}/deliver`, {}),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: noteKeys.mine })
       if (partyId) qc.invalidateQueries({ queryKey: noteKeys.party(partyId) })

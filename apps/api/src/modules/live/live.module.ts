@@ -8,6 +8,7 @@ import { QuizModule } from '../quiz/quiz.module'
 import { OrdersModule } from '../orders/orders.module'
 import { PartiesModule } from '../parties/parties.module'
 import { NotificationsModule } from '../notifications/notifications.module'
+import { ChatModule } from '../chat/chat.module'
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { NotificationsModule } from '../notifications/notifications.module'
     OrdersModule,
     PartiesModule,
     NotificationsModule,
+    ChatModule,
   ],
   providers: [LiveGateway, LiveOrchestrator],
   exports: [LiveGateway, LiveOrchestrator],

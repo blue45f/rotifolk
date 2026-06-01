@@ -1,40 +1,28 @@
 import { Link, NavLink } from 'react-router-dom'
-import { useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { useLocale, useT } from '@features/i18n/i18n'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 import { api } from '@services/api'
-import { getSocket } from '@features/live/socket'
+import { notificationKeys } from '@features/notifications/useNotificationsRealtime'
 import styles from './Header.module.css'
 
 export function Header() {
   const user = useAuthStore((s) => s.user)
+  const isAdmin = user?.role === 'admin'
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const t = useT()
   const [locale, setLocale] = useLocale()
-  const qc = useQueryClient()
   const { data: unread } = useQuery({
-    queryKey: ['notifications', 'unread-count'],
+    queryKey: notificationKeys.unread,
     queryFn: () => api.get<{ count: number }>('notifications/unread-count'),
     enabled: !!user,
-    refetchInterval: 60_000,
+    staleTime: 60_000,
   })
 
-  useEffect(() => {
-    if (!user) return
-    const socket = getSocket()
-    const handler = () => {
-      qc.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
-    }
-    socket.on('notification:new', handler)
-    return () => {
-      socket.off('notification:new', handler)
-    }
-  }, [user, qc])
   const isDark =
     theme === 'dark' ||
     (theme === 'system' &&
@@ -66,6 +54,11 @@ export function Header() {
           {user && (
             <NavLink to="/host" className={({ isActive }) => (isActive ? styles.active : '')}>
               {t('nav.host')}
+            </NavLink>
+          )}
+          {isAdmin && (
+            <NavLink to="/admin" className={({ isActive }) => (isActive ? styles.active : '')}>
+              관리자
             </NavLink>
           )}
         </nav>

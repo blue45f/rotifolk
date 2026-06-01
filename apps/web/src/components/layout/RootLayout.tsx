@@ -5,10 +5,14 @@ import { BottomNav } from './BottomNav'
 import { useApplyTheme } from '@store/themeStore'
 import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
 import OnboardingSheet from '@features/onboard/OnboardingSheet'
+import { useChatRealtime } from '@features/chat/useChatRealtime'
+import { useNotificationsRealtime } from '@features/notifications/useNotificationsRealtime'
 import styles from './RootLayout.module.css'
 
 export default function RootLayout() {
   useApplyTheme()
+  useChatRealtime()
+  useNotificationsRealtime()
   const location = useLocation()
 
   useEffect(() => {

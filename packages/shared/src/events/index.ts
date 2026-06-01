@@ -17,7 +17,11 @@ export interface ClientToServerEvents {
   'party:leave': (payload: { partyId: string }) => void
   'host:round:start': (payload: { partyId: string }) => void
   'host:round:end': (payload: { partyId: string }) => void
-  'host:event:fire': (payload: { partyId: string; kind: string; payload?: Record<string, unknown> }) => void
+  'host:event:fire': (payload: {
+    partyId: string
+    kind: string
+    payload?: Record<string, unknown>
+  }) => void
   'host:quiz:launch': (payload: { partyId: string; questionId: string }) => void
   'host:party:lock': (payload: { partyId: string }) => void
   'host:party:end': (payload: { partyId: string }) => void
@@ -48,14 +52,36 @@ export interface ServerToClientEvents {
   'round:started': (payload: { round: Round; endsAtIso: string }) => void
   'round:ended': (payload: { roundIndex: number }) => void
   'round:tick': (payload: { roundIndex: number; remainingSec: number }) => void
-  'pair:assigned': (payload: { roundIndex: number; partnerIds: string[]; seatLabel: string }) => void
+  'pair:assigned': (payload: {
+    roundIndex: number
+    partnerIds: string[]
+    seatLabel: string
+  }) => void
   'event:fired': (payload: { event: LiveEvent }) => void
   'quiz:question': (payload: { question: QuizQuestion; endsAtIso: string }) => void
   'quiz:leaderboard': (payload: { entries: QuizLeaderboardEntry[] }) => void
   'card:drawn': (payload: { card: QuestionCard; pairId?: string | null }) => void
   'order:updated': (payload: { order: Order }) => void
   'final-match:revealed': (payload: { matches: FinalMatch[] }) => void
-  'toast': (payload: { kind: 'info' | 'success' | 'warning' | 'error'; message: string }) => void
-  'error': (payload: { code: string; message: string }) => void
-  'notification:new': (payload: { kind: string; title: string; body?: string; link?: string }) => void
+  toast: (payload: { kind: 'info' | 'success' | 'warning' | 'error'; message: string }) => void
+  error: (payload: { code: string; message: string }) => void
+  'notification:new': (payload: {
+    kind: string
+    title: string
+    body?: string
+    link?: string
+  }) => void
+  'chat:message:new': (payload: {
+    message: {
+      id: string
+      roomId: string
+      userId: string
+      nickname: string
+      body: string
+      kind: 'text' | 'system' | 'split-bill'
+      meta?: Record<string, unknown> | null
+      createdAt: string
+    }
+  }) => void
+  'chat:room:read': (payload: { roomId: string }) => void
 }

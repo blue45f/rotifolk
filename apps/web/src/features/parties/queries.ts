@@ -25,8 +25,10 @@ export function useParties(q: Partial<PartyQueryDto> = {}) {
       for (const [k, v] of Object.entries(q)) {
         if (v != null) params.set(k, String(v))
       }
-      const path = `parties${params.toString() ? `?${params}` : ''}`
-      return api.get<Paginated<PartySummary>>(path)
+      const query = params.toString()
+      return query
+        ? api.get<Paginated<PartySummary>>(`parties?${query}`)
+        : api.get<Paginated<PartySummary>>('parties')
     },
   })
 }
@@ -74,7 +76,10 @@ export function useCancelJoin(partyId: string) {
 export function useMyParties() {
   return useQuery({
     queryKey: partyKeys.mine,
-    queryFn: () => api.get<Array<{ participation: { id: string; status: string }; party: PartySummary }>>('parties/mine'),
+    queryFn: () =>
+      api.get<Array<{ participation: { id: string; status: string }; party: PartySummary }>>(
+        'parties/mine',
+      ),
   })
 }
 
@@ -87,8 +92,7 @@ export function useHostedParties() {
 
 export function usePartyLifecycleActions(partyId: string) {
   const queryClient = useQueryClient()
-  const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: partyKeys.detail(partyId) })
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: partyKeys.detail(partyId) })
 
   return {
     lock: useMutation({

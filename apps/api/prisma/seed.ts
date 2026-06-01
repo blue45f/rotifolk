@@ -52,7 +52,31 @@ async function main() {
 
   const pw = await argon2.hash('rotifolk1234!')
 
-  // ============ Users (5W + 5M + host) ============
+  // ============ Users (admin + 5W + 5M + host) ============
+  await createUserWithAvatar(
+    {
+      email: 'admin@rotifolk.dev',
+      passwordHash: pw,
+      nickname: '운영자',
+      role: 'admin',
+      gender: 'female',
+      bio: '서비스 운영 및 정산 테스트용 관리자 계정.',
+      birthYear: 1990,
+      interestsJson: JSON.stringify(['운영', '정산']),
+      mbti: 'INTJ',
+      isVerified: true,
+      trustScore: 100,
+      hostedCount: 0,
+      joinedCount: 0,
+    },
+    {
+      mood: 'mystery',
+      hue: '#1F2A44',
+      pattern: 'gradient',
+      emojiBadge: '🛡️',
+      faceSeed: 'admin-rotifolk',
+    },
+  )
   const host = await createUserWithAvatar(
     {
       email: 'host@rotifolk.dev',
@@ -800,6 +824,7 @@ async function main() {
     })
 
   console.log('✔ Seed complete')
+  console.log('   관리자:   admin@rotifolk.dev')
   console.log('   호스트:   host@rotifolk.dev')
   console.log('   여성 5명: w1~w5@rotifolk.dev')
   console.log('   남성 5명: m1~m5@rotifolk.dev')

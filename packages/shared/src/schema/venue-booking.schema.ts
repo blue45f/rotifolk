@@ -16,16 +16,36 @@ export const CreateVenueBookingSchema = z
   })
 export type CreateVenueBookingDto = z.infer<typeof CreateVenueBookingSchema>
 
-export const VenueRecommendQuerySchema = z.object({
-  category: PartyCategoryEnum,
-  area: z.string().optional(),
-  partySize: z.coerce.number().int().min(2).max(100),
-  startAt: z.string().datetime().optional(),
-  endAt: z.string().datetime().optional(),
-  lat: z.coerce.number().optional(),
-  lng: z.coerce.number().optional(),
-  maxBudgetKRW: z.coerce.number().int().optional(),
-})
+export const VenueRecommendQuerySchema = z
+  .object({
+    category: PartyCategoryEnum,
+    area: z.string().optional(),
+    partySize: z.coerce.number().int().min(2).max(100),
+    startAt: z.string().datetime().optional(),
+    endAt: z.string().datetime().optional(),
+    lat: z.coerce
+      .number()
+      .min(-90, '위도는 -90~90 사이여야 해요')
+      .max(90, '위도는 -90~90 사이여야 해요')
+      .optional(),
+    lng: z.coerce
+      .number()
+      .min(-180, '경도는 -180~180 사이여야 해요')
+      .max(180, '경도는 -180~180 사이여야 해요')
+      .optional(),
+    maxBudgetKRW: z.coerce.number().int().min(0).max(1_000_000_000).optional(),
+  })
+  .refine(
+    (v) => !(v.startAt && v.endAt) || new Date(v.endAt).getTime() > new Date(v.startAt).getTime(),
+    {
+      message: '종료 시각은 시작 시각 이후여야 해요',
+      path: ['endAt'],
+    },
+  )
+  .refine((v) => (v.lat == null && v.lng == null) || (v.lat != null && v.lng != null), {
+    message: '위치 기반 추천은 위도·경도 둘 다 필요해요',
+    path: ['lng'],
+  })
 export type VenueRecommendQueryDto = z.infer<typeof VenueRecommendQuerySchema>
 
 export const VenueAvailabilityQuerySchema = z.object({

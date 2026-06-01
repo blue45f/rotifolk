@@ -4,6 +4,7 @@ import { api } from '@services/api'
 
 export const venueKeys = {
   list: (q: Partial<VenueSearchDto>) => ['venues', 'list', q] as const,
+  areas: ['venues', 'areas'] as const,
   detail: (id: string) => ['venues', 'detail', id] as const,
   menu: (id: string) => ['venues', 'menu', id] as const,
 }
@@ -18,6 +19,14 @@ export function useVenues(q: Partial<VenueSearchDto> = {}) {
       }
       return api.get<Venue[]>(`venues${params.toString() ? `?${params}` : ''}`)
     },
+  })
+}
+
+export function useVenueAreas() {
+  return useQuery({
+    queryKey: venueKeys.areas,
+    queryFn: () => api.get<string[]>('venues/areas'),
+    staleTime: 10 * 60_000,
   })
 }
 

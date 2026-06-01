@@ -1,5 +1,6 @@
 import ky, { HTTPError, type KyInstance, type Options } from 'ky'
 import { useAuthStore } from '@store/authStore'
+import { disconnectSocket } from '@features/live/socket'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
@@ -30,6 +31,7 @@ export const apiClient: KyInstance = ky.create({
       async ({ response }) => {
         if (response.status === 401) {
           useAuthStore.getState().clear()
+          disconnectSocket()
         }
         return response
       },

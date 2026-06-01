@@ -2,11 +2,15 @@ import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/co
 import { AuthGuard } from '@nestjs/passport'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 import { ChatService } from './chat.service'
+import { ChatEventsEmitter } from './chat-events.emitter'
 
 @Controller('chat')
 @UseGuards(AuthGuard('jwt'))
 export class ChatController {
-  constructor(private readonly chat: ChatService) {}
+  constructor(
+    private readonly chat: ChatService,
+    private readonly chatEvents: ChatEventsEmitter,
+  ) {}
 
   @Get('rooms')
   rooms(@CurrentUser() me: JwtUserPayload) {
@@ -29,23 +33,28 @@ export class ChatController {
   }
 
   @Post('rooms/:roomId/messages')
-  send(
+  async send(
     @CurrentUser() me: JwtUserPayload,
     @Param('roomId') roomId: string,
     @Body() body: { body: string; kind?: 'text' | 'split-bill'; meta?: Record<string, unknown> },
   ) {
-    return this.chat.postMessage({
+    const message = await this.chat.postMessage({
       userId: me.sub,
       roomId,
       body: body.body,
       kind: body.kind ?? 'text',
       meta: body.meta ?? null,
     })
+    const memberIds = await this.chat.roomMemberIds(roomId)
+    this.chatEvents.emitMessage(message, memberIds)
+    return message
   }
 
   @Post('rooms/:roomId/read')
-  markRead(@CurrentUser() me: JwtUserPayload, @Param('roomId') roomId: string) {
-    return this.chat.markRead(me.sub, roomId)
+  async markRead(@CurrentUser() me: JwtUserPayload, @Param('roomId') roomId: string) {
+    const result = await this.chat.markRead(me.sub, roomId)
+    this.chatEvents.emitRead(me.sub, roomId)
+    return result
   }
 
   @Post('parties/:partyId/ensure')

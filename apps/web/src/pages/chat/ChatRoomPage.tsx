@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { useChatMessages, useSendMessage, useMyChatRooms } from '@features/chat/queries'
+import {
+  useChatMessages,
+  useSendMessage,
+  useMyChatRooms,
+  useMarkChatRead,
+} from '@features/chat/queries'
 import { useAuthStore } from '@store/authStore'
 import { Button } from '@components/ui/Button/Button'
 import { Avatar } from '@components/ui/Avatar/Avatar'
@@ -31,15 +36,29 @@ function MessageBody({ body }: { body: string }) {
     <>
       {plainText && <p className={styles.msgText}>{plainText}</p>}
       {imageUrls.map((url) => (
-        <a key={url} href={url} target="_blank" rel="noreferrer noopener" className={styles.msgImgLink}>
+        <a
+          key={url}
+          href={url}
+          target="_blank"
+          rel="noreferrer noopener"
+          className={styles.msgImgLink}
+        >
           <img src={url} alt="" className={styles.msgImg} loading="lazy" />
         </a>
       ))}
-      {urls.filter((u) => !isImageUrl(u)).map((url) => (
-        <a key={url} href={url} target="_blank" rel="noreferrer noopener" className={styles.msgLink}>
-          🔗 {url.length > 50 ? url.slice(0, 50) + '…' : url}
-        </a>
-      ))}
+      {urls
+        .filter((u) => !isImageUrl(u))
+        .map((url) => (
+          <a
+            key={url}
+            href={url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={styles.msgLink}
+          >
+            🔗 {url.length > 50 ? url.slice(0, 50) + '…' : url}
+          </a>
+        ))}
     </>
   )
 }
@@ -52,12 +71,22 @@ export default function ChatRoomPage() {
   const room = useMemo(() => rooms?.find((r) => r.id === roomId), [rooms, roomId])
   const { data: messages, isLoading } = useChatMessages(roomId)
   const send = useSendMessage(roomId!)
+  const markRead = useMarkChatRead(roomId)
   const [text, setText] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
+  const lastMarkedRef = useRef<string | null>(null)
+  const latestMessageId = messages?.at(-1)?.id
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages?.length])
+
+  useEffect(() => {
+    if (!roomId || !latestMessageId || markRead.isPending) return
+    if (lastMarkedRef.current === latestMessageId) return
+    lastMarkedRef.current = latestMessageId
+    markRead.mutate()
+  }, [roomId, latestMessageId, markRead])
 
   if (isLoading || !room) return <Loading />
   const counterpart = room.kind === 'pair' ? room.members.find((m) => m.userId !== me?.id) : null
@@ -105,9 +134,7 @@ export default function ChatRoomPage() {
           }
           return (
             <div key={m.id} className={`${styles.msgRow} ${mine ? styles.msgMine : ''}`}>
-              {!mine && (
-                <Avatar size="sm" hue="#7A1F3D" pattern="gradient" emoji={m.nickname[0]} />
-              )}
+              {!mine && <Avatar size="sm" hue="#7A1F3D" pattern="gradient" emoji={m.nickname[0]} />}
               <div className={styles.msgBubble}>
                 {!mine && <div className={styles.msgName}>{m.nickname}</div>}
                 <MessageBody body={m.body} />

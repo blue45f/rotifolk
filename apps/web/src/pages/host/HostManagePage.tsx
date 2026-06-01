@@ -1,5 +1,6 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useParty, usePartyLifecycleActions } from '@features/parties/queries'
+import { getSocket } from '@features/live/socket'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Badge } from '@components/ui/Badge/Badge'
@@ -8,7 +9,7 @@ import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CATEGORY_META } from '@features/categories/meta'
 import { api } from '@services/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -20,23 +21,40 @@ interface OrderRow {
   id: string
   userId: string
   seatLabel: string | null
-  items: Array<{ menuItemId: string; name: string; quantity: number; priceKRW: number; billable: boolean }>
+  items: Array<{
+    menuItemId: string
+    name: string
+    quantity: number
+    priceKRW: number
+    billable: boolean
+  }>
   totalKRW: number
   status: 'requested' | 'accepted' | 'preparing' | 'served' | 'cancelled'
   requestedAt: string
   note: string | null
 }
 
-const ORDER_STATUS_META: Record<string, { label: string; tone: 'warning' | 'primary' | 'success' | 'danger'; nextLabel: string | null; nextStatus: string | null }> = {
+const ORDER_STATUS_META: Record<
+  string,
+  {
+    label: string
+    tone: 'warning' | 'primary' | 'success' | 'danger'
+    nextLabel: string | null
+    nextStatus: string | null
+  }
+> = {
   requested: { label: '주문됨', tone: 'warning', nextLabel: '수락', nextStatus: 'accepted' },
-  accepted:  { label: '수락됨', tone: 'primary', nextLabel: '준비 중', nextStatus: 'preparing' },
+  accepted: { label: '수락됨', tone: 'primary', nextLabel: '준비 중', nextStatus: 'preparing' },
   preparing: { label: '준비 중', tone: 'primary', nextLabel: '서빙 완료', nextStatus: 'served' },
-  served:    { label: '서빙됨', tone: 'success', nextLabel: null, nextStatus: null },
-  cancelled: { label: '취소됨', tone: 'danger',  nextLabel: null, nextStatus: null },
+  served: { label: '서빙됨', tone: 'success', nextLabel: null, nextStatus: null },
+  cancelled: { label: '취소됨', tone: 'danger', nextLabel: null, nextStatus: null },
 }
 const ACTIVE_STATUSES = ['requested', 'accepted', 'preparing'] as const
 
-const DEPTH_META: Record<string, { label: string; tone: 'primary' | 'success' | 'wine' | 'danger' }> = {
+const DEPTH_META: Record<
+  string,
+  { label: string; tone: 'primary' | 'success' | 'wine' | 'danger' }
+> = {
   icebreaker: { label: '아이스브레이커', tone: 'primary' },
   casual: { label: '캐주얼', tone: 'success' },
   deeper: { label: '깊은 대화', tone: 'wine' },
@@ -73,9 +91,24 @@ export default function HostManagePage() {
   const { data: orders } = useQuery({
     queryKey: ['orders', 'party', partyId],
     queryFn: () => api.get<OrderRow[]>(`orders/party/${partyId}`),
-    refetchInterval: 15_000,
     enabled: tab === 'orders',
   })
+
+  useEffect(() => {
+    if (!partyId || tab !== 'orders') return
+
+    const socket = getSocket()
+    const onOrderUpdated = () => {
+      queryClient.invalidateQueries({ queryKey: ['orders', 'party', partyId] })
+    }
+
+    socket.emit('party:join', { partyId })
+    socket.on('order:updated', onOrderUpdated)
+    return () => {
+      socket.off('order:updated', onOrderUpdated)
+      socket.emit('party:leave', { partyId })
+    }
+  }, [partyId, tab, queryClient])
 
   const advanceOrder = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
@@ -151,10 +184,20 @@ export default function HostManagePage() {
         <div className={styles.heroActions}>
           {party.status === 'open' && (
             <>
-              <Button variant="ghost" size="lg" onClick={handlePlan} isLoading={lifecycle.plan.isPending}>
+              <Button
+                variant="ghost"
+                size="lg"
+                onClick={handlePlan}
+                isLoading={lifecycle.plan.isPending}
+              >
                 라운드 짜기
               </Button>
-              <Button variant="primary" size="lg" onClick={handleStart} isLoading={lifecycle.start.isPending}>
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleStart}
+                isLoading={lifecycle.start.isPending}
+              >
                 ▶ 파티 시작
               </Button>
             </>
@@ -208,12 +251,12 @@ export default function HostManagePage() {
           <Card padding="lg">
             <h2 className={styles.h2}>라운드 시뮬레이션</h2>
             <p className={styles.muted}>
-              {party.config.totalRounds}라운드 ×{' '}
-              {Math.round(party.config.roundDurationSec / 60)}분 ({party.config.rotationMode})
+              {party.config.totalRounds}라운드 × {Math.round(party.config.roundDurationSec / 60)}분
+              ({party.config.rotationMode})
             </p>
             <p className={styles.muted}>
-              참가자 확정 후 “라운드 짜기”를 누르면 자동으로 모든 라운드의 좌석이 배치돼요.
-              파티 시작 후 라이브에서 “다음 라운드 시작” 버튼을 사용하세요.
+              참가자 확정 후 “라운드 짜기”를 누르면 자동으로 모든 라운드의 좌석이 배치돼요. 파티
+              시작 후 라이브에서 “다음 라운드 시작” 버튼을 사용하세요.
             </p>
             <div className={styles.actionsRow}>
               <Button onClick={handlePlan} isLoading={lifecycle.plan.isPending}>
@@ -227,7 +270,8 @@ export default function HostManagePage() {
           <Card padding="lg">
             <h2 className={styles.h2}>질문 카드 풀</h2>
             <p className={styles.muted}>
-              파티에서 순서대로 뽑히는 대화 카드예요. 글로벌 풀에서 자동 선택되거나, 아래에서 직접 추가할 수 있어요.
+              파티에서 순서대로 뽑히는 대화 카드예요. 글로벌 풀에서 자동 선택되거나, 아래에서 직접
+              추가할 수 있어요.
             </p>
 
             {cardsLoading ? (
@@ -299,13 +343,23 @@ export default function HostManagePage() {
                 <h2 className={styles.h2}>실시간 주문 현황</h2>
                 <p className={styles.muted}>15초마다 자동 새로고침돼요.</p>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => queryClient.invalidateQueries({ queryKey: ['orders', 'party', partyId] })}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  queryClient.invalidateQueries({ queryKey: ['orders', 'party', partyId] })
+                }
+              >
                 새로고침
               </Button>
             </div>
 
             {!orders || orders.length === 0 ? (
-              <EmptyState emoji="🍷" title="아직 주문이 없어요" description="파티 시작 후 참가자가 주문하면 여기서 확인할 수 있어요." />
+              <EmptyState
+                emoji="🍷"
+                title="아직 주문이 없어요"
+                description="파티 시작 후 참가자가 주문하면 여기서 확인할 수 있어요."
+              />
             ) : (
               <>
                 {ACTIVE_STATUSES.map((status) => {
@@ -326,7 +380,10 @@ export default function HostManagePage() {
                                 {order.seatLabel ? `좌석 ${order.seatLabel}` : '미확인 좌석'}
                               </span>
                               <time className={styles.orderTime}>
-                                {new Date(order.requestedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                                {new Date(order.requestedAt).toLocaleTimeString('ko-KR', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
                               </time>
                             </div>
                             <ul className={styles.orderItems}>
@@ -334,12 +391,18 @@ export default function HostManagePage() {
                                 <li key={`${item.menuItemId}-${i}`} className={styles.orderItem}>
                                   <span>{item.name}</span>
                                   <span className={styles.orderItemQty}>×{item.quantity}</span>
-                                  {item.billable && <span className={styles.orderItemPrice}>{(item.priceKRW * item.quantity).toLocaleString()}원</span>}
+                                  {item.billable && (
+                                    <span className={styles.orderItemPrice}>
+                                      {(item.priceKRW * item.quantity).toLocaleString()}원
+                                    </span>
+                                  )}
                                 </li>
                               ))}
                             </ul>
                             {order.totalKRW > 0 && (
-                              <div className={styles.orderTotal}>{order.totalKRW.toLocaleString()}원</div>
+                              <div className={styles.orderTotal}>
+                                {order.totalKRW.toLocaleString()}원
+                              </div>
                             )}
                             {order.note && <p className={styles.orderNote}>📝 {order.note}</p>}
                             {meta.nextStatus && (
@@ -348,14 +411,18 @@ export default function HostManagePage() {
                                   variant="primary"
                                   size="sm"
                                   isLoading={advanceOrder.isPending}
-                                  onClick={() => advanceOrder.mutate({ id: order.id, status: meta.nextStatus! })}
+                                  onClick={() =>
+                                    advanceOrder.mutate({ id: order.id, status: meta.nextStatus! })
+                                  }
                                 >
                                   {meta.nextLabel} →
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => advanceOrder.mutate({ id: order.id, status: 'cancelled' })}
+                                  onClick={() =>
+                                    advanceOrder.mutate({ id: order.id, status: 'cancelled' })
+                                  }
                                 >
                                   취소
                                 </Button>
@@ -372,25 +439,38 @@ export default function HostManagePage() {
                   <section className={styles.orderSection}>
                     <div className={styles.orderSectionHead}>
                       <Badge tone="success">서빙됨</Badge>
-                      <span className={styles.orderCount}>{orders.filter((o) => o.status === 'served').length}건</span>
+                      <span className={styles.orderCount}>
+                        {orders.filter((o) => o.status === 'served').length}건
+                      </span>
                     </div>
                     <div className={styles.orderList}>
-                      {orders.filter((o) => o.status === 'served').map((order) => (
-                        <div key={order.id} className={`${styles.orderCard} ${styles.orderCardDone}`}>
-                          <div className={styles.orderCardHead}>
-                            <span className={styles.orderSeat}>{order.seatLabel ? `좌석 ${order.seatLabel}` : '미확인 좌석'}</span>
-                            <span className={styles.orderTotal}>{order.totalKRW > 0 ? `${order.totalKRW.toLocaleString()}원` : '포함'}</span>
+                      {orders
+                        .filter((o) => o.status === 'served')
+                        .map((order) => (
+                          <div
+                            key={order.id}
+                            className={`${styles.orderCard} ${styles.orderCardDone}`}
+                          >
+                            <div className={styles.orderCardHead}>
+                              <span className={styles.orderSeat}>
+                                {order.seatLabel ? `좌석 ${order.seatLabel}` : '미확인 좌석'}
+                              </span>
+                              <span className={styles.orderTotal}>
+                                {order.totalKRW > 0
+                                  ? `${order.totalKRW.toLocaleString()}원`
+                                  : '포함'}
+                              </span>
+                            </div>
+                            <ul className={styles.orderItems}>
+                              {order.items.map((item, i) => (
+                                <li key={`${item.menuItemId}-${i}`} className={styles.orderItem}>
+                                  <span>{item.name}</span>
+                                  <span className={styles.orderItemQty}>×{item.quantity}</span>
+                                </li>
+                              ))}
+                            </ul>
                           </div>
-                          <ul className={styles.orderItems}>
-                            {order.items.map((item, i) => (
-                              <li key={`${item.menuItemId}-${i}`} className={styles.orderItem}>
-                                <span>{item.name}</span>
-                                <span className={styles.orderItemQty}>×{item.quantity}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   </section>
                 )}
@@ -417,12 +497,18 @@ interface GuestRowProps {
 function GuestRow({ partyId, userId, nickname, seatNumber, status, onCheckIn }: GuestRowProps) {
   const storageKey = `rotifolk-guest-memo-${partyId}-${userId}`
   const [memo, setMemo] = useState(() => {
-    try { return localStorage.getItem(storageKey) ?? '' } catch { return '' }
+    try {
+      return localStorage.getItem(storageKey) ?? ''
+    } catch {
+      return ''
+    }
   })
   const [open, setOpen] = useState(false)
   const save = (next: string) => {
     setMemo(next)
-    try { localStorage.setItem(storageKey, next) } catch {}
+    try {
+      localStorage.setItem(storageKey, next)
+    } catch {}
   }
   return (
     <div className={styles.part}>

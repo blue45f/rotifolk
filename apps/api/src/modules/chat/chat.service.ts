@@ -9,6 +9,8 @@ interface PostMessageInput {
   meta?: Record<string, unknown> | null
 }
 
+type ChatMessageKind = 'text' | 'system' | 'split-bill'
+
 @Injectable()
 export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
@@ -133,7 +135,7 @@ export class ChatService {
       userId: m.userId,
       nickname: m.user.nickname,
       body: m.body,
-      kind: m.kind,
+      kind: m.kind as ChatMessageKind,
       meta: m.metaJson ? safeParse(m.metaJson) : null,
       createdAt: m.createdAt.toISOString(),
     }))
@@ -161,10 +163,18 @@ export class ChatService {
       userId: msg.userId,
       nickname: msg.user.nickname,
       body: msg.body,
-      kind: msg.kind,
+      kind: msg.kind as ChatMessageKind,
       meta: msg.metaJson ? safeParse(msg.metaJson) : null,
       createdAt: msg.createdAt.toISOString(),
     }
+  }
+
+  async roomMemberIds(roomId: string) {
+    const memberships = await this.prisma.chatMembership.findMany({
+      where: { roomId },
+      select: { userId: true },
+    })
+    return memberships.map((m) => m.userId)
   }
 
   async unreadCount(userId: string) {

@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
 import type {
   CreateVenueDto,
   UpdateVenueDto,
@@ -41,6 +46,18 @@ export class VenuesService {
       take: 60,
     })
     return venues.map(this.toVenue)
+  }
+
+  async listAreas(): Promise<string[]> {
+    const venues = await this.prisma.venue.findMany({
+      where: { partnered: true },
+      select: { area: true },
+      orderBy: { area: 'asc' },
+      take: 500,
+    })
+    return Array.from(new Set(venues.map((venue) => venue.area).filter(Boolean))).sort((a, b) =>
+      a.localeCompare(b, 'ko-KR'),
+    )
   }
 
   async getById(id: string) {
@@ -102,6 +119,13 @@ export class VenuesService {
 
   /** 모임 브리프 기반 공간 추천 (위치/가용성/견적 포함). */
   async recommend(q: VenueRecommendQueryDto): Promise<VenueRecommendation[]> {
+    if (q.startAt && q.endAt && new Date(q.endAt).getTime() <= new Date(q.startAt).getTime()) {
+      throw new BadRequestException({
+        code: 'invalid_time_range',
+        message: '종료 시각은 시작 시각 이후여야 해요',
+      })
+    }
+
     const venues = (
       await this.prisma.venue.findMany({
         orderBy: [{ partnered: 'desc' }, { rating: 'desc' }],

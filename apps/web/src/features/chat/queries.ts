@@ -25,6 +25,7 @@ export interface ChatMessage {
 
 export const chatKeys = {
   rooms: ['chat', 'rooms'] as const,
+  unread: ['chat', 'unread-count'] as const,
   messages: (roomId: string) => ['chat', 'messages', roomId] as const,
 }
 
@@ -32,7 +33,6 @@ export function useMyChatRooms() {
   return useQuery({
     queryKey: chatKeys.rooms,
     queryFn: () => api.get<ChatRoomSummary[]>('chat/rooms'),
-    refetchInterval: 15_000,
   })
 }
 
@@ -41,15 +41,17 @@ export function useChatMessages(roomId: string | undefined) {
     queryKey: roomId ? chatKeys.messages(roomId) : ['chat', 'messages', 'none'],
     queryFn: () => api.get<ChatMessage[]>(`chat/rooms/${roomId}/messages`),
     enabled: !!roomId,
-    refetchInterval: 4_000,
   })
 }
 
 export function useSendMessage(roomId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: { body: string; kind?: 'text' | 'split-bill'; meta?: Record<string, unknown> }) =>
-      api.post<ChatMessage>(`chat/rooms/${roomId}/messages`, payload),
+    mutationFn: (payload: {
+      body: string
+      kind?: 'text' | 'split-bill'
+      meta?: Record<string, unknown>
+    }) => api.post<ChatMessage>(`chat/rooms/${roomId}/messages`, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chatKeys.messages(roomId) })
       queryClient.invalidateQueries({ queryKey: chatKeys.rooms })
@@ -60,5 +62,20 @@ export function useSendMessage(roomId: string) {
 export function useEnsurePartyRoom() {
   return useMutation({
     mutationFn: (partyId: string) => api.post<{ id: string }>(`chat/parties/${partyId}/ensure`),
+  })
+}
+
+export function useMarkChatRead(roomId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => {
+      if (!roomId) return Promise.reject(new Error('roomId is required'))
+      return api.post<{ ok: true }>(`chat/rooms/${roomId}/read`, {})
+    },
+    onSuccess: () => {
+      if (roomId) queryClient.invalidateQueries({ queryKey: chatKeys.messages(roomId) })
+      queryClient.invalidateQueries({ queryKey: chatKeys.rooms })
+      queryClient.invalidateQueries({ queryKey: chatKeys.unread })
+    },
   })
 }

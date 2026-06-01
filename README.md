@@ -86,6 +86,7 @@ pnpm dev           # web :5173 + api :3000 동시 실행
 
 | 역할   | 이메일                                | 비밀번호        |
 | ------ | ------------------------------------- | --------------- |
+| 관리자 | `admin@rotifolk.dev`                  | `rotifolk1234!` |
 | 호스트 | `host@rotifolk.dev`                   | `rotifolk1234!` |
 | 참가자 | `p1@rotifolk.dev` ~ `p7@rotifolk.dev` | `rotifolk1234!` |
 

@@ -239,6 +239,37 @@ export function recommendVenues(
     return { venue: { ...venue, distanceKm }, fit, quote, available, distanceKm }
   })
 
-  recs.sort((a, b) => b.fit.score - a.fit.score)
+  const gradeOrder: Record<VenueFit['grade'], number> = {
+    fair: 0,
+    good: 1,
+    great: 2,
+    perfect: 3,
+  }
+  const availabilityScore = (value: boolean | undefined): number =>
+    value === true ? 2 : value === undefined ? 1 : 0
+
+  recs.sort((a, b) => {
+    const scoreCmp = b.fit.score - a.fit.score
+    if (scoreCmp !== 0) return scoreCmp
+
+    const availCmp = availabilityScore(b.available) - availabilityScore(a.available)
+    if (availCmp !== 0) return availCmp
+
+    const gradeCmp = gradeOrder[b.fit.grade] - gradeOrder[a.fit.grade]
+    if (gradeCmp !== 0) return gradeCmp
+
+    const instantCmp = Number(b.venue.instantBook) - Number(a.venue.instantBook)
+    if (instantCmp !== 0) return instantCmp
+
+    const distanceA = a.distanceKm ?? Number.POSITIVE_INFINITY
+    const distanceB = b.distanceKm ?? Number.POSITIVE_INFINITY
+    const distanceCmp = distanceA - distanceB
+    if (distanceCmp !== 0) return distanceCmp
+
+    const reviewCmp = b.venue.reviewCount - a.venue.reviewCount
+    if (reviewCmp !== 0) return reviewCmp
+
+    return b.venue.rating - a.venue.rating
+  })
   return typeof opts.limit === 'number' ? recs.slice(0, opts.limit) : recs
 }

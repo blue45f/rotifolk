@@ -5,6 +5,7 @@ import type { PartyCategory, VenueBooking, VenueRecommendation } from '@rotifolk
 import { formatKRW, VENUE_BOOKING_STATUS_LABEL } from '@rotifolk/shared'
 import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
 import { useGeolocation } from '@features/geo/useGeolocation'
+import { useVenueAreas } from '@features/venues/queries'
 import {
   useCancelBooking,
   useCreateVenueBooking,
@@ -20,8 +21,6 @@ import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import styles from './Sourcing.module.css'
 
-const AREAS = ['전체', '한남동', '연남동', '강남', '성수', '북촌', '망원', '이태원', '홍대']
-
 function isoAt(date: string, time: string): string | undefined {
   if (!date || !time) return undefined
   const d = new Date(`${date}T${time}:00`)
@@ -32,6 +31,7 @@ export default function SourcingPage() {
   const reduce = useReducedMotion() ?? false
   const toast = useToast()
   const geo = useGeolocation()
+  const { data: venueAreas } = useVenueAreas()
 
   const [tab, setTab] = useState<'find' | 'mine'>('find')
   const [category, setCategory] = useState<PartyCategory>('wine')
@@ -40,10 +40,20 @@ export default function SourcingPage() {
   const [date, setDate] = useState('')
   const [start, setStart] = useState('19:00')
   const [end, setEnd] = useState('22:00')
+  const [maxBudgetKRW, setMaxBudgetKRW] = useState('')
   const [selected, setSelected] = useState<VenueRecommendation | null>(null)
+  const areaOptions = useMemo(() => ['전체', ...(venueAreas ?? [])], [venueAreas])
 
   const startAt = isoAt(date, start)
   const endAt = isoAt(date, end)
+  const parsedMaxBudget = maxBudgetKRW.trim() === '' ? undefined : Number.parseInt(maxBudgetKRW, 10)
+  const hasValidTimeRange =
+    !startAt || !endAt || new Date(endAt).getTime() > new Date(startAt).getTime()
+
+  const budgetFilter =
+    parsedMaxBudget == null || Number.isNaN(parsedMaxBudget) || parsedMaxBudget < 0
+      ? undefined
+      : Math.round(parsedMaxBudget)
 
   const brief: VenueBrief = useMemo(
     () => ({
@@ -54,11 +64,14 @@ export default function SourcingPage() {
       endAt,
       lat: geo.coords?.lat ?? null,
       lng: geo.coords?.lng ?? null,
+      maxBudgetKRW: budgetFilter,
     }),
-    [category, area, partySize, startAt, endAt, geo.coords],
+    [category, area, partySize, startAt, endAt, geo.coords, budgetFilter],
   )
 
-  const { data: recs, isLoading } = useRecommendVenues(tab === 'find' ? brief : null)
+  const { data: recs, isLoading } = useRecommendVenues(
+    tab === 'find' && hasValidTimeRange ? brief : null,
+  )
 
   return (
     <div className={styles.page}>
@@ -117,7 +130,7 @@ export default function SourcingPage() {
             <div className={styles.briefRow}>
               <span className={styles.briefLabel}>어디서</span>
               <div className={styles.chipRow}>
-                {AREAS.map((a) => (
+                {areaOptions.map((a) => (
                   <Chip key={a} selected={area === a} onClick={() => setArea(a)}>
                     {a}
                   </Chip>
@@ -161,7 +174,26 @@ export default function SourcingPage() {
                 <span>종료</span>
                 <input type="time" value={end} onChange={(e) => setEnd(e.target.value)} />
               </label>
+              <label className={styles.field}>
+                <span>최대 예산(시간당)</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={10000}
+                  placeholder="제한 없음"
+                  value={maxBudgetKRW}
+                  onChange={(e) => setMaxBudgetKRW(e.target.value)}
+                  inputMode="numeric"
+                  autoComplete="off"
+                />
+              </label>
             </div>
+
+            {!hasValidTimeRange && (
+              <p className={styles.validationError}>
+                종료 시간이 시작 시간보다 빠르거나 같아요. 시간 설정을 수정해 주세요.
+              </p>
+            )}
           </section>
 
           <section className={`container ${styles.results}`}>

@@ -49,6 +49,11 @@ export class VenuesController {
     return this.venues.listMine(me.sub)
   }
 
+  @Get('areas')
+  areas() {
+    return this.venues.listAreas()
+  }
+
   @Get(':id')
   byId(@Param('id') id: string) {
     return this.venues.getById(id)
