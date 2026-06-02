@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, UsePipes } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { UpdateProfileSchema } from '@rotifolk/shared'
 import type { UpdateProfileDto } from '@rotifolk/shared'
@@ -12,8 +22,8 @@ export class UsersController {
   constructor(private readonly users: UsersService) {}
 
   @Get(':id')
-  getById(@Param('id') id: string) {
-    return this.users.getById(id)
+  getById(@CurrentUser() me: JwtUserPayload, @Param('id') id: string) {
+    return this.users.getById(me.sub, id)
   }
 
   @Patch('me')

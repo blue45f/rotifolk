@@ -1,5 +1,5 @@
 import type { User as PrismaUser, Avatar as PrismaAvatar } from '@prisma/client'
-import type { User } from '@rotifolk/shared'
+import type { User, VerifiableDetailField } from '@rotifolk/shared'
 import { parseJsonArray, parseJsonObject } from '@/common/json-utils'
 
 type DbUser = PrismaUser & { avatar?: PrismaAvatar | null }
@@ -54,5 +54,34 @@ export function toPublicSummary(user: DbUser) {
     trustScore: user.trustScore,
     isVerified: user.isVerified,
     verifiedFields: parseJsonArray(user.verifiedFieldsJson) as User['verifiedFields'],
+  }
+}
+
+/**
+ * 프로필 조회용 — 본인은 전체, 타인은 연락처/인증수단을 숨기고
+ * 신상 상세(직업·재직·소득·혼인·학력)는 가시성이 'public'일 때만 노출.
+ */
+export function toViewerProfile(user: DbUser, viewerId: string): User {
+  const full = toPublicUser(user)
+  if (viewerId === user.id) return full
+  const vis = full.visibility ?? {}
+  const pub = <T>(field: VerifiableDetailField, value: T): T | null =>
+    vis[field] === 'public' ? value : null
+  return {
+    ...full,
+    email: '',
+    phone: null,
+    kakaoId: null,
+    instagram: null,
+    shareContact: false,
+    shareKakao: false,
+    shareInstagram: false,
+    hasChildren: null,
+    occupation: pub('occupation', full.occupation),
+    company: pub('company', full.company),
+    incomeBand: pub('income', full.incomeBand),
+    maritalStatus: pub('marital', full.maritalStatus),
+    education: pub('education', full.education),
+    visibility: {},
   }
 }

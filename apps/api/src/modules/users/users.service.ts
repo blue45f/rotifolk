@@ -2,16 +2,16 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import type { UpdateProfileDto } from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
 import { toJsonString } from '@/common/json-utils'
-import { toPublicUser } from './user.mapper'
+import { toPublicUser, toViewerProfile } from './user.mapper'
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getById(id: string) {
+  async getById(viewerId: string, id: string) {
     const user = await this.prisma.user.findUnique({ where: { id }, include: { avatar: true } })
     if (!user) throw new NotFoundException({ code: 'user_not_found', message: '사용자가 없어요' })
-    return toPublicUser(user)
+    return toViewerProfile(user, viewerId)
   }
 
   async updateProfile(id: string, dto: UpdateProfileDto) {
