@@ -643,41 +643,46 @@ export class PartiesService {
 
   /** 성비/정원이 허용하는 한 대기열의 오래된 신청부터 자동 확정 */
   private async promoteWaitlist(partyId: string): Promise<void> {
-    const party = await this.prisma.party.findUnique({ where: { id: partyId } })
-    if (!party) return
-    const waitlisted = await this.prisma.participation.findMany({
-      where: { partyId, status: 'waitlist' },
-      include: { user: { select: { gender: true } } },
-      orderBy: { createdAt: 'asc' },
-    })
-    if (waitlisted.length === 0) return
+    // 정원·성비 판정과 승급을 한 트랜잭션으로 직렬화 — 동시 호출(취소·참가) 시
+    // 같은 대기자를 중복 승급하거나 정원을 초과하지 않게 한다.
+    const { title, promotedUserIds } = await this.prisma.$transaction(async (tx) => {
+      const party = await tx.party.findUnique({ where: { id: partyId } })
+      if (!party) return { title: '', promotedUserIds: [] as string[] }
+      const waitlisted = await tx.participation.findMany({
+        where: { partyId, status: 'waitlist' },
+        include: { user: { select: { gender: true } } },
+        orderBy: { createdAt: 'asc' },
+      })
+      if (waitlisted.length === 0) return { title: party.title, promotedUserIds: [] }
 
-    const counts = await this.genderCounts(partyId)
-    let confirmed = counts.male + counts.female
-    confirmed = await this.prisma.participation.count({
-      where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
-    })
+      const counts = await this.genderCounts(partyId, tx)
+      let confirmed = await tx.participation.count({
+        where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
+      })
+      const promoted: string[] = []
 
-    for (const w of waitlisted) {
-      if (confirmed >= party.maxParticipants) break
-      const g = w.user?.gender
-      let ok = true
-      if ((g === 'male' || g === 'female') && party.genderRatioTarget !== 'any') {
-        ok = canAcceptGender(g, counts, party.genderRatioTarget, {
-          caps: { male: party.maleCap, female: party.femaleCap },
-          tolerance: party.ratioTolerance,
+      for (const w of waitlisted) {
+        if (confirmed >= party.maxParticipants) break
+        const g = w.user?.gender
+        let ok = true
+        if ((g === 'male' || g === 'female') && party.genderRatioTarget !== 'any') {
+          ok = canAcceptGender(g, counts, party.genderRatioTarget, {
+            caps: { male: party.maleCap, female: party.femaleCap },
+            tolerance: party.ratioTolerance,
+          })
+        }
+        if (!ok) continue
+        // 조건부 갱신 — 아직 waitlist일 때만 승급(동시 승급 멱등 처리)
+        const res = await tx.participation.updateMany({
+          where: { id: w.id, status: 'waitlist' },
+          data: { status: 'confirmed' },
         })
-      }
-      if (!ok) continue
-      await this.prisma.participation.update({ where: { id: w.id }, data: { status: 'confirmed' } })
-      await this.prisma.user
-        .update({ where: { id: w.userId }, data: { joinedCount: { increment: 1 } } })
-        .catch(() => undefined)
-      if (g === 'male') counts.male++
-      else if (g === 'female') counts.female++
-      confirmed++
-      await this.prisma.notification
-        .create({
+        if (res.count === 0) continue
+        await tx.user.update({
+          where: { id: w.userId },
+          data: { joinedCount: { increment: 1 } },
+        })
+        await tx.notification.create({
           data: {
             userId: w.userId,
             kind: 'party_join',
@@ -686,11 +691,20 @@ export class PartiesService {
             link: `/parties/${partyId}`,
           },
         })
-        .catch(() => undefined)
-      this.notifEmitter.toUser(w.userId, {
+        if (g === 'male') counts.male++
+        else if (g === 'female') counts.female++
+        confirmed++
+        promoted.push(w.userId)
+      }
+      return { title: party.title, promotedUserIds: promoted }
+    })
+
+    // 실시간 알림은 트랜잭션 커밋 후 발송(소켓 emit은 DB 트랜잭션 밖)
+    for (const userId of promotedUserIds) {
+      this.notifEmitter.toUser(userId, {
         kind: 'party_join',
         title: '대기 → 확정! 🎉',
-        body: `${party.title} 참가가 확정됐어요.`,
+        body: `${title} 참가가 확정됐어요.`,
         link: `/parties/${partyId}`,
       })
     }
