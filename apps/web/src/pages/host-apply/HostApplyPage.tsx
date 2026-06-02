@@ -1,4 +1,7 @@
-import { useState, useMemo, type FormEvent } from 'react'
+import { useMemo } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@services/api'
@@ -42,6 +45,25 @@ const HOSTING_STYLES = [
   { value: '발랄', emoji: '✨', desc: '경쾌하고 즐거운' },
 ] as const
 
+/** 호스트 인증 신청 폼 검증 — 소개 50자 이상, 진행 스타일·카테고리 필수, 경험은 선택. */
+const HostApplyFormSchema = z.object({
+  introduction: z
+    .string()
+    .transform((v) => v.trim())
+    .pipe(z.string().min(50, '50자 이상 적어주세요.')),
+  hostingStyle: z.string().min(1, '진행 스타일을 선택해 주세요.'),
+  plannedCategories: z.array(z.string()).min(1, '카테고리를 한 개 이상 골라주세요.'),
+  experience: z.string(),
+})
+type HostApplyFormValues = z.infer<typeof HostApplyFormSchema>
+
+const HOST_APPLY_DEFAULTS: HostApplyFormValues = {
+  introduction: '',
+  hostingStyle: '',
+  plannedCategories: [],
+  experience: '',
+}
+
 const myApplicationKey = ['host-application', 'mine'] as const
 
 function useMyApp() {
@@ -58,14 +80,23 @@ export default function HostApplyPage() {
   const user = useAuthStore((s) => s.user)
   const { data: application, isLoading } = useMyApp()
 
-  const [introduction, setIntroduction] = useState('')
-  const [hostingStyle, setHostingStyle] = useState<string>('')
-  const [plannedCategories, setPlannedCategories] = useState<string[]>([])
-  const [experience, setExperience] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    reset,
+    formState: { errors, isSubmitted },
+  } = useForm<HostApplyFormValues>({
+    resolver: zodResolver(HostApplyFormSchema),
+    defaultValues: HOST_APPLY_DEFAULTS,
+    mode: 'onSubmit',
+  })
 
-  const introTrimmed = introduction.trim()
-  const introLen = introTrimmed.length
+  const introduction = watch('introduction')
+  const hostingStyle = watch('hostingStyle')
+  const plannedCategories = watch('plannedCategories')
+  const introLen = introduction.trim().length
 
   const create = useMutation({
     mutationFn: (payload: CreateApplicationPayload) =>
@@ -73,19 +104,12 @@ export default function HostApplyPage() {
     onSuccess: (created) => {
       queryClient.setQueryData(myApplicationKey, created)
       toast.show('호스트 인증 신청이 접수됐어요. 1~2일 안에 검토할게요.', 'success')
-      setIntroduction('')
-      setHostingStyle('')
-      setPlannedCategories([])
-      setExperience('')
-      setSubmitted(false)
+      reset(HOST_APPLY_DEFAULTS)
     },
     onError: (err: Error) => {
       toast.show(err.message ?? '신청을 보내는 중 문제가 생겼어요.', 'error')
     },
   })
-
-  const canSubmit =
-    introLen >= 50 && !!hostingStyle && plannedCategories.length > 0 && !create.isPending
 
   const validationHints = useMemo(() => {
     const hints: string[] = []
@@ -95,23 +119,14 @@ export default function HostApplyPage() {
     return hints
   }, [introLen, hostingStyle, plannedCategories.length])
 
-  const toggleCategory = (value: string) => {
-    setPlannedCategories((prev) =>
-      prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value],
-    )
-  }
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setSubmitted(true)
-    if (!canSubmit) return
+  const onSubmit = handleSubmit((data) => {
     create.mutate({
-      introduction: introTrimmed,
-      hostingStyle,
-      plannedCategories,
-      experience: experience.trim() || undefined,
+      introduction: data.introduction.trim(),
+      hostingStyle: data.hostingStyle,
+      plannedCategories: data.plannedCategories,
+      experience: data.experience.trim() || undefined,
     })
-  }
+  })
 
   const handleReapply = () => {
     queryClient.setQueryData(myApplicationKey, null)
@@ -166,7 +181,8 @@ export default function HostApplyPage() {
             <div>
               <h2 className={styles.statusTitle}>검토 중이에요</h2>
               <p className={styles.statusLead}>
-                보통 1~2일 안에 검토 결과를 알려드려요. 알림을 받으실 수 있도록 알림 권한을 켜 두시면 좋아요.
+                보통 1~2일 안에 검토 결과를 알려드려요. 알림을 받으실 수 있도록 알림 권한을 켜
+                두시면 좋아요.
               </p>
             </div>
           </div>
@@ -197,7 +213,8 @@ export default function HostApplyPage() {
           <div>
             <h2 className={styles.statusTitle}>이번엔 인증이 보류됐어요</h2>
             <p className={styles.statusLead}>
-              아래 메모를 참고해 보완한 뒤 다시 신청해 주세요. 한 사람의 작은 모임도 우리에겐 소중해요.
+              아래 메모를 참고해 보완한 뒤 다시 신청해 주세요. 한 사람의 작은 모임도 우리에겐
+              소중해요.
             </p>
           </div>
         </div>
@@ -205,7 +222,8 @@ export default function HostApplyPage() {
           <p className={styles.reviewerNote}>“{application.reviewedNote}”</p>
         ) : (
           <p className={styles.reviewerNote}>
-            구체적인 사유가 도착하지 않았어요. 소개를 조금 더 구체적으로 작성해 주시면 통과 확률이 높아져요.
+            구체적인 사유가 도착하지 않았어요. 소개를 조금 더 구체적으로 작성해 주시면 통과 확률이
+            높아져요.
           </p>
         )}
         <div className={styles.statusActions}>
@@ -237,7 +255,7 @@ export default function HostApplyPage() {
       ) : application ? (
         <section className={`container ${styles.body}`}>{renderStatusCard()}</section>
       ) : (
-        <form className={`container ${styles.body}`} onSubmit={handleSubmit} noValidate>
+        <form className={`container ${styles.body}`} onSubmit={onSubmit} noValidate>
           <Card padding="lg" className={styles.card}>
             <h2 className={styles.h2}>1. 어떤 호스트가 되고 싶나요?</h2>
             <p className={styles.sectionLead}>
@@ -251,17 +269,16 @@ export default function HostApplyPage() {
                 id="introduction"
                 className={styles.textarea}
                 rows={6}
-                value={introduction}
-                onChange={(e) => setIntroduction(e.target.value)}
                 placeholder="예) 평일 저녁 한남동에서 와인을 따르는 게 가장 좋은 시간이에요. 처음 만난 사람도 한 잔 두 잔 부딪치다 보면 결국 자기 이야기를 꺼내게 되는데, 그 순간을 가장 좋아합니다."
                 aria-describedby="intro-counter"
-                aria-invalid={submitted && introLen < 50}
+                aria-invalid={isSubmitted && introLen < 50}
+                {...register('introduction')}
               />
               <div className={styles.fieldFoot} id="intro-counter">
                 <span className={introLen < 50 ? styles.counterPending : styles.counterDone}>
                   {introLen} / 50자
                 </span>
-                {submitted && introLen < 50 && (
+                {isSubmitted && introLen < 50 && (
                   <span className={styles.fieldError}>50자 이상 적어주세요.</span>
                 )}
               </div>
@@ -271,34 +288,40 @@ export default function HostApplyPage() {
           <Card padding="lg" className={styles.card}>
             <h2 className={styles.h2}>2. 진행 스타일</h2>
             <p className={styles.sectionLead}>가장 가까운 스타일 하나를 골라주세요.</p>
-            <div
-              className={styles.styleGrid}
-              role="radiogroup"
-              aria-label="진행 스타일"
-              aria-invalid={submitted && !hostingStyle}
-            >
-              {HOSTING_STYLES.map((s) => {
-                const active = hostingStyle === s.value
-                return (
-                  <button
-                    type="button"
-                    key={s.value}
-                    role="radio"
-                    aria-checked={active}
-                    className={`${styles.styleBtn} ${active ? styles.styleActive : ''}`}
-                    onClick={() => setHostingStyle(s.value)}
-                  >
-                    <span className={styles.styleEmoji} aria-hidden="true">
-                      {s.emoji}
-                    </span>
-                    <strong>{s.value}</strong>
-                    <span className={styles.styleDesc}>{s.desc}</span>
-                  </button>
-                )
-              })}
-            </div>
-            {submitted && !hostingStyle && (
-              <p className={styles.fieldError}>진행 스타일을 선택해 주세요.</p>
+            <Controller
+              control={control}
+              name="hostingStyle"
+              render={({ field }) => (
+                <div
+                  className={styles.styleGrid}
+                  role="radiogroup"
+                  aria-label="진행 스타일"
+                  aria-invalid={isSubmitted && !field.value}
+                >
+                  {HOSTING_STYLES.map((s) => {
+                    const active = field.value === s.value
+                    return (
+                      <button
+                        type="button"
+                        key={s.value}
+                        role="radio"
+                        aria-checked={active}
+                        className={`${styles.styleBtn} ${active ? styles.styleActive : ''}`}
+                        onClick={() => field.onChange(s.value)}
+                      >
+                        <span className={styles.styleEmoji} aria-hidden="true">
+                          {s.emoji}
+                        </span>
+                        <strong>{s.value}</strong>
+                        <span className={styles.styleDesc}>{s.desc}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            />
+            {isSubmitted && errors.hostingStyle && (
+              <p className={styles.fieldError}>{errors.hostingStyle.message}</p>
             )}
           </Card>
 
@@ -307,23 +330,35 @@ export default function HostApplyPage() {
             <p className={styles.sectionLead}>
               여러 개를 골라도 좋아요. 첫 모임은 가장 자신 있는 한두 가지부터 추천드려요.
             </p>
-            <div className={styles.chipRow}>
-              {ALL_CATEGORIES.map((c) => {
-                const selected = plannedCategories.includes(c.value)
-                return (
-                  <Chip
-                    key={c.value}
-                    leadingEmoji={c.emoji}
-                    selected={selected}
-                    onClick={() => toggleCategory(c.value)}
-                  >
-                    {c.shortLabel}
-                  </Chip>
-                )
-              })}
-            </div>
-            {submitted && plannedCategories.length === 0 && (
-              <p className={styles.fieldError}>카테고리를 한 개 이상 골라주세요.</p>
+            <Controller
+              control={control}
+              name="plannedCategories"
+              render={({ field }) => (
+                <div className={styles.chipRow}>
+                  {ALL_CATEGORIES.map((c) => {
+                    const selected = field.value.includes(c.value)
+                    return (
+                      <Chip
+                        key={c.value}
+                        leadingEmoji={c.emoji}
+                        selected={selected}
+                        onClick={() =>
+                          field.onChange(
+                            selected
+                              ? field.value.filter((x) => x !== c.value)
+                              : [...field.value, c.value],
+                          )
+                        }
+                      >
+                        {c.shortLabel}
+                      </Chip>
+                    )
+                  })}
+                </div>
+              )}
+            />
+            {isSubmitted && errors.plannedCategories && (
+              <p className={styles.fieldError}>{errors.plannedCategories.message}</p>
             )}
           </Card>
 
@@ -342,14 +377,13 @@ export default function HostApplyPage() {
                 id="experience"
                 className={styles.textarea}
                 rows={4}
-                value={experience}
-                onChange={(e) => setExperience(e.target.value)}
                 placeholder="예) 분기마다 8명 규모 와인 살롱을 6회 진행했어요. 한 라운드는 약 30분, 페어링 한 잔에 한 주제로."
+                {...register('experience')}
               />
             </div>
           </Card>
 
-          {submitted && validationHints.length > 0 && (
+          {isSubmitted && validationHints.length > 0 && (
             <div className={styles.hintBox} role="status" aria-live="polite">
               <strong>아직 한 걸음 남았어요</strong>
               <ul>

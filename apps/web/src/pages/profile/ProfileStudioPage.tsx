@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useForm, useFieldArray, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CONNECTION_CHANNELS,
   EDUCATION_LABEL,
   INCOME_BAND_LABEL,
   MARITAL_STATUS_LABEL,
+  PreProfileSchema,
   VERIFICATION_FIELD_LABEL,
   type Education,
   type FieldVisibility,
   type IncomeBand,
   type MaritalStatus,
   type PreProfileDto,
-  type ProfilePrompt,
   type VerifiableDetailField,
   type VerificationField,
   type VerificationMethod,
@@ -102,38 +104,41 @@ export default function ProfileStudioPage() {
 // ──────────────────────────────────────────────
 // 사전 프로필
 // ──────────────────────────────────────────────
+interface ProfileFormValues {
+  oneLiner: string
+  lookingFor: string
+  idealType: string[]
+  prompts: { q: string; a: string }[]
+}
+
 function ProfileTab() {
   const user = useAuthStore((s) => s.user)!
   const toast = useToast()
   const mutation = useUpdateProfile()
 
   const initial = user.profile ?? {}
-  const [oneLiner, setOneLiner] = useState(initial.oneLiner ?? '')
-  const [lookingFor, setLookingFor] = useState(initial.lookingFor ?? '')
-  const [idealType, setIdealType] = useState<string[]>(initial.idealType ?? [])
   const [idealDraft, setIdealDraft] = useState('')
-  const [prompts, setPrompts] = useState<ProfilePrompt[]>(
-    initial.prompts && initial.prompts.length > 0 ? initial.prompts : [{ q: '', a: '' }],
-  )
 
-  const addIdeal = () => {
-    const v = idealDraft.trim()
-    if (!v || idealType.includes(v) || idealType.length >= 8) return
-    setIdealType((prev) => [...prev, v])
-    setIdealDraft('')
-  }
+  const { control, register, handleSubmit } = useForm<ProfileFormValues>({
+    resolver: zodResolver(PreProfileSchema) as never,
+    defaultValues: {
+      oneLiner: initial.oneLiner ?? '',
+      lookingFor: initial.lookingFor ?? '',
+      idealType: initial.idealType ?? [],
+      prompts: initial.prompts && initial.prompts.length > 0 ? initial.prompts : [{ q: '', a: '' }],
+    },
+  })
 
-  const setPrompt = (i: number, patch: Partial<ProfilePrompt>) =>
-    setPrompts((prev) => prev.map((p, idx) => (idx === i ? { ...p, ...patch } : p)))
+  const promptArray = useFieldArray({ control, name: 'prompts' })
 
-  const save = async () => {
-    const cleanedPrompts = prompts
+  const save = handleSubmit(async (values) => {
+    const cleanedPrompts = values.prompts
       .map((p) => ({ q: p.q.trim(), a: p.a.trim() }))
       .filter((p) => p.q && p.a)
     const dto: PreProfileDto = {
-      oneLiner: oneLiner.trim() || undefined,
-      lookingFor: lookingFor.trim() || undefined,
-      idealType: idealType.length ? idealType : undefined,
+      oneLiner: values.oneLiner.trim() || undefined,
+      lookingFor: values.lookingFor.trim() || undefined,
+      idealType: values.idealType.length ? values.idealType : undefined,
       prompts: cleanedPrompts.length ? cleanedPrompts : undefined,
     }
     try {
@@ -142,7 +147,7 @@ function ProfileTab() {
     } catch (e) {
       toast.show((e as Error).message, 'error')
     }
-  }
+  })
 
   return (
     <Card padding="lg" className={styles.tabCard}>
@@ -151,11 +156,12 @@ function ProfileTab() {
           <span className={styles.sectionIndex}>01</span>
           <h2 className={styles.h2}>한 줄 소개</h2>
         </div>
-        <Input
-          placeholder="예: 주말엔 산, 평일엔 와인 한 잔"
-          value={oneLiner}
-          maxLength={120}
-          onChange={(e) => setOneLiner(e.target.value)}
+        <Controller
+          control={control}
+          name="oneLiner"
+          render={({ field }) => (
+            <Input placeholder="예: 주말엔 산, 평일엔 와인 한 잔" maxLength={120} {...field} />
+          )}
         />
       </section>
 
@@ -167,39 +173,56 @@ function ProfileTab() {
             <p className={styles.muted}>최대 8개까지. 매칭과 대화 소재로 쓰여요.</p>
           </div>
         </div>
-        {idealType.length > 0 && (
-          <div className={styles.chipRow}>
-            {idealType.map((kw) => (
-              <Chip
-                key={kw}
-                selected
-                onClick={() => setIdealType((p) => p.filter((x) => x !== kw))}
-              >
-                {kw}
-                <span className={styles.chipRemove} aria-hidden="true">
-                  ✕
-                </span>
-              </Chip>
-            ))}
-          </div>
-        )}
-        <div className={styles.inlineForm}>
-          <Input
-            placeholder="키워드 입력 후 추가"
-            value={idealDraft}
-            maxLength={20}
-            onChange={(e) => setIdealDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                addIdeal()
-              }
-            }}
-          />
-          <Button variant="soft" onClick={addIdeal} disabled={idealType.length >= 8}>
-            추가
-          </Button>
-        </div>
+        <Controller
+          control={control}
+          name="idealType"
+          render={({ field }) => {
+            const idealType = field.value
+            const addIdeal = () => {
+              const v = idealDraft.trim()
+              if (!v || idealType.includes(v) || idealType.length >= 8) return
+              field.onChange([...idealType, v])
+              setIdealDraft('')
+            }
+            return (
+              <>
+                {idealType.length > 0 && (
+                  <div className={styles.chipRow}>
+                    {idealType.map((kw) => (
+                      <Chip
+                        key={kw}
+                        selected
+                        onClick={() => field.onChange(idealType.filter((x) => x !== kw))}
+                      >
+                        {kw}
+                        <span className={styles.chipRemove} aria-hidden="true">
+                          ✕
+                        </span>
+                      </Chip>
+                    ))}
+                  </div>
+                )}
+                <div className={styles.inlineForm}>
+                  <Input
+                    placeholder="키워드 입력 후 추가"
+                    value={idealDraft}
+                    maxLength={20}
+                    onChange={(e) => setIdealDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        addIdeal()
+                      }
+                    }}
+                  />
+                  <Button variant="soft" onClick={addIdeal} disabled={idealType.length >= 8}>
+                    추가
+                  </Button>
+                </div>
+              </>
+            )
+          }}
+        />
       </section>
 
       <section className={styles.section}>
@@ -207,11 +230,12 @@ function ProfileTab() {
           <span className={styles.sectionIndex}>03</span>
           <h2 className={styles.h2}>찾는 관계</h2>
         </div>
-        <Input
-          placeholder="예: 취미를 함께할 친구, 진지한 만남"
-          value={lookingFor}
-          maxLength={200}
-          onChange={(e) => setLookingFor(e.target.value)}
+        <Controller
+          control={control}
+          name="lookingFor"
+          render={({ field }) => (
+            <Input placeholder="예: 취미를 함께할 친구, 진지한 만남" maxLength={200} {...field} />
+          )}
         />
       </section>
 
@@ -224,30 +248,28 @@ function ProfileTab() {
           </div>
         </div>
         <div className={styles.promptList}>
-          {prompts.map((p, i) => (
-            <div key={i} className={styles.promptItem}>
+          {promptArray.fields.map((f, i) => (
+            <div key={f.id} className={styles.promptItem}>
               <span className={styles.promptBadge} aria-hidden="true">
                 Q{i + 1}
               </span>
               <Input
                 placeholder="질문 (예: 인생 영화는?)"
-                value={p.q}
                 maxLength={60}
-                onChange={(e) => setPrompt(i, { q: e.target.value })}
+                {...register(`prompts.${i}.q`)}
               />
               <textarea
                 className={styles.textarea}
                 placeholder="나의 답"
-                value={p.a}
                 maxLength={300}
                 rows={2}
-                onChange={(e) => setPrompt(i, { a: e.target.value })}
+                {...register(`prompts.${i}.a`)}
               />
-              {prompts.length > 1 && (
+              {promptArray.fields.length > 1 && (
                 <button
                   type="button"
                   className={styles.removeLink}
-                  onClick={() => setPrompts((prev) => prev.filter((_, idx) => idx !== i))}
+                  onClick={() => promptArray.remove(i)}
                 >
                   삭제
                 </button>
@@ -255,12 +277,8 @@ function ProfileTab() {
             </div>
           ))}
         </div>
-        {prompts.length < 6 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setPrompts((prev) => [...prev, { q: '', a: '' }])}
-          >
+        {promptArray.fields.length < 6 && (
+          <Button variant="ghost" size="sm" onClick={() => promptArray.append({ q: '', a: '' })}>
             + 프롬프트 추가
           </Button>
         )}
