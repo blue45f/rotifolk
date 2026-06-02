@@ -1,9 +1,10 @@
 import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import babel from '@rolldown/plugin-babel'
 import path from 'node:path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -39,7 +40,8 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return
-          if (id.includes('react-dom') || (id.includes('/react/') && !id.includes('react-router'))) return 'vendor'
+          if (id.includes('react-dom') || (id.includes('/react/') && !id.includes('react-router')))
+            return 'vendor'
           if (id.includes('react-router-dom')) return 'router'
           if (id.includes('@tanstack/react-query')) return 'query'
           if (id.includes('framer-motion')) return 'motion'
