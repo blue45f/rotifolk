@@ -682,6 +682,7 @@ model CommunityPost {
   lastCommentAt DateTime?
 
   comments CommunityComment[]
+  reports  Report[] @relation("CommunityPostReports")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -701,6 +702,7 @@ model CommunityComment {
   parentId  String?
   parent    CommunityComment?  @relation("CommunityReplyThread", fields: [parentId], references: [id], onDelete: Cascade)
   replies   CommunityComment[] @relation("CommunityReplyThread")
+  reports   Report[] @relation("CommunityCommentReports")
   body      String
   status    String @default("visible") // visible | hidden | removed
 
@@ -811,6 +813,10 @@ model Report {
   targetUser   User?   @relation("ReportTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
   partyId      String?
   party        Party?  @relation(fields: [partyId], references: [id], onDelete: SetNull)
+  communityPostId String?
+  communityPost   CommunityPost? @relation("CommunityPostReports", fields: [communityPostId], references: [id], onDelete: SetNull)
+  communityCommentId String?
+  communityComment   CommunityComment? @relation("CommunityCommentReports", fields: [communityCommentId], references: [id], onDelete: SetNull)
   kind         String
   body         String
   status       String  @default("open")
@@ -821,6 +827,8 @@ model Report {
   updatedAt DateTime @updatedAt
 
   @@index([status, createdAt])
+  @@index([communityPostId])
+  @@index([communityCommentId])
 }
 
 // ======================== CHAT ========================

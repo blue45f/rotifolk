@@ -5,6 +5,7 @@ import type {
   CommunityPostQueryDto,
   CreateCommunityCommentDto,
   CreateCommunityPostDto,
+  CreateReportDto,
   Paginated,
 } from '@rotifolk/shared'
 import { api } from '@services/api'
@@ -64,5 +65,11 @@ export function useCreateCommunityComment(postId: string | null | undefined) {
       queryClient.invalidateQueries({ queryKey: communityKeys.all })
       queryClient.invalidateQueries({ queryKey: communityKeys.post(postId) })
     },
+  })
+}
+
+export function useReportCommunityContent() {
+  return useMutation({
+    mutationFn: (dto: CreateReportDto) => api.post<{ id: string; status: string }>('reports', dto),
   })
 }

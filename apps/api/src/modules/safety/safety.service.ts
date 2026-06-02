@@ -1,4 +1,10 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'
+import type { CreateReportDto, UpdateReportStatusDto } from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
@@ -13,7 +19,10 @@ export class SafetyService {
   /** 차단 (양방향 회피 — 같은 모임에 함께 못 들어감) */
   async block(blockerId: string, blockedId: string, reason?: string) {
     if (blockerId === blockedId)
-      throw new BadRequestException({ code: 'cannot_block_self', message: '본인은 차단할 수 없어요' })
+      throw new BadRequestException({
+        code: 'cannot_block_self',
+        message: '본인은 차단할 수 없어요',
+      })
     return this.prisma.userBlock.upsert({
       where: { blockerId_blockedId: { blockerId, blockedId } },
       create: { blockerId, blockedId, reason: reason ?? null },
@@ -70,8 +79,7 @@ export class SafetyService {
       with: [...otherIds],
       detail: blocks.map((b) => ({
         otherUserId: b.blockerId === userId ? b.blockedId : b.blockerId,
-        nickname:
-          b.blockerId === userId ? b.blocked.nickname : b.blocker.nickname,
+        nickname: b.blockerId === userId ? b.blocked.nickname : b.blocker.nickname,
         direction: b.blockerId === userId ? 'i-blocked' : 'they-blocked',
       })),
     }
@@ -103,16 +111,23 @@ export class SafetyService {
     if (input.targetUserId) {
       const title = `별점 ${'★'.repeat(input.rating)} 후기가 달렸어요`
       const body = input.body.slice(0, 60) + (input.body.length > 60 ? '…' : '')
-      await this.prisma.notification.create({
-        data: {
-          userId: input.targetUserId,
-          kind: 'host_review',
-          title,
-          body,
-          link: `/hosts/${input.targetUserId}`,
-        },
-      }).catch(() => undefined)
-      this.notifEmitter.toUser(input.targetUserId, { kind: 'host_review', title, body, link: `/hosts/${input.targetUserId}` })
+      await this.prisma.notification
+        .create({
+          data: {
+            userId: input.targetUserId,
+            kind: 'host_review',
+            title,
+            body,
+            link: `/hosts/${input.targetUserId}`,
+          },
+        })
+        .catch(() => undefined)
+      this.notifEmitter.toUser(input.targetUserId, {
+        kind: 'host_review',
+        title,
+        body,
+        link: `/hosts/${input.targetUserId}`,
+      })
     }
     return review
   }
@@ -143,8 +158,7 @@ export class SafetyService {
       orderBy: { createdAt: 'desc' },
       take: 50,
     })
-    const avg =
-      items.length === 0 ? 0 : items.reduce((s, r) => s + r.rating, 0) / items.length
+    const avg = items.length === 0 ? 0 : items.reduce((s, r) => s + r.rating, 0) / items.length
     return {
       averageRating: Math.round(avg * 10) / 10,
       count: items.length,
@@ -177,22 +191,86 @@ export class SafetyService {
   }
 
   // ============ Reports ============
-  async report(input: {
-    reporterId: string
-    targetUserId?: string
-    partyId?: string
-    kind: 'harassment' | 'spam' | 'inappropriate' | 'other'
-    body: string
-  }) {
+  async report(
+    input: {
+      reporterId: string
+    } & CreateReportDto,
+  ) {
+    const [post, comment] = await Promise.all([
+      input.communityPostId
+        ? this.prisma.communityPost.findFirst({
+            where: { id: input.communityPostId, status: 'open' },
+            select: { id: true, authorId: true },
+          })
+        : Promise.resolve(null),
+      input.communityCommentId
+        ? this.prisma.communityComment.findFirst({
+            where: { id: input.communityCommentId, status: 'visible' },
+            select: { id: true, postId: true, authorId: true },
+          })
+        : Promise.resolve(null),
+    ])
+
+    if (input.communityPostId && !post) {
+      throw new BadRequestException({
+        code: 'community_post_not_found',
+        message: '신고할 커뮤니티 글을 찾을 수 없어요',
+      })
+    }
+    if (input.communityCommentId && !comment) {
+      throw new BadRequestException({
+        code: 'community_comment_not_found',
+        message: '신고할 댓글을 찾을 수 없어요',
+      })
+    }
+    if (post && comment && comment.postId !== post.id) {
+      throw new BadRequestException({
+        code: 'report_target_mismatch',
+        message: '같은 글의 댓글만 함께 신고할 수 있어요',
+      })
+    }
+
+    const targetUserId = input.targetUserId ?? comment?.authorId ?? post?.authorId ?? null
+    if (targetUserId === input.reporterId) {
+      throw new BadRequestException({
+        code: 'cannot_report_self_content',
+        message: '본인이 작성한 콘텐츠는 신고할 수 없어요',
+      })
+    }
+
     return this.prisma.report.create({
       data: {
         reporterId: input.reporterId,
-        targetUserId: input.targetUserId ?? null,
+        targetUserId,
         partyId: input.partyId ?? null,
+        communityPostId: input.communityPostId ?? comment?.postId ?? null,
+        communityCommentId: input.communityCommentId ?? null,
         kind: input.kind,
         body: input.body,
       },
     })
+  }
+
+  private async hideReportedContent(reportId: string) {
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+      select: { communityPostId: true, communityCommentId: true },
+    })
+    if (!report) {
+      throw new NotFoundException({ code: 'report_not_found', message: '신고를 찾을 수 없어요' })
+    }
+    if (report.communityCommentId) {
+      await this.prisma.communityComment.update({
+        where: { id: report.communityCommentId },
+        data: { status: 'hidden' },
+      })
+    }
+    if (report.communityPostId && !report.communityCommentId) {
+      await this.prisma.communityPost.update({
+        where: { id: report.communityPostId },
+        data: { status: 'hidden' },
+      })
+    }
   }
 
   // ============ Admin ============
@@ -203,6 +281,8 @@ export class SafetyService {
         reporter: { select: { id: true, nickname: true } },
         targetUser: { select: { id: true, nickname: true } },
         party: { select: { id: true, title: true } },
+        communityPost: { select: { id: true, title: true } },
+        communityComment: { select: { id: true, postId: true, body: true } },
       },
       orderBy: { createdAt: 'desc' },
       take: 100,
@@ -215,6 +295,17 @@ export class SafetyService {
       reporter: r.reporter,
       target: r.targetUser,
       party: r.party,
+      communityPost: r.communityPost,
+      communityComment: r.communityComment
+        ? {
+            id: r.communityComment.id,
+            postId: r.communityComment.postId,
+            body:
+              r.communityComment.body.length > 90
+                ? `${r.communityComment.body.slice(0, 90)}...`
+                : r.communityComment.body,
+          }
+        : null,
       createdAt: r.createdAt.toISOString(),
     }))
   }
@@ -240,10 +331,13 @@ export class SafetyService {
     }))
   }
 
-  async resolveReport(adminId: string, reportId: string, status: 'resolved' | 'dismissed', note?: string) {
+  async resolveReport(adminId: string, reportId: string, input: UpdateReportStatusDto) {
+    if (input.hideContent) {
+      await this.hideReportedContent(reportId)
+    }
     return this.prisma.report.update({
       where: { id: reportId },
-      data: { status, resolvedById: adminId, resolvedNote: note ?? null },
+      data: { status: input.status, resolvedById: adminId, resolvedNote: input.note ?? null },
     })
   }
 }

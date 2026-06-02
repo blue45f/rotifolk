@@ -11,6 +11,7 @@ import type {
   CommunityPostCategory,
   CreateCommunityCommentDto,
   CreateCommunityPostDto,
+  CreateReportDto,
 } from '@rotifolk/shared'
 import {
   REVENUE_MONITORING_POLICY,
@@ -32,6 +33,56 @@ import {
 } from './data'
 
 const API = '*/api'
+
+type MockAdminReport = {
+  id: string
+  kind: CreateReportDto['kind']
+  body: string
+  status: 'open' | 'reviewing' | 'resolved' | 'dismissed'
+  reporter: { id: string; nickname: string }
+  target: { id: string; nickname: string } | null
+  party: { id: string; title: string } | null
+  communityPost: { id: string; title: string } | null
+  communityComment: { id: string; postId: string; body: string } | null
+  createdAt: string
+}
+
+const mockReports: MockAdminReport[] = [
+  {
+    id: 'mock_report_community_post',
+    kind: 'inappropriate',
+    body: '개인정보를 바로 요구하는 표현이 있어 확인이 필요합니다.',
+    status: 'open',
+    reporter: { id: mockUsers[2].id, nickname: mockUsers[2].nickname },
+    target: {
+      id: mockCommunityPosts[0].author.id,
+      nickname: mockCommunityPosts[0].author.nickname,
+    },
+    party: { id: 'p_wine', title: '[MOCK] 한남 루프탑 와인 5:5 로테이션' },
+    communityPost: { id: mockCommunityPosts[0].id, title: mockCommunityPosts[0].title },
+    communityComment: null,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'mock_report_community_comment',
+    kind: 'spam',
+    body: '특정 업장 홍보처럼 보이는 댓글입니다.',
+    status: 'reviewing',
+    reporter: { id: mockUsers[3].id, nickname: mockUsers[3].nickname },
+    target: {
+      id: mockCommunityComments[0].author.id,
+      nickname: mockCommunityComments[0].author.nickname,
+    },
+    party: null,
+    communityPost: { id: mockCommunityPosts[0].id, title: mockCommunityPosts[0].title },
+    communityComment: {
+      id: mockCommunityComments[0].id,
+      postId: mockCommunityComments[0].postId,
+      body: mockCommunityComments[0].body,
+    },
+    createdAt: new Date(Date.now() - 28 * 60_000).toISOString(),
+  },
+]
 
 function delay<T>(value: T, ms = 120): Promise<T> {
   return new Promise((res) => setTimeout(() => res(value), ms))
@@ -1865,9 +1916,34 @@ export const handlers = [
   http.get(`${API}/blocks`, async () => HttpResponse.json(await delay([]))),
   http.post(`${API}/blocks/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
   http.delete(`${API}/blocks/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
-  http.post(`${API}/reports`, async () =>
-    HttpResponse.json(await delay({ id: 'mock-report', status: 'open' })),
-  ),
+  http.post(`${API}/reports`, async ({ request }) => {
+    const body = (await request.json()) as CreateReportDto
+    const post = body.communityPostId
+      ? mockCommunityPosts.find((item) => item.id === body.communityPostId)
+      : null
+    const comment = body.communityCommentId
+      ? mockCommunityComments.find((item) => item.id === body.communityCommentId)
+      : null
+    const target = body.targetUserId
+      ? mockUsers.find((user) => user.id === body.targetUserId)
+      : null
+    const report: MockAdminReport = {
+      id: `mock_report_${Date.now()}`,
+      kind: body.kind,
+      body: body.body,
+      status: 'open',
+      reporter: { id: mockUsers[1].id, nickname: mockUsers[1].nickname },
+      target: target ? { id: target.id, nickname: target.nickname } : null,
+      party: body.partyId ? { id: body.partyId, title: post?.partyTitle ?? '선택한 모임' } : null,
+      communityPost: post ? { id: post.id, title: post.title } : null,
+      communityComment: comment
+        ? { id: comment.id, postId: comment.postId, body: comment.body }
+        : null,
+      createdAt: nowIso(),
+    }
+    mockReports.unshift(report)
+    return HttpResponse.json(await delay({ id: report.id, status: report.status }))
+  }),
 
   // Orders / split
   http.get(`${API}/orders/party/:id/split`, async ({ request }) => {
@@ -2449,12 +2525,28 @@ export const handlers = [
   http.get(`${API}/admin/reports`, async ({ request }) => {
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
-    if (status === 'resolved') {
-      return HttpResponse.json(await delay([]))
-    }
-    return HttpResponse.json(await delay([]))
+    const reports = status ? mockReports.filter((report) => report.status === status) : mockReports
+    return HttpResponse.json(await delay(reports))
   }),
-  http.patch(`${API}/admin/reports/:id`, async () => HttpResponse.json(await delay({ ok: true }))),
+  http.patch(`${API}/admin/reports/:id`, async ({ params, request }) => {
+    const body = (await request.json()) as {
+      status: MockAdminReport['status']
+      hideContent?: boolean
+      note?: string
+    }
+    const report = mockReports.find((item) => item.id === params.id)
+    if (!report) return HttpResponse.json({ code: 'report_not_found' }, { status: 404 })
+    report.status = body.status
+    if (body.hideContent && report.communityComment) {
+      const comment = mockCommunityComments.find((item) => item.id === report.communityComment?.id)
+      if (comment) comment.body = '[운영 기준에 따라 숨김 처리된 댓글입니다.]'
+    }
+    if (body.hideContent && report.communityPost && !report.communityComment) {
+      const post = mockCommunityPosts.find((item) => item.id === report.communityPost?.id)
+      if (post) post.body = '[운영 기준에 따라 숨김 처리된 글입니다.]'
+    }
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
 
   // Recent reviews (digest)
   http.get(`${API}/reviews/recent`, async () => HttpResponse.json(await delay([]))),

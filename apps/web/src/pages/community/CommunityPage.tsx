@@ -5,17 +5,20 @@ import {
   type CommunityComment,
   type CommunityPostDetail,
   type CommunityPostCategory,
+  type CreateReportDto,
 } from '@rotifolk/shared'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
+import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { useCurrentUser } from '@store/authStore'
 import {
   useCommunityPost,
   useCommunityPosts,
   useCreateCommunityComment,
   useCreateCommunityPost,
+  useReportCommunityContent,
 } from '@features/community/queries'
 import styles from './Community.module.css'
 
@@ -28,6 +31,13 @@ const CATEGORIES: Array<{ value: 'all' | CommunityPostCategory; label: string; h
 ]
 
 const AREAS = ['한남동', '연남동', '북촌', '성수', '강남']
+
+const REPORT_REASONS: Array<{ kind: CreateReportDto['kind']; label: string }> = [
+  { kind: 'inappropriate', label: '부적절한 내용' },
+  { kind: 'spam', label: '홍보·스팸' },
+  { kind: 'harassment', label: '불쾌한 표현' },
+  { kind: 'other', label: '기타' },
+]
 
 function formatDate(value: string | null | undefined) {
   if (!value) return '방금 전'
@@ -257,7 +267,7 @@ export default function CommunityPage() {
               </Button>
             </div>
           ) : (
-            <ThreadDetail post={detail.data} signedIn={!!me} />
+            <ThreadDetail post={detail.data} signedIn={!!me} currentUserId={me?.id} />
           )}
         </aside>
       </main>
@@ -265,11 +275,21 @@ export default function CommunityPage() {
   )
 }
 
-function ThreadDetail({ post, signedIn }: { post: CommunityPostDetail; signedIn: boolean }) {
+function ThreadDetail({
+  post,
+  signedIn,
+  currentUserId,
+}: {
+  post: CommunityPostDetail
+  signedIn: boolean
+  currentUserId?: string
+}) {
   const [comment, setComment] = useState('')
   const [replyTarget, setReplyTarget] = useState<string | null>(null)
   const [replyBody, setReplyBody] = useState('')
   const createComment = useCreateCommunityComment(post.id)
+  const report = useReportCommunityContent()
+  const toast = useToast()
 
   const submitComment = async (event: FormEvent) => {
     event.preventDefault()
@@ -282,6 +302,15 @@ function ThreadDetail({ post, signedIn }: { post: CommunityPostDetail; signedIn:
     await createComment.mutateAsync({ body: replyBody, parentId })
     setReplyTarget(null)
     setReplyBody('')
+  }
+
+  const reportContent = async (dto: CreateReportDto) => {
+    try {
+      await report.mutateAsync(dto)
+      toast.show('신고가 접수됐어요. 운영팀이 확인할게요.', 'success')
+    } catch (error) {
+      toast.show((error as Error).message || '신고를 접수하지 못했어요.', 'error')
+    }
   }
 
   return (
@@ -307,6 +336,23 @@ function ThreadDetail({ post, signedIn }: { post: CommunityPostDetail; signedIn:
           {post.tags.map((tag) => (
             <span key={tag}>#{tag}</span>
           ))}
+        </div>
+      )}
+      {signedIn && currentUserId !== post.author.id && (
+        <div className={styles.safetyRow}>
+          <span>개인정보 유도, 홍보, 불쾌한 표현을 발견하면 알려주세요.</span>
+          <ReportAction
+            label="글 신고"
+            disabled={report.isPending}
+            onReport={(kind, label) =>
+              reportContent({
+                communityPostId: post.id,
+                targetUserId: post.author.id,
+                kind,
+                body: `${label}: 커뮤니티 글 신고`,
+              })
+            }
+          />
         </div>
       )}
 
@@ -344,9 +390,20 @@ function ThreadDetail({ post, signedIn }: { post: CommunityPostDetail; signedIn:
               replyTarget={replyTarget}
               replyBody={replyBody}
               isPending={createComment.isPending}
+              reportPending={report.isPending}
+              currentUserId={currentUserId}
               onReplyTarget={setReplyTarget}
               onReplyBody={setReplyBody}
               onSubmitReply={submitReply}
+              onReportComment={(item, kind, label) =>
+                reportContent({
+                  communityPostId: post.id,
+                  communityCommentId: item.id,
+                  targetUserId: item.author.id,
+                  kind,
+                  body: `${label}: 커뮤니티 댓글 신고`,
+                })
+              }
             />
           ))
         )}
@@ -361,18 +418,24 @@ function CommentItem({
   replyTarget,
   replyBody,
   isPending,
+  reportPending,
+  currentUserId,
   onReplyTarget,
   onReplyBody,
   onSubmitReply,
+  onReportComment,
 }: {
   comment: CommunityComment
   signedIn: boolean
   replyTarget: string | null
   replyBody: string
   isPending: boolean
+  reportPending: boolean
+  currentUserId?: string
   onReplyTarget: (id: string | null) => void
   onReplyBody: (value: string) => void
   onSubmitReply: (event: FormEvent, parentId: string) => void
+  onReportComment: (comment: CommunityComment, kind: CreateReportDto['kind'], label: string) => void
 }) {
   const isReplying = replyTarget === comment.id
   return (
@@ -389,6 +452,13 @@ function CommentItem({
             <button type="button" onClick={() => onReplyTarget(isReplying ? null : comment.id)}>
               답글
             </button>
+            {signedIn && currentUserId !== comment.author.id && (
+              <ReportAction
+                label="댓글 신고"
+                disabled={reportPending}
+                onReport={(kind, label) => onReportComment(comment, kind, label)}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -422,12 +492,49 @@ function CommentItem({
               <div>
                 <span className={styles.authorLine}>{reply.author.nickname}</span>
                 <p>{reply.body}</p>
-                <span className={styles.detailTime}>{formatDate(reply.createdAt)}</span>
+                <div className={styles.replyMeta}>
+                  <span className={styles.detailTime}>{formatDate(reply.createdAt)}</span>
+                  {signedIn && currentUserId !== reply.author.id && (
+                    <ReportAction
+                      label="답글 신고"
+                      disabled={reportPending}
+                      onReport={(kind, label) => onReportComment(reply, kind, label)}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
     </div>
+  )
+}
+
+function ReportAction({
+  label,
+  disabled,
+  onReport,
+}: {
+  label: string
+  disabled: boolean
+  onReport: (kind: CreateReportDto['kind'], label: string) => void
+}) {
+  return (
+    <details className={styles.reportMenu}>
+      <summary>{label}</summary>
+      <div className={styles.reportOptions}>
+        {REPORT_REASONS.map((reason) => (
+          <button
+            key={reason.kind}
+            type="button"
+            disabled={disabled}
+            onClick={() => onReport(reason.kind, reason.label)}
+          >
+            {reason.label}
+          </button>
+        ))}
+      </div>
+    </details>
   )
 }

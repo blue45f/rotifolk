@@ -30,6 +30,36 @@ export const CreateCommunityCommentSchema = z.object({
 })
 export type CreateCommunityCommentDto = z.infer<typeof CreateCommunityCommentSchema>
 
+export const ReportKindEnum = z.enum(['harassment', 'spam', 'inappropriate', 'other'])
+
+export const CreateReportSchema = z
+  .object({
+    targetUserId: z.string().min(1).optional().nullable(),
+    partyId: z.string().min(1).optional().nullable(),
+    communityPostId: z.string().min(1).optional().nullable(),
+    communityCommentId: z.string().min(1).optional().nullable(),
+    kind: ReportKindEnum,
+    body: z.string().trim().min(4).max(500),
+  })
+  .refine(
+    (value) =>
+      Boolean(
+        value.targetUserId || value.partyId || value.communityPostId || value.communityCommentId,
+      ),
+    {
+      message: '신고 대상을 선택해 주세요.',
+      path: ['targetUserId'],
+    },
+  )
+export type CreateReportDto = z.infer<typeof CreateReportSchema>
+
+export const UpdateReportStatusSchema = z.object({
+  status: z.enum(['reviewing', 'resolved', 'dismissed']),
+  note: z.string().trim().max(500).optional().nullable(),
+  hideContent: z.boolean().default(false),
+})
+export type UpdateReportStatusDto = z.infer<typeof UpdateReportStatusSchema>
+
 export const CommunityPostQuerySchema = z.object({
   category: CommunityPostCategoryEnum.optional(),
   area: z.string().trim().min(1).max(20).optional(),

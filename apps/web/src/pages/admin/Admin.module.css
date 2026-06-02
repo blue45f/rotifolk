@@ -1103,6 +1103,35 @@
   overflow-wrap: anywhere;
 }
 
+.reportEvidence {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in oklab, var(--color-warning) 26%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-warning-bg) 70%, var(--color-surface));
+}
+
+.reportEvidence span {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+
+.reportEvidence p {
+  margin: 0;
+  color: var(--color-text);
+  line-height: var(--lh-relaxed);
+  overflow-wrap: anywhere;
+}
+
+.reportEvidenceLink {
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
+  overflow-wrap: anywhere;
+}
+
 .meta {
   margin-top: var(--space-3);
   padding: var(--space-3);

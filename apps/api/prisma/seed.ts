@@ -1263,6 +1263,28 @@ async function main() {
     data: { commentCount: 1, lastCommentAt: new Date() },
   })
 
+  await prisma.report.create({
+    data: {
+      reporterId: W[2].id,
+      targetUserId: W[0].id,
+      communityPostId: communityPost.id,
+      kind: 'inappropriate',
+      body: '처음 참여자에게 외부 연락처를 바로 요구하는 표현이 있어 확인이 필요합니다.',
+      status: 'open',
+    },
+  })
+  await prisma.report.create({
+    data: {
+      reporterId: M[2].id,
+      targetUserId: host.id,
+      communityPostId: communityPost.id,
+      communityCommentId: rootComment.id,
+      kind: 'spam',
+      body: '댓글에 특정 업장 홍보처럼 보이는 문구가 포함되어 검토 요청합니다.',
+      status: 'reviewing',
+    },
+  })
+
   // 회피 목록 데모 (라벨만 — 해시는 데모용 임의값)
   if (w1)
     await prisma.avoidContact.upsert({

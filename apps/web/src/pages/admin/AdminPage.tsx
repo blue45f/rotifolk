@@ -24,6 +24,8 @@ interface AdminReport {
   reporter: { id: string; nickname: string }
   target: { id: string; nickname: string } | null
   party: { id: string; title: string } | null
+  communityPost: { id: string; title: string } | null
+  communityComment: { id: string; postId: string; body: string } | null
   createdAt: string
 }
 
@@ -791,8 +793,17 @@ export default function AdminPage() {
   ])
 
   const patch = useMutation({
-    mutationFn: (input: { id: string; status: AdminReport['status'] }) =>
-      api.patch(`admin/reports/${input.id}`, { status: input.status }),
+    mutationFn: (input: {
+      id: string
+      status: AdminReport['status']
+      hideContent?: boolean
+      note?: string
+    }) =>
+      api.patch(`admin/reports/${input.id}`, {
+        status: input.status,
+        hideContent: input.hideContent ?? false,
+        note: input.note,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'reports'] })
       toast.show('신고 상태가 업데이트됐어요.', 'success')
@@ -3777,13 +3788,30 @@ export default function AdminPage() {
                       </div>
                     )}
                   </dl>
+                  {(r.communityPost || r.communityComment) && (
+                    <div className={styles.reportEvidence}>
+                      <span>커뮤니티 신고 대상</span>
+                      {r.communityPost && (
+                        <Link to="/community" className={styles.reportEvidenceLink}>
+                          글: {r.communityPost.title}
+                        </Link>
+                      )}
+                      {r.communityComment && <p>댓글: {r.communityComment.body}</p>}
+                    </div>
+                  )}
                   {r.status === 'open' && (
                     <div className={styles.actions}>
                       <Button
                         variant="ghost"
                         size="sm"
                         disabled={patch.isPending}
-                        onClick={() => patch.mutate({ id: r.id, status: 'reviewing' })}
+                        onClick={() =>
+                          patch.mutate({
+                            id: r.id,
+                            status: 'reviewing',
+                            note: '운영자 검토 시작',
+                          })
+                        }
                       >
                         검토 시작
                       </Button>
@@ -3791,15 +3819,44 @@ export default function AdminPage() {
                         variant="ghost"
                         size="sm"
                         disabled={patch.isPending}
-                        onClick={() => patch.mutate({ id: r.id, status: 'dismissed' })}
+                        onClick={() =>
+                          patch.mutate({
+                            id: r.id,
+                            status: 'dismissed',
+                            note: '운영 기준상 조치 없음',
+                          })
+                        }
                       >
                         기각
                       </Button>
+                      {(r.communityPost || r.communityComment) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={patch.isPending}
+                          onClick={() =>
+                            patch.mutate({
+                              id: r.id,
+                              status: 'resolved',
+                              hideContent: true,
+                              note: '커뮤니티 콘텐츠 숨김 처리',
+                            })
+                          }
+                        >
+                          콘텐츠 숨김 처리
+                        </Button>
+                      )}
                       <Button
                         variant="primary"
                         size="sm"
                         disabled={patch.isPending}
-                        onClick={() => patch.mutate({ id: r.id, status: 'resolved' })}
+                        onClick={() =>
+                          patch.mutate({
+                            id: r.id,
+                            status: 'resolved',
+                            note: '신고 처리 완료',
+                          })
+                        }
                       >
                         조치 완료
                       </Button>
@@ -3811,15 +3868,44 @@ export default function AdminPage() {
                         variant="ghost"
                         size="sm"
                         disabled={patch.isPending}
-                        onClick={() => patch.mutate({ id: r.id, status: 'dismissed' })}
+                        onClick={() =>
+                          patch.mutate({
+                            id: r.id,
+                            status: 'dismissed',
+                            note: '운영 기준상 조치 없음',
+                          })
+                        }
                       >
                         기각
                       </Button>
+                      {(r.communityPost || r.communityComment) && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={patch.isPending}
+                          onClick={() =>
+                            patch.mutate({
+                              id: r.id,
+                              status: 'resolved',
+                              hideContent: true,
+                              note: '커뮤니티 콘텐츠 숨김 처리',
+                            })
+                          }
+                        >
+                          콘텐츠 숨김 처리
+                        </Button>
+                      )}
                       <Button
                         variant="primary"
                         size="sm"
                         disabled={patch.isPending}
-                        onClick={() => patch.mutate({ id: r.id, status: 'resolved' })}
+                        onClick={() =>
+                          patch.mutate({
+                            id: r.id,
+                            status: 'resolved',
+                            note: '신고 처리 완료',
+                          })
+                        }
                       >
                         조치 완료
                       </Button>

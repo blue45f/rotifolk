@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { CreateCommunityCommentSchema, CreateCommunityPostSchema } from './community.schema'
+import {
+  CreateCommunityCommentSchema,
+  CreateCommunityPostSchema,
+  CreateReportSchema,
+} from './community.schema'
 
 describe('CreateCommunityCommentSchema', () => {
   it('accepts a parentId for one-level replies', () => {
@@ -34,5 +38,41 @@ describe('CreateCommunityPostSchema', () => {
     if (result.success) {
       expect(result.data.tags).toEqual(['와인', '초보'])
     }
+  })
+})
+
+describe('CreateReportSchema', () => {
+  it('accepts community post and comment report targets', () => {
+    const result = CreateReportSchema.safeParse({
+      communityPostId: 'cp_first',
+      communityCommentId: 'cc_host_tip',
+      kind: 'inappropriate',
+      body: '개인정보를 유도하는 댓글이라 신고합니다.',
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.communityPostId).toBe('cp_first')
+      expect(result.data.communityCommentId).toBe('cc_host_tip')
+    }
+  })
+
+  it('rejects reports without any target', () => {
+    const result = CreateReportSchema.safeParse({
+      kind: 'spam',
+      body: '대상 없는 신고는 운영자가 처리할 수 없어요.',
+    })
+
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects blank report bodies after trimming', () => {
+    const result = CreateReportSchema.safeParse({
+      communityPostId: 'cp_first',
+      kind: 'other',
+      body: '   ',
+    })
+
+    expect(result.success).toBe(false)
   })
 })
