@@ -285,6 +285,20 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     @MessageBody() data: { partyId: string; pairId?: string | null },
   ) {
     if (!client.data.user) return
+    // 이 파티의 확정/체크인 참가자만 카드 draw 가능 (비참가자 usedCount·draw 오염 차단)
+    const part = await this.prisma.participation.findUnique({
+      where: { partyId_userId: { partyId: data.partyId, userId: client.data.user.sub } },
+      select: { status: true },
+    })
+    if (!part || (part.status !== 'confirmed' && part.status !== 'checked-in')) return
+    // pairId 지정 시 그 페어가 이 파티 라운드 소속인지 검증 (임의 페어 기록 차단)
+    if (data.pairId) {
+      const pair = await this.prisma.pair.findUnique({
+        where: { id: data.pairId },
+        select: { round: { select: { partyId: true } } },
+      })
+      if (!pair || pair.round.partyId !== data.partyId) return
+    }
     const where: Record<string, unknown> = { OR: [{ partyId: data.partyId }, { partyId: null }] }
     const cards = await this.prisma.questionCard.findMany({
       where,
