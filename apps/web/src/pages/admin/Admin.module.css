@@ -1132,6 +1132,57 @@
   overflow-wrap: anywhere;
 }
 
+.auditTrail {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in oklab, var(--color-primary) 18%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-primary-soft) 50%, var(--color-surface));
+}
+
+.auditTrailHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auditTrailHead > span,
+.auditTrail li strong {
+  color: var(--color-text);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+
+.auditTrail p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  overflow-wrap: anywhere;
+}
+
+.auditTrail ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.auditTrail li {
+  display: grid;
+  gap: 2px;
+}
+
+.auditTrail li span {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  overflow-wrap: anywhere;
+}
+
 .meta {
   margin-top: var(--space-3);
   padding: var(--space-3);

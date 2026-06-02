@@ -31,6 +31,7 @@ async function createUserWithAvatar(
 }
 
 async function main() {
+  await prisma.reportAuditLog.deleteMany()
   await prisma.questionCardDraw.deleteMany()
   await prisma.questionCard.deleteMany()
   await prisma.orderItem.deleteMany()
@@ -1263,26 +1264,56 @@ async function main() {
     data: { commentCount: 1, lastCommentAt: new Date() },
   })
 
-  await prisma.report.create({
+  const communityPostReport = await prisma.report.create({
     data: {
       reporterId: W[2].id,
       targetUserId: W[0].id,
       communityPostId: communityPost.id,
+      reporterTargetKey: `community-post:${communityPost.id}`,
       kind: 'inappropriate',
       body: '처음 참여자에게 외부 연락처를 바로 요구하는 표현이 있어 확인이 필요합니다.',
       status: 'open',
     },
   })
-  await prisma.report.create({
+  await prisma.reportAuditLog.create({
+    data: {
+      reportId: communityPostReport.id,
+      actorId: W[2].id,
+      action: 'report_created',
+      note: 'inappropriate',
+      metadataJson: JSON.stringify({ reporterTargetKey: `community-post:${communityPost.id}` }),
+    },
+  })
+  const communityCommentReport = await prisma.report.create({
     data: {
       reporterId: M[2].id,
       targetUserId: host.id,
       communityPostId: communityPost.id,
       communityCommentId: rootComment.id,
+      reporterTargetKey: `community-comment:${rootComment.id}`,
       kind: 'spam',
       body: '댓글에 특정 업장 홍보처럼 보이는 문구가 포함되어 검토 요청합니다.',
       status: 'reviewing',
+      resolvedNote: '운영자 검토 시작',
     },
+  })
+  await prisma.reportAuditLog.createMany({
+    data: [
+      {
+        reportId: communityCommentReport.id,
+        actorId: M[2].id,
+        action: 'report_created',
+        note: 'spam',
+        metadataJson: JSON.stringify({ reporterTargetKey: `community-comment:${rootComment.id}` }),
+      },
+      {
+        reportId: communityCommentReport.id,
+        actorId: admin.id,
+        action: 'status_updated',
+        note: '운영자 검토 시작',
+        metadataJson: JSON.stringify({ fromStatus: 'open', toStatus: 'reviewing' }),
+      },
+    ],
   })
 
   // 회피 목록 데모 (라벨만 — 해시는 데모용 임의값)

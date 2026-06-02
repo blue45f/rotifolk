@@ -21,11 +21,20 @@ interface AdminReport {
   kind: string
   body: string
   status: 'open' | 'reviewing' | 'resolved' | 'dismissed'
+  resolvedNote?: string | null
+  autoHiddenAt?: string | null
   reporter: { id: string; nickname: string }
   target: { id: string; nickname: string } | null
   party: { id: string; title: string } | null
   communityPost: { id: string; title: string } | null
   communityComment: { id: string; postId: string; body: string } | null
+  auditTrail?: Array<{
+    id: string
+    action: string
+    note: string | null
+    actorId: string | null
+    createdAt: string
+  }>
   createdAt: string
 }
 
@@ -329,6 +338,13 @@ const KIND_LABEL: Record<string, string> = {
   spam: '스팸',
   inappropriate: '부적절',
   other: '기타',
+}
+
+const AUDIT_ACTION_LABEL: Record<string, string> = {
+  report_created: '신고 접수',
+  content_auto_hidden: '자동 숨김',
+  status_updated: '상태 변경',
+  content_hidden_and_status_updated: '콘텐츠 숨김',
 }
 
 const FALLBACK_MONITORING_ALERTS = REVENUE_MONITORING_POLICY.healthAlerts
@@ -3797,6 +3813,28 @@ export default function AdminPage() {
                         </Link>
                       )}
                       {r.communityComment && <p>댓글: {r.communityComment.body}</p>}
+                    </div>
+                  )}
+                  {(r.autoHiddenAt || r.resolvedNote || (r.auditTrail?.length ?? 0) > 0) && (
+                    <div className={styles.auditTrail}>
+                      <div className={styles.auditTrailHead}>
+                        <span>운영 이력</span>
+                        {r.autoHiddenAt && <Badge tone="warning">자동 임시 숨김</Badge>}
+                      </div>
+                      {r.resolvedNote && <p>최근 메모: {r.resolvedNote}</p>}
+                      {(r.auditTrail ?? []).length > 0 && (
+                        <ul>
+                          {(r.auditTrail ?? []).slice(0, 3).map((log) => (
+                            <li key={log.id}>
+                              <strong>{AUDIT_ACTION_LABEL[log.action] ?? log.action}</strong>
+                              <span>
+                                {log.note ? `${log.note} · ` : ''}
+                                {new Date(log.createdAt).toLocaleString('ko-KR')}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   )}
                   {r.status === 'open' && (

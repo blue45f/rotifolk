@@ -41,11 +41,20 @@ type MockAdminReport = {
   kind: CreateReportDto['kind']
   body: string
   status: 'open' | 'reviewing' | 'resolved' | 'dismissed'
+  resolvedNote?: string | null
+  autoHiddenAt?: string | null
   reporter: { id: string; nickname: string }
   target: { id: string; nickname: string } | null
   party: { id: string; title: string } | null
   communityPost: { id: string; title: string } | null
   communityComment: { id: string; postId: string; body: string } | null
+  auditTrail?: Array<{
+    id: string
+    action: string
+    note: string | null
+    actorId: string | null
+    createdAt: string
+  }>
   createdAt: string
 }
 
@@ -55,6 +64,8 @@ const mockReports: MockAdminReport[] = [
     kind: 'inappropriate',
     body: '개인정보를 바로 요구하는 표현이 있어 확인이 필요합니다.',
     status: 'open',
+    resolvedNote: null,
+    autoHiddenAt: null,
     reporter: { id: mockUsers[2].id, nickname: mockUsers[2].nickname },
     target: {
       id: mockCommunityPosts[0].author.id,
@@ -63,6 +74,15 @@ const mockReports: MockAdminReport[] = [
     party: { id: 'p_wine', title: '[MOCK] 한남 루프탑 와인 5:5 로테이션' },
     communityPost: { id: mockCommunityPosts[0].id, title: mockCommunityPosts[0].title },
     communityComment: null,
+    auditTrail: [
+      {
+        id: 'mock_audit_report_community_post',
+        action: 'report_created',
+        note: 'inappropriate',
+        actorId: mockUsers[2].id,
+        createdAt: new Date().toISOString(),
+      },
+    ],
     createdAt: new Date().toISOString(),
   },
   {
@@ -70,6 +90,8 @@ const mockReports: MockAdminReport[] = [
     kind: 'spam',
     body: '특정 업장 홍보처럼 보이는 댓글입니다.',
     status: 'reviewing',
+    resolvedNote: '운영자 검토 시작',
+    autoHiddenAt: null,
     reporter: { id: mockUsers[3].id, nickname: mockUsers[3].nickname },
     target: {
       id: mockCommunityComments[0].author.id,
@@ -82,6 +104,22 @@ const mockReports: MockAdminReport[] = [
       postId: mockCommunityComments[0].postId,
       body: mockCommunityComments[0].body,
     },
+    auditTrail: [
+      {
+        id: 'mock_audit_report_community_comment',
+        action: 'status_updated',
+        note: '운영자 검토 시작',
+        actorId: mockUsers[0].id,
+        createdAt: new Date(Date.now() - 20 * 60_000).toISOString(),
+      },
+      {
+        id: 'mock_audit_report_community_comment_created',
+        action: 'report_created',
+        note: 'spam',
+        actorId: mockUsers[3].id,
+        createdAt: new Date(Date.now() - 28 * 60_000).toISOString(),
+      },
+    ],
     createdAt: new Date(Date.now() - 28 * 60_000).toISOString(),
   },
 ]
@@ -1929,11 +1967,35 @@ export const handlers = [
     const target = body.targetUserId
       ? mockUsers.find((user) => user.id === body.targetUserId)
       : null
+    const targetKey =
+      body.communityCommentId ?? body.communityPostId ?? body.partyId ?? body.targetUserId ?? null
+    if (
+      targetKey &&
+      mockReports.some(
+        (item) =>
+          item.reporter.id === mockUsers[1].id &&
+          item.status !== 'resolved' &&
+          item.status !== 'dismissed' &&
+          [
+            item.communityComment?.id,
+            item.communityPost?.id,
+            item.party?.id,
+            item.target?.id,
+          ].includes(targetKey),
+      )
+    ) {
+      return HttpResponse.json(
+        { code: 'duplicate_active_report', message: '이미 접수된 신고를 운영팀이 확인 중이에요.' },
+        { status: 400 },
+      )
+    }
     const report: MockAdminReport = {
       id: `mock_report_${Date.now()}`,
       kind: body.kind,
       body: body.body,
       status: 'open',
+      resolvedNote: null,
+      autoHiddenAt: null,
       reporter: { id: mockUsers[1].id, nickname: mockUsers[1].nickname },
       target: target ? { id: target.id, nickname: target.nickname } : null,
       party: body.partyId ? { id: body.partyId, title: post?.partyTitle ?? '선택한 모임' } : null,
@@ -1941,6 +2003,15 @@ export const handlers = [
       communityComment: comment
         ? { id: comment.id, postId: comment.postId, body: comment.body }
         : null,
+      auditTrail: [
+        {
+          id: `mock_audit_${Date.now()}`,
+          action: 'report_created',
+          note: body.kind,
+          actorId: mockUsers[1].id,
+          createdAt: nowIso(),
+        },
+      ],
       createdAt: nowIso(),
     }
     mockReports.unshift(report)
@@ -2594,6 +2665,7 @@ export const handlers = [
     const report = mockReports.find((item) => item.id === params.id)
     if (!report) return HttpResponse.json({ code: 'report_not_found' }, { status: 404 })
     report.status = body.status
+    report.resolvedNote = body.note ?? null
     if (body.hideContent && report.communityComment) {
       const comment = mockCommunityComments.find((item) => item.id === report.communityComment?.id)
       if (comment) comment.body = '[운영 기준에 따라 숨김 처리된 댓글입니다.]'
@@ -2602,6 +2674,16 @@ export const handlers = [
       const post = mockCommunityPosts.find((item) => item.id === report.communityPost?.id)
       if (post) post.body = '[운영 기준에 따라 숨김 처리된 글입니다.]'
     }
+    report.auditTrail = [
+      {
+        id: `mock_audit_${Date.now()}`,
+        action: body.hideContent ? 'content_hidden_and_status_updated' : 'status_updated',
+        note: body.note ?? null,
+        actorId: mockUsers[0].id,
+        createdAt: nowIso(),
+      },
+      ...(report.auditTrail ?? []),
+    ]
     return HttpResponse.json(await delay({ ok: true }))
   }),
 

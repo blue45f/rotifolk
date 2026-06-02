@@ -817,18 +817,36 @@ model Report {
   communityPost   CommunityPost? @relation("CommunityPostReports", fields: [communityPostId], references: [id], onDelete: SetNull)
   communityCommentId String?
   communityComment   CommunityComment? @relation("CommunityCommentReports", fields: [communityCommentId], references: [id], onDelete: SetNull)
+  reporterTargetKey String?
   kind         String
   body         String
   status       String  @default("open")
   resolvedById String?
   resolvedNote String?
+  autoHiddenAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status, createdAt])
+  @@index([reporterId, reporterTargetKey, status])
+  @@index([reporterTargetKey, status])
   @@index([communityPostId])
   @@index([communityCommentId])
+}
+
+model ReportAuditLog {
+  id           String   @id @default(cuid())
+  reportId     String?
+  actorId      String?
+  action       String
+  note         String?
+  metadataJson String   @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@index([reportId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
 }
 
 // ======================== CHAT ========================

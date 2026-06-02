@@ -4,7 +4,14 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import type { CreateReportDto, UpdateReportStatusDto } from '@rotifolk/shared'
+import {
+  REPORT_RATE_LIMIT_MAX,
+  REPORT_RATE_LIMIT_WINDOW_MS,
+  buildReportTargetKey,
+  shouldAutoHideReportTarget,
+  type CreateReportDto,
+  type UpdateReportStatusDto,
+} from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
@@ -196,6 +203,17 @@ export class SafetyService {
       reporterId: string
     } & CreateReportDto,
   ) {
+    const createdAfter = new Date(Date.now() - REPORT_RATE_LIMIT_WINDOW_MS)
+    const recentReportCount = await this.prisma.report.count({
+      where: { reporterId: input.reporterId, createdAt: { gte: createdAfter } },
+    })
+    if (recentReportCount >= REPORT_RATE_LIMIT_MAX) {
+      throw new BadRequestException({
+        code: 'report_rate_limited',
+        message: '신고가 너무 자주 접수됐어요. 잠시 후 다시 시도해 주세요.',
+      })
+    }
+
     const [post, comment] = await Promise.all([
       input.communityPostId
         ? this.prisma.communityPost.findFirst({
@@ -238,15 +256,86 @@ export class SafetyService {
       })
     }
 
-    return this.prisma.report.create({
+    const reporterTargetKey = buildReportTargetKey({
+      targetUserId,
+      partyId: input.partyId,
+      communityPostId: input.communityPostId ?? comment?.postId,
+      communityCommentId: input.communityCommentId,
+    })
+    if (reporterTargetKey) {
+      const duplicate = await this.prisma.report.findFirst({
+        where: {
+          reporterId: input.reporterId,
+          reporterTargetKey,
+          status: { in: ['open', 'reviewing'] },
+        },
+        select: { id: true },
+      })
+      if (duplicate) {
+        throw new BadRequestException({
+          code: 'duplicate_active_report',
+          message: '이미 접수된 신고를 운영팀이 확인 중이에요.',
+        })
+      }
+    }
+
+    const created = await this.prisma.report.create({
       data: {
         reporterId: input.reporterId,
         targetUserId,
         partyId: input.partyId ?? null,
         communityPostId: input.communityPostId ?? comment?.postId ?? null,
         communityCommentId: input.communityCommentId ?? null,
+        reporterTargetKey,
         kind: input.kind,
         body: input.body,
+      },
+    })
+    await this.writeReportAuditLog({
+      reportId: created.id,
+      actorId: input.reporterId,
+      action: 'report_created',
+      note: input.kind,
+      metadata: { reporterTargetKey },
+    })
+
+    if (reporterTargetKey && (input.communityPostId || input.communityCommentId)) {
+      const activeTargetReportCount = await this.prisma.report.count({
+        where: { reporterTargetKey, status: { in: ['open', 'reviewing'] } },
+      })
+      if (shouldAutoHideReportTarget(activeTargetReportCount)) {
+        await this.hideReportedContent(created.id)
+        await this.prisma.report.update({
+          where: { id: created.id },
+          data: { autoHiddenAt: new Date() },
+        })
+        await this.writeReportAuditLog({
+          reportId: created.id,
+          actorId: null,
+          action: 'content_auto_hidden',
+          note: '누적 신고 기준으로 자동 임시 숨김 처리',
+          metadata: { reporterTargetKey, activeTargetReportCount },
+        })
+      }
+    }
+
+    return created
+  }
+
+  private async writeReportAuditLog(input: {
+    reportId: string
+    actorId: string | null
+    action: string
+    note?: string | null
+    metadata?: Record<string, unknown>
+  }) {
+    await this.prisma.reportAuditLog.create({
+      data: {
+        reportId: input.reportId,
+        actorId: input.actorId,
+        action: input.action,
+        note: input.note ?? null,
+        metadataJson: JSON.stringify(input.metadata ?? {}),
       },
     })
   }
@@ -287,11 +376,23 @@ export class SafetyService {
       orderBy: { createdAt: 'desc' },
       take: 100,
     })
+    const auditLogs = await this.prisma.reportAuditLog.findMany({
+      where: { reportId: { in: items.map((item) => item.id) } },
+      orderBy: { createdAt: 'desc' },
+      take: 400,
+    })
+    const auditByReportId = new Map<string, typeof auditLogs>()
+    for (const log of auditLogs) {
+      if (!log.reportId) continue
+      auditByReportId.set(log.reportId, [...(auditByReportId.get(log.reportId) ?? []), log])
+    }
     return items.map((r) => ({
       id: r.id,
       kind: r.kind,
       body: r.body,
       status: r.status,
+      resolvedNote: r.resolvedNote,
+      autoHiddenAt: r.autoHiddenAt?.toISOString() ?? null,
       reporter: r.reporter,
       target: r.targetUser,
       party: r.party,
@@ -306,6 +407,13 @@ export class SafetyService {
                 : r.communityComment.body,
           }
         : null,
+      auditTrail: (auditByReportId.get(r.id) ?? []).slice(0, 4).map((log) => ({
+        id: log.id,
+        action: log.action,
+        note: log.note,
+        actorId: log.actorId,
+        createdAt: log.createdAt.toISOString(),
+      })),
       createdAt: r.createdAt.toISOString(),
     }))
   }
@@ -332,12 +440,31 @@ export class SafetyService {
   }
 
   async resolveReport(adminId: string, reportId: string, input: UpdateReportStatusDto) {
+    const current = await this.prisma.report.findUnique({
+      where: { id: reportId },
+      select: { status: true },
+    })
+    if (!current) {
+      throw new NotFoundException({ code: 'report_not_found', message: '신고를 찾을 수 없어요' })
+    }
     if (input.hideContent) {
       await this.hideReportedContent(reportId)
     }
-    return this.prisma.report.update({
+    const updated = await this.prisma.report.update({
       where: { id: reportId },
       data: { status: input.status, resolvedById: adminId, resolvedNote: input.note ?? null },
     })
+    await this.writeReportAuditLog({
+      reportId,
+      actorId: adminId,
+      action: input.hideContent ? 'content_hidden_and_status_updated' : 'status_updated',
+      note: input.note,
+      metadata: {
+        fromStatus: current.status,
+        toStatus: input.status,
+        hideContent: input.hideContent,
+      },
+    })
+    return updated
   }
 }
