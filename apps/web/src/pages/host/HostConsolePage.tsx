@@ -427,10 +427,13 @@ export default function HostConsolePage() {
         </Link>
       </section>
 
-      <section className={`container ${styles.stats}`}>
-        <StatCard label="진행 중인 파티" value={live} emoji="🔴" />
-        <StatCard label="모집 중인 파티" value={open} emoji="🌙" />
-        <StatCard label="총 호스팅 횟수" value={total} emoji="🏆" />
+      <section className={`container ${styles.stageLedger}`} aria-label="호스팅 현황">
+        <span className={styles.stageLedgerCaption}>스테이지 현황</span>
+        <dl className={styles.ledger}>
+          <StageRow label="진행 중인 파티" value={live} active={live > 0} />
+          <StageRow label="모집 중인 파티" value={open} />
+          <StageRow label="총 호스팅 횟수" value={total} />
+        </dl>
       </section>
 
       <section className="container">
@@ -922,18 +925,22 @@ export default function HostConsolePage() {
   )
 }
 
-function StatCard({ label, value, emoji }: { label: string; value: number; emoji: string }) {
+function StageRow({
+  label,
+  value,
+  active = false,
+}: {
+  label: string
+  value: number
+  active?: boolean
+}) {
   return (
-    <Card padding="md" variant="soft">
-      <div className={styles.stat}>
-        <span className={styles.statEmoji} aria-hidden="true">
-          {emoji}
-        </span>
-        <div>
-          <strong>{value}</strong>
-          <span>{label}</span>
-        </div>
-      </div>
-    </Card>
+    <div className={`${styles.ledgerRow} ${active ? styles.ledgerRowActive : ''}`}>
+      <dt className={styles.ledgerLabel}>
+        {active ? <span className={styles.ledgerCue} aria-hidden="true" /> : null}
+        {label}
+      </dt>
+      <dd className={styles.ledgerFigure}>{value.toLocaleString()}</dd>
+    </div>
   )
 }

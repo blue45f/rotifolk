@@ -14,8 +14,10 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18), transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(212, 162, 76, 0.25), transparent 50%);
+    var(--grad-wine-glow),
+    radial-gradient(circle at 80% 80%, color-mix(in oklab, var(--brand-gold-400) 25%, transparent), transparent 50%);
+  mix-blend-mode: screen;
+  opacity: 0.7;
   pointer-events: none;
 }
 
@@ -31,15 +33,15 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.3);
-  color: #fff;
+  background: color-mix(in oklab, var(--brand-ink-900) 32%, transparent);
+  color: var(--brand-cream-50);
   display: grid;
   place-items: center;
   font-size: 14px;
   transition: background var(--dur-fast);
 }
 .exit:hover {
-  background: rgba(0, 0, 0, 0.5);
+  background: color-mix(in oklab, var(--brand-ink-900) 52%, transparent);
 }
 .headBody {
   flex: 1;
@@ -68,7 +70,7 @@
   font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
   letter-spacing: -0.02em;
-  background: rgba(0, 0, 0, 0.32);
+  background: color-mix(in oklab, var(--brand-ink-900) 34%, transparent);
   border-radius: var(--radius-pill);
   padding: 4px 14px;
   min-width: 92px;
@@ -96,7 +98,7 @@
   font-size: var(--fs-2xs);
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
+  color: color-mix(in oklab, var(--brand-cream-50) 85%, transparent);
 }
 .partners {
   display: flex;
@@ -110,10 +112,10 @@
   align-items: center;
   gap: var(--space-3);
   text-align: center;
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in oklab, var(--brand-cream-50) 7%, transparent);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid color-mix(in oklab, var(--brand-cream-50) 16%, transparent);
   border-radius: var(--radius-2xl);
   padding: var(--space-6) var(--space-8);
   min-width: 260px;
@@ -133,8 +135,8 @@
 .cardArea {
   width: min(640px, 100%);
   text-align: center;
-  background: rgba(20, 16, 29, 0.32);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: color-mix(in oklab, var(--brand-ink-900) 34%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-cream-50) 18%, transparent);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
   display: flex;
@@ -146,7 +148,7 @@
   font-size: var(--fs-2xs);
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  color: color-mix(in oklab, var(--brand-cream-50) 70%, transparent);
 }
 .cardText {
   font-size: clamp(1.25rem, 3vw, 1.75rem);
@@ -183,23 +185,23 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
   border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: color-mix(in oklab, var(--brand-cream-50) 10%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-cream-50) 20%, transparent);
+  color: var(--brand-cream-50);
   font-size: var(--fs-md);
   font-weight: var(--fw-medium);
   text-align: left;
   transition: all var(--dur-base);
 }
 .quizOpt:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: color-mix(in oklab, var(--brand-gold-400) 18%, transparent);
   transform: translateY(-1px);
 }
 .quizOptIdx {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
+  background: color-mix(in oklab, var(--brand-cream-50) 25%, transparent);
   display: grid;
   place-items: center;
   font-weight: var(--fw-bold);
@@ -220,11 +222,11 @@
   display: grid;
   place-items: center;
   font-size: 4rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in oklab, var(--brand-cream-50) 10%, transparent);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3);
+  border: 1px solid color-mix(in oklab, var(--brand-cream-50) 18%, transparent);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-gold-400) 30%, transparent);
   animation: pulse-ring 2.5s var(--ease-out) infinite;
 }
 .waitTitle {
@@ -460,8 +462,8 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.32);
-  color: #fff;
+  background: color-mix(in oklab, var(--brand-ink-900) 34%, transparent);
+  color: var(--brand-cream-50);
   display: grid;
   place-items: center;
   font-size: 18px;
@@ -470,7 +472,7 @@
     transform var(--dur-fast);
 }
 .bgmBtn:hover {
-  background: rgba(0, 0, 0, 0.5);
+  background: color-mix(in oklab, var(--brand-ink-900) 52%, transparent);
   transform: translateY(-1px);
 }
 .bgmBadge {
@@ -508,7 +510,7 @@
   height: 200px;
   border: 0;
   border-radius: var(--radius-md);
-  background: #000;
+  background: var(--brand-ink-900);
 }
 .bgmEmpty {
   width: 100%;
@@ -629,7 +631,7 @@
 }
 .bgmRemove:hover {
   background: var(--color-danger, #c9627f);
-  color: #fff;
+  color: var(--brand-cream-50);
 }
 
 .bgmForm {
@@ -800,8 +802,8 @@
   gap: var(--space-3);
   padding: var(--space-5) var(--space-6);
   border-radius: var(--radius-xl);
-  background: rgba(20, 16, 29, 0.32);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: color-mix(in oklab, var(--brand-ink-900) 34%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-cream-50) 16%, transparent);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
@@ -814,7 +816,7 @@
 }
 .kitHint {
   font-size: var(--fs-2xs);
-  color: rgba(255, 255, 255, 0.6);
+  color: color-mix(in oklab, var(--brand-cream-50) 60%, transparent);
 }
 .kitChips {
   display: flex;
@@ -827,15 +829,15 @@
   border-radius: var(--radius-pill);
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
-  color: rgba(255, 255, 255, 0.82);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: color-mix(in oklab, var(--brand-cream-50) 82%, transparent);
+  background: color-mix(in oklab, var(--brand-cream-50) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-cream-50) 16%, transparent);
   transition:
     background var(--dur-base) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
 }
 .kitChip:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: color-mix(in oklab, var(--brand-gold-400) 16%, transparent);
 }
 .kitChip:active {
   transform: scale(0.96);
@@ -853,7 +855,7 @@
 }
 .kitSub {
   font-size: var(--fs-sm);
-  color: rgba(255, 255, 255, 0.7);
+  color: color-mix(in oklab, var(--brand-cream-50) 70%, transparent);
   text-align: center;
   margin-top: -4px;
 }

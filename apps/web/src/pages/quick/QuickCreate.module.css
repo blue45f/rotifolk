@@ -27,10 +27,12 @@
   line-height: 1.1;
 }
 .accent {
-  background: linear-gradient(135deg, #D4A24C 0%, #C9627F 50%, #7A1F3D 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  display: inline-block;
+  padding: 0.06em 0.42em;
+  border-radius: var(--radius-lg);
+  background: var(--grad-cellar);
+  color: var(--brand-gold-400);
+  box-shadow: var(--shadow-md);
 }
 .lead {
   margin-top: var(--space-3);

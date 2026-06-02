@@ -14,34 +14,68 @@
   line-height: 1.2;
 }
 .accent {
-  background: linear-gradient(135deg, #7A1F3D, #C9627F);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--brand-burgundy-700);
 }
 .lead {
   margin-top: 6px;
   color: var(--color-text-muted);
 }
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: var(--space-4);
+.stageLedger {
   margin-bottom: var(--space-10);
 }
-.stat {
+.stageLedgerCaption {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+.ledger {
+  margin: 0;
+  border-top: 1px solid var(--color-border);
+}
+.ledgerRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.ledgerRowActive {
+  border-bottom-color: color-mix(in oklab, var(--brand-burgundy-700) 28%, transparent);
+}
+.ledgerLabel {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
 }
-.statEmoji { font-size: 2rem; }
-.stat strong {
-  display: block;
-  font-size: var(--fs-3xl);
+.ledgerRowActive .ledgerLabel {
+  color: var(--brand-burgundy-700);
+  font-weight: var(--fw-bold);
+}
+.ledgerCue {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-burgundy-700);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-burgundy-700) 18%, transparent);
+}
+.ledgerFigure {
+  margin: 0;
+  font-size: var(--fs-2xl);
   font-weight: var(--fw-black);
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
-.stat span { color: var(--color-text-muted); font-size: var(--fs-sm); }
+.ledgerRowActive .ledgerFigure {
+  color: var(--brand-burgundy-700);
+}
 
 .revenueCard {
   margin-bottom: var(--space-10);
@@ -107,10 +141,7 @@
 }
 .revenueStatHero .revenueValue {
   font-size: clamp(1.8rem, 4vw, 2.8rem);
-  background: linear-gradient(135deg, #D6A84E 0%, #B8893B 60%, #7A1F3D 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--brand-burgundy-700);
 }
 .revenueDivider {
   height: 1px;
