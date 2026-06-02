@@ -84,7 +84,8 @@ export class VenuesService {
     const existing = await this.prisma.venue.findUnique({ where: { id } })
     if (!existing)
       throw new NotFoundException({ code: 'venue_not_found', message: '장소를 찾을 수 없어요' })
-    if (existing.ownerId && existing.ownerId !== ownerId)
+    // 소유자 정확 일치만 허용 — ownerId가 null(플랫폼 제휴 공간)이면 일반 사용자가 수정 불가
+    if (existing.ownerId !== ownerId)
       throw new ForbiddenException({ message: '내 공간만 수정할 수 있어요' })
     const updated = await this.prisma.venue.update({
       where: { id },
@@ -112,7 +113,14 @@ export class VenuesService {
           }),
           this.prisma.venueBooking.count({ where: { venueId: v.id, status: 'requested' } }),
         ])
-        return { ...this.toVenue(v), isMine: true, upcomingParties, pendingRequests }
+        return {
+          ...this.toVenue(v),
+          // 소유자 본인에게는 도착 안내(arrivalGuide)를 그대로 노출(편집용)
+          arrivalGuide: parseJsonObject(v.arrivalGuideJson) as Venue['arrivalGuide'],
+          isMine: true,
+          upcomingParties,
+          pendingRequests,
+        }
       }),
     )
   }
@@ -306,7 +314,8 @@ export class VenuesService {
     closedWeekdays: parseJsonArray<number>(v.closedWeekdaysJson),
     weekendMultiplier: v.weekendMultiplier,
     peakMultiplier: v.peakMultiplier,
-    arrivalGuide: parseJsonObject(v.arrivalGuideJson) as NonNullable<Venue['arrivalGuide']>,
+    // 와이파이/비상연락/입장 안내는 민감정보 — 공개 응답에서 제외(소유자·확정 예약자에게만 노출)
+    arrivalGuide: null,
     vibeTags: parseJsonArray<string>(v.vibeTagsJson),
     useCases: parseJsonArray<string>(v.useCasesJson),
     hostBlurb: v.hostBlurb,
