@@ -8,6 +8,7 @@ import { ALL_CATEGORIES } from '@features/categories/meta'
 import { useGeolocation } from '@features/geo/useGeolocation'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import styles from './DiscoverPage.module.css'
@@ -29,16 +30,16 @@ const DATE_FILTERS = [
   { label: '이번 주말', value: 'weekend' },
 ] as const
 
-const SORTS: { value: SortKey; label: string; emoji: string }[] = [
-  { value: 'soonest', label: '곧 시작', emoji: '⏰' },
-  { value: 'popular', label: '인기', emoji: '🔥' },
-  { value: 'nearby', label: '가까운', emoji: '📍' },
+const SORTS: { value: SortKey; label: string; icon: IconName }[] = [
+  { value: 'soonest', label: '곧 시작', icon: 'clock' },
+  { value: 'popular', label: '인기', icon: 'flame' },
+  { value: 'nearby', label: '가까운', icon: 'pin' },
 ]
 
-const STATUSES: { value: StatusKey; label: string; emoji: string }[] = [
-  { value: 'open', label: '모집 중', emoji: '🌙' },
-  { value: 'live', label: '진행 중', emoji: '🔴' },
-  { value: 'ended', label: '지난 모임', emoji: '📜' },
+const STATUSES: { value: StatusKey; label: string; icon: IconName }[] = [
+  { value: 'open', label: '모집 중', icon: 'moon' },
+  { value: 'live', label: '진행 중', icon: 'live' },
+  { value: 'ended', label: '지난 모임', icon: 'archive' },
 ]
 
 export default function DiscoverPage() {
@@ -128,7 +129,7 @@ export default function DiscoverPage() {
           <Chip
             selected={!category}
             onClick={() => setParam('category', null)}
-            leadingEmoji="🌟"
+            leadingIcon={<Icon name="sparkle" />}
           >
             전체
           </Chip>
@@ -149,7 +150,12 @@ export default function DiscoverPage() {
             const v = a === '전체' ? null : a
             const active = (v ?? '') === (area ?? '')
             return (
-              <Chip key={a} selected={active} onClick={() => setParam('area', v)} leadingEmoji="📍">
+              <Chip
+                key={a}
+                selected={active}
+                onClick={() => setParam('area', v)}
+                leadingIcon={<Icon name="pin" />}
+              >
                 {a}
               </Chip>
             )
@@ -158,12 +164,8 @@ export default function DiscoverPage() {
 
         {tag && (
           <div className={styles.filterRow} role="group" aria-label="태그 필터">
-            <Chip
-              selected
-              onClick={() => setParam('tag', null)}
-              leadingEmoji="#"
-            >
-              {tag}  ✕
+            <Chip selected onClick={() => setParam('tag', null)} leadingEmoji="#">
+              {tag} ✕
             </Chip>
           </div>
         )}
@@ -173,7 +175,7 @@ export default function DiscoverPage() {
             <Chip
               key={s.value}
               selected={status === s.value}
-              leadingEmoji={s.emoji}
+              leadingIcon={<Icon name={s.icon} />}
               onClick={() => setParam('status', s.value === 'open' ? null : s.value)}
             >
               {s.label}
@@ -189,7 +191,7 @@ export default function DiscoverPage() {
               <Chip
                 key={s.value}
                 selected={active}
-                leadingEmoji={s.emoji}
+                leadingIcon={<Icon name={s.icon} />}
                 onClick={() => {
                   if (s.value === 'nearby' && !geo.coords) {
                     geo.request()

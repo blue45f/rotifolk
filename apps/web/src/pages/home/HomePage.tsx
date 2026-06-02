@@ -8,6 +8,7 @@ import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
 import { PartyCard } from '@features/parties/PartyCard'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useAuthStore } from '@store/authStore'
@@ -74,8 +75,8 @@ export default function HomePage() {
                 </Button>
               </Link>
               <Link to="/quick">
-                <Button variant="outline" size="xl">
-                  ⚡ 즉석 모임
+                <Button variant="outline" size="xl" leftIcon={<Icon name="bolt" />}>
+                  즉석 모임
                 </Button>
               </Link>
             </div>
@@ -335,7 +336,9 @@ export default function HomePage() {
             description="가장 먼저 한 잔을 열어보는 건 어때요?"
             action={
               <Link to="/quick">
-                <Button variant="primary">⚡ 즉석 모임</Button>
+                <Button variant="primary" leftIcon={<Icon name="bolt" />}>
+                  즉석 모임
+                </Button>
               </Link>
             }
           />

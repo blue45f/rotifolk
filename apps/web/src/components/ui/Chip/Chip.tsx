@@ -4,10 +4,20 @@ import styles from './Chip.module.css'
 interface ChipProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   selected?: boolean
   leadingEmoji?: string
+  /** Inline-SVG (or other node) leading mark. Takes precedence over leadingEmoji. */
+  leadingIcon?: ReactNode
   children: ReactNode
 }
 
-export function Chip({ selected, leadingEmoji, className, children, ...rest }: ChipProps) {
+export function Chip({
+  selected,
+  leadingEmoji,
+  leadingIcon,
+  className,
+  children,
+  ...rest
+}: ChipProps) {
+  const leading = leadingIcon ?? leadingEmoji
   return (
     <button
       type="button"
@@ -15,7 +25,11 @@ export function Chip({ selected, leadingEmoji, className, children, ...rest }: C
       aria-pressed={selected}
       {...rest}
     >
-      {leadingEmoji && <span aria-hidden="true">{leadingEmoji}</span>}
+      {leading != null && leading !== '' && (
+        <span className={styles.leading} aria-hidden="true">
+          {leading}
+        </span>
+      )}
       <span>{children}</span>
     </button>
   )

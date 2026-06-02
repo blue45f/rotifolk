@@ -16,8 +16,26 @@
     border-color var(--dur-base) var(--ease-out),
     transform var(--dur-fast) var(--ease-spring);
 }
+.leading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* burgundy mark off-state (brand-dominant, keeps gold scarce); the mark
+     follows the chip's own color when selected (cream on burgundy). */
+  color: var(--brand-burgundy-500);
+  font-size: 1em;
+  line-height: 0;
+  margin-inline-start: -1px;
+  transition: color var(--dur-base) var(--ease-out);
+}
+.selected .leading {
+  color: inherit;
+}
 .chip:hover {
   border-color: var(--brand-burgundy-300);
+}
+.chip:hover .leading {
+  color: var(--brand-burgundy-700);
 }
 .chip:active { transform: scale(0.97); }
 .selected {
