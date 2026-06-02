@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { buildIcs } from './ics'
+import { buildIcs } from './buildIcs'
 
 function physicalLines(value: string): string[] {
   return value.split('\r\n').filter(Boolean)
 }
 
-describe('calendar ICS builder', () => {
+describe('ICS builder', () => {
   it('escapes text fields without leaking raw CR/LF characters inside a property', () => {
     const ics = buildIcs({
       uid: 'party-1',

@@ -86,10 +86,7 @@ export default function CalendarPage() {
   const navigate = useNavigate()
   const { data, isLoading } = useMyParties()
 
-  const parties = useMemo<PartySummary[]>(
-    () => (data ?? []).map((row) => row.party),
-    [data],
-  )
+  const parties = useMemo<PartySummary[]>(() => (data ?? []).map((row) => row.party), [data])
 
   // Agenda view: upcoming parties sorted chronologically, grouped by date
   const agendaGroups = useMemo(() => {
@@ -115,12 +112,9 @@ export default function CalendarPage() {
 
   const monthLabel = cursor.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
 
-  const goPrev = () =>
-    setCursor((c) => new Date(c.getFullYear(), c.getMonth() - 1, 1))
-  const goNext = () =>
-    setCursor((c) => new Date(c.getFullYear(), c.getMonth() + 1, 1))
-  const goToday = () =>
-    setCursor(new Date(today.getFullYear(), today.getMonth(), 1))
+  const goPrev = () => setCursor((c) => new Date(c.getFullYear(), c.getMonth() - 1, 1))
+  const goNext = () => setCursor((c) => new Date(c.getFullYear(), c.getMonth() + 1, 1))
+  const goToday = () => setCursor(new Date(today.getFullYear(), today.getMonth(), 1))
 
   if (isLoading) return <Loading />
 
@@ -132,26 +126,22 @@ export default function CalendarPage() {
           <h1 className={styles.monthTitle}>{monthLabel}</h1>
         </div>
         <div className={styles.headControls}>
-          <button
-            type="button"
-            className={styles.navBtn}
-            onClick={goPrev}
-            aria-label="이전 달"
-          >
+          <button type="button" className={styles.navBtn} onClick={goPrev} aria-label="이전 달">
             ‹
           </button>
-          <Button variant="soft" size="sm" onClick={goToday}>오늘</Button>
+          <Button variant="soft" size="sm" onClick={goToday}>
+            오늘
+          </Button>
           {view === 'grid' ? (
-            <Button variant="soft" size="sm" onClick={() => setView('list')}>📋 목록</Button>
+            <Button variant="soft" size="sm" onClick={() => setView('list')}>
+              📋 목록
+            </Button>
           ) : (
-            <Button variant="soft" size="sm" onClick={() => setView('grid')}>📅 그리드</Button>
+            <Button variant="soft" size="sm" onClick={() => setView('grid')}>
+              📅 그리드
+            </Button>
           )}
-          <button
-            type="button"
-            className={styles.navBtn}
-            onClick={goNext}
-            aria-label="다음 달"
-          >
+          <button type="button" className={styles.navBtn} onClick={goNext} aria-label="다음 달">
             ›
           </button>
         </div>
@@ -206,12 +196,11 @@ export default function CalendarPage() {
                       const handleDownload = () => {
                         const end = new Date(start.getTime() + DEFAULT_DURATION_MS)
                         downloadIcs({
-                          id: party.id,
+                          uid: `${party.id}@rotifolk.app`,
                           title: party.title,
+                          location: [party.venueName, party.venueArea].filter(Boolean).join(', '),
                           startAt: start,
                           endAt: end,
-                          venueName: party.venueName,
-                          venueArea: party.venueArea,
                         })
                       }
 
@@ -280,12 +269,11 @@ export default function CalendarPage() {
                 const start = new Date(party.startAt)
                 const end = new Date(start.getTime() + DEFAULT_DURATION_MS)
                 downloadIcs({
-                  id: party.id,
+                  uid: `${party.id}@rotifolk.app`,
                   title: party.title,
+                  location: [party.venueName, party.venueArea].filter(Boolean).join(', '),
                   startAt: start,
                   endAt: end,
-                  venueName: party.venueName,
-                  venueArea: party.venueArea,
                 })
               }
 
@@ -344,9 +332,7 @@ export default function CalendarPage() {
                           <span className={styles.eventEmoji} aria-hidden="true">
                             {meta.emoji}
                           </span>
-                          <span className={styles.eventTitle}>
-                            {truncate(party.title, 14)}
-                          </span>
+                          <span className={styles.eventTitle}>{truncate(party.title, 14)}</span>
                         </button>
                       )
                     })}

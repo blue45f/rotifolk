@@ -11,18 +11,27 @@ function initialsOf(nickname?: string): string {
   return nickname.trim().slice(0, 2).toUpperCase()
 }
 
+const relativeTime = new Intl.RelativeTimeFormat('ko', { numeric: 'auto' })
+
 function formatArrival(iso?: string | null): string {
   if (!iso) return ''
   const then = new Date(iso).getTime()
-  const diff = Date.now() - then
-  const min = Math.floor(diff / 60_000)
-  if (min < 1) return '방금'
-  if (min < 60) return `${min}분 전`
-  const hr = Math.floor(min / 60)
-  if (hr < 24) return `${hr}시간 전`
-  const day = Math.floor(hr / 24)
-  if (day < 7) return `${day}일 전`
-  return new Date(iso).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
+  if (Number.isNaN(then)) return ''
+  const diffMs = Date.now() - then
+  const day = Math.floor(diffMs / 86_400_000)
+  // 7일을 넘기면 상대 시간 대신 절대 날짜를 보여준다.
+  if (day >= 7) {
+    return new Date(iso).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
+  }
+  // 가장 큰 단위(일/시간/분)를 골라 locale-aware 문구로 변환한다. numeric:'auto'가
+  // '어제', '0분 전(=지금 막)' 같은 자연스러운 한국어 표현을 만들어 준다.
+  if (day >= 1) return relativeTime.format(-day, 'day')
+  const hour = Math.floor(diffMs / 3_600_000)
+  if (hour >= 1) return relativeTime.format(-hour, 'hour')
+  const minute = Math.floor(diffMs / 60_000)
+  // 1분 미만은 '현재 분' 같은 어색한 표현 대신 '방금'으로 보여준다.
+  if (minute < 1) return '방금'
+  return relativeTime.format(-minute, 'minute')
 }
 
 function NoteCard({ note, onRead }: { note: PartyNote; onRead: (id: string) => void }) {

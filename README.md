@@ -55,6 +55,11 @@ rotifolk/                 (pnpm workspace)
 - Framer Motion (마이크로 인터랙션)
 - Socket.IO Client
 
+> **라이브러리 (용도별)**
+>
+> - 상대 시간 표기(쪽지함 등)는 별도 의존성 없이 네이티브 `Intl.RelativeTimeFormat('ko')`를 사용합니다.
+> - 캘린더 내보내기(.ics)는 외부 라이브러리 없이 자체 RFC 5545 빌더(`features/ics/buildIcs.ts`) 하나로 통합되어 있습니다.
+
 ### 백엔드 스택
 
 - NestJS 11 (Fastify adapter)

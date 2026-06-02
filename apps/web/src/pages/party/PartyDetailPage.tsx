@@ -38,7 +38,7 @@ import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { useAuthStore } from '@store/authStore'
 import { useMyParties } from '@features/parties/queries'
 import { useRecents } from '@features/recents/useRecents'
-import { buildIcs, downloadIcs } from '@features/calendar/ics'
+import { downloadIcs } from '@features/ics/buildIcs'
 import { api } from '@services/api'
 import styles from './PartyDetailPage.module.css'
 
@@ -239,20 +239,22 @@ export default function PartyDetailPage() {
   const handleAddToCalendar = () => {
     if (!data) return
     const p = data.party
-    const ics = buildIcs({
-      uid: `rotifolk-${p.id}@rotifolk.app`,
-      title: p.title,
-      description: `${p.config.category} · ${p.config.totalRounds}라운드 · ${p.currentParticipants}/${p.maxParticipants}명\n${window.location.href}`,
-      startAt: p.startAt,
-      endAt: p.endAt,
-      url: window.location.href,
-    })
     const safe =
       p.title
         .replace(/[^\w가-힣\- ]/g, '')
         .slice(0, 40)
         .trim() || 'rotifolk-party'
-    downloadIcs(safe, ics)
+    downloadIcs(
+      {
+        uid: `rotifolk-${p.id}@rotifolk.app`,
+        title: p.title,
+        description: `${p.config.category} · ${p.config.totalRounds}라운드 · ${p.currentParticipants}/${p.maxParticipants}명\n${window.location.href}`,
+        startAt: p.startAt,
+        endAt: p.endAt,
+        url: window.location.href,
+      },
+      safe,
+    )
     toast.show('캘린더 파일을 받았어요', 'success')
   }
 

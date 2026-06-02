@@ -3,16 +3,19 @@
  *
  * 캘린더 앱(Apple Calendar, Google Calendar, Outlook 등)이 파티 일정을
  * 가져갈 수 있도록 VCALENDAR + VEVENT 텍스트를 생성한다.
+ *
+ * 앱 전체에서 사용하는 단일 ICS 구현체다. (캘린더/파티 상세 모두 여기로 통합)
  */
 
-export interface IcsParty {
-  id: string
+export interface IcsEvent {
+  /** VEVENT의 UID. 생략 시 호출부가 직접 넘긴 값이 없으므로 반드시 채워서 전달한다. */
+  uid: string
   title: string
   description?: string
+  location?: string
   startAt: string | Date
   endAt: string | Date
-  venueName?: string
-  venueArea?: string
+  url?: string
 }
 
 const PRODID = '-//Rotifolk//Calendar Export//KO'
@@ -73,15 +76,15 @@ function foldLine(line: string): string {
 }
 
 /**
- * 파티 데이터를 RFC 5545 호환 ICS 텍스트로 변환한다.
+ * 이벤트 데이터를 RFC 5545 호환 ICS 텍스트로 변환한다.
  *
  * - VCALENDAR + VEVENT 구조
- * - UID는 `<id>@rotifolk.app`
  * - DTSTART/DTEND는 UTC `YYYYMMDDTHHMMSSZ`
- * - SUMMARY, DESCRIPTION, LOCATION 포함
+ * - SUMMARY, DESCRIPTION, LOCATION, URL 포함
+ * - 모든 content line은 75 octet 기준으로 folding
  * - CRLF 줄 끝
  */
-export function buildIcs(party: IcsParty): string {
+export function buildIcs(event: IcsEvent): string {
   const lines: string[] = []
   lines.push('BEGIN:VCALENDAR')
   lines.push('VERSION:2.0')
@@ -89,19 +92,19 @@ export function buildIcs(party: IcsParty): string {
   lines.push('CALSCALE:GREGORIAN')
   lines.push('METHOD:PUBLISH')
   lines.push('BEGIN:VEVENT')
-  lines.push(`UID:${party.id}@rotifolk.app`)
+  lines.push(`UID:${event.uid}`)
   lines.push(`DTSTAMP:${toUtcStamp(new Date())}`)
-  lines.push(`DTSTART:${toUtcStamp(party.startAt)}`)
-  lines.push(`DTEND:${toUtcStamp(party.endAt)}`)
-  lines.push(`SUMMARY:${escapeText(party.title)}`)
-  if (party.description) {
-    lines.push(`DESCRIPTION:${escapeText(party.description)}`)
+  lines.push(`DTSTART:${toUtcStamp(event.startAt)}`)
+  lines.push(`DTEND:${toUtcStamp(event.endAt)}`)
+  lines.push(`SUMMARY:${escapeText(event.title)}`)
+  if (event.description) {
+    lines.push(`DESCRIPTION:${escapeText(event.description)}`)
   }
-  const locationParts = [party.venueName, party.venueArea].filter(
-    (part): part is string => typeof part === 'string' && part.length > 0,
-  )
-  if (locationParts.length > 0) {
-    lines.push(`LOCATION:${escapeText(locationParts.join(', '))}`)
+  if (event.location) {
+    lines.push(`LOCATION:${escapeText(event.location)}`)
+  }
+  if (event.url) {
+    lines.push(`URL:${event.url}`)
   }
   lines.push('END:VEVENT')
   lines.push('END:VCALENDAR')
@@ -109,27 +112,37 @@ export function buildIcs(party: IcsParty): string {
   return lines.map(foldLine).join(CRLF) + CRLF
 }
 
+function sanitizeFilename(name: string): string {
+  const slug =
+    name
+      .replace(/[\\/:*?"<>|]+/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .slice(0, 60) || 'party'
+  return slug.endsWith('.ics') ? slug : `${slug}.ics`
+}
+
 /**
- * party 정보로 ICS 텍스트를 만들어 브라우저 다운로드를 트리거한다.
+ * 이벤트로 ICS 텍스트를 만들어 브라우저 다운로드를 트리거한다.
  * (a.download + Blob URL 트릭)
+ *
+ * @param event 변환할 이벤트
+ * @param filename 다운로드 파일명. 생략 시 `rotifolk-<제목>.ics`로 자동 생성.
  */
-export function downloadIcs(party: IcsParty): void {
+export function downloadIcs(event: IcsEvent, filename?: string): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return
 
-  const ics = buildIcs(party)
+  const ics = buildIcs(event)
   const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
   const url = URL.createObjectURL(blob)
 
-  const slug = party.title
-    .replace(/[\\/:*?"<>|]+/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-    .slice(0, 60) || 'party'
-  const filename = `rotifolk-${slug}-${party.id}.ics`
+  const finalName = filename
+    ? sanitizeFilename(filename)
+    : sanitizeFilename(`rotifolk-${event.title}`)
 
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = filename
+  anchor.download = finalName
   anchor.rel = 'noopener'
   document.body.appendChild(anchor)
   anchor.click()
