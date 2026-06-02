@@ -12,6 +12,8 @@ import type {
   CreateCommunityCommentDto,
   CreateCommunityPostDto,
   CreateReportDto,
+  UpdateCommunityCommentDto,
+  UpdateCommunityPostDto,
 } from '@rotifolk/shared'
 import {
   REVENUE_MONITORING_POLICY,
@@ -2043,6 +2045,29 @@ export const handlers = [
     mockCommunityPosts.unshift(post)
     return HttpResponse.json(await delay(post))
   }),
+  http.patch(`${API}/community/posts/:postId`, async ({ params, request }) => {
+    const post = mockCommunityPosts.find((item) => item.id === params.postId)
+    if (!post) return HttpResponse.json({ code: 'community_post_not_found' }, { status: 404 })
+    const body = (await request.json()) as UpdateCommunityPostDto
+    if (typeof body.title !== 'undefined') post.title = body.title
+    if (typeof body.body !== 'undefined') post.body = body.body
+    if (typeof body.category !== 'undefined') post.category = body.category
+    if (typeof body.area !== 'undefined') post.area = body.area
+    if (typeof body.tags !== 'undefined') post.tags = body.tags
+    post.updatedAt = nowIso()
+    return HttpResponse.json(await delay(post))
+  }),
+  http.delete(`${API}/community/posts/:postId`, async ({ params }) => {
+    const index = mockCommunityPosts.findIndex((item) => item.id === params.postId)
+    if (index === -1) {
+      return HttpResponse.json({ code: 'community_post_not_found' }, { status: 404 })
+    }
+    mockCommunityPosts.splice(index, 1)
+    for (let i = mockCommunityComments.length - 1; i >= 0; i -= 1) {
+      if (mockCommunityComments[i].postId === params.postId) mockCommunityComments.splice(i, 1)
+    }
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
   http.post(`${API}/community/posts/:postId/comments`, async ({ params, request }) => {
     const post = mockCommunityPosts.find((item) => item.id === params.postId)
     if (!post) return HttpResponse.json({ code: 'community_post_not_found' }, { status: 404 })
@@ -2074,6 +2099,38 @@ export const handlers = [
     post.commentCount += 1
     post.lastCommentAt = created.createdAt
     return HttpResponse.json(await delay(created))
+  }),
+  http.patch(`${API}/community/posts/:postId/comments/:commentId`, async ({ params, request }) => {
+    const comment = mockCommunityComments.find(
+      (item) => item.id === params.commentId && item.postId === params.postId,
+    )
+    if (!comment) {
+      return HttpResponse.json({ code: 'community_comment_not_found' }, { status: 404 })
+    }
+    const body = (await request.json()) as UpdateCommunityCommentDto
+    comment.body = body.body
+    comment.updatedAt = nowIso()
+    return HttpResponse.json(await delay(comment))
+  }),
+  http.delete(`${API}/community/posts/:postId/comments/:commentId`, async ({ params }) => {
+    const removeIds = new Set(
+      mockCommunityComments
+        .filter(
+          (item) =>
+            item.postId === params.postId &&
+            (item.id === params.commentId || item.parentId === params.commentId),
+        )
+        .map((item) => item.id),
+    )
+    if (removeIds.size === 0) {
+      return HttpResponse.json({ code: 'community_comment_not_found' }, { status: 404 })
+    }
+    for (let i = mockCommunityComments.length - 1; i >= 0; i -= 1) {
+      if (removeIds.has(mockCommunityComments[i].id)) mockCommunityComments.splice(i, 1)
+    }
+    const post = mockCommunityPosts.find((item) => item.id === params.postId)
+    if (post) post.commentCount = Math.max(0, post.commentCount - removeIds.size)
+    return HttpResponse.json(await delay({ ok: true }))
   }),
 
   // Saved parties

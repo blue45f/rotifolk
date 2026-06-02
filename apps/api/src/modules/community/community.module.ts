@@ -7,6 +7,7 @@ import {
   Get,
   Module,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -17,6 +18,8 @@ import {
   CommunityPostQuerySchema,
   CreateCommunityCommentSchema,
   CreateCommunityPostSchema,
+  UpdateCommunityCommentSchema,
+  UpdateCommunityPostSchema,
 } from '@rotifolk/shared'
 import type {
   CommunityComment,
@@ -26,6 +29,8 @@ import type {
   CreateCommunityCommentDto,
   CreateCommunityPostDto,
   Paginated,
+  UpdateCommunityCommentDto,
+  UpdateCommunityPostDto,
 } from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
 import { ZodValidationPipe } from '@/common/zod-validation.pipe'
@@ -137,6 +142,72 @@ class CommunityController {
     return mapCommunityPost(post)
   }
 
+  @Patch('community/posts/:postId')
+  @UseGuards(AuthGuard('jwt'))
+  async updateCommunityPost(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('postId') postId: string,
+    @Body(new ZodValidationPipe(UpdateCommunityPostSchema)) dto: UpdateCommunityPostDto,
+  ): Promise<CommunityPost> {
+    const current = await this.prisma.communityPost.findFirst({
+      where: { id: postId, status: 'open' },
+      select: { authorId: true },
+    })
+    if (!current)
+      throw new BadRequestException({
+        code: 'community_post_not_found',
+        message: '수정할 커뮤니티 글을 찾을 수 없어요',
+      })
+    if (current.authorId !== me.sub && me.role !== 'admin')
+      throw new ForbiddenException({
+        code: 'community_post_owner_only',
+        message: '작성자만 글을 수정할 수 있어요',
+      })
+
+    const post = await this.prisma.communityPost.update({
+      where: { id: postId },
+      data: {
+        ...(typeof dto.title !== 'undefined' ? { title: dto.title } : {}),
+        ...(typeof dto.body !== 'undefined' ? { body: dto.body } : {}),
+        ...(typeof dto.category !== 'undefined' ? { category: dto.category } : {}),
+        ...(typeof dto.area !== 'undefined' ? { area: dto.area } : {}),
+        ...(typeof dto.tags !== 'undefined' ? { tagsJson: JSON.stringify(dto.tags) } : {}),
+      },
+      include: {
+        author: {
+          select: { id: true, nickname: true, avatarId: true, role: true, isVerified: true },
+        },
+        party: { select: { title: true } },
+      },
+    })
+    return mapCommunityPost(post)
+  }
+
+  @Delete('community/posts/:postId')
+  @UseGuards(AuthGuard('jwt'))
+  async deleteCommunityPost(@CurrentUser() me: JwtUserPayload, @Param('postId') postId: string) {
+    const current = await this.prisma.communityPost.findFirst({
+      where: { id: postId, status: 'open' },
+      select: { authorId: true },
+    })
+    if (!current)
+      throw new BadRequestException({
+        code: 'community_post_not_found',
+        message: '삭제할 커뮤니티 글을 찾을 수 없어요',
+      })
+    if (current.authorId !== me.sub && me.role !== 'admin')
+      throw new ForbiddenException({
+        code: 'community_post_owner_only',
+        message: '작성자만 글을 삭제할 수 있어요',
+      })
+
+    await this.prisma.communityPost.update({
+      where: { id: postId },
+      data: { status: 'removed' },
+    })
+    return { ok: true }
+  }
+
   @Post('community/posts/:postId/comments')
   @UseGuards(AuthGuard('jwt'))
   async createCommunityComment(
@@ -189,6 +260,84 @@ class CommunityController {
       return created
     })
     return mapCommunityComment(comment)
+  }
+
+  @Patch('community/posts/:postId/comments/:commentId')
+  @UseGuards(AuthGuard('jwt'))
+  async updateCommunityComment(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('postId') postId: string,
+    @Param('commentId') commentId: string,
+    @Body(new ZodValidationPipe(UpdateCommunityCommentSchema)) dto: UpdateCommunityCommentDto,
+  ): Promise<CommunityComment> {
+    const current = await this.prisma.communityComment.findFirst({
+      where: { id: commentId, postId, status: 'visible' },
+      select: { authorId: true },
+    })
+    if (!current)
+      throw new BadRequestException({
+        code: 'community_comment_not_found',
+        message: '수정할 댓글을 찾을 수 없어요',
+      })
+    if (current.authorId !== me.sub && me.role !== 'admin')
+      throw new ForbiddenException({
+        code: 'community_comment_owner_only',
+        message: '작성자만 댓글을 수정할 수 있어요',
+      })
+
+    const comment = await this.prisma.communityComment.update({
+      where: { id: commentId },
+      data: { body: dto.body },
+      include: {
+        author: {
+          select: { id: true, nickname: true, avatarId: true, role: true, isVerified: true },
+        },
+      },
+    })
+    return mapCommunityComment(comment)
+  }
+
+  @Delete('community/posts/:postId/comments/:commentId')
+  @UseGuards(AuthGuard('jwt'))
+  async deleteCommunityComment(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('postId') postId: string,
+    @Param('commentId') commentId: string,
+  ) {
+    const current = await this.prisma.communityComment.findFirst({
+      where: { id: commentId, postId, status: 'visible' },
+      select: { authorId: true },
+    })
+    if (!current)
+      throw new BadRequestException({
+        code: 'community_comment_not_found',
+        message: '삭제할 댓글을 찾을 수 없어요',
+      })
+    if (current.authorId !== me.sub && me.role !== 'admin')
+      throw new ForbiddenException({
+        code: 'community_comment_owner_only',
+        message: '작성자만 댓글을 삭제할 수 있어요',
+      })
+
+    const commentsToRemove = await this.prisma.communityComment.findMany({
+      where: {
+        postId,
+        status: 'visible',
+        OR: [{ id: commentId }, { parentId: commentId }],
+      },
+      select: { id: true },
+    })
+    await this.prisma.$transaction([
+      this.prisma.communityComment.updateMany({
+        where: { id: { in: commentsToRemove.map((comment) => comment.id) } },
+        data: { status: 'removed' },
+      }),
+      this.prisma.communityPost.update({
+        where: { id: postId },
+        data: { commentCount: { decrement: commentsToRemove.length } },
+      }),
+    ])
+    return { ok: true }
   }
 
   @Post('follows/:userId')

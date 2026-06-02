@@ -410,6 +410,62 @@
   font-weight: var(--fw-semibold);
 }
 
+.editPanel,
+.inlineEditForm {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.editPanel {
+  padding: var(--space-4);
+  border: 1px solid color-mix(in oklab, var(--brand-burgundy-700) 22%, transparent);
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklab, var(--brand-burgundy-50) 68%, var(--color-surface));
+}
+
+.inlineEditForm textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  color: var(--color-text);
+  resize: vertical;
+}
+
+.inlineEditForm textarea:focus {
+  border-color: var(--brand-burgundy-400);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand-burgundy-400) 16%, transparent);
+}
+
+.ownerRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3);
+  border: 1px solid color-mix(in oklab, var(--color-success) 22%, transparent);
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklab, var(--color-success-bg) 72%, var(--color-surface));
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.ownerRow > span {
+  color: var(--color-success);
+  font-weight: var(--fw-bold);
+}
+
+.manageActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .safetyRow {
   display: flex;
   flex-wrap: wrap;
@@ -541,7 +597,9 @@
 }
 
 .commentMeta > button,
-.commentActions button {
+.commentActions button,
+.replyMeta button {
+  min-height: 32px;
   color: var(--color-primary);
   font-weight: var(--fw-bold);
 }
@@ -644,8 +702,16 @@
   }
 
   .safetyRow,
+  .ownerRow,
   .reportMenu,
   .reportMenu summary {
+    width: 100%;
+  }
+
+  .manageActions,
+  .manageActions :global(.btn),
+  .commentActions,
+  .commentActions :global(.btn) {
     width: 100%;
   }
 

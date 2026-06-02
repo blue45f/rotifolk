@@ -18,7 +18,11 @@ import {
   useCommunityPosts,
   useCreateCommunityComment,
   useCreateCommunityPost,
+  useDeleteCommunityComment,
+  useDeleteCommunityPost,
   useReportCommunityContent,
+  useUpdateCommunityComment,
+  useUpdateCommunityPost,
 } from '@features/community/queries'
 import styles from './Community.module.css'
 
@@ -267,7 +271,12 @@ export default function CommunityPage() {
               </Button>
             </div>
           ) : (
-            <ThreadDetail post={detail.data} signedIn={!!me} currentUserId={me?.id} />
+            <ThreadDetail
+              post={detail.data}
+              signedIn={!!me}
+              currentUserId={me?.id}
+              onPostDeleted={() => setActivePostId(null)}
+            />
           )}
         </aside>
       </main>
@@ -279,17 +288,33 @@ function ThreadDetail({
   post,
   signedIn,
   currentUserId,
+  onPostDeleted,
 }: {
   post: CommunityPostDetail
   signedIn: boolean
   currentUserId?: string
+  onPostDeleted: () => void
 }) {
   const [comment, setComment] = useState('')
   const [replyTarget, setReplyTarget] = useState<string | null>(null)
   const [replyBody, setReplyBody] = useState('')
+  const [editingPost, setEditingPost] = useState(false)
+  const [editTitle, setEditTitle] = useState(post.title)
+  const [editBody, setEditBody] = useState(post.body)
+  const [editTagText, setEditTagText] = useState(post.tags.join(', '))
   const createComment = useCreateCommunityComment(post.id)
+  const updatePost = useUpdateCommunityPost(post.id)
+  const deletePost = useDeleteCommunityPost(post.id)
   const report = useReportCommunityContent()
   const toast = useToast()
+  const isPostOwner = currentUserId === post.author.id
+
+  useEffect(() => {
+    setEditingPost(false)
+    setEditTitle(post.title)
+    setEditBody(post.body)
+    setEditTagText(post.tags.join(', '))
+  }, [post.body, post.id, post.tags, post.title])
 
   const submitComment = async (event: FormEvent) => {
     event.preventDefault()
@@ -313,6 +338,31 @@ function ThreadDetail({
     }
   }
 
+  const submitPostEdit = async (event: FormEvent) => {
+    event.preventDefault()
+    const tags = editTagText
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+    try {
+      await updatePost.mutateAsync({ title: editTitle, body: editBody, tags })
+      setEditingPost(false)
+      toast.show('글을 수정했어요.', 'success')
+    } catch (error) {
+      toast.show((error as Error).message || '글을 수정하지 못했어요.', 'error')
+    }
+  }
+
+  const removePost = async () => {
+    try {
+      await deletePost.mutateAsync()
+      toast.show('글을 삭제했어요.', 'success')
+      onPostDeleted()
+    } catch (error) {
+      toast.show((error as Error).message || '글을 삭제하지 못했어요.', 'error')
+    }
+  }
+
   return (
     <article className={styles.threadDetail}>
       <div className={styles.detailHead}>
@@ -329,16 +379,79 @@ function ThreadDetail({
           </span>
         </div>
       </div>
-      <h2>{post.title}</h2>
-      <p className={styles.detailBody}>{post.body}</p>
-      {post.tags.length > 0 && (
-        <div className={styles.tags}>
-          {post.tags.map((tag) => (
-            <span key={tag}>#{tag}</span>
-          ))}
+      {editingPost ? (
+        <form className={styles.editPanel} onSubmit={submitPostEdit}>
+          <label className={styles.field}>
+            <span>제목</span>
+            <input
+              value={editTitle}
+              onChange={(event) => setEditTitle(event.target.value)}
+              maxLength={80}
+              disabled={updatePost.isPending}
+              required
+            />
+          </label>
+          <label className={styles.field}>
+            <span>내용</span>
+            <textarea
+              value={editBody}
+              onChange={(event) => setEditBody(event.target.value)}
+              maxLength={2000}
+              disabled={updatePost.isPending}
+              required
+            />
+          </label>
+          <label className={styles.field}>
+            <span>태그</span>
+            <input
+              value={editTagText}
+              onChange={(event) => setEditTagText(event.target.value)}
+              placeholder="와인초보, 첫참여"
+              disabled={updatePost.isPending}
+            />
+          </label>
+          <div className={styles.manageActions}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setEditingPost(false)}
+              disabled={updatePost.isPending}
+            >
+              취소
+            </Button>
+            <Button size="sm" type="submit" isLoading={updatePost.isPending}>
+              저장
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <h2>{post.title}</h2>
+          <p className={styles.detailBody}>{post.body}</p>
+          {post.tags.length > 0 && (
+            <div className={styles.tags}>
+              {post.tags.map((tag) => (
+                <span key={tag}>#{tag}</span>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+      {isPostOwner && !editingPost && (
+        <div className={styles.ownerRow}>
+          <span>내 글</span>
+          <div className={styles.manageActions}>
+            <Button variant="ghost" size="sm" onClick={() => setEditingPost(true)}>
+              수정
+            </Button>
+            <Button variant="ghost" size="sm" onClick={removePost} isLoading={deletePost.isPending}>
+              삭제
+            </Button>
+          </div>
         </div>
       )}
-      {signedIn && currentUserId !== post.author.id && (
+      {signedIn && !isPostOwner && (
         <div className={styles.safetyRow}>
           <span>개인정보 유도, 홍보, 불쾌한 표현을 발견하면 알려주세요.</span>
           <ReportAction
@@ -395,6 +508,7 @@ function ThreadDetail({
               onReplyTarget={setReplyTarget}
               onReplyBody={setReplyBody}
               onSubmitReply={submitReply}
+              postId={post.id}
               onReportComment={(item, kind, label) =>
                 reportContent({
                   communityPostId: post.id,
@@ -423,6 +537,7 @@ function CommentItem({
   onReplyTarget,
   onReplyBody,
   onSubmitReply,
+  postId,
   onReportComment,
 }: {
   comment: CommunityComment
@@ -435,9 +550,63 @@ function CommentItem({
   onReplyTarget: (id: string | null) => void
   onReplyBody: (value: string) => void
   onSubmitReply: (event: FormEvent, parentId: string) => void
+  postId: string
   onReportComment: (comment: CommunityComment, kind: CreateReportDto['kind'], label: string) => void
 }) {
   const isReplying = replyTarget === comment.id
+  const [editingComment, setEditingComment] = useState(false)
+  const [editBody, setEditBody] = useState(comment.body)
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null)
+  const [replyEditBody, setReplyEditBody] = useState('')
+  const updateComment = useUpdateCommunityComment(postId)
+  const deleteComment = useDeleteCommunityComment(postId)
+  const toast = useToast()
+  const isCommentOwner = currentUserId === comment.author.id
+
+  useEffect(() => {
+    setEditingComment(false)
+    setEditBody(comment.body)
+    setEditingReplyId(null)
+    setReplyEditBody('')
+  }, [comment.body, comment.id])
+
+  const submitCommentEdit = async (event: FormEvent) => {
+    event.preventDefault()
+    try {
+      await updateComment.mutateAsync({ commentId: comment.id, dto: { body: editBody } })
+      setEditingComment(false)
+      toast.show('댓글을 수정했어요.', 'success')
+    } catch (error) {
+      toast.show((error as Error).message || '댓글을 수정하지 못했어요.', 'error')
+    }
+  }
+
+  const removeComment = async (commentId: string) => {
+    try {
+      await deleteComment.mutateAsync(commentId)
+      toast.show('댓글을 삭제했어요.', 'success')
+    } catch (error) {
+      toast.show((error as Error).message || '댓글을 삭제하지 못했어요.', 'error')
+    }
+  }
+
+  const startReplyEdit = (reply: CommunityComment) => {
+    setEditingReplyId(reply.id)
+    setReplyEditBody(reply.body)
+  }
+
+  const submitReplyEdit = async (event: FormEvent, replyId: string) => {
+    event.preventDefault()
+    try {
+      await updateComment.mutateAsync({ commentId: replyId, dto: { body: replyEditBody } })
+      setEditingReplyId(null)
+      setReplyEditBody('')
+      toast.show('답글을 수정했어요.', 'success')
+    } catch (error) {
+      toast.show((error as Error).message || '답글을 수정하지 못했어요.', 'error')
+    }
+  }
+
   return (
     <div className={styles.comment}>
       <div className={styles.commentBody}>
@@ -446,13 +615,53 @@ function CommentItem({
         </span>
         <div>
           <span className={styles.authorLine}>{comment.author.nickname}</span>
-          <p>{comment.body}</p>
+          {editingComment ? (
+            <form className={styles.inlineEditForm} onSubmit={submitCommentEdit}>
+              <textarea
+                value={editBody}
+                onChange={(event) => setEditBody(event.target.value)}
+                maxLength={800}
+                disabled={updateComment.isPending}
+                required
+              />
+              <div className={styles.commentActions}>
+                <button
+                  type="button"
+                  onClick={() => setEditingComment(false)}
+                  disabled={updateComment.isPending}
+                >
+                  취소
+                </button>
+                <Button size="sm" type="submit" isLoading={updateComment.isPending}>
+                  저장
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <p>{comment.body}</p>
+          )}
           <div className={styles.commentMeta}>
             <span>{formatDate(comment.createdAt)}</span>
-            <button type="button" onClick={() => onReplyTarget(isReplying ? null : comment.id)}>
-              답글
-            </button>
-            {signedIn && currentUserId !== comment.author.id && (
+            {!editingComment && (
+              <button type="button" onClick={() => onReplyTarget(isReplying ? null : comment.id)}>
+                답글
+              </button>
+            )}
+            {isCommentOwner && !editingComment && (
+              <>
+                <button type="button" onClick={() => setEditingComment(true)}>
+                  수정
+                </button>
+                <button
+                  type="button"
+                  disabled={deleteComment.isPending}
+                  onClick={() => removeComment(comment.id)}
+                >
+                  삭제
+                </button>
+              </>
+            )}
+            {signedIn && !isCommentOwner && (
               <ReportAction
                 label="댓글 신고"
                 disabled={reportPending}
@@ -491,9 +700,50 @@ function CommentItem({
               </span>
               <div>
                 <span className={styles.authorLine}>{reply.author.nickname}</span>
-                <p>{reply.body}</p>
+                {editingReplyId === reply.id ? (
+                  <form
+                    className={styles.inlineEditForm}
+                    onSubmit={(event) => submitReplyEdit(event, reply.id)}
+                  >
+                    <textarea
+                      value={replyEditBody}
+                      onChange={(event) => setReplyEditBody(event.target.value)}
+                      maxLength={800}
+                      disabled={updateComment.isPending}
+                      required
+                    />
+                    <div className={styles.commentActions}>
+                      <button
+                        type="button"
+                        onClick={() => setEditingReplyId(null)}
+                        disabled={updateComment.isPending}
+                      >
+                        취소
+                      </button>
+                      <Button size="sm" type="submit" isLoading={updateComment.isPending}>
+                        저장
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
+                  <p>{reply.body}</p>
+                )}
                 <div className={styles.replyMeta}>
                   <span className={styles.detailTime}>{formatDate(reply.createdAt)}</span>
+                  {currentUserId === reply.author.id && editingReplyId !== reply.id && (
+                    <>
+                      <button type="button" onClick={() => startReplyEdit(reply)}>
+                        수정
+                      </button>
+                      <button
+                        type="button"
+                        disabled={deleteComment.isPending}
+                        onClick={() => removeComment(reply.id)}
+                      >
+                        삭제
+                      </button>
+                    </>
+                  )}
                   {signedIn && currentUserId !== reply.author.id && (
                     <ReportAction
                       label="답글 신고"

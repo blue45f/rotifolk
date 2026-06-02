@@ -24,11 +24,29 @@ export const CreateCommunityPostSchema = z.object({
 })
 export type CreateCommunityPostDto = z.infer<typeof CreateCommunityPostSchema>
 
+export const UpdateCommunityPostSchema = z
+  .object({
+    title: z.string().trim().min(6).max(80).optional(),
+    body: z.string().trim().min(10).max(2000).optional(),
+    category: CommunityPostCategoryEnum.optional(),
+    area: z.string().trim().min(1).max(20).optional().nullable(),
+    tags: z.array(TagSchema).max(8).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, {
+    message: '수정할 내용을 입력해 주세요.',
+  })
+export type UpdateCommunityPostDto = z.infer<typeof UpdateCommunityPostSchema>
+
 export const CreateCommunityCommentSchema = z.object({
   body: z.string().trim().min(1).max(800),
   parentId: z.string().min(1).optional().nullable(),
 })
 export type CreateCommunityCommentDto = z.infer<typeof CreateCommunityCommentSchema>
+
+export const UpdateCommunityCommentSchema = z.object({
+  body: z.string().trim().min(1).max(800),
+})
+export type UpdateCommunityCommentDto = z.infer<typeof UpdateCommunityCommentSchema>
 
 export const ReportKindEnum = z.enum(['harassment', 'spam', 'inappropriate', 'other'])
 

@@ -3,6 +3,8 @@ import {
   CreateCommunityCommentSchema,
   CreateCommunityPostSchema,
   CreateReportSchema,
+  UpdateCommunityCommentSchema,
+  UpdateCommunityPostSchema,
 } from './community.schema'
 
 describe('CreateCommunityCommentSchema', () => {
@@ -37,6 +39,38 @@ describe('CreateCommunityPostSchema', () => {
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.tags).toEqual(['와인', '초보'])
+    }
+  })
+})
+
+describe('UpdateCommunityPostSchema', () => {
+  it('accepts partial post edits and normalizes tags', () => {
+    const result = UpdateCommunityPostSchema.safeParse({
+      title: '첫 모임 전에 꼭 챙기면 좋은 질문이 있을까요?',
+      tags: [' #질문 ', '첫모임'],
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.tags).toEqual(['질문', '첫모임'])
+    }
+  })
+
+  it('rejects empty post edits', () => {
+    const result = UpdateCommunityPostSchema.safeParse({})
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('UpdateCommunityCommentSchema', () => {
+  it('accepts a trimmed comment body edit', () => {
+    const result = UpdateCommunityCommentSchema.safeParse({
+      body: '  표현을 조금 더 부드럽게 다듬었어요.  ',
+    })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.body).toBe('표현을 조금 더 부드럽게 다듬었어요.')
     }
   })
 })

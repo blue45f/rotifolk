@@ -7,6 +7,8 @@ import type {
   CreateCommunityPostDto,
   CreateReportDto,
   Paginated,
+  UpdateCommunityCommentDto,
+  UpdateCommunityPostDto,
 } from '@rotifolk/shared'
 import { api } from '@services/api'
 
@@ -61,6 +63,56 @@ export function useCreateCommunityComment(postId: string | null | undefined) {
   return useMutation({
     mutationFn: (dto: CreateCommunityCommentDto) =>
       api.post(`community/posts/${postId}/comments`, dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: communityKeys.all })
+      queryClient.invalidateQueries({ queryKey: communityKeys.post(postId) })
+    },
+  })
+}
+
+export function useUpdateCommunityPost(postId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (dto: UpdateCommunityPostDto) =>
+      api.patch<CommunityPost>(`community/posts/${postId}`, dto),
+    onSuccess: (post) => {
+      queryClient.invalidateQueries({ queryKey: communityKeys.all })
+      queryClient.setQueryData<CommunityPostDetail | undefined>(
+        communityKeys.post(postId),
+        (current) => (current ? { ...current, ...post } : current),
+      )
+    },
+  })
+}
+
+export function useDeleteCommunityPost(postId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => api.delete<{ ok: true }>(`community/posts/${postId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: communityKeys.all })
+      queryClient.removeQueries({ queryKey: communityKeys.post(postId) })
+    },
+  })
+}
+
+export function useUpdateCommunityComment(postId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { commentId: string; dto: UpdateCommunityCommentDto }) =>
+      api.patch(`community/posts/${postId}/comments/${input.commentId}`, input.dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: communityKeys.all })
+      queryClient.invalidateQueries({ queryKey: communityKeys.post(postId) })
+    },
+  })
+}
+
+export function useDeleteCommunityComment(postId: string | null | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (commentId: string) =>
+      api.delete<{ ok: true }>(`community/posts/${postId}/comments/${commentId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: communityKeys.all })
       queryClient.invalidateQueries({ queryKey: communityKeys.post(postId) })
