@@ -189,6 +189,12 @@ export const FinalMatchVoteSchema = z.object({
 })
 export type FinalMatchVoteDto = z.infer<typeof FinalMatchVoteSchema>
 
+/** 체크인 — 좌석 번호는 양의 정수만(미지정 가능). */
+export const CheckInSchema = z.object({
+  seatNumber: z.number().int().min(1).max(500).optional(),
+})
+export type CheckInDto = z.infer<typeof CheckInSchema>
+
 export const ContactExchangeRequestSchema = z.object({
   channel: ConnectionChannelEnum,
 })

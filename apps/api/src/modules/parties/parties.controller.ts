@@ -12,12 +12,14 @@ import {
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import {
+  CheckInSchema,
   CreatePartySchema,
   JoinPartySchema,
   PartyQuerySchema,
   UpdatePartySchema,
 } from '@rotifolk/shared'
 import type {
+  CheckInDto,
   CreatePartyDto,
   JoinPartyDto,
   PartyQueryDto,
@@ -47,7 +49,8 @@ export class PartiesController {
   @UseGuards(AuthGuard('jwt'))
   quickCreate(
     @CurrentUser() me: JwtUserPayload,
-    @Body() body: {
+    @Body()
+    body: {
       category: CreatePartyDto['config']['category']
       title?: string
       venueId: string
@@ -114,7 +117,8 @@ export class PartiesController {
   join(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
-    @Body(new ZodValidationPipe(JoinPartySchema.omit({ partyId: true }))) dto: Omit<JoinPartyDto, 'partyId'>,
+    @Body(new ZodValidationPipe(JoinPartySchema.omit({ partyId: true })))
+    dto: Omit<JoinPartyDto, 'partyId'>,
   ) {
     return this.parties.join(me.sub, partyId, dto.note ?? null)
   }
@@ -131,9 +135,9 @@ export class PartiesController {
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
     @Param('userId') userId: string,
-    @Body() body: { seatNumber?: number },
+    @Body(new ZodValidationPipe(CheckInSchema)) body: CheckInDto,
   ) {
-    return this.parties.checkIn(me.sub, partyId, userId, body?.seatNumber)
+    return this.parties.checkIn(me.sub, partyId, userId, body.seatNumber)
   }
 
   @Post(':id/lock')
