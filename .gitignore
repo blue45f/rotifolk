@@ -38,6 +38,7 @@ coverage
 
 # prisma / db
 apps/api/prisma/dev.db*
+apps/api/prisma/prisma/
 apps/api/prisma/migrations/dev/
 
 # test
