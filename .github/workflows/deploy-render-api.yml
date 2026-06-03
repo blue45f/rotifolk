@@ -1,0 +1,47 @@
+name: Deploy API to Render
+
+# Backend counterpart to deploy-vercel-web.yml. Like the Vercel workflow, this
+# is TOKEN-GATED: it no-ops unless RENDER_DEPLOY_HOOK_URL is configured, so the
+# repo stays green for forks/contributors without deploy access.
+#
+# Render itself can auto-deploy on push (render.yaml `autoDeploy: true`). This
+# workflow gives an explicit, observable CI deploy trigger that mirrors the
+# frontend's pattern and runs after the build paths that affect the API change.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'render.yaml'
+      - '.github/workflows/deploy-render-api.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+    steps:
+      - name: Skip deployment when Render deploy hook is not configured
+        if: env.RENDER_DEPLOY_HOOK_URL == ''
+        run: echo "RENDER_DEPLOY_HOOK_URL is not configured; skipping Render deployment."
+
+      - name: Trigger Render deploy
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        run: |
+          echo "Triggering Render deploy hook…"
+          status=$(curl -fsS -o /dev/null -w '%{http_code}' -X POST "$RENDER_DEPLOY_HOOK_URL")
+          echo "Render deploy hook responded with HTTP $status"

@@ -1,0 +1,20 @@
+{
+  // Runtime-only path mapping for the COMPILED output (dist/).
+  //
+  // `tsc` does not rewrite the `@/*` and `@rotifolk/shared` path aliases, so the
+  // emitted JS still does `require("@/...")` / `require("@rotifolk/shared")`.
+  // In dev we register `tsconfig-paths` against the TS source; in production the
+  // `start` script registers THIS file so the same aliases resolve to the
+  // compiled JS under dist/ instead.
+  //
+  // baseUrl + paths are resolved relative to this file's directory (apps/api),
+  // so the production `start` command must run with apps/api as its cwd.
+  "compilerOptions": {
+    "baseUrl": "./dist/apps/api/src",
+    "paths": {
+      "@/*": ["*"],
+      "@rotifolk/shared": ["../../../packages/shared/src/index.js"],
+      "@rotifolk/shared/*": ["../../../packages/shared/src/*"]
+    }
+  }
+}
