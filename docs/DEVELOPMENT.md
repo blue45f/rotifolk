@@ -51,9 +51,26 @@ pnpm validate:architecture      # 아키텍처/문서/스크립트 최소 규칙
 - API 계약 변경 여부와 프론트/백 계약 동기화 여부
 - 데모/회귀 체크 항목(로컬 또는 시나리오 기반)
 
+## 테스트
+
+- **단위/계약 테스트는 vitest**(`pnpm test`, 패키지별 `vitest run`)로 돌립니다.
+- `apps/api`는 `vitest.config.ts`에서 `@/`·`@rotifolk/shared` 별칭을 해석하므로,
+  서비스 레벨 테스트에서 이 별칭을 쓰는 모듈을 그대로 import 할 수 있습니다.
+  (Prisma는 목으로 대체, argon2/JWT/매퍼는 실제 실행하는 패턴을 권장)
+- **인증 임계 경로**는 `apps/api/src/modules/auth/auth.service.spec.ts`로 다음
+  보안 불변식을 잠가둡니다 — 변경 시 이 테스트를 함께 갱신하세요.
+  - 비밀번호는 argon2로 해시되며 평문이 저장/응답에 절대 노출되지 않음
+  - 발급되는 user 객체에 `passwordHash`가 새지 않음(`toPublicUser` 경유)
+  - 중복 이메일은 `email_taken`으로 거부
+  - 로그인은 "이메일 존재 여부"를 드러내지 않음(미존재·오답 모두 동일한
+    `invalid_credentials` → 계정 열거 방지)
+- 비즈니스 규칙 변경은 `packages/shared`의 도메인 테스트부터 갱신합니다.
+
 ## 배포 전 검증
 
 1. `pnpm run verify` 통과
 2. 핵심 화면에 대한 회귀 체크
 3. 마이그레이션/환경변수 영향 검토
 4. PR 템플릿 요구 항목(영향 범위, 증거, 롤백 포인트) 충족
+5. 배포 구조·시크릿·대시보드 작업은 `docs/DEPLOYMENT.md` 참고
+   (FE=Vercel, BE=Render Docker, 영구 디스크의 SQLite 주의)
