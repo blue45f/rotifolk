@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import {
+  describeParse,
+  hourToTimeOfDay,
+  parseSmartQuery,
+  weekdayToDayPreference,
+  type SmartSearchParse,
+} from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
 import { PartyCard } from '@features/parties/PartyCard'
+import { CATEGORY_META } from '@features/categories/meta'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
 import EmptyState from '@components/feedback/EmptyState'
@@ -55,22 +63,62 @@ export default function SearchPage() {
 
   const { data, isLoading } = useParties({ status: 'open' })
 
+  // 자연어 입력에서 정형 필터(카테고리·지역·포맷·성비·인원·시간대)를 추출.
+  // 매칭되지 않은 잔여(q)는 기존 substring 검색으로 폴백 → 기존 검색을 깨지 않고 보강.
+  const parsed = useMemo<SmartSearchParse>(() => parseSmartQuery(debounced), [debounced])
+
+  const parsedChips = useMemo(
+    () => describeParse(parsed, (c) => CATEGORY_META[c].shortLabel),
+    [parsed],
+  )
+
   const results = useMemo(() => {
     if (!data) return []
     const term = normalize(debounced)
     if (!term) return data.items
-    return data.items.filter((p) => {
-      const hay = [
-        p.title,
-        p.venueArea,
-        p.venueName,
-        ...(p.tags ?? []),
-      ]
+
+    const hasStructured =
+      parsed.category != null ||
+      parsed.area != null ||
+      parsed.format != null ||
+      parsed.capacity != null ||
+      parsed.timeOfDay != null ||
+      parsed.dayPreference != null
+
+    // 기존(스마트 파싱 이전)의 plain substring 검색: 원문 전체를 제목/지역/장소/태그에 매칭.
+    // 이 동작은 그대로 보존되어야 한다 — 스마트 파싱은 결과를 빼지 않고 더하기만 한다.
+    const matchesSubstring = (p: (typeof data.items)[number]): boolean => {
+      const hay = [p.title, p.venueArea, p.venueName, ...(p.tags ?? [])]
         .filter(Boolean)
         .map((s) => normalize(String(s)))
       return hay.some((field) => field.includes(term))
-    })
-  }, [data, debounced])
+    }
+
+    // 인식된 정형 필터(서로 AND). 정형 필터가 하나도 없으면 일치로 간주하지 않는다
+    // (그 경우엔 substring 검색만으로 결정 → 기존 동작과 동일).
+    const matchesStructured = (p: (typeof data.items)[number]): boolean => {
+      if (!hasStructured) return false
+      if (parsed.category != null && p.category !== parsed.category) return false
+      if (parsed.area != null && !normalize(p.venueArea).includes(normalize(parsed.area)))
+        return false
+      if (parsed.format != null && p.format !== parsed.format) return false
+      if (parsed.capacity != null && p.maxParticipants < parsed.capacity) return false
+      if (parsed.timeOfDay != null || parsed.dayPreference != null) {
+        const start = new Date(p.startAt)
+        if (parsed.timeOfDay != null && hourToTimeOfDay(start.getHours()) !== parsed.timeOfDay)
+          return false
+        if (
+          parsed.dayPreference != null &&
+          weekdayToDayPreference(start.getDay()) !== parsed.dayPreference
+        )
+          return false
+      }
+      return true
+    }
+
+    // ADDITIVE: 정형 필터 일치 OR 기존 substring 일치 → 기존에 잡히던 파티를 절대 제외하지 않는다.
+    return data.items.filter((p) => matchesStructured(p) || matchesSubstring(p))
+  }, [data, debounced, parsed])
 
   const titleSuggestions = useMemo(() => {
     if (!data) return []
@@ -120,7 +168,8 @@ export default function SearchPage() {
     remember(term)
   }
 
-  const showSuggest = focused && (titleSuggestions.length > 0 || (input.trim().length === 0 && recents.length > 0))
+  const showSuggest =
+    focused && (titleSuggestions.length > 0 || (input.trim().length === 0 && recents.length > 0))
 
   return (
     <div className={styles.page}>
@@ -156,7 +205,10 @@ export default function SearchPage() {
                         <button
                           type="button"
                           className={styles.suggestRow}
-                          onMouseDown={(e) => { e.preventDefault(); choose(r) }}
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            choose(r)
+                          }}
                         >
                           <span aria-hidden="true">🕒</span>
                           <span className={styles.suggestText}>{r}</span>
@@ -165,7 +217,10 @@ export default function SearchPage() {
                           type="button"
                           className={styles.suggestForget}
                           aria-label={`${r} 검색 기록 삭제`}
-                          onMouseDown={(e) => { e.preventDefault(); forget(r) }}
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            forget(r)
+                          }}
                         >
                           ✕
                         </button>
@@ -185,11 +240,18 @@ export default function SearchPage() {
                         <button
                           type="button"
                           className={styles.suggestRow}
-                          onMouseDown={(e) => { e.preventDefault(); choose(s.label) }}
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            choose(s.label)
+                          }}
                         >
-                          <span aria-hidden="true">{s.kind === 'title' ? '🍷' : s.kind === 'area' ? '📍' : '#'}</span>
+                          <span aria-hidden="true">
+                            {s.kind === 'title' ? '🍷' : s.kind === 'area' ? '📍' : '#'}
+                          </span>
                           <span className={styles.suggestText}>{s.label}</span>
-                          <span className={styles.suggestKind}>{s.kind === 'title' ? '모임' : s.kind === 'area' ? '지역' : '태그'}</span>
+                          <span className={styles.suggestKind}>
+                            {s.kind === 'title' ? '모임' : s.kind === 'area' ? '지역' : '태그'}
+                          </span>
                         </button>
                       </li>
                     ))}
@@ -207,11 +269,7 @@ export default function SearchPage() {
             <p className={styles.suggestLabel}>이런 키워드는 어때요?</p>
             <div className={styles.chipRow}>
               {SUGGESTED_TAGS.map((tag) => (
-                <Chip
-                  key={tag}
-                  leadingEmoji="#"
-                  onClick={() => setInput(tag)}
-                >
+                <Chip key={tag} leadingEmoji="#" onClick={() => setInput(tag)}>
                   {tag}
                 </Chip>
               ))}
@@ -227,6 +285,24 @@ export default function SearchPage() {
           />
         ) : (
           <>
+            {parsedChips.length > 0 && (
+              <div className={styles.parsedRow} aria-label="인식된 검색 필터">
+                <span className={styles.parsedLabel}>인식한 조건</span>
+                <div className={styles.chipRow}>
+                  {/* 읽기 전용 정보 칩 — 클릭/포커스 불가한 비대화형 요소. */}
+                  {parsedChips.map((c) => (
+                    <span key={c.key} className={styles.parsedChip}>
+                      {c.emoji != null && c.emoji !== '' && (
+                        <span className={styles.parsedChipMark} aria-hidden="true">
+                          {c.emoji}
+                        </span>
+                      )}
+                      <span>{c.label}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
             <p className={styles.count}>
               <strong>{results.length}</strong>개의 결과
             </p>
