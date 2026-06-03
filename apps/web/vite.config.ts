@@ -31,6 +31,16 @@ export default defineConfig({
         target: 'http://localhost:3000',
         ws: true,
       },
+      '/sitemap.xml': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: () => '/api/seo/sitemap.xml',
+      },
+      '/robots.txt': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: () => '/api/seo/robots.txt',
+      },
     },
   },
   build: {

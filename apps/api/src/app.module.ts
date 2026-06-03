@@ -23,6 +23,7 @@ import { HostApplicationsModule } from './modules/host-applications/host-applica
 import { PaymentsModule } from './modules/payments/payments.module'
 import { MeModule } from './modules/me/me.module'
 import { NotesModule } from './modules/notes/notes.module'
+import { SeoModule } from './modules/seo/seo.module'
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { NotesModule } from './modules/notes/notes.module'
     MeModule,
     NotesModule,
     LiveModule,
+    SeoModule,
   ],
 })
 export class AppModule {}
