@@ -43,6 +43,21 @@ pnpm validate:architecture      # 아키텍처/문서/스크립트 최소 규칙
    - `pnpm audit:frontend-a11y`가 통과해야 키보드/스크린리더 접근성 회귀를 줄일 수 있습니다.
 6. 시드/DB 변경
    - `pnpm db:generate`, `pnpm db:push`, `pnpm seed` 순으로 진행 후 검증을 남깁니다.
+7. 테마 / 다크 모드 (FOUC 방지)
+   - 색은 모두 `src/styles/tokens.css`의 디자인 토큰으로 흐릅니다. 다크는
+     `:root[data-theme='dark']`(명시 선택) + `@media (prefers-color-scheme: dark)`의
+     `:root:not([data-theme='light'])`(시스템 폴백, 라이트 고정 존중)에서 명도만 반전하고
+     hue는 유지합니다. 새 색은 raw 값이 아니라 토큰으로 추가하세요.
+   - 첫 페인트 전 `index.html`의 인라인 스크립트가 `localStorage['rotifolk-theme']`
+     (zustand persist 형태 `{ state: { theme } }`)을 읽거나 `prefers-color-scheme`로
+     폴백해 `document.documentElement.dataset.theme`를 설정합니다 → 다크/시스템 사용자도
+     라이트 플래시(FOUC)가 없습니다.
+   - 이 인라인 스크립트의 분기 로직은 `src/store/themeStore.ts`의 순수 함수
+     `resolveTheme(theme, prefersDark)`와 **반드시 동일**해야 합니다. 어느 한쪽을 바꾸면
+     `src/store/themeStore.test.ts`가 둘의 정합성(저장 키 `THEME_STORAGE_KEY` 포함)을
+     잠가두니 함께 갱신하세요. 런타임 적용은 `useApplyTheme()`가 담당합니다.
+   - 토글은 헤더의 접근성 버튼(`aria-label`, 해/달 글리프, i18n `btn.dark`/`btn.light`,
+     localStorage 영속)입니다.
 
 ## PR 체크 (기본)
 
