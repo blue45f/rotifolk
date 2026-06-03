@@ -108,12 +108,17 @@ ol {
 }
 
 /* —— Scrollbar (subtle) —— */
-::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
 ::-webkit-scrollbar-thumb {
   background: var(--color-border-strong);
   border-radius: var(--radius-pill);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--brand-burgundy-400); }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-burgundy-400);
+}
 
 /* —— Accessibility utilities —— */
 .sr-only {
@@ -139,7 +144,9 @@ ol {
   z-index: var(--z-toast);
   transition: top var(--dur-base) var(--ease-out);
 }
-.skip-link:focus-visible { top: var(--space-2); }
+.skip-link:focus-visible {
+  top: var(--space-2);
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -176,17 +183,28 @@ ol {
 }
 
 /* Avoid horizontal overflow on small viewports */
-html, body { overflow-x: hidden; }
-img, video { max-width: 100%; height: auto; }
+html,
+body {
+  overflow-x: hidden;
+}
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
 
 /* iOS safe-area */
 @supports (padding: env(safe-area-inset-top)) {
-  body { padding-top: env(safe-area-inset-top); }
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 /* Touch targets ≥ 44×44 on mobile */
 @media (pointer: coarse) {
-  button, a[role='button'], [data-touch] {
+  button,
+  a[role='button'],
+  [data-touch] {
     min-height: 44px;
   }
 }
@@ -212,26 +230,54 @@ img, video { max-width: 100%; height: auto; }
 
 /* —— Animated background blobs (used on landing) —— */
 @keyframes blob-float {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(40px, -30px) scale(1.05); }
-  66% { transform: translate(-30px, 40px) scale(0.95); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(40px, -30px) scale(1.05);
+  }
+  66% {
+    transform: translate(-30px, 40px) scale(0.95);
+  }
 }
 @keyframes blob-float-slow {
-  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
-  50% { transform: translate(-60px, 50px) scale(1.08) rotate(8deg); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate(-60px, 50px) scale(1.08) rotate(8deg);
+  }
 }
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 @keyframes pulse-ring {
-  0%   { box-shadow: 0 0 0 0 rgba(201, 98, 127, 0.45); }
-  100% { box-shadow: 0 0 0 18px rgba(201, 98, 127, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(201, 98, 127, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 18px rgba(201, 98, 127, 0);
+  }
 }
 @keyframes spin-slow {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -26,9 +26,7 @@ function readCache(): GeoState['coords'] | undefined {
 export function useGeolocation(autoRequest = false): GeoState & { request: () => void } {
   const [state, setState] = useState<GeoState>(() => {
     const cached = readCache()
-    return cached
-      ? { status: 'granted', coords: cached }
-      : { status: 'idle' }
+    return cached ? { status: 'granted', coords: cached } : { status: 'idle' }
   })
 
   const request = () => {

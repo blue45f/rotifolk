@@ -17,19 +17,27 @@
   transform: translateY(-1px);
 }
 
-.s_sm { padding: 3px 9px; font-size: var(--fs-2xs); }
-.s_md { padding: 5px 12px; font-size: var(--fs-xs); }
+.s_sm {
+  padding: 3px 9px;
+  font-size: var(--fs-2xs);
+}
+.s_md {
+  padding: 5px 12px;
+  font-size: var(--fs-xs);
+}
 
-.emoji { line-height: 1; }
-.label { line-height: 1; }
+.emoji {
+  line-height: 1;
+}
+.label {
+  line-height: 1;
+}
 
 /* —— Newbie · sage (어린 풀빛) —— */
 .lvl_newbie {
-  background: linear-gradient(135deg,
-    oklch(96% 0.035 135) 0%,
-    oklch(90% 0.060 140) 100%);
+  background: linear-gradient(135deg, oklch(96% 0.035 135) 0%, oklch(90% 0.06 140) 100%);
   color: oklch(38% 0.075 140);
-  border-color: oklch(86% 0.060 140);
+  border-color: oklch(86% 0.06 140);
 }
 .lvl_newbie:hover {
   box-shadow: 0 4px 12px oklch(56% 0.07 135 / 0.22);
@@ -37,21 +45,17 @@
 
 /* —— Sapling · green (잎이 자란 새싹) —— */
 .lvl_sapling {
-  background: linear-gradient(135deg,
-    oklch(92% 0.070 145) 0%,
-    oklch(78% 0.115 145) 100%);
+  background: linear-gradient(135deg, oklch(92% 0.07 145) 0%, oklch(78% 0.115 145) 100%);
   color: oklch(30% 0.085 145);
   border-color: oklch(72% 0.105 145);
 }
 .lvl_sapling:hover {
-  box-shadow: 0 4px 12px oklch(56% 0.110 145 / 0.28);
+  box-shadow: 0 4px 12px oklch(56% 0.11 145 / 0.28);
 }
 
 /* —— Sommelier · burgundy (와인) —— */
 .lvl_sommelier {
-  background: linear-gradient(135deg,
-    var(--brand-burgundy-100) 0%,
-    var(--brand-burgundy-300) 100%);
+  background: linear-gradient(135deg, var(--brand-burgundy-100) 0%, var(--brand-burgundy-300) 100%);
   color: var(--brand-burgundy-900);
   border-color: var(--brand-burgundy-300);
 }
@@ -61,9 +65,7 @@
 
 /* —— Curator · gold —— */
 .lvl_curator {
-  background: linear-gradient(135deg,
-    var(--brand-gold-100) 0%,
-    var(--brand-gold-400) 100%);
+  background: linear-gradient(135deg, var(--brand-gold-100) 0%, var(--brand-gold-400) 100%);
   color: var(--brand-gold-700);
   border-color: var(--brand-gold-400);
 }
@@ -73,12 +75,10 @@
 
 /* —— Legend · twilight (어두운 와인-자수정) —— */
 .lvl_legend {
-  background: linear-gradient(135deg,
-    oklch(28% 0.075 10)   0%,
-    oklch(36% 0.115 320) 100%);
+  background: linear-gradient(135deg, oklch(28% 0.075 10) 0%, oklch(36% 0.115 320) 100%);
   color: var(--brand-cream-100);
   border-color: oklch(40% 0.095 320);
 }
 .lvl_legend:hover {
-  box-shadow: 0 6px 18px oklch(28% 0.10 320 / 0.45);
+  box-shadow: 0 6px 18px oklch(28% 0.1 320 / 0.45);
 }

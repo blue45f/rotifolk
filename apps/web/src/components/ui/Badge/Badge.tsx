@@ -19,7 +19,14 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   children: ReactNode
 }
 
-export function Badge({ tone = 'neutral', size = 'sm', outlined, className, children, ...rest }: BadgeProps) {
+export function Badge({
+  tone = 'neutral',
+  size = 'sm',
+  outlined,
+  className,
+  children,
+  ...rest
+}: BadgeProps) {
   const cls = [
     styles.badge,
     styles[`t_${tone}`],

@@ -32,7 +32,11 @@ export function Card({
   )
 }
 
-Card.Header = function CardHeader({ className, children, ...rest }: HTMLAttributes<HTMLDivElement>) {
+Card.Header = function CardHeader({
+  className,
+  children,
+  ...rest
+}: HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={`${styles.header} ${className ?? ''}`} {...rest}>
       {children}
@@ -46,7 +50,11 @@ Card.Body = function CardBody({ className, children, ...rest }: HTMLAttributes<H
     </div>
   )
 }
-Card.Footer = function CardFooter({ className, children, ...rest }: HTMLAttributes<HTMLDivElement>) {
+Card.Footer = function CardFooter({
+  className,
+  children,
+  ...rest
+}: HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={`${styles.footer} ${className ?? ''}`} {...rest}>
       {children}

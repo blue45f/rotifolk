@@ -15,7 +15,9 @@ function load(): string[] {
 }
 
 function save(arr: string[]) {
-  try { localStorage.setItem(KEY, JSON.stringify(arr)) } catch {}
+  try {
+    localStorage.setItem(KEY, JSON.stringify(arr))
+  } catch {}
 }
 
 export function useRecentSearches() {

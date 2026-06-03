@@ -1,4 +1,6 @@
-.page { padding-block: var(--space-8) var(--space-16); }
+.page {
+  padding-block: var(--space-8) var(--space-16);
+}
 .head {
   display: flex;
   flex-direction: column;
@@ -12,7 +14,10 @@
   font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
 }
-.muted { color: var(--color-text-muted); font-size: var(--fs-sm); }
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
 
 .grid {
   display: grid;
@@ -20,7 +25,10 @@
   gap: var(--space-5);
 }
 @media (max-width: 640px) {
-  .grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-3);
+  }
 }
 
 .card {
@@ -30,10 +38,11 @@
   gap: 6px;
   padding: var(--space-5) var(--space-3) var(--space-4);
   border-radius: var(--radius-lg);
-  background:
-    linear-gradient(180deg,
-      color-mix(in oklab, var(--brand-cream-100) 95%, transparent),
-      color-mix(in oklab, var(--brand-cream-200) 88%, transparent));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--brand-cream-100) 95%, transparent),
+    color-mix(in oklab, var(--brand-cream-200) 88%, transparent)
+  );
   color: var(--brand-burgundy-900);
   box-shadow:
     0 10px 24px color-mix(in oklab, var(--brand-burgundy-900) 14%, transparent),
@@ -41,8 +50,9 @@
     inset 0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 35%, transparent);
   text-align: center;
   transform: rotate(var(--tilt, 0deg));
-  transition: transform var(--dur-base) var(--ease-out-quart),
-              box-shadow var(--dur-base) var(--ease-out-quart);
+  transition:
+    transform var(--dur-base) var(--ease-out-quart),
+    box-shadow var(--dur-base) var(--ease-out-quart);
 }
 .card:hover {
   transform: rotate(0deg) translateY(-4px);
@@ -51,7 +61,11 @@
     inset 0 1px 0 color-mix(in oklab, white 60%, transparent),
     inset 0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 60%, transparent);
 }
-.cardName { font-weight: var(--fw-bold); font-size: var(--fs-lg); letter-spacing: var(--tracking-tight); }
+.cardName {
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-lg);
+  letter-spacing: var(--tracking-tight);
+}
 .cardParty {
   font-size: var(--fs-xs);
   color: var(--brand-burgundy-800);
@@ -60,7 +74,11 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.cardDate { font-family: var(--font-mono); font-size: var(--fs-2xs); opacity: 0.7; }
+.cardDate {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  opacity: 0.7;
+}
 
 .controls {
   display: flex;
@@ -100,10 +118,11 @@
   gap: 6px;
   padding: var(--space-5) var(--space-3) var(--space-4);
   border-radius: var(--radius-lg);
-  background:
-    linear-gradient(180deg,
-      color-mix(in oklab, var(--brand-cream-100) 95%, transparent),
-      color-mix(in oklab, var(--brand-cream-200) 88%, transparent));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--brand-cream-100) 95%, transparent),
+    color-mix(in oklab, var(--brand-cream-200) 88%, transparent)
+  );
   color: var(--brand-burgundy-900);
   box-shadow:
     0 10px 24px color-mix(in oklab, var(--brand-burgundy-900) 14%, transparent),
@@ -111,8 +130,9 @@
     inset 0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 35%, transparent);
   text-align: center;
   transform: rotate(var(--tilt, 0deg));
-  transition: transform var(--dur-base) var(--ease-out-quart),
-              box-shadow var(--dur-base) var(--ease-out-quart);
+  transition:
+    transform var(--dur-base) var(--ease-out-quart),
+    box-shadow var(--dur-base) var(--ease-out-quart);
   flex-shrink: 0;
   width: 160px;
 }

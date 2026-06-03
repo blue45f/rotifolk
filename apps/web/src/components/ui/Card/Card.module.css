@@ -8,7 +8,9 @@
     box-shadow var(--dur-base) var(--ease-out);
   overflow: hidden;
 }
-.hoverable { cursor: pointer; }
+.hoverable {
+  cursor: pointer;
+}
 .hoverable:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
@@ -16,7 +18,9 @@
 }
 
 /* Variants */
-.v_plain { /* default */ }
+.v_plain {
+  /* default */
+}
 .v_soft {
   background: var(--color-surface-soft);
   border-color: transparent;
@@ -34,16 +38,24 @@
 }
 .v_twilight {
   background: var(--grad-twilight);
-  color: #FBF3E2;
+  color: #fbf3e2;
   border-color: transparent;
   box-shadow: var(--shadow-lg);
 }
 
 /* Padding */
-.p_none { padding: 0; }
-.p_sm   { padding: var(--space-3); }
-.p_md   { padding: var(--space-5); }
-.p_lg   { padding: var(--space-8); }
+.p_none {
+  padding: 0;
+}
+.p_sm {
+  padding: var(--space-3);
+}
+.p_md {
+  padding: var(--space-5);
+}
+.p_lg {
+  padding: var(--space-8);
+}
 
 .header {
   display: flex;

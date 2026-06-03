@@ -16,7 +16,7 @@
   gap: 10px;
   padding: 12px 18px;
   background: var(--brand-ink-900);
-  color: #FCFAF5;
+  color: #fcfaf5;
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-lg);
   font-size: var(--fs-sm);
@@ -31,7 +31,19 @@
   border-radius: 50%;
   background: currentColor;
 }
-.k_info    { background: #14101D; color: #FCFAF5; }
-.k_success { background: #2F8F66; color: #fff; }
-.k_warning { background: #C9871F; color: #2A1F0C; }
-.k_error   { background: #C13F4E; color: #fff; }
+.k_info {
+  background: #14101d;
+  color: #fcfaf5;
+}
+.k_success {
+  background: #2f8f66;
+  color: #fff;
+}
+.k_warning {
+  background: #c9871f;
+  color: #2a1f0c;
+}
+.k_error {
+  background: #c13f4e;
+  color: #fff;
+}

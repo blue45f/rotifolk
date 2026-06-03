@@ -120,12 +120,18 @@ class HostApplicationsController {
       throw new ForbiddenException({ code: 'admin_only', message: '관리자 전용' })
     }
     if (body?.status !== 'approved' && body?.status !== 'rejected') {
-      throw new BadRequestException({ code: 'invalid_status', message: '검토 상태가 올바르지 않습니다.' })
+      throw new BadRequestException({
+        code: 'invalid_status',
+        message: '검토 상태가 올바르지 않습니다.',
+      })
     }
 
     const existing = await this.prisma.hostApplication.findUnique({ where: { id } })
     if (!existing) {
-      throw new NotFoundException({ code: 'application_not_found', message: '신청을 찾을 수 없습니다.' })
+      throw new NotFoundException({
+        code: 'application_not_found',
+        message: '신청을 찾을 수 없습니다.',
+      })
     }
 
     const updated = await this.prisma.hostApplication.update({

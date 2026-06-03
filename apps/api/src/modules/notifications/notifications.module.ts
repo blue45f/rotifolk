@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Module,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common'
+import { Controller, Get, Module, Param, Post, Query, UseGuards } from '@nestjs/common'
 import { NotificationsEmitter } from './notifications.emitter'
 import { AuthGuard } from '@nestjs/passport'
 import { PrismaService } from '@/prisma/prisma.service'
@@ -18,10 +10,7 @@ class NotificationsController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
-  async list(
-    @CurrentUser() me: JwtUserPayload,
-    @Query('unread') unread?: string,
-  ) {
+  async list(@CurrentUser() me: JwtUserPayload, @Query('unread') unread?: string) {
     const items = await this.prisma.notification.findMany({
       where: { userId: me.sub, ...(unread === 'true' ? { readAt: null } : {}) },
       orderBy: { createdAt: 'desc' },
@@ -65,5 +54,9 @@ class NotificationsController {
   }
 }
 
-@Module({ controllers: [NotificationsController], providers: [NotificationsEmitter], exports: [NotificationsEmitter] })
+@Module({
+  controllers: [NotificationsController],
+  providers: [NotificationsEmitter],
+  exports: [NotificationsEmitter],
+})
 export class NotificationsModule {}

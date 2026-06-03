@@ -37,7 +37,10 @@ class PhotosController {
   }
 
   @Get('parties/:partyId/photos')
-  async list(@Param('partyId') partyId: string, @Req() req: { headers: { authorization?: string } }) {
+  async list(
+    @Param('partyId') partyId: string,
+    @Req() req: { headers: { authorization?: string } },
+  ) {
     const viewerId = this.viewerIdFromHeader(req.headers.authorization)
     const photos = await this.prisma.partyPhoto.findMany({
       where: { partyId },
@@ -64,7 +67,8 @@ class PhotosController {
   @UseGuards(AuthGuard('jwt'))
   async like(@CurrentUser() me: JwtUserPayload, @Param('id') id: string) {
     const photo = await this.prisma.partyPhoto.findUnique({ where: { id } })
-    if (!photo) throw new NotFoundException({ code: 'photo_not_found', message: '사진을 찾을 수 없어요' })
+    if (!photo)
+      throw new NotFoundException({ code: 'photo_not_found', message: '사진을 찾을 수 없어요' })
     return this.prisma.photoLike.upsert({
       where: { photoId_userId: { photoId: id, userId: me.sub } },
       create: { photoId: id, userId: me.sub },

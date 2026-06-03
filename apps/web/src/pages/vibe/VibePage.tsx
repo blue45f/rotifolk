@@ -68,15 +68,15 @@ export default function VibePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
       >
-        <Badge tone="gold" size="md">VIBE CHECK</Badge>
+        <Badge tone="gold" size="md">
+          VIBE CHECK
+        </Badge>
         <h1 className={styles.title}>
           오늘의 기분을 한 줄로,
           <br />
           어울리는 모임 찾아드릴게요.
         </h1>
-        <p className={styles.lead}>
-          자기소개 형식이 아니어도 좋아요. 키워드만 던져도 충분합니다.
-        </p>
+        <p className={styles.lead}>자기소개 형식이 아니어도 좋아요. 키워드만 던져도 충분합니다.</p>
         <textarea
           className={styles.composer}
           rows={3}
@@ -121,7 +121,10 @@ export default function VibePage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => { setCommitted(null); setText('') }}
+              onClick={() => {
+                setCommitted(null)
+                setText('')
+              }}
             >
               ↩ 다시 시도
             </Button>

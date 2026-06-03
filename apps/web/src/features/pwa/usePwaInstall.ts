@@ -55,7 +55,9 @@ export function usePwaInstall() {
   const dismiss = () => {
     setDismissed(true)
     setEvent(null)
-    try { localStorage.setItem(DISMISSED_KEY, String(Date.now())) } catch {}
+    try {
+      localStorage.setItem(DISMISSED_KEY, String(Date.now()))
+    } catch {}
   }
   return { canInstall, install, dismiss }
 }

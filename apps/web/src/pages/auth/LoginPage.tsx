@@ -70,9 +70,7 @@ export default function LoginPage() {
           <span aria-hidden="true">💬</span>
           {kakaoLoading ? '카카오로 입장 중…' : '카카오로 시작하기'}
         </button>
-        <p className={styles.kakaoHint}>
-          데모 환경: 실제 카카오 인증 없이 닉네임으로 진입
-        </p>
+        <p className={styles.kakaoHint}>데모 환경: 실제 카카오 인증 없이 닉네임으로 진입</p>
         <form
           className={styles.form}
           onSubmit={handleSubmit(async (data) => {

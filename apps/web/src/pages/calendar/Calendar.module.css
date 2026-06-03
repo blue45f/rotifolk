@@ -86,8 +86,12 @@
   letter-spacing: var(--tracking-wide);
 }
 
-.weekSun { color: var(--brand-burgundy-600); }
-.weekSat { color: var(--color-text-subtle); }
+.weekSun {
+  color: var(--brand-burgundy-600);
+}
+.weekSat {
+  color: var(--color-text-subtle);
+}
 
 .grid {
   display: grid;
@@ -136,8 +140,12 @@
   border-radius: var(--radius-pill);
 }
 
-.daySun { color: var(--brand-burgundy-700); }
-.daySat { color: var(--color-text-subtle); }
+.daySun {
+  color: var(--brand-burgundy-700);
+}
+.daySat {
+  color: var(--color-text-subtle);
+}
 
 .dayNumToday {
   background: var(--brand-burgundy-700);
@@ -253,17 +261,31 @@
 
 @media (hover: none) {
   /* 터치 디바이스에서는 hover가 없으니 항상 보이게 한다. */
-  .icsBtn { opacity: 0.85; }
+  .icsBtn {
+    opacity: 0.85;
+  }
 }
 
 @media (max-width: 640px) {
-  .icsBtn { width: 16px; height: 16px; font-size: 10px; opacity: 0.7; }
+  .icsBtn {
+    width: 16px;
+    height: 16px;
+    font-size: 10px;
+    opacity: 0.7;
+  }
 }
 
 @container (max-width: 86px) {
-  .event { font-size: 10px; padding: 2px 4px; }
-  .eventEmoji { font-size: 10px; }
-  .more { font-size: 9px; }
+  .event {
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+  .eventEmoji {
+    font-size: 10px;
+  }
+  .more {
+    font-size: 9px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -271,16 +293,35 @@
     min-height: clamp(70px, 16vw, 100px);
     padding: 4px;
   }
-  .events { gap: 2px; }
-  .event { padding: 2px 5px; font-size: 10px; }
-  .eventEmoji { font-size: 10px; }
-  .dayNum { width: 20px; height: 20px; font-size: 11px; }
-  .grid { gap: 4px; padding: 4px; }
+  .events {
+    gap: 2px;
+  }
+  .event {
+    padding: 2px 5px;
+    font-size: 10px;
+  }
+  .eventEmoji {
+    font-size: 10px;
+  }
+  .dayNum {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+  .grid {
+    gap: 4px;
+    padding: 4px;
+  }
 }
 
 @media (max-width: 420px) {
-  .eventTitle { display: none; }
-  .event { justify-content: center; padding: 2px; }
+  .eventTitle {
+    display: none;
+  }
+  .event {
+    justify-content: center;
+    padding: 2px;
+  }
 }
 
 /* Agenda / list view */
@@ -289,7 +330,8 @@
   flex-direction: column;
   gap: var(--space-6);
 }
-.agendaGroup {}
+.agendaGroup {
+}
 .agendaDateLabel {
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
@@ -319,8 +361,13 @@
   width: 100%;
   transition: background var(--dur-fast) var(--ease-out-quart);
 }
-.agendaEvent:hover { background: var(--brand-burgundy-50); }
-.agendaEventEmoji { font-size: 1.5rem; line-height: 1; }
+.agendaEvent:hover {
+  background: var(--brand-burgundy-50);
+}
+.agendaEventEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
 .agendaEventBody {
   display: flex;
   flex-direction: column;

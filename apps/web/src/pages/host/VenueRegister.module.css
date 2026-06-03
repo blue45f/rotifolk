@@ -13,10 +13,11 @@
   inset: calc(var(--space-6) * -1) calc(var(--space-5) * -1) auto;
   height: 200px;
   border-radius: var(--radius-2xl);
-  background:
-    radial-gradient(110% 130% at 0% 0%,
-      color-mix(in oklab, var(--brand-burgundy-700) 8%, transparent),
-      transparent 60%);
+  background: radial-gradient(
+    110% 130% at 0% 0%,
+    color-mix(in oklab, var(--brand-burgundy-700) 8%, transparent),
+    transparent 60%
+  );
   pointer-events: none;
   z-index: 0;
 }

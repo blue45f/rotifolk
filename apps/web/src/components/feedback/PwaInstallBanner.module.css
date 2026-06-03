@@ -6,17 +6,35 @@
   align-items: center;
   gap: var(--space-3);
   padding: 12px clamp(var(--space-3), 4vw, var(--space-8));
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     color-mix(in oklab, var(--brand-burgundy-700) 96%, transparent),
-    color-mix(in oklab, var(--brand-burgundy-500) 90%, transparent));
+    color-mix(in oklab, var(--brand-burgundy-500) 90%, transparent)
+  );
   color: var(--brand-cream-50);
   box-shadow: 0 6px 20px color-mix(in oklab, var(--brand-burgundy-900) 25%, transparent);
 }
-.icon { font-size: 22px; }
-.body { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-.body strong { font-weight: var(--fw-bold); }
-.body span { font-size: var(--fs-xs); opacity: 0.85; }
-.actions { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.icon {
+  font-size: 22px;
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.body strong {
+  font-weight: var(--fw-bold);
+}
+.body span {
+  font-size: var(--fs-xs);
+  opacity: 0.85;
+}
+.actions {
+  display: inline-flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
 .dismiss {
   background: transparent;
   color: var(--brand-cream-50);

@@ -142,12 +142,11 @@
 
 .cardMutual {
   border-color: color-mix(in oklab, var(--brand-gold-500) 42%, transparent);
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--brand-gold-500) 7%, var(--color-surface)),
-      var(--color-surface) 42%
-    );
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--brand-gold-500) 7%, var(--color-surface)),
+    var(--color-surface) 42%
+  );
 }
 
 .cardTop {

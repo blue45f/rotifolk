@@ -25,9 +25,7 @@ describe('buildHeteroRotation', () => {
     ])
     expect(rounds).toHaveLength(5)
     const seen = new Set<string>()
-    rounds.forEach((r) =>
-      r.pairs.forEach(([a, b]) => seen.add(a < b ? `${a}|${b}` : `${b}|${a}`)),
-    )
+    rounds.forEach((r) => r.pairs.forEach(([a, b]) => seen.add(a < b ? `${a}|${b}` : `${b}|${a}`)))
     expect(seen.size).toBe(25)
   })
 
@@ -49,8 +47,6 @@ describe('buildHeteroRotation', () => {
   })
 
   it('returns empty when one gender is absent', () => {
-    expect(
-      buildHeteroRotation([{ userId: 'w1', gender: 'female' }]),
-    ).toHaveLength(0)
+    expect(buildHeteroRotation([{ userId: 'w1', gender: 'female' }])).toHaveLength(0)
   })
 })

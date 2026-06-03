@@ -74,13 +74,10 @@ export default function HostAnalyticsTab({ participants }: Props) {
     const malePct = genderKnown > 0 ? Math.round((male / genderKnown) * 100) : 0
     const femalePct = genderKnown > 0 ? 100 - malePct : 0
     // Balance: |male - female| / known <= 0.2 → considered "5:5"
-    const isBalanced =
-      genderKnown >= 4 && Math.abs(male - female) / genderKnown <= 0.2
+    const isBalanced = genderKnown >= 4 && Math.abs(male - female) / genderKnown <= 0.2
 
     const avgAge =
-      ages.length > 0
-        ? Math.round((ages.reduce((a, b) => a + b, 0) / ages.length) * 10) / 10
-        : null
+      ages.length > 0 ? Math.round((ages.reduce((a, b) => a + b, 0) / ages.length) * 10) / 10 : null
 
     const mbtiKnown = mbtiE + mbtiI
     const ePct = mbtiKnown > 0 ? Math.round((mbtiE / mbtiKnown) * 100) : 0
@@ -123,9 +120,7 @@ export default function HostAnalyticsTab({ participants }: Props) {
       <header className={styles.header}>
         <div>
           <h2 className={styles.title}>파티 분석</h2>
-          <p className={styles.subtitle}>
-            지금까지 모인 참가자 데이터를 한눈에 살펴보세요.
-          </p>
+          <p className={styles.subtitle}>지금까지 모인 참가자 데이터를 한눈에 살펴보세요.</p>
         </div>
       </header>
 
@@ -144,12 +139,16 @@ export default function HostAnalyticsTab({ participants }: Props) {
         <article className={styles.card} aria-label="체크인율">
           <span className={styles.label}>체크인율</span>
           <div>
-            <span className={`${styles.bigNumber} ${styles.sage}`}>
-              {stats.checkInRate}
-            </span>
+            <span className={`${styles.bigNumber} ${styles.sage}`}>{stats.checkInRate}</span>
             <span className={styles.unit}>%</span>
           </div>
-          <div className={styles.barTrack} role="progressbar" aria-valuenow={stats.checkInRate} aria-valuemin={0} aria-valuemax={100}>
+          <div
+            className={styles.barTrack}
+            role="progressbar"
+            aria-valuenow={stats.checkInRate}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
             <div
               className={`${styles.barFill} ${styles.sage}`}
               style={{ width: `${stats.checkInRate}%` }}
@@ -166,19 +165,21 @@ export default function HostAnalyticsTab({ participants }: Props) {
           aria-label="성별 비율"
         >
           <span className={styles.label}>성별 비율</span>
-          {stats.isBalanced && (
-            <span className={styles.balanceBadge}>★ 5:5 황금밸런스</span>
-          )}
+          {stats.isBalanced && <span className={styles.balanceBadge}>★ 5:5 황금밸런스</span>}
           {stats.genderKnown > 0 ? (
             <>
-              <div className={styles.splitBar} role="img" aria-label={`남 ${stats.malePct}%, 여 ${stats.femalePct}%`}>
+              <div
+                className={styles.splitBar}
+                role="img"
+                aria-label={`남 ${stats.malePct}%, 여 ${stats.femalePct}%`}
+              >
                 <div className={styles.splitLeft} style={{ flexBasis: `${stats.malePct}%` }} />
                 <div className={styles.splitRight} style={{ flexBasis: `${stats.femalePct}%` }} />
               </div>
               <div className={styles.splitLegend}>
                 <span>
-                  <span className={`${styles.dot} ${styles.burgundy}`} aria-hidden="true" />{' '}
-                  남 <strong>{stats.male}</strong> · {stats.malePct}%
+                  <span className={`${styles.dot} ${styles.burgundy}`} aria-hidden="true" /> 남{' '}
+                  <strong>{stats.male}</strong> · {stats.malePct}%
                 </span>
                 <span>
                   여 <strong>{stats.female}</strong> · {stats.femalePct}%{' '}
@@ -195,9 +196,7 @@ export default function HostAnalyticsTab({ participants }: Props) {
         <article className={styles.card} aria-label="평균 나이">
           <span className={styles.label}>평균 나이</span>
           <div>
-            <span className={`${styles.bigNumber} ${styles.gold}`}>
-              {stats.avgAge ?? '–'}
-            </span>
+            <span className={`${styles.bigNumber} ${styles.gold}`}>{stats.avgAge ?? '–'}</span>
             <span className={styles.unit}>{stats.avgAge != null ? '세' : ''}</span>
           </div>
           <div className={styles.subLabel}>
@@ -220,9 +219,7 @@ export default function HostAnalyticsTab({ participants }: Props) {
               >
                 <div className={styles.donutCenter}>
                   {stats.ePct >= 50 ? 'E' : 'I'}
-                  <span style={{ marginLeft: 2 }}>
-                    {Math.max(stats.ePct, 100 - stats.ePct)}%
-                  </span>
+                  <span style={{ marginLeft: 2 }}>{Math.max(stats.ePct, 100 - stats.ePct)}%</span>
                 </div>
               </div>
               <div className={styles.donutLegend}>

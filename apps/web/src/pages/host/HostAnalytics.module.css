@@ -246,9 +246,15 @@
   flex-shrink: 0;
 }
 
-.dot.burgundy { background: var(--brand-burgundy-500); }
-.dot.gold     { background: var(--brand-gold-500); }
-.dot.sage     { background: var(--color-success); }
+.dot.burgundy {
+  background: var(--brand-burgundy-500);
+}
+.dot.gold {
+  background: var(--brand-gold-500);
+}
+.dot.sage {
+  background: var(--color-success);
+}
 
 /* —— empty state spacing —— */
 .empty {

@@ -1,4 +1,6 @@
-.page { padding-block: var(--space-8) var(--space-16); }
+.page {
+  padding-block: var(--space-8) var(--space-16);
+}
 .head {
   display: flex;
   align-items: center;
@@ -105,7 +107,7 @@
   font-weight: var(--fw-bold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #B8893B;
+  color: #b8893b;
 }
 .revenueBadge {
   font-size: var(--fs-xs);
@@ -376,7 +378,7 @@
   border: 1px solid rgba(239, 68, 68, 0.35);
 }
 .revenueListMeta {
-  color: #B8893B;
+  color: #b8893b;
   font-weight: var(--fw-bold);
   white-space: nowrap;
 }
@@ -399,7 +401,9 @@
   padding: var(--space-3) 0;
 }
 
-.list { margin-top: var(--space-8); }
+.list {
+  margin-top: var(--space-8);
+}
 .h2 {
   font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
@@ -411,10 +415,21 @@
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-5);
 }
-.cardLink { display: contents; }
+.cardLink {
+  display: contents;
+}
 
-.filterRow { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-5); }
-.filterEmpty { color: var(--color-text-muted); padding: var(--space-8) 0; text-align: center; }
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+.filterEmpty {
+  color: var(--color-text-muted);
+  padding: var(--space-8) 0;
+  text-align: center;
+}
 
 @media (max-width: 740px) {
   .revenueStats {

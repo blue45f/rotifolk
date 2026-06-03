@@ -74,7 +74,9 @@
   cursor: pointer;
   padding: 4px 6px;
 }
-.suggestClear:hover { text-decoration: underline; }
+.suggestClear:hover {
+  text-decoration: underline;
+}
 .suggestItem {
   display: flex;
   align-items: center;
@@ -82,7 +84,9 @@
   border-radius: var(--radius-md);
   transition: background var(--dur-fast) var(--ease-out-quart);
 }
-.suggestItem:hover { background: var(--color-surface-soft); }
+.suggestItem:hover {
+  background: var(--color-surface-soft);
+}
 .suggestRow {
   flex: 1;
   display: flex;

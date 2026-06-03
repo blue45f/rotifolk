@@ -19,6 +19,9 @@ export const UpdateProfileSchema = z.object({
   nickname: z.string().min(2).max(16).optional(),
   bio: z.string().max(200).optional(),
   interests: z.array(z.string()).max(8).optional(),
-  mbti: z.string().regex(/^[IE][SN][TF][JP]$/i).optional(),
+  mbti: z
+    .string()
+    .regex(/^[IE][SN][TF][JP]$/i)
+    .optional(),
 })
 export type UpdateProfileDto = z.infer<typeof UpdateProfileSchema>

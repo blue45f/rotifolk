@@ -11,12 +11,7 @@ export type OrderKind = 'drink' | 'snack' | 'dessert' | 'glassware' | 'custom'
  */
 export type MenuAvailability = 'paid' | 'included' | 'unlimited' | 'course'
 
-export type OrderStatus =
-  | 'requested'
-  | 'accepted'
-  | 'preparing'
-  | 'served'
-  | 'cancelled'
+export type OrderStatus = 'requested' | 'accepted' | 'preparing' | 'served' | 'cancelled'
 
 export interface MenuItem {
   id: ID

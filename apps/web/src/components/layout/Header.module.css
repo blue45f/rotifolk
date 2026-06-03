@@ -30,7 +30,11 @@
   height: 30px;
   border-radius: 9px;
   background:
-    radial-gradient(80% 80% at 30% 20%, color-mix(in oklab, var(--brand-burgundy-400) 65%, transparent), transparent 60%),
+    radial-gradient(
+      80% 80% at 30% 20%,
+      color-mix(in oklab, var(--brand-burgundy-400) 65%, transparent),
+      transparent 60%
+    ),
     var(--brand-burgundy-800);
   box-shadow:
     0 4px 12px color-mix(in oklab, var(--brand-burgundy-800) 30%, transparent),
@@ -44,7 +48,9 @@
   background: var(--brand-cream-50);
   box-shadow: inset 0 -3px 0 color-mix(in oklab, var(--brand-gold-500) 80%, transparent);
 }
-.logo { color: inherit; }
+.logo {
+  color: inherit;
+}
 
 .nav {
   display: none;
@@ -59,7 +65,9 @@
   padding-block: 4px;
   transition: color var(--dur-fast) var(--ease-out-quart);
 }
-.nav a:hover { color: var(--color-text); }
+.nav a:hover {
+  color: var(--color-text);
+}
 .nav .active {
   color: var(--color-text);
   font-weight: var(--fw-semibold);
@@ -75,7 +83,9 @@
 }
 
 @media (min-width: 768px) {
-  .nav { display: inline-flex; }
+  .nav {
+    display: inline-flex;
+  }
 }
 
 .actions {

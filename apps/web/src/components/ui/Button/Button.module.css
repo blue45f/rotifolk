@@ -27,8 +27,12 @@
   white-space: nowrap;
 }
 
-.btn:hover:not(:disabled) { background: var(--btn-bg-hover); }
-.btn:active:not(:disabled) { transform: translateY(1px) scale(0.99); }
+.btn:hover:not(:disabled) {
+  background: var(--btn-bg-hover);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
 
 .btn:disabled,
 .btn[aria-busy='true'] {
@@ -77,12 +81,31 @@
 }
 
 /* Sizes */
-.s_sm  { height: 36px; padding-inline: 14px; font-size: var(--fs-sm); }
-.s_md  { height: 44px; padding-inline: 18px; font-size: var(--fs-md); }
-.s_lg  { height: 52px; padding-inline: 22px; font-size: var(--fs-lg); }
-.s_xl  { height: 60px; padding-inline: 28px; font-size: var(--fs-xl); border-radius: var(--radius-pill); }
+.s_sm {
+  height: 36px;
+  padding-inline: 14px;
+  font-size: var(--fs-sm);
+}
+.s_md {
+  height: 44px;
+  padding-inline: 18px;
+  font-size: var(--fs-md);
+}
+.s_lg {
+  height: 52px;
+  padding-inline: 22px;
+  font-size: var(--fs-lg);
+}
+.s_xl {
+  height: 60px;
+  padding-inline: 28px;
+  font-size: var(--fs-xl);
+  border-radius: var(--radius-pill);
+}
 
-.fullWidth { width: 100%; }
+.fullWidth {
+  width: 100%;
+}
 
 .icon {
   display: inline-flex;
@@ -97,7 +120,9 @@
   gap: 0.25rem;
 }
 
-.loading .label { opacity: 0.6; }
+.loading .label {
+  opacity: 0.6;
+}
 .spinner {
   width: 1em;
   height: 1em;
