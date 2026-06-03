@@ -225,3 +225,34 @@
   --shadow-lg: 0 22px 48px oklch(0% 0 0 / 0.6);
   --shadow-xl: 0 40px 80px oklch(0% 0 0 / 0.7);
 }
+
+/* —— System dark, honoring a pinned light —— */
+/* Covers first paint before JS and the JS-disabled case. The pre-paint script
+   in index.html and useApplyTheme() set data-theme explicitly; this is the
+   no-script fallback. :not([data-theme='light']) lets a user-pinned light win. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --color-bg:             var(--brand-ink-900);
+    --color-surface:        oklch(22% 0.030 290);
+    --color-surface-soft:   oklch(26% 0.035 290);
+    --color-surface-elev:   oklch(28% 0.038 290);
+
+    --color-text:           oklch(94% 0.010 80);
+    --color-text-muted:     oklch(70% 0.015 290);
+    --color-text-subtle:    oklch(55% 0.018 290);
+    --color-text-inverse:   var(--brand-ink-900);
+
+    --color-border:         color-mix(in oklab, white 9%, transparent);
+    --color-border-strong:  color-mix(in oklab, white 18%, transparent);
+
+    --color-primary:        var(--brand-burgundy-400);
+    --color-primary-hover:  var(--brand-burgundy-300);
+    --color-primary-soft:   color-mix(in oklab, var(--brand-burgundy-400) 18%, transparent);
+
+    --shadow-xs: 0 1px 2px oklch(0% 0 0 / 0.45);
+    --shadow-sm: 0 2px 6px oklch(0% 0 0 / 0.45);
+    --shadow-md: 0 10px 24px oklch(0% 0 0 / 0.55);
+    --shadow-lg: 0 22px 48px oklch(0% 0 0 / 0.6);
+    --shadow-xl: 0 40px 80px oklch(0% 0 0 / 0.7);
+  }
+}
