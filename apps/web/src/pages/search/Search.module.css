@@ -155,47 +155,8 @@
   flex-wrap: wrap;
 }
 
-.parsedRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.parsedLabel {
-  color: var(--color-text-muted);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  flex-shrink: 0;
-}
-
-/* 읽기 전용 정보 칩: chip 룩앤필을 따르되 비대화형(커서/호버/포커스 없음). */
-.parsedChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface);
-  color: var(--color-text);
-  border: 1.5px solid var(--color-border);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  cursor: default;
-  user-select: none;
-}
-
-.parsedChipMark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--brand-burgundy-500);
-  font-size: 1em;
-  line-height: 0;
-  margin-inline-start: -1px;
-}
+/* 인식된 조건 행(.parsedRow/.parsedLabel/.parsedChip/.parsedChipMark)은
+   RecognizedConditions 컴포넌트로 추출되어 해당 CSS Module로 이동했다. */
 
 .count {
   color: var(--color-text-muted);

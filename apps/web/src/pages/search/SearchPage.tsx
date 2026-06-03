@@ -12,6 +12,7 @@ import { PartyCard } from '@features/parties/PartyCard'
 import { CATEGORY_META } from '@features/categories/meta'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
+import { RecognizedConditions } from '@components/ui/RecognizedConditions/RecognizedConditions'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useRecentSearches } from '@features/search/useRecentSearches'
@@ -285,24 +286,9 @@ export default function SearchPage() {
           />
         ) : (
           <>
-            {parsedChips.length > 0 && (
-              <div className={styles.parsedRow} aria-label="인식된 검색 필터">
-                <span className={styles.parsedLabel}>인식한 조건</span>
-                <div className={styles.chipRow}>
-                  {/* 읽기 전용 정보 칩 — 클릭/포커스 불가한 비대화형 요소. */}
-                  {parsedChips.map((c) => (
-                    <span key={c.key} className={styles.parsedChip}>
-                      {c.emoji != null && c.emoji !== '' && (
-                        <span className={styles.parsedChipMark} aria-hidden="true">
-                          {c.emoji}
-                        </span>
-                      )}
-                      <span>{c.label}</span>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* 읽기 전용 정보 칩 — 클릭/포커스 불가한 비대화형 요소.
+                인식된 조건 행은 RecognizedConditions로 추출(스토리북 공유, DRY). */}
+            <RecognizedConditions chips={parsedChips} />
             <p className={styles.count}>
               <strong>{results.length}</strong>개의 결과
             </p>
