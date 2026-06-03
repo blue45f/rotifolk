@@ -12,9 +12,18 @@
   font-weight: var(--fw-black);
   letter-spacing: -0.03em;
 }
-.muted { color: var(--color-text-muted); }
-.muted strong { color: var(--color-text); font-weight: var(--fw-bold); }
-.sortRow { display: flex; gap: var(--space-2); margin-bottom: var(--space-5); }
+.muted {
+  color: var(--color-text-muted);
+}
+.muted strong {
+  color: var(--color-text);
+  font-weight: var(--fw-bold);
+}
+.sortRow {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -28,17 +37,19 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  background: linear-gradient(180deg,
-    color-mix(in oklab, var(--brand-gold-500, #D6A84E) 8%, var(--color-surface)) 0%,
-    var(--color-surface) 100%);
-  border: 1px dashed color-mix(in oklab, var(--brand-gold-500, #D6A84E) 40%, var(--color-border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--brand-gold-500, #d6a84e) 8%, var(--color-surface)) 0%,
+    var(--color-surface) 100%
+  );
+  border: 1px dashed color-mix(in oklab, var(--brand-gold-500, #d6a84e) 40%, var(--color-border));
   border-radius: var(--radius-lg);
   margin-bottom: var(--space-8);
 }
 .emptyEmoji {
   font-size: 4rem;
   line-height: 1;
-  color: var(--brand-gold-500, #D6A84E);
+  color: var(--brand-gold-500, #d6a84e);
 }
 .empty h2 {
   font-size: var(--fs-xl);

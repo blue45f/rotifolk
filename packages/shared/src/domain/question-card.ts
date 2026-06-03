@@ -4,7 +4,7 @@ export type QuestionCardDepth = 'icebreaker' | 'casual' | 'deeper' | 'spicy'
 
 export interface QuestionCard extends Timestamps {
   id: ID
-  partyId?: ID | null         // null = 글로벌 카드 풀
+  partyId?: ID | null // null = 글로벌 카드 풀
   depth: QuestionCardDepth
   prompt: string
   category?: string | null

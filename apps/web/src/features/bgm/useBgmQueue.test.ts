@@ -96,8 +96,12 @@ describe('useBgmQueue', () => {
 
 describe('getEmbedUrl', () => {
   it('converts supported music URLs to embeddable links', () => {
-    expect(getEmbedUrl('https://youtu.be/abc123')).toBe('https://www.youtube.com/embed/abc123?autoplay=0')
-    expect(getEmbedUrl('https://www.youtube.com/watch?v=xyz987')).toBe('https://www.youtube.com/embed/xyz987?autoplay=0')
+    expect(getEmbedUrl('https://youtu.be/abc123')).toBe(
+      'https://www.youtube.com/embed/abc123?autoplay=0',
+    )
+    expect(getEmbedUrl('https://www.youtube.com/watch?v=xyz987')).toBe(
+      'https://www.youtube.com/embed/xyz987?autoplay=0',
+    )
     expect(getEmbedUrl('https://www.youtube.com/shorts/shorty')).toBe(
       'https://www.youtube.com/embed/shorty?autoplay=0',
     )

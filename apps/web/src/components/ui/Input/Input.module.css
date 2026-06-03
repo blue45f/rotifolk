@@ -33,13 +33,20 @@
   color: inherit;
   font-size: var(--fs-md);
 }
-.input::placeholder { color: var(--color-text-subtle); }
-.leftIcon, .rightSlot {
+.input::placeholder {
+  color: var(--color-text-subtle);
+}
+.leftIcon,
+.rightSlot {
   display: inline-flex;
   color: var(--color-text-muted);
 }
-.leftIcon { margin-right: var(--space-2); }
-.rightSlot { margin-left: var(--space-2); }
+.leftIcon {
+  margin-right: var(--space-2);
+}
+.rightSlot {
+  margin-left: var(--space-2);
+}
 .hint {
   font-size: var(--fs-xs);
   color: var(--color-text-subtle);

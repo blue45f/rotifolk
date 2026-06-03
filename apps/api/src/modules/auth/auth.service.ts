@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common'
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import * as argon2 from 'argon2'
 import { PrismaService } from '@/prisma/prisma.service'
@@ -18,7 +14,8 @@ export class AuthService {
 
   async signUp(dto: SignUpDto, referralCode?: string) {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } })
-    if (existing) throw new BadRequestException({ code: 'email_taken', message: '이미 가입된 이메일이에요' })
+    if (existing)
+      throw new BadRequestException({ code: 'email_taken', message: '이미 가입된 이메일이에요' })
 
     const passwordHash = await argon2.hash(dto.password)
 
@@ -81,8 +78,7 @@ export class AuthService {
     })
     if (existing) return this.issueSession(existing)
 
-    const randomPassword =
-      Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
+    const randomPassword = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
     const passwordHash = await argon2.hash(randomPassword)
 
     const user = await this.prisma.$transaction(async (tx) => {
@@ -111,10 +107,18 @@ export class AuthService {
       where: { email: dto.email },
       include: { avatar: true },
     })
-    if (!user) throw new UnauthorizedException({ code: 'invalid_credentials', message: '이메일 또는 비밀번호가 일치하지 않아요' })
+    if (!user)
+      throw new UnauthorizedException({
+        code: 'invalid_credentials',
+        message: '이메일 또는 비밀번호가 일치하지 않아요',
+      })
 
     const ok = await argon2.verify(user.passwordHash, dto.password)
-    if (!ok) throw new UnauthorizedException({ code: 'invalid_credentials', message: '이메일 또는 비밀번호가 일치하지 않아요' })
+    if (!ok)
+      throw new UnauthorizedException({
+        code: 'invalid_credentials',
+        message: '이메일 또는 비밀번호가 일치하지 않아요',
+      })
 
     return this.issueSession(user)
   }
@@ -124,7 +128,11 @@ export class AuthService {
       where: { id: userId },
       include: { avatar: true },
     })
-    if (!user) throw new UnauthorizedException({ code: 'user_not_found', message: '사용자를 찾을 수 없어요' })
+    if (!user)
+      throw new UnauthorizedException({
+        code: 'user_not_found',
+        message: '사용자를 찾을 수 없어요',
+      })
     return { user: toPublicUser(user) }
   }
 

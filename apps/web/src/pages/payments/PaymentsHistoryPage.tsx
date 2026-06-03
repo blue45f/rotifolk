@@ -115,11 +115,27 @@ export default function PaymentsHistoryPage() {
           </Card>
 
           <div className={styles.filterRow}>
-            <Chip selected={filterStatus === 'all'} onClick={() => setFilterStatus('all')}>전체</Chip>
-            <Chip selected={filterStatus === 'paid'} onClick={() => setFilterStatus('paid')}>결제 완료</Chip>
-            <Chip selected={filterStatus === 'pending'} onClick={() => setFilterStatus('pending')}>결제 대기</Chip>
-            <Chip selected={filterStatus === 'refunded'} onClick={() => setFilterStatus('refunded')}>환불됨</Chip>
-            <Chip selected={filterStatus === 'cancelled'} onClick={() => setFilterStatus('cancelled')}>취소됨</Chip>
+            <Chip selected={filterStatus === 'all'} onClick={() => setFilterStatus('all')}>
+              전체
+            </Chip>
+            <Chip selected={filterStatus === 'paid'} onClick={() => setFilterStatus('paid')}>
+              결제 완료
+            </Chip>
+            <Chip selected={filterStatus === 'pending'} onClick={() => setFilterStatus('pending')}>
+              결제 대기
+            </Chip>
+            <Chip
+              selected={filterStatus === 'refunded'}
+              onClick={() => setFilterStatus('refunded')}
+            >
+              환불됨
+            </Chip>
+            <Chip
+              selected={filterStatus === 'cancelled'}
+              onClick={() => setFilterStatus('cancelled')}
+            >
+              취소됨
+            </Chip>
           </div>
 
           {filtered.length === 0 && items.length > 0 ? (
@@ -127,11 +143,16 @@ export default function PaymentsHistoryPage() {
           ) : (
             <ul className={styles.list}>
               {filtered.map((p) => {
-                const cat = p.party ? CATEGORY_META[p.party.category as keyof typeof CATEGORY_META] : null
+                const cat = p.party
+                  ? CATEGORY_META[p.party.category as keyof typeof CATEGORY_META]
+                  : null
                 const when = p.paidAt ?? p.createdAt
                 return (
                   <li key={p.id} className={styles.row}>
-                    <div className={styles.rowCover} style={{ background: cat?.bgGradient ?? '#7A1F3D' }}>
+                    <div
+                      className={styles.rowCover}
+                      style={{ background: cat?.bgGradient ?? '#7A1F3D' }}
+                    >
                       {p.party?.coverImageUrl ? (
                         <img src={p.party.coverImageUrl} alt="" loading="lazy" />
                       ) : (

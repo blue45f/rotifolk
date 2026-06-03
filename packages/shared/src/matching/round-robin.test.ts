@@ -13,9 +13,7 @@ describe('buildRoundRobin', () => {
     const ids = ['a', 'b', 'c', 'd']
     const rounds = buildRoundRobin(ids)
     const seen = new Set<string>()
-    rounds.forEach((r) =>
-      r.pairs.forEach(([a, b]) => seen.add(a < b ? `${a}|${b}` : `${b}|${a}`)),
-    )
+    rounds.forEach((r) => r.pairs.forEach(([a, b]) => seen.add(a < b ? `${a}|${b}` : `${b}|${a}`)))
     expect(seen.size).toBe(6) // C(4,2) = 6
   })
 

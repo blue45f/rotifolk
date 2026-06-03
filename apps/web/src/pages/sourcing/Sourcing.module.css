@@ -94,7 +94,8 @@
   font-weight: 600;
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
-  transition: color var(--dur-base) var(--ease-out),
+  transition:
+    color var(--dur-base) var(--ease-out),
     background var(--dur-base) var(--ease-out);
 }
 .tab:hover {
@@ -171,8 +172,10 @@
   border: 1px dashed var(--color-border-strong, var(--color-border));
   color: var(--color-text-muted);
   background: color-mix(in oklab, var(--color-surface) 60%, transparent);
-  transition: border-color var(--dur-base) var(--ease-out),
-    background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out),
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out),
+    color var(--dur-base) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
 }
 .geoBtn:hover {
@@ -223,7 +226,8 @@
   font-weight: 500;
   letter-spacing: normal;
   text-transform: none;
-  transition: border-color var(--dur-base) var(--ease-out),
+  transition:
+    border-color var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out);
 }
 .field input:hover {
@@ -269,7 +273,9 @@
   line-height: 1;
   color: var(--color-primary);
   background: color-mix(in oklab, var(--color-primary) 8%, transparent);
-  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
 .stepper button:hover {
   background: color-mix(in oklab, var(--color-primary) 16%, transparent);
@@ -306,7 +312,8 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
-  transition: transform var(--dur-base) var(--ease-out-quart),
+  transition:
+    transform var(--dur-base) var(--ease-out-quart),
     box-shadow var(--dur-base) var(--ease-out-quart),
     border-color var(--dur-base) var(--ease-out);
 }
@@ -717,7 +724,8 @@
   font: inherit;
   line-height: var(--lh-normal);
   resize: vertical;
-  transition: border-color var(--dur-base) var(--ease-out),
+  transition:
+    border-color var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out);
 }
 .noteInput::placeholder {
@@ -748,7 +756,8 @@
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  transition: border-color var(--dur-base) var(--ease-out),
+  transition:
+    border-color var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out);
 }
 .bRow:hover {

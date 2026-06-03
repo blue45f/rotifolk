@@ -180,12 +180,16 @@
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(120% 80% at 20% 10%,
+    radial-gradient(
+      120% 80% at 20% 10%,
       color-mix(in oklab, white 22%, transparent),
-      transparent 65%),
-    linear-gradient(180deg,
+      transparent 65%
+    ),
+    linear-gradient(
+      180deg,
       transparent 50%,
-      color-mix(in oklab, var(--brand-ink-900) 36%, transparent) 100%);
+      color-mix(in oklab, var(--brand-ink-900) 36%, transparent) 100%
+    );
   pointer-events: none;
 }
 .catTileHead,
@@ -344,7 +348,7 @@
   color: var(--color-text-muted);
 }
 .reviewStars {
-  color: #D6A84E;
+  color: #d6a84e;
   letter-spacing: 1px;
   font-size: var(--fs-xs);
 }

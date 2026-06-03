@@ -54,7 +54,10 @@ const REVIEW_STUBS: ReviewStub[] = [
   },
 ]
 
-function countBy<T>(items: readonly T[], pick: (x: T) => string | null | undefined): Map<string, number> {
+function countBy<T>(
+  items: readonly T[],
+  pick: (x: T) => string | null | undefined,
+): Map<string, number> {
   const map = new Map<string, number>()
   for (const item of items) {
     const key = pick(item)
@@ -149,8 +152,8 @@ export default function DigestPage() {
           이번 주 Rotifolk
         </h1>
         <p className={styles.heroLead}>
-          이번 주 <strong>{totalParties}</strong>개 모임 ·{' '}
-          <strong>{newlyMatched}</strong>명이 새로 매칭됨
+          이번 주 <strong>{totalParties}</strong>개 모임 · <strong>{newlyMatched}</strong>명이 새로
+          매칭됨
         </p>
         <Button
           variant="soft"
@@ -189,9 +192,7 @@ export default function DigestPage() {
               <h2 id="hosts-title" className={styles.sectionTitle}>
                 🏆 이번 주 베스트 호스트
               </h2>
-              <p className={styles.sectionSub}>
-                이번 주 가장 많은 모임을 연 호스트예요.
-              </p>
+              <p className={styles.sectionSub}>이번 주 가장 많은 모임을 연 호스트예요.</p>
             </header>
 
             {topHosts.length === 0 ? (
@@ -302,32 +303,37 @@ export default function DigestPage() {
               <h2 id="reviews-title" className={styles.sectionTitle}>
                 💬 따끈한 후기
               </h2>
-              <p className={styles.sectionSub}>
-                최근 모임에서 남겨진 이야기들
-              </p>
+              <p className={styles.sectionSub}>최근 모임에서 남겨진 이야기들</p>
             </header>
 
             <ul className={styles.reviewList}>
-              {((recentReviews && recentReviews.length > 0) ? recentReviews : REVIEW_STUBS).map((review) => {
-                const catKey = (review.category ?? 'wine') as PartyCategory
-                const meta = CATEGORY_META[catKey] ?? CATEGORY_META['wine']
-                const stars = '★'.repeat(Math.min(5, Math.max(1, (review as RecentReview).rating ?? 5)))
-                return (
-                  <li key={'id' in review ? review.id : review.partyTitle} className={styles.reviewCard}>
-                    <header className={styles.reviewHead}>
-                      <Badge tone="wine" size="sm">
-                        {meta.emoji} {meta.shortLabel}
-                      </Badge>
-                      <span className={styles.reviewTitle}>{review.partyTitle}</span>
-                    </header>
-                    <blockquote className={styles.reviewBody}>{review.body}</blockquote>
-                    <footer className={styles.reviewFoot}>
-                      <span className={styles.reviewStars}>{stars}</span>
-                      <span>— {review.reviewer}</span>
-                    </footer>
-                  </li>
-                )
-              })}
+              {(recentReviews && recentReviews.length > 0 ? recentReviews : REVIEW_STUBS).map(
+                (review) => {
+                  const catKey = (review.category ?? 'wine') as PartyCategory
+                  const meta = CATEGORY_META[catKey] ?? CATEGORY_META['wine']
+                  const stars = '★'.repeat(
+                    Math.min(5, Math.max(1, (review as RecentReview).rating ?? 5)),
+                  )
+                  return (
+                    <li
+                      key={'id' in review ? review.id : review.partyTitle}
+                      className={styles.reviewCard}
+                    >
+                      <header className={styles.reviewHead}>
+                        <Badge tone="wine" size="sm">
+                          {meta.emoji} {meta.shortLabel}
+                        </Badge>
+                        <span className={styles.reviewTitle}>{review.partyTitle}</span>
+                      </header>
+                      <blockquote className={styles.reviewBody}>{review.body}</blockquote>
+                      <footer className={styles.reviewFoot}>
+                        <span className={styles.reviewStars}>{stars}</span>
+                        <span>— {review.reviewer}</span>
+                      </footer>
+                    </li>
+                  )
+                },
+              )}
             </ul>
           </section>
 

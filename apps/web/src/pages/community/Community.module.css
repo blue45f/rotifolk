@@ -47,12 +47,11 @@
   padding: var(--space-6);
   border: 1px solid color-mix(in oklab, var(--brand-burgundy-700) 18%, transparent);
   border-radius: var(--radius-2xl);
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in oklab, var(--brand-burgundy-800) 92%, var(--brand-cream-100)),
-      var(--brand-burgundy-700)
-    );
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--brand-burgundy-800) 92%, var(--brand-cream-100)),
+    var(--brand-burgundy-700)
+  );
   color: var(--color-primary-fg);
   box-shadow: var(--shadow-lg);
 }

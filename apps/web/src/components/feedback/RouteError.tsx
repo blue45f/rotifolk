@@ -16,7 +16,9 @@ export default function RouteError() {
     >
       <div style={{ maxWidth: 480 }}>
         <div style={{ fontSize: '5rem', lineHeight: 1 }}>🍷</div>
-        <h1 style={{ fontSize: 'var(--fs-3xl)', margin: 'var(--space-3) 0' }}>잠깐, 잔이 비었어요</h1>
+        <h1 style={{ fontSize: 'var(--fs-3xl)', margin: 'var(--space-3) 0' }}>
+          잠깐, 잔이 비었어요
+        </h1>
         <p style={{ color: 'var(--color-text-muted)', marginBottom: 'var(--space-6)' }}>
           {error?.message ?? '문제가 발생했어요. 새로고침하거나 홈으로 돌아가 주세요.'}
         </p>

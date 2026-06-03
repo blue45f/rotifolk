@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Delete,
-  Get,
-  Module,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common'
+import { Controller, Delete, Get, Module, Param, Post, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { PrismaService } from '@/prisma/prisma.service'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
@@ -23,7 +15,11 @@ class SavedController {
       where: { userId: me.sub },
       include: {
         party: {
-          include: { venue: true, host: { select: { id: true, nickname: true } }, _count: { select: { participations: true } } },
+          include: {
+            venue: true,
+            host: { select: { id: true, nickname: true } },
+            _count: { select: { participations: true } },
+          },
         },
       },
       orderBy: { createdAt: 'desc' },

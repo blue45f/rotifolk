@@ -78,9 +78,7 @@ export default function HostProfilePage() {
 
   const toggleFollow = useMutation({
     mutationFn: () =>
-      isFollowing
-        ? api.delete(`follows/${hostId}`)
-        : api.post(`follows/${hostId}`),
+      isFollowing ? api.delete(`follows/${hostId}`) : api.post(`follows/${hostId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['follows', 'me'] })
       queryClient.invalidateQueries({ queryKey: ['host-profile', hostId] })
@@ -157,18 +155,23 @@ export default function HostProfilePage() {
             {(reviews ?? []).map((r) => (
               <div key={r.id} className={styles.reviewCard}>
                 <div className={styles.reviewHead}>
-                  <span className={styles.reviewRating}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                  <span className={styles.reviewRating}>
+                    {'★'.repeat(r.rating)}
+                    {'☆'.repeat(5 - r.rating)}
+                  </span>
                   <time className={styles.reviewDate}>
-                    {new Date(r.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    {new Date(r.createdAt).toLocaleDateString('ko-KR', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}
                   </time>
                 </div>
                 <p className={styles.reviewBody}>{r.body}</p>
                 {r.fromUser && !r.anonymous && (
                   <p className={styles.reviewFrom}>— {r.fromUser.nickname}</p>
                 )}
-                {r.anonymous && (
-                  <p className={styles.reviewFrom}>— 익명</p>
-                )}
+                {r.anonymous && <p className={styles.reviewFrom}>— 익명</p>}
                 {r.hostReply && (
                   <div className={styles.hostReply}>
                     <span className={styles.hostReplyLabel}>호스트 답글</span>
@@ -217,7 +220,9 @@ function HostIntroSlot({ hostId, isSelf }: { hostId: string; isSelf: boolean }) 
   const [draft, setDraft] = useState('')
 
   useEffect(() => {
-    try { setIntro(localStorage.getItem(INTRO_KEY(hostId)) ?? '') } catch {}
+    try {
+      setIntro(localStorage.getItem(INTRO_KEY(hostId)) ?? '')
+    } catch {}
   }, [hostId])
 
   if (!intro && !isSelf) return null
@@ -229,7 +234,9 @@ function HostIntroSlot({ hostId, isSelf }: { hostId: string; isSelf: boolean }) 
   const save = () => {
     const next = draft.trim().slice(0, INTRO_MAX)
     setIntro(next)
-    try { localStorage.setItem(INTRO_KEY(hostId), next) } catch {}
+    try {
+      localStorage.setItem(INTRO_KEY(hostId), next)
+    } catch {}
     setEditing(false)
   }
   const cancel = () => {
@@ -252,10 +259,16 @@ function HostIntroSlot({ hostId, isSelf }: { hostId: string; isSelf: boolean }) 
               autoFocus
             />
             <div className={styles.introFoot}>
-              <span className={styles.introCount}>{draft.length} / {INTRO_MAX}</span>
+              <span className={styles.introCount}>
+                {draft.length} / {INTRO_MAX}
+              </span>
               <div className={styles.introActions}>
-                <Button variant="ghost" size="sm" onClick={cancel}>취소</Button>
-                <Button variant="primary" size="sm" onClick={save}>저장</Button>
+                <Button variant="ghost" size="sm" onClick={cancel}>
+                  취소
+                </Button>
+                <Button variant="primary" size="sm" onClick={save}>
+                  저장
+                </Button>
               </div>
             </div>
             <p className={styles.introHint}>※ 이 기기에만 저장돼요 (브라우저 localStorage)</p>
@@ -272,7 +285,9 @@ function HostIntroSlot({ hostId, isSelf }: { hostId: string; isSelf: boolean }) 
         ) : (
           <div className={styles.introEmpty}>
             <p className={styles.muted}>아직 인사말이 없어요. 첫인사로 손님 마음을 데워볼까요?</p>
-            <Button variant="gold" size="sm" onClick={start}>✨ 인사말 작성</Button>
+            <Button variant="gold" size="sm" onClick={start}>
+              ✨ 인사말 작성
+            </Button>
           </div>
         )}
       </Card>
@@ -288,7 +303,13 @@ const REPORT_KINDS: { value: ReportKind; label: string }[] = [
   { value: 'other', label: '기타' },
 ]
 
-function SafetyMenu({ targetUserId, targetNickname }: { targetUserId: string; targetNickname: string }) {
+function SafetyMenu({
+  targetUserId,
+  targetNickname,
+}: {
+  targetUserId: string
+  targetNickname: string
+}) {
   const qc = useQueryClient()
   const toast = useToast()
   const [open, setOpen] = useState(false)
@@ -359,7 +380,11 @@ function SafetyMenu({ targetUserId, targetNickname }: { targetUserId: string; ta
         open={open}
         onClose={close}
         title={mode === 'menu' ? '안전 옵션' : '신고하기'}
-        description={mode === 'menu' ? `${targetNickname}님에 대해` : '관리자가 검토할 수 있도록 자세히 적어 주세요'}
+        description={
+          mode === 'menu'
+            ? `${targetNickname}님에 대해`
+            : '관리자가 검토할 수 있도록 자세히 적어 주세요'
+        }
         size="sm"
         variant={mode === 'menu' ? 'sheet' : 'modal'}
       >
@@ -383,7 +408,10 @@ function SafetyMenu({ targetUserId, targetNickname }: { targetUserId: string; ta
                 type="button"
                 className={styles.safetyAction}
                 onClick={() => {
-                  if (confirm(`${targetNickname}님을 차단할까요? 같은 모임에서 만나지 않게 됩니다.`)) block.mutate()
+                  if (
+                    confirm(`${targetNickname}님을 차단할까요? 같은 모임에서 만나지 않게 됩니다.`)
+                  )
+                    block.mutate()
                 }}
                 disabled={block.isPending}
               >
@@ -394,11 +422,7 @@ function SafetyMenu({ targetUserId, targetNickname }: { targetUserId: string; ta
                 </span>
               </button>
             )}
-            <button
-              type="button"
-              className={styles.safetyAction}
-              onClick={() => setMode('report')}
-            >
+            <button type="button" className={styles.safetyAction} onClick={() => setMode('report')}>
               <span>🚨</span>
               <span className={styles.safetyBody}>
                 <strong>신고하기</strong>
@@ -411,7 +435,10 @@ function SafetyMenu({ targetUserId, targetNickname }: { targetUserId: string; ta
             <fieldset className={styles.kindRow}>
               <legend className={styles.kindLegend}>신고 유형</legend>
               {REPORT_KINDS.map((k) => (
-                <label key={k.value} className={`${styles.kindChip} ${kind === k.value ? styles.kindChipActive : ''}`}>
+                <label
+                  key={k.value}
+                  className={`${styles.kindChip} ${kind === k.value ? styles.kindChipActive : ''}`}
+                >
                   <input
                     type="radio"
                     name="report-kind"
@@ -435,7 +462,9 @@ function SafetyMenu({ targetUserId, targetNickname }: { targetUserId: string; ta
               <small>{reason.length} / 1000</small>
             </label>
             <div className={styles.safetyFormActions}>
-              <Button variant="ghost" onClick={() => setMode('menu')}>뒤로</Button>
+              <Button variant="ghost" onClick={() => setMode('menu')}>
+                뒤로
+              </Button>
               <Button
                 variant="primary"
                 onClick={() => report.mutate()}

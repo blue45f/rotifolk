@@ -7,7 +7,10 @@ import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorato
 
 const UpdateAvatarSchema = z.object({
   mood: z.enum(['chill', 'sparkling', 'curious', 'witty', 'cozy', 'mystery']).optional(),
-  hue: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  hue: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .optional(),
   pattern: z.enum(['solid', 'gradient', 'sparkle', 'wave']).optional(),
   emojiBadge: z.string().min(1).max(4).optional(),
   faceSeed: z.string().min(2).max(60).optional(),

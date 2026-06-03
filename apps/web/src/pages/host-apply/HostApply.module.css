@@ -71,7 +71,8 @@
   resize: vertical;
   min-height: 120px;
   color: var(--color-text);
-  transition: border-color var(--dur-base) var(--ease-out),
+  transition:
+    border-color var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out);
 }
 .textarea:focus {
@@ -120,7 +121,8 @@
   color: var(--color-text);
   cursor: pointer;
   text-align: left;
-  transition: transform var(--dur-fast) var(--ease-spring),
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
     border-color var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out);
 }
@@ -145,7 +147,10 @@
 }
 .styleActive {
   border-color: var(--color-primary);
-  background: var(--color-primary-soft, color-mix(in oklab, var(--color-primary) 8%, var(--color-surface)));
+  background: var(
+    --color-primary-soft,
+    color-mix(in oklab, var(--color-primary) 8%, var(--color-surface))
+  );
   box-shadow: 0 0 0 3px rgba(122, 31, 61, 0.12);
 }
 

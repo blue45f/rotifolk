@@ -18,7 +18,9 @@
     background var(--dur-base) var(--ease-out),
     color var(--dur-base) var(--ease-out);
 }
-.tab:hover { color: var(--color-text); }
+.tab:hover {
+  color: var(--color-text);
+}
 .active {
   background: var(--color-surface);
   color: var(--color-text);
@@ -36,7 +38,10 @@
   font-size: 11px;
   padding: 0 5px;
 }
-.s_sm .tab { padding: 6px 12px; font-size: var(--fs-xs); }
+.s_sm .tab {
+  padding: 6px 12px;
+  font-size: var(--fs-xs);
+}
 
 .v_underline {
   background: transparent;

@@ -62,10 +62,13 @@ export default function InvitePage() {
   const diffMs = start.getTime() - nowMs
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
   const countdownLabel =
-    diffMs < 0 ? '진행 중'
-    : diffMs < 2 * 60 * 60 * 1000 ? '곧 시작'
-    : diffDays === 0 ? '오늘 시작'
-    : `D-${diffDays}`
+    diffMs < 0
+      ? '진행 중'
+      : diffMs < 2 * 60 * 60 * 1000
+        ? '곧 시작'
+        : diffDays === 0
+          ? '오늘 시작'
+          : `D-${diffDays}`
 
   const handleJoin = () => {
     if (!me) {
@@ -120,11 +123,15 @@ export default function InvitePage() {
               <h1 className={styles.title}>{data.title}</h1>
               <div className={styles.metaRow}>
                 <span className={styles.metaItem}>
-                  <span className={styles.metaIcon} aria-hidden="true">🗓</span>
+                  <span className={styles.metaIcon} aria-hidden="true">
+                    🗓
+                  </span>
                   {startLabel}
                 </span>
                 <span className={styles.metaItem}>
-                  <span className={styles.metaIcon} aria-hidden="true">📍</span>
+                  <span className={styles.metaIcon} aria-hidden="true">
+                    📍
+                  </span>
                   {data.venueArea}
                 </span>
               </div>
@@ -143,21 +150,11 @@ export default function InvitePage() {
               <span className={styles.codeHint}>탭하면 복사돼요</span>
             </button>
 
-            <Button
-              variant="gold"
-              size="xl"
-              fullWidth
-              onClick={handleJoin}
-            >
+            <Button variant="gold" size="xl" fullWidth onClick={handleJoin}>
               ✨ 참여하기
             </Button>
 
-            <Button
-              variant="ghost"
-              size="md"
-              fullWidth
-              onClick={handleShare}
-            >
+            <Button variant="ghost" size="md" fullWidth onClick={handleShare}>
               ↗ 친구에게 공유
             </Button>
 

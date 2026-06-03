@@ -53,11 +53,7 @@ export default function FollowsPage() {
         <h1>팔로우</h1>
       </header>
 
-      <Tabs
-        tabs={tabItems}
-        value={tab}
-        onChange={(v) => setTab(v as 'following' | 'followers')}
-      />
+      <Tabs tabs={tabItems} value={tab} onChange={(v) => setTab(v as 'following' | 'followers')} />
 
       <div className={styles.tabContent}>
         {currentList.length === 0 ? (
@@ -73,22 +69,14 @@ export default function FollowsPage() {
               }
             />
           ) : (
-            <EmptyState
-              emoji="🌙"
-              title="아직 팔로워가 없어요"
-            />
+            <EmptyState emoji="🌙" title="아직 팔로워가 없어요" />
           )
         ) : (
           <ul className={styles.list}>
             {currentList.map((u) => (
               <li key={u.id} className={styles.row}>
                 <Link to={`/hosts/${u.id}`} className={styles.rowInner}>
-                  <Avatar
-                    size="md"
-                    hue="#7A1F3D"
-                    pattern="gradient"
-                    emoji={u.nickname[0]}
-                  />
+                  <Avatar size="md" hue="#7A1F3D" pattern="gradient" emoji={u.nickname[0]} />
                   <div className={styles.body}>
                     <strong>{u.nickname}</strong>
                     {u.role === 'host' && <span>🎙️ 호스트</span>}

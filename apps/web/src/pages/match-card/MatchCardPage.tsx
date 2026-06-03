@@ -23,7 +23,9 @@ interface HostProfileLite {
   stats: { followerCount: number; hostedCount: number; averageRating: number }
 }
 
-interface FollowedUser { id: string }
+interface FollowedUser {
+  id: string
+}
 
 export default function MatchCardPage() {
   const { userId } = useParams<{ userId: string }>()
@@ -45,9 +47,8 @@ export default function MatchCardPage() {
   const isFollowing = following?.some((f) => f.id === userId) ?? false
 
   const followMutation = useMutation({
-    mutationFn: () => isFollowing
-      ? api.delete(`follows/${userId}`)
-      : api.post(`follows/${userId}`, {}),
+    mutationFn: () =>
+      isFollowing ? api.delete(`follows/${userId}`) : api.post(`follows/${userId}`, {}),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['follows', 'me'] })
       toast.show(isFollowing ? '팔로우를 해제했어요' : '팔로우했어요', 'success')
@@ -97,7 +98,11 @@ export default function MatchCardPage() {
           ring="gold"
         />
         <h1 className={styles.name}>{data.user.nickname}</h1>
-        {data.user.mbti && <Badge tone="gold" size="md">{data.user.mbti}</Badge>}
+        {data.user.mbti && (
+          <Badge tone="gold" size="md">
+            {data.user.mbti}
+          </Badge>
+        )}
         {data.user.bio && <p className={styles.bio}>{data.user.bio}</p>}
 
         {interests.length > 0 && (
@@ -138,16 +143,16 @@ export default function MatchCardPage() {
                 {isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
               </Button>
               <Link to="/chats">
-                <Button variant="ghost" size="lg">💌 메시지</Button>
+                <Button variant="ghost" size="lg">
+                  💌 메시지
+                </Button>
               </Link>
             </>
           )}
         </div>
       </motion.div>
 
-      <p className={styles.footnote}>
-        오늘 같은 라운드에서 만난 인연을 기념하는 명함입니다.
-      </p>
+      <p className={styles.footnote}>오늘 같은 라운드에서 만난 인연을 기념하는 명함입니다.</p>
     </div>
   )
 }

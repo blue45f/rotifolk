@@ -32,8 +32,9 @@
   height: 6px;
   border-radius: 50%;
   background: var(--color-border-strong);
-  transition: background var(--dur-fast) var(--ease-out-quart),
-              width var(--dur-fast) var(--ease-spring);
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    width var(--dur-fast) var(--ease-spring);
 }
 .dotActive {
   width: 22px;

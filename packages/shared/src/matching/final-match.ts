@@ -16,7 +16,8 @@ export function findMutualMatches(votes: readonly RawVote[]): MutualMatch[] {
 
   for (const v of votes) {
     if (set.has(`${v.toUserId}->${v.fromUserId}`)) {
-      const [a, b] = v.fromUserId < v.toUserId ? [v.fromUserId, v.toUserId] : [v.toUserId, v.fromUserId]
+      const [a, b] =
+        v.fromUserId < v.toUserId ? [v.fromUserId, v.toUserId] : [v.toUserId, v.fromUserId]
       const key = `${a}|${b}`
       if (seenPair.has(key)) continue
       seenPair.add(key)

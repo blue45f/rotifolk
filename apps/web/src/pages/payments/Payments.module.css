@@ -12,7 +12,10 @@
   font-weight: var(--fw-black);
   letter-spacing: -0.03em;
 }
-.muted { color: var(--color-text-muted); font-size: var(--fs-sm); }
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
 
 .summary {
   display: grid;
@@ -56,7 +59,7 @@
   display: grid;
   place-items: center;
   font-size: 28px;
-  color: var(--brand-cream-50, #FCFAF5);
+  color: var(--brand-cream-50, #fcfaf5);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -89,7 +92,9 @@
   text-overflow: ellipsis;
   max-width: 100%;
 }
-.rowTitle:hover { color: var(--color-primary); }
+.rowTitle:hover {
+  color: var(--color-primary);
+}
 .rowTitleOrphan {
   color: var(--color-text-muted);
   font-style: italic;
@@ -122,13 +127,18 @@
   font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out-quart), color var(--dur-fast) var(--ease-out-quart);
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    color var(--dur-fast) var(--ease-out-quart);
 }
 .refundBtn:hover:not(:disabled) {
   background: var(--color-warning-bg);
   color: var(--color-warning);
 }
-.refundBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.refundBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .filterRow {
   display: flex;

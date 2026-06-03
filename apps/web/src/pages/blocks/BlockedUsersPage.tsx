@@ -45,7 +45,9 @@ export default function BlockedUsersPage() {
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
-        <h1>차단한 사용자 {items.length > 0 && <span className={styles.count}>({items.length})</span>}</h1>
+        <h1>
+          차단한 사용자 {items.length > 0 && <span className={styles.count}>({items.length})</span>}
+        </h1>
         <p className={styles.muted}>
           차단한 사용자와는 같은 모임에서 만나지 않도록 자동으로 회피해요.
         </p>

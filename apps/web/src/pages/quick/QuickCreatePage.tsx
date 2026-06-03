@@ -84,7 +84,9 @@ export default function QuickCreatePage() {
     return (
       <div className={styles.page}>
         <div className={styles.success}>
-          <div className={styles.successEmoji} aria-hidden="true">{cat.emoji}</div>
+          <div className={styles.successEmoji} aria-hidden="true">
+            {cat.emoji}
+          </div>
           <h1 className={styles.successTitle}>🎉 모임이 열렸어요!</h1>
           <p className={styles.successLead}>
             아래 초대 코드를 친구에게 공유하면 바로 참여할 수 있어요.
@@ -98,9 +100,7 @@ export default function QuickCreatePage() {
           >
             <span className={styles.codeLabel}>초대 코드</span>
             <span className={styles.codeValue}>{createdParty.quickCode}</span>
-            <span className={styles.codeHint}>
-              {copied ? '✓ 복사됨' : '탭하면 복사돼요'}
-            </span>
+            <span className={styles.codeHint}>{copied ? '✓ 복사됨' : '탭하면 복사돼요'}</span>
           </button>
 
           <div className={styles.successActions}>
@@ -112,12 +112,7 @@ export default function QuickCreatePage() {
             >
               호스트 콘솔로 이동 →
             </Button>
-            <Button
-              variant="ghost"
-              size="md"
-              fullWidth
-              onClick={handleShare}
-            >
+            <Button variant="ghost" size="md" fullWidth onClick={handleShare}>
               ↗ 친구에게 공유
             </Button>
           </div>
@@ -141,11 +136,7 @@ export default function QuickCreatePage() {
       </header>
 
       <main className={styles.body}>
-        <motion.div
-          className={styles.preview}
-          style={{ background: cat.bgGradient }}
-          layout
-        >
+        <motion.div className={styles.preview} style={{ background: cat.bgGradient }} layout>
           <div className={styles.previewEmoji}>{cat.emoji}</div>
           <h2>{cat.label}</h2>
           <p>{cat.description}</p>

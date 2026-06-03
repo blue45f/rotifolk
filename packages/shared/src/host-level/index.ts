@@ -9,11 +9,11 @@ export interface HostLevelInfo {
 }
 
 export const HOST_LEVELS: HostLevelInfo[] = [
-  { level: 'newbie',    label: '새내기',   emoji: '🌱', minHosted: 0,  minRating: 0   },
-  { level: 'sapling',   label: '새싹',     emoji: '🌿', minHosted: 3,  minRating: 4.0 },
+  { level: 'newbie', label: '새내기', emoji: '🌱', minHosted: 0, minRating: 0 },
+  { level: 'sapling', label: '새싹', emoji: '🌿', minHosted: 3, minRating: 4.0 },
   { level: 'sommelier', label: '소믈리에', emoji: '🍷', minHosted: 10, minRating: 4.3 },
-  { level: 'curator',   label: '큐레이터', emoji: '🎙️', minHosted: 25, minRating: 4.5 },
-  { level: 'legend',    label: '레전드',   emoji: '👑', minHosted: 60, minRating: 4.7 },
+  { level: 'curator', label: '큐레이터', emoji: '🎙️', minHosted: 25, minRating: 4.5 },
+  { level: 'legend', label: '레전드', emoji: '👑', minHosted: 60, minRating: 4.7 },
 ]
 
 /**

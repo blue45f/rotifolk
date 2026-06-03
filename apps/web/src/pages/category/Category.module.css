@@ -27,12 +27,16 @@
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(60% 40% at 50% 110%,
+    radial-gradient(
+      60% 40% at 50% 110%,
       color-mix(in oklab, var(--brand-ink-900) 60%, transparent),
-      transparent 70%),
-    radial-gradient(50% 35% at 50% -10%,
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 35% at 50% -10%,
       color-mix(in oklab, var(--brand-ink-900) 75%, transparent),
-      transparent 70%);
+      transparent 70%
+    );
 }
 .heroInner {
   position: relative;
@@ -72,7 +76,9 @@
   justify-content: center;
   margin-top: var(--space-3);
 }
-.heroCta a { text-decoration: none; }
+.heroCta a {
+  text-decoration: none;
+}
 
 /* ============ Stats row ============ */
 .statsBar {
@@ -140,7 +146,9 @@
   font-size: var(--fs-sm);
   text-decoration: none;
 }
-.sectionAction:hover { text-decoration: underline; }
+.sectionAction:hover {
+  text-decoration: underline;
+}
 
 .partyGrid {
   display: grid;
@@ -245,7 +253,12 @@
   font-size: var(--fs-md);
   flex-shrink: 0;
 }
-.hostBody { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hostBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
 .hostName {
   font-weight: var(--fw-semibold);
   font-size: var(--fs-sm);
@@ -299,11 +312,16 @@
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(120% 80% at 100% 0%,
+    radial-gradient(
+      120% 80% at 100% 0%,
       color-mix(in oklab, white 20%, transparent),
-      transparent 50%),
-    linear-gradient(180deg, transparent 50%,
-      color-mix(in oklab, var(--brand-ink-900) 35%, transparent) 100%);
+      transparent 50%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 50%,
+      color-mix(in oklab, var(--brand-ink-900) 35%, transparent) 100%
+    );
 }
 .otherEmoji {
   font-size: 1.8rem;
@@ -321,15 +339,30 @@
     min-height: clamp(380px, 60vh, 480px);
     padding-block: var(--space-10);
   }
-  .heroEmoji { font-size: 3.5rem; }
-  .heroLabel { font-size: clamp(1.8rem, 8vw, 2.4rem); }
-  .heroDesc { font-size: var(--fs-md); }
+  .heroEmoji {
+    font-size: 3.5rem;
+  }
+  .heroLabel {
+    font-size: clamp(1.8rem, 8vw, 2.4rem);
+  }
+  .heroDesc {
+    font-size: var(--fs-md);
+  }
   .statsInner {
     gap: var(--space-2);
     font-size: var(--fs-xs);
   }
-  .statsItem strong { font-size: var(--fs-sm); }
-  .section { padding-block: var(--space-10); }
+  .statsItem strong {
+    font-size: var(--fs-sm);
+  }
+  .section {
+    padding-block: var(--space-10);
+  }
 }
 
-.sortRow { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-4); }
+.sortRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}

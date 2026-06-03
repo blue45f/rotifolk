@@ -16,8 +16,16 @@
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(60% 40% at 20% 20%, color-mix(in oklab, var(--brand-gold-500) 35%, transparent), transparent 60%),
-    radial-gradient(80% 50% at 80% 80%, color-mix(in oklab, var(--brand-burgundy-400) 35%, transparent), transparent 65%);
+    radial-gradient(
+      60% 40% at 20% 20%,
+      color-mix(in oklab, var(--brand-gold-500) 35%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      80% 50% at 80% 80%,
+      color-mix(in oklab, var(--brand-burgundy-400) 35%, transparent),
+      transparent 65%
+    );
 }
 
 .card {
@@ -26,10 +34,11 @@
   width: 100%;
   padding: var(--space-8) var(--space-6) var(--space-6);
   border-radius: 24px;
-  background:
-    linear-gradient(180deg,
-      color-mix(in oklab, var(--brand-cream-100) 92%, transparent),
-      color-mix(in oklab, var(--brand-cream-200) 88%, transparent));
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--brand-cream-100) 92%, transparent),
+    color-mix(in oklab, var(--brand-cream-200) 88%, transparent)
+  );
   color: var(--brand-burgundy-900);
   display: flex;
   flex-direction: column;
@@ -90,7 +99,10 @@
   font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
 }
-.stats span { color: var(--brand-burgundy-800); font-size: var(--fs-xs); }
+.stats span {
+  color: var(--brand-burgundy-800);
+  font-size: var(--fs-xs);
+}
 .actions {
   display: flex;
   gap: var(--space-2);

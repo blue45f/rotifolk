@@ -33,7 +33,11 @@ export function Avatar({
     >
       <div className={[styles.surface, styles[`p_${pattern}`]].join(' ')} />
       <div className={styles.face}>
-        {emoji ? <span className={styles.emoji}>{emoji}</span> : initials ? <span>{initials}</span> : null}
+        {emoji ? (
+          <span className={styles.emoji}>{emoji}</span>
+        ) : initials ? (
+          <span>{initials}</span>
+        ) : null}
       </div>
     </div>
   )

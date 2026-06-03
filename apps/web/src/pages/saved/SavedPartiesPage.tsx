@@ -25,16 +25,18 @@ export default function SavedPartiesPage() {
 
   const sortedItems = useMemo(() => {
     const arr = [...(data ?? [])]
-    if (sort === 'soonest') arr.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+    if (sort === 'soonest')
+      arr.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
     return arr
   }, [data, sort])
 
   if (isLoading) return <Loading />
 
   const items = data ?? []
-  const recommendations = me && openParties && items.length === 0
-    ? recommendParties(openParties.items, userToContext(me), 6)
-    : []
+  const recommendations =
+    me && openParties && items.length === 0
+      ? recommendParties(openParties.items, userToContext(me), 6)
+      : []
 
   return (
     <div className={`container ${styles.page}`}>
@@ -48,7 +50,9 @@ export default function SavedPartiesPage() {
       {items.length === 0 ? (
         <>
           <div className={styles.empty}>
-            <div className={styles.emptyEmoji} aria-hidden="true">☆</div>
+            <div className={styles.emptyEmoji} aria-hidden="true">
+              ☆
+            </div>
             <h2>아직 저장한 모임이 없어요</h2>
             <p>파티 페이지에서 ☆를 누르면 여기로 모여요. 추천부터 둘러볼까요?</p>
           </div>
@@ -66,15 +70,25 @@ export default function SavedPartiesPage() {
 
           <div className={styles.emptyCta}>
             <Link to="/discover">
-              <Button variant="primary" size="lg">모임 둘러보기</Button>
+              <Button variant="primary" size="lg">
+                모임 둘러보기
+              </Button>
             </Link>
           </div>
         </>
       ) : (
         <>
           <div className={styles.sortRow}>
-            <Chip selected={sort === 'saved'} onClick={() => setSort('saved')}>저장한 순</Chip>
-            <Chip selected={sort === 'soonest'} onClick={() => setSort('soonest')} leadingEmoji="⏰">곧 시작순</Chip>
+            <Chip selected={sort === 'saved'} onClick={() => setSort('saved')}>
+              저장한 순
+            </Chip>
+            <Chip
+              selected={sort === 'soonest'}
+              onClick={() => setSort('soonest')}
+              leadingEmoji="⏰"
+            >
+              곧 시작순
+            </Chip>
           </div>
           <div className={styles.grid}>
             {sortedItems.map((p) => (

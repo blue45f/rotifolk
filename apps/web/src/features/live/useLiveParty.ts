@@ -63,9 +63,7 @@ export function useLiveParty(partyId: string | undefined, currentUserId: string 
       }))
     }
     const onRoundStarted: ServerToClientEvents['round:started'] = ({ round }) => {
-      const myPair =
-        currentUserId &&
-        round.pairs.find((p) => p.memberIds.includes(currentUserId))
+      const myPair = currentUserId && round.pairs.find((p) => p.memberIds.includes(currentUserId))
       setState((s) => ({
         ...s,
         currentRoundIndex: round.index,
@@ -92,7 +90,8 @@ export function useLiveParty(partyId: string | undefined, currentUserId: string 
     const onOrderUpdated: ServerToClientEvents['order:updated'] = ({ order }) => {
       setState((s) => {
         const idx = s.orders.findIndex((o) => o.id === order.id)
-        const next = idx >= 0 ? s.orders.map((o, i) => (i === idx ? order : o)) : [order, ...s.orders]
+        const next =
+          idx >= 0 ? s.orders.map((o, i) => (i === idx ? order : o)) : [order, ...s.orders]
         return { ...s, orders: next }
       })
     }
@@ -158,8 +157,7 @@ export function useLiveParty(partyId: string | undefined, currentUserId: string 
     type: K,
     payload: Parameters<ClientToServerEvents[K]>[0],
   ) => {
-    if (!socket) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!socket) return // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(socket as any).emit(type, payload)
   }
 

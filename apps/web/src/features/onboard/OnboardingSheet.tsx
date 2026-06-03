@@ -39,7 +39,9 @@ export default function OnboardingSheet() {
 
   const close = () => {
     setOpen(false)
-    try { localStorage.setItem(KEY, String(Date.now())) } catch {}
+    try {
+      localStorage.setItem(KEY, String(Date.now()))
+    } catch {}
   }
 
   if (!open) return null
@@ -54,18 +56,28 @@ export default function OnboardingSheet() {
       size="sm"
       footer={
         <>
-          <Button variant="ghost" onClick={close}>건너뛰기</Button>
+          <Button variant="ghost" onClick={close}>
+            건너뛰기
+          </Button>
           {isLast ? (
-            <Button variant="primary" onClick={close}>시작하기</Button>
+            <Button variant="primary" onClick={close}>
+              시작하기
+            </Button>
           ) : (
-            <Button variant="primary" onClick={() => setStep((n) => n + 1)}>다음 →</Button>
+            <Button variant="primary" onClick={() => setStep((n) => n + 1)}>
+              다음 →
+            </Button>
           )}
         </>
       }
     >
       <div className={styles.slide}>
-        <span className={styles.emoji} aria-hidden="true">{slide.emoji}</span>
-        <Badge tone="gold" size="md">{slide.badge}</Badge>
+        <span className={styles.emoji} aria-hidden="true">
+          {slide.emoji}
+        </span>
+        <Badge tone="gold" size="md">
+          {slide.badge}
+        </Badge>
         <h2 className={styles.title}>{slide.title}</h2>
         <p className={styles.body}>{slide.body}</p>
         <div className={styles.dots} role="tablist" aria-label="진행">

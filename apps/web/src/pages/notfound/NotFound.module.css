@@ -16,7 +16,9 @@
 .moon {
   font-size: 5rem;
   line-height: 1;
-  filter: drop-shadow(0 8px 20px color-mix(in oklab, var(--brand-burgundy-700, #7A1F3D) 35%, transparent));
+  filter: drop-shadow(
+    0 8px 20px color-mix(in oklab, var(--brand-burgundy-700, #7a1f3d) 35%, transparent)
+  );
 }
 .title {
   font-size: clamp(1.8rem, 4vw, 2.6rem);
@@ -72,9 +74,10 @@
   border-radius: var(--radius-lg);
   text-decoration: none;
   color: var(--color-text);
-  transition: transform var(--dur-fast) var(--ease-spring),
-              border-color var(--dur-fast) var(--ease-out-quart),
-              box-shadow var(--dur-fast) var(--ease-out-quart);
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
+    border-color var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart);
 }
 .suggestionCard:hover {
   transform: translateY(-1px);
@@ -89,7 +92,7 @@
   place-items: center;
   font-size: 22px;
   background: var(--color-surface-soft);
-  color: var(--brand-cream-50, #FCFAF5);
+  color: var(--brand-cream-50, #fcfaf5);
   flex-shrink: 0;
 }
 .suggestionBody {

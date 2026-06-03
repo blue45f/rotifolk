@@ -34,10 +34,7 @@ export default function MatchCardsPage() {
   const [groupByParty, setGroupByParty] = useState(false)
 
   const filtered = useMemo(
-    () =>
-      (data ?? []).filter(
-        (c) => c.partnerNickname.includes(q) || c.partyTitle.includes(q),
-      ),
+    () => (data ?? []).filter((c) => c.partnerNickname.includes(q) || c.partyTitle.includes(q)),
     [data, q],
   )
 
@@ -66,9 +63,13 @@ export default function MatchCardsPage() {
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
-        <Badge tone="gold" size="md">내 명함</Badge>
+        <Badge tone="gold" size="md">
+          내 명함
+        </Badge>
         <h1 className={styles.title}>오늘까지 만난 인연</h1>
-        <p className={styles.muted}>총 {filtered.length}장 / {data?.length ?? 0}장</p>
+        <p className={styles.muted}>
+          총 {filtered.length}장 / {data?.length ?? 0}장
+        </p>
       </header>
 
       <div className={styles.controls}>
@@ -79,8 +80,12 @@ export default function MatchCardsPage() {
           onChange={(e) => setQ(e.target.value)}
         />
         <div className={styles.chipRow}>
-          <Chip selected={sort === '최근순'} onClick={() => setSort('최근순')}>최근순</Chip>
-          <Chip selected={sort === '이름순'} onClick={() => setSort('이름순')}>이름순</Chip>
+          <Chip selected={sort === '최근순'} onClick={() => setSort('최근순')}>
+            최근순
+          </Chip>
+          <Chip selected={sort === '이름순'} onClick={() => setSort('이름순')}>
+            이름순
+          </Chip>
         </div>
         <div className={styles.chipRow}>
           <Chip

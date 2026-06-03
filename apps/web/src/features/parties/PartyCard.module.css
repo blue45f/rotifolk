@@ -32,7 +32,9 @@
   object-fit: cover;
   transition: transform var(--dur-slow) var(--ease-out-quart);
 }
-.card:hover .coverImg { transform: scale(1.04); }
+.card:hover .coverImg {
+  transform: scale(1.04);
+}
 .coverEmoji {
   position: absolute;
   inset: 0;
@@ -44,11 +46,12 @@
 .coverScrim {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg,
-      transparent 0%,
-      transparent 40%,
-      color-mix(in oklab, var(--brand-ink-900) 55%, transparent) 100%);
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 40%,
+    color-mix(in oklab, var(--brand-ink-900) 55%, transparent) 100%
+  );
 }
 .coverHead {
   position: absolute;
@@ -78,14 +81,15 @@
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid color-mix(in oklab, white 18%, transparent);
-  color: var(--brand-cream-50, #FCFAF5);
+  color: var(--brand-cream-50, #fcfaf5);
   font-size: 16px;
   font-weight: var(--fw-bold);
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform var(--dur-fast) var(--ease-spring),
-              background var(--dur-fast) var(--ease-out-quart);
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
+    background var(--dur-fast) var(--ease-out-quart);
   opacity: 0;
 }
 .card:hover .saveBtn,
@@ -98,13 +102,15 @@
   background: color-mix(in oklab, var(--brand-ink-900) 75%, transparent);
 }
 .saveBtnActive {
-  background: var(--brand-gold-500, #D6A84E);
-  color: var(--brand-ink-900, #14101D);
+  background: var(--brand-gold-500, #d6a84e);
+  color: var(--brand-ink-900, #14101d);
   border-color: transparent;
-  box-shadow: 0 6px 16px color-mix(in oklab, var(--brand-gold-700, #B8893B) 38%, transparent);
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--brand-gold-700, #b8893b) 38%, transparent);
 }
 @media (hover: none) {
-  .saveBtn { opacity: 1; }
+  .saveBtn {
+    opacity: 1;
+  }
 }
 .dateBadge {
   display: inline-flex;
@@ -119,8 +125,14 @@
   font-size: var(--fs-xs);
   letter-spacing: var(--tracking-tight);
 }
-.dateBadge strong { font-weight: var(--fw-bold); }
-.dateBadge em { font-style: normal; font-family: var(--font-mono); opacity: 0.85; }
+.dateBadge strong {
+  font-weight: var(--fw-bold);
+}
+.dateBadge em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  opacity: 0.85;
+}
 
 .body {
   display: flex;
@@ -174,9 +186,11 @@
 .gaugeFill {
   position: absolute;
   inset: 0 auto 0 0;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     color-mix(in oklab, var(--color-primary) 70%, var(--brand-gold-500) 30%),
-    var(--color-primary));
+    var(--color-primary)
+  );
   transition: width var(--dur-slow) var(--ease-out-quart);
 }
 
@@ -185,9 +199,19 @@
   align-items: baseline;
   justify-content: space-between;
 }
-.people { color: var(--color-text-muted); font-size: var(--fs-sm); }
-.people strong { color: var(--color-text); font-weight: var(--fw-bold); margin-right: 2px; }
-.people span { margin-inline: 4px; opacity: 0.4; }
+.people {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+.people strong {
+  color: var(--color-text);
+  font-weight: var(--fw-bold);
+  margin-right: 2px;
+}
+.people span {
+  margin-inline: 4px;
+  opacity: 0.4;
+}
 .price {
   font-weight: var(--fw-bold);
   color: var(--color-text);
@@ -204,4 +228,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.hostLink:hover { color: var(--color-primary); text-decoration: underline; }
+.hostLink:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
