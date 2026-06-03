@@ -4,11 +4,26 @@ import { quoteVenueBooking } from '../pricing/venue-pricing'
 
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
 const MS_PER_HOUR = 3_600_000
+const MS_PER_DAY = 86_400_000
+// 공간의 영업시간/휴무/라벨은 모두 한국 현지(KST, UTC+9) 기준이므로
+// 슬롯 생성도 KST에 고정해야 실행 환경(TZ)과 무관하게 결정적이다.
+const KST_OFFSET_MS = 9 * MS_PER_HOUR
 
-function atMinuteOfDay(day: Date, minute: number): Date {
-  const d = new Date(day)
-  d.setHours(0, 0, 0, 0)
-  return new Date(d.getTime() + minute * 60_000)
+/** 주어진 instant가 속한 KST 캘린더 날짜의 자정(00:00 KST)을 UTC instant로 반환. */
+function kstMidnight(instant: Date): Date {
+  const shifted = instant.getTime() + KST_OFFSET_MS
+  const dayStart = Math.floor(shifted / MS_PER_DAY) * MS_PER_DAY
+  return new Date(dayStart - KST_OFFSET_MS)
+}
+
+/** KST 기준 요일(0=일 ~ 6=토). */
+function kstWeekday(kstMidnightInstant: Date): number {
+  return new Date(kstMidnightInstant.getTime() + KST_OFFSET_MS).getUTCDay()
+}
+
+/** KST 자정 instant에서 그 날 minute(분)에 해당하는 instant. */
+function atMinuteOfDay(kstMidnightInstant: Date, minute: number): Date {
+  return new Date(kstMidnightInstant.getTime() + minute * 60_000)
 }
 
 function overlapsBusy(start: Date, end: Date, busy: VenueBusyRange[]): boolean {
@@ -44,11 +59,10 @@ export function suggestOffHoursSlots(venue: Venue, opts: OffHoursOptions = {}): 
   const suggestedCapacity = Math.max(4, Math.round(venue.capacity * 0.8))
   const out: OffHoursSlot[] = []
 
+  const firstDay = kstMidnight(from)
   for (let i = 0; i < days; i++) {
-    const day = new Date(from)
-    day.setDate(from.getDate() + i)
-    day.setHours(0, 0, 0, 0)
-    const dow = day.getDay()
+    const day = new Date(firstDay.getTime() + i * MS_PER_DAY)
+    const dow = kstWeekday(day)
     const closed = venue.closedWeekdays.includes(dow)
     const weekend = dow === 0 || dow === 6
 

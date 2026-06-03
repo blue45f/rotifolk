@@ -27,15 +27,24 @@ export function venueRefundRate(startAt: Date | string, now: Date | string = new
   return 0
 }
 
+// 주말/피크 판정은 한국 현지(KST, UTC+9) 기준이어야 실행 환경(TZ)과 무관하게 결정적이다.
+const KST_OFFSET_MS = 9 * MS_PER_HOUR
+
+/** instant를 KST 벽시계로 환산한 Date(getUTC* 로 KST 요일/시각을 읽는다). */
+function toKst(d: Date): Date {
+  return new Date(d.getTime() + KST_OFFSET_MS)
+}
+
 function isWeekend(d: Date): boolean {
-  const wd = d.getDay()
+  const wd = toKst(d).getUTCDay()
   return wd === 0 || wd === 6
 }
 
-/** 피크 = 금·토 저녁 18시 이후. */
+/** 피크 = 금·토 저녁 18시 이후 (KST 기준). */
 function isPeak(d: Date): boolean {
-  const wd = d.getDay()
-  return (wd === 5 || wd === 6) && d.getHours() >= 18
+  const k = toKst(d)
+  const wd = k.getUTCDay()
+  return (wd === 5 || wd === 6) && k.getUTCHours() >= 18
 }
 
 type PriceableVenue = Pick<
