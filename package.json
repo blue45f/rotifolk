@@ -15,7 +15,7 @@
     "dev:api": "pnpm --filter @rotifolk/api run dev",
     "dev:mock": "pnpm --filter @rotifolk/web run dev:mock",
     "build": "pnpm -r run build",
-    "lint": "pnpm -r run lint",
+    "lint": "eslint .",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
     "test:api-contracts": "node --test scripts/audit-api-contracts.test.mjs",
@@ -24,7 +24,7 @@
     "audit:frontend-a11y": "node scripts/audit-frontend-a11y.mjs",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\"",
-    "ci": "pnpm run db:generate && pnpm run test:api-contracts && pnpm run test:frontend-a11y && pnpm run audit:api-contracts && pnpm run audit:frontend-a11y && pnpm run typecheck && pnpm run test && pnpm run build",
+    "ci": "pnpm run db:generate && pnpm run test:api-contracts && pnpm run test:frontend-a11y && pnpm run audit:api-contracts && pnpm run audit:frontend-a11y && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
     "verify": "pnpm run validate:architecture && pnpm run ci",
     "verify:push": "pnpm run verify",
     "seed": "pnpm --filter @rotifolk/api run seed",
@@ -36,10 +36,16 @@
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
     "prettier": "^3.8.3",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.60.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
