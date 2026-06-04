@@ -7,12 +7,14 @@ import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
 import OnboardingSheet from '@features/onboard/OnboardingSheet'
 import { useChatRealtime } from '@features/chat/useChatRealtime'
 import { useNotificationsRealtime } from '@features/notifications/useNotificationsRealtime'
+import { useDocumentTitle } from '@hooks/useDocumentTitle'
 import styles from './RootLayout.module.css'
 
 export default function RootLayout() {
   useApplyTheme()
   useChatRealtime()
   useNotificationsRealtime()
+  useDocumentTitle()
   const location = useLocation()
   const isFirstRender = useRef(true)
 
