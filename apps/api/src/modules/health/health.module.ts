@@ -1,10 +1,47 @@
-import { Controller, Get, Module } from '@nestjs/common'
+import { Controller, Get, HttpStatus, Module, Res } from '@nestjs/common'
+import type { Response } from 'express'
 
+import { PrismaService } from '../../prisma/prisma.service'
+
+/**
+ * Health probes for hosted deploys (Docker / Fly / k8s).
+ *
+ * - `GET /health` and `GET /health/live` are cheap liveness checks that never
+ *   touch the DB, so they stay green while the process is up.
+ * - `GET /health/ready` pings the database and returns HTTP 503 when it is
+ *   unreachable, so the platform can hold traffic until the API can serve.
+ */
 @Controller('health')
-class HealthController {
+export class HealthController {
+  constructor(private readonly prisma: PrismaService) {}
+
   @Get()
   ping() {
     return { ok: true, app: 'rotifolk-api', ts: new Date().toISOString() }
+  }
+
+  @Get('live')
+  live() {
+    return this.ping()
+  }
+
+  @Get('ready')
+  async ready(@Res({ passthrough: true }) res: Response) {
+    let database: boolean
+    try {
+      await this.prisma.$queryRaw`SELECT 1`
+      database = true
+    } catch {
+      database = false
+    }
+
+    res.status(database ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE)
+    return {
+      ok: database,
+      app: 'rotifolk-api',
+      ts: new Date().toISOString(),
+      checks: { database },
+    }
   }
 }
 
