@@ -5,6 +5,13 @@
 Rotifolk는 문토·프립의 소셜링 모임을 한 단계 발전시킨 **로테이션 매칭** 전용 앱입니다.
 파티가 시작되면 자동으로 4~5분 라운드마다 자리를 바꾸며 모든 참가자와 1:1/소그룹 매칭을 경험하고, 마지막엔 가장 마음 맞는 사람을 **최종 매칭**으로 연결합니다.
 
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="Rotifolk 홈 — 로테이션 파티 매칭" width="820" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/home-mobile.png" alt="Rotifolk 모바일 홈" width="240" />
+</p>
+
 ## ✨ 핵심 기능
 
 ### 호스트 (모임장)
