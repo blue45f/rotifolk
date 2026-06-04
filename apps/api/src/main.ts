@@ -31,6 +31,10 @@ async function bootstrap() {
     }),
   )
 
+  // Let Nest run PrismaService.onModuleDestroy ($disconnect) on SIGTERM/SIGINT
+  // so container shutdowns close the DB pool cleanly instead of leaking it.
+  app.enableShutdownHooks()
+
   const port = Number(config.get('PORT') ?? 3000)
   await app.listen(port, '0.0.0.0')
   logger.log(`🍷 Rotifolk API listening on http://localhost:${port}/api`)
