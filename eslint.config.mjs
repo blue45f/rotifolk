@@ -49,6 +49,14 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      // 네이티브 window.confirm/alert/prompt 금지 — 브랜드 ConfirmProvider/Toast/Sheet를 쓴다.
+      // (useConfirm() 같은 로컬 confirm 변수는 섀도잉이라 영향 없음)
+      'no-restricted-globals': [
+        'error',
+        { name: 'confirm', message: 'useConfirm()/ConfirmProvider를 사용하세요 (window.confirm 금지).' },
+        { name: 'alert', message: 'Toast/Sheet를 사용하세요 (window.alert 금지).' },
+        { name: 'prompt', message: '입력 Sheet/폼을 사용하세요 (window.prompt 금지).' },
+      ],
       'react-hooks/exhaustive-deps': 'warn',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       // Advisory rather than error: one existing page calls useMemo after an early
