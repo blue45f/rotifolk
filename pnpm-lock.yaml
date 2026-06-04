@@ -91,6 +91,9 @@ importers:
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
+      helmet:
+        specifier: ^8.2.0
+        version: 8.2.0
       nanoid:
         specifier: ^5.1.11
         version: 5.1.11
@@ -4389,6 +4392,13 @@ packages:
       {
         integrity: sha512-1TJ6Fih/b8h5TIcv+1+Hw0PDQWJTKDKzFZzcKOiW1wJza3XoAQlkCuXLbymPYB8+ZQyw8mHvdw560e8zVFIWyA==,
       }
+
+  helmet@8.2.0:
+    resolution:
+      {
+        integrity: sha512-DRgTIUgnWcJ62KyarxxziuqYxKGnR6Rgg19BlbucN/dpmJbl1XOit6qvoOX0ZT+HhWe5OUVhU/a1zpGyc1xA0Q==,
+      }
+    engines: { node: '>=18.0.0' }
 
   hermes-estree@0.25.1:
     resolution:
@@ -9248,6 +9258,8 @@ snapshots:
     dependencies:
       '@types/set-cookie-parser': 2.4.10
       set-cookie-parser: 3.1.0
+
+  helmet@8.2.0: {}
 
   hermes-estree@0.25.1: {}
 
