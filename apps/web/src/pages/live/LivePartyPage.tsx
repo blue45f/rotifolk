@@ -22,6 +22,7 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useConfirm } from '@components/feedback/Confirm/ConfirmProvider'
 import { useVenueMenu } from '@features/venues/queries'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
@@ -35,6 +36,7 @@ export default function LivePartyPage() {
   const { data, isLoading } = useParty(partyId)
   const { state, send } = useLiveParty(partyId, user?.id)
   const toast = useToast()
+  const confirm = useConfirm()
   const { data: menu } = useVenueMenu(data?.party?.venueId)
   const { data: partyNotes } = usePartyNotes(partyId)
   const remainingNotes = Math.max(
@@ -263,8 +265,14 @@ export default function LivePartyPage() {
             onComplimentRain={() =>
               send('host:event:fire', { partyId: party.id, kind: 'compliment-rain' })
             }
-            onEndParty={() => {
-              if (confirm('파티를 종료할까요? 최종 매칭이 공개돼요.')) {
+            onEndParty={async () => {
+              const ok = await confirm({
+                title: '파티를 종료할까요?',
+                description: '최종 매칭이 공개돼요.',
+                confirmLabel: '종료',
+                danger: true,
+              })
+              if (ok) {
                 send('host:party:end', { partyId: party.id })
               }
             }}

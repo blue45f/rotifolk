@@ -9,6 +9,7 @@ import { Chip } from '@components/ui/Chip/Chip'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useConfirm } from '@components/feedback/Confirm/ConfirmProvider'
 import { CATEGORY_META } from '@features/categories/meta'
 import styles from './Payments.module.css'
 
@@ -55,6 +56,7 @@ export default function PaymentsHistoryPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | Payment['status']>('all')
   const qc = useQueryClient()
   const toast = useToast()
+  const confirm = useConfirm()
   const { data, isLoading } = useQuery({
     queryKey: ['payments', 'me'],
     queryFn: () => api.get<Payment[]>('payments/me'),
@@ -195,8 +197,9 @@ export default function PaymentsHistoryPage() {
                         <button
                           type="button"
                           className={styles.refundBtn}
-                          onClick={() => {
-                            if (confirm('환불 처리할까요?')) refund.mutate(p.id)
+                          onClick={async () => {
+                            if (await confirm({ title: '환불 처리할까요?', confirmLabel: '환불' }))
+                              refund.mutate(p.id)
                           }}
                           disabled={refund.isPending}
                         >

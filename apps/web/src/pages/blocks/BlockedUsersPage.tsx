@@ -8,6 +8,7 @@ import { Input } from '@components/ui/Input/Input'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useConfirm } from '@components/feedback/Confirm/ConfirmProvider'
 import styles from './BlockedUsers.module.css'
 
 interface BlockedUser {
@@ -21,6 +22,7 @@ interface BlockedUser {
 export default function BlockedUsersPage() {
   const qc = useQueryClient()
   const toast = useToast()
+  const confirm = useConfirm()
   const [q, setQ] = useState('')
   const { data, isLoading } = useQuery({
     queryKey: ['blocks', 'me'],
@@ -102,8 +104,9 @@ export default function BlockedUsersPage() {
               <Button
                 variant="soft"
                 size="sm"
-                onClick={() => {
-                  if (confirm('차단을 해제할까요?')) unblock.mutate(u.id)
+                onClick={async () => {
+                  if (await confirm({ title: '차단을 해제할까요?', confirmLabel: '해제' }))
+                    unblock.mutate(u.id)
                 }}
                 disabled={unblock.isPending}
               >
