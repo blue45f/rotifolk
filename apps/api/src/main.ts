@@ -1,15 +1,18 @@
 import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe, Logger } from '@nestjs/common'
+import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import compression from 'compression'
 import helmet from 'helmet'
+import { Logger } from 'nestjs-pino'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true })
+  // Structured logging via nestjs-pino (JSON in prod, pino-pretty in dev) +
+  // HTTP request autoLogging. Replaces the default unstructured console logger.
+  app.useLogger(app.get(Logger))
   const config = app.get(ConfigService)
-  const logger = new Logger('Bootstrap')
 
   app.setGlobalPrefix('api')
   app.use(compression())
@@ -37,11 +40,10 @@ async function bootstrap() {
 
   const port = Number(config.get('PORT') ?? 3000)
   await app.listen(port, '0.0.0.0')
-  logger.log(`🍷 Rotifolk API listening on http://localhost:${port}/api`)
+  console.log(`🍷 Rotifolk API listening on http://localhost:${port}/api`)
 }
 
 bootstrap().catch((err) => {
-  // eslint-disable-next-line no-console
   console.error('Fatal bootstrap error', err)
   process.exit(1)
 })
