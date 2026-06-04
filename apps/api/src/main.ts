@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import compression from 'compression'
 import helmet from 'helmet'
 import { AppModule } from './app.module'
 
@@ -11,6 +12,7 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap')
 
   app.setGlobalPrefix('api')
+  app.use(compression())
   app.use(
     helmet({
       contentSecurityPolicy: false,
