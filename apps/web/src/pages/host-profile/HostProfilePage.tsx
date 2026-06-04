@@ -5,6 +5,7 @@ import type { PartySummary } from '@rotifolk/shared'
 import { computeHostLevel } from '@rotifolk/shared'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useConfirm } from '@components/feedback/Confirm/ConfirmProvider'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { Avatar } from '@components/ui/Avatar/Avatar'
@@ -312,6 +313,7 @@ function SafetyMenu({
 }) {
   const qc = useQueryClient()
   const toast = useToast()
+  const confirm = useConfirm()
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'menu' | 'report'>('menu')
   const [kind, setKind] = useState<ReportKind>('harassment')
@@ -407,11 +409,14 @@ function SafetyMenu({
               <button
                 type="button"
                 className={styles.safetyAction}
-                onClick={() => {
-                  if (
-                    confirm(`${targetNickname}님을 차단할까요? 같은 모임에서 만나지 않게 됩니다.`)
-                  )
-                    block.mutate()
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: `${targetNickname}님을 차단할까요?`,
+                    description: '같은 모임에서 만나지 않게 됩니다.',
+                    confirmLabel: '차단',
+                    danger: true,
+                  })
+                  if (ok) block.mutate()
                 }}
                 disabled={block.isPending}
               >
