@@ -1,4 +1,5 @@
 import { Controller, Get, HttpStatus, Module, Res } from '@nestjs/common'
+import { SkipThrottle } from '@nestjs/throttler'
 import type { Response } from 'express'
 
 import { PrismaService } from '../../prisma/prisma.service'
@@ -11,6 +12,7 @@ import { PrismaService } from '../../prisma/prisma.service'
  * - `GET /health/ready` pings the database and returns HTTP 503 when it is
  *   unreachable, so the platform can hold traffic until the API can serve.
  */
+@SkipThrottle()
 @Controller('health')
 export class HealthController {
   constructor(private readonly prisma: PrismaService) {}
