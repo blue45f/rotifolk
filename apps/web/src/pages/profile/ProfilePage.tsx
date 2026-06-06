@@ -21,6 +21,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { computeAchievements, summarizeAchievements } from '@features/achievements/achievements'
+import { usePageMeta } from '@hooks/usePageMeta'
 import { api } from '@services/api'
 import styles from './Profile.module.css'
 
@@ -38,6 +39,10 @@ const EMOJIS = ['🍷', '☕️', '🍵', '🥃', '✨', '🌹', '🍯', '🎷',
 export default function ProfilePage() {
   useMe()
   const user = useAuthStore((s) => s.user)
+  usePageMeta({
+    title: user ? `${user.nickname}님의 프로필` : '내 프로필',
+    description: '내 로테이션 파티 활동·호스팅·매치 카드를 한곳에서 관리하세요.',
+  })
   const updateLocal = useAuthStore((s) => s.updateUser)
   const [verifyNudgeOff, setVerifyNudgeOff] = useState(
     () => localStorage.getItem('rotifolk-verify-nudge') === 'off',

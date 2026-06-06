@@ -13,11 +13,17 @@ import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useAuthStore } from '@store/authStore'
 import { useRecents } from '@features/recents/useRecents'
+import { usePageMeta } from '@hooks/usePageMeta'
 import { api } from '@services/api'
 import { buildHomePulse } from './home-pulse'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
+  usePageMeta({
+    title: 'Rotifolk · 로테이션 파티 매칭',
+    withBrand: false,
+    description: '와인·커피·차·위스키 로테이션 모임. 모르는 사람들이 진짜 친해지는 5분 라운드.',
+  })
   const me = useAuthStore((s) => s.user)
   const { data: parties, isLoading } = useParties({ status: 'open', pageSize: 6 })
   const { data: nowParties } = useQuery({

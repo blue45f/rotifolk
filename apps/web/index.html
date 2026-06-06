@@ -14,6 +14,36 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Rotifolk" />
+
+    <!--
+      Static OG / Twitter / canonical defaults. usePageMeta() (src/hooks/usePageMeta.ts)
+      enhances title + description per route at runtime; these are the crawler-safe
+      fallbacks. Production base URL is a best guess — update if the domain changes.
+    -->
+    <link rel="canonical" href="https://rotifolk.vercel.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Rotifolk" />
+    <meta property="og:title" content="Rotifolk · 로테이션 파티 매칭" />
+    <meta
+      property="og:description"
+      content="와인·커피·차 로테이션 모임. 모르는 사람들이 진짜 친해지는 5분 라운드 — Rotifolk"
+    />
+    <meta property="og:url" content="https://rotifolk.vercel.app/" />
+    <meta property="og:image" content="https://rotifolk.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="Rotifolk — 와인·커피·차·위스키 로테이션 파티 매칭" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Rotifolk · 로테이션 파티 매칭" />
+    <meta
+      name="twitter:description"
+      content="와인·커피·차 로테이션 모임. 모르는 사람들이 진짜 친해지는 5분 라운드 — Rotifolk"
+    />
+    <meta name="twitter:image" content="https://rotifolk.vercel.app/og.png" />
+    <meta name="twitter:image:alt" content="Rotifolk — 와인·커피·차·위스키 로테이션 파티 매칭" />
+
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link
       rel="stylesheet"
