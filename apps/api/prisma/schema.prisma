@@ -13,7 +13,9 @@ datasource db {
 model User {
   id            String  @id @default(cuid())
   email         String  @unique
-  passwordHash  String
+  passwordHash  String? // 소셜 로그인(Google 등)만으로 가입한 계정은 null
+  provider      String  @default("password") // password | google | kakao
+  googleSub     String? @unique // Google 계정 고유 ID(sub) — 소셜 로그인 식별자
   nickname      String
   role          String  @default("host") // 누구나 모임 개설 가능 — participant | host | admin
   bio           String?

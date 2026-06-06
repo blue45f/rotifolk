@@ -61,3 +61,7 @@ services:
         # Comma-separated allowlist for app.enableCors in main.ts.
         # Set to your Vercel web origin(s), e.g. https://rotifolk.vercel.app
         sync: false
+      - key: GOOGLE_CLIENT_ID
+        # Google OAuth Web client ID (public). Empty -> Google button hidden.
+        # Set in the dashboard; authorize the Vercel origin in Google Console.
+        sync: false

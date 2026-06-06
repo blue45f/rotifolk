@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import * as argon2 from 'argon2'
 import { PrismaService } from '@/prisma/prisma.service'
@@ -10,7 +11,14 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
+    private readonly config: ConfigService,
   ) {}
+
+  /** 클라이언트가 Google 버튼 노출 여부를 판단하도록 공개 설정만 내려준다. */
+  publicConfig() {
+    const googleClientId = this.config.get<string>('GOOGLE_CLIENT_ID')?.trim()
+    return { googleClientId: googleClientId ? googleClientId : null }
+  }
 
   async signUp(dto: SignUpDto, referralCode?: string) {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } })
@@ -102,12 +110,90 @@ export class AuthService {
     return this.issueSession(user)
   }
 
+  /**
+   * Google ID 토큰(GIS credential) 검증 → 이메일 기준 find-or-create 후 동일 세션 발급.
+   * - audience 를 항상 전달해 토큰 대상이 우리 클라이언트인지 검증한다.
+   * - email_verified 가 아니면 거부한다(토큰 자체는 로깅하지 않는다).
+   */
+  async googleAuth(credential: string) {
+    const clientId = this.config.get<string>('GOOGLE_CLIENT_ID')?.trim()
+    if (!clientId)
+      throw new UnauthorizedException({
+        code: 'google_not_configured',
+        message: 'Google 로그인이 설정되지 않았어요',
+      })
+
+    const { OAuth2Client } = await import('google-auth-library')
+    const client = new OAuth2Client(clientId)
+    let payload: import('google-auth-library').TokenPayload | undefined
+    try {
+      const ticket = await client.verifyIdToken({ idToken: credential, audience: clientId })
+      payload = ticket.getPayload()
+    } catch {
+      throw new UnauthorizedException({
+        code: 'google_invalid_token',
+        message: 'Google 인증에 실패했어요',
+      })
+    }
+
+    if (!payload?.sub || !payload.email || !payload.email_verified)
+      throw new UnauthorizedException({
+        code: 'google_invalid_token',
+        message: 'Google 인증에 실패했어요',
+      })
+
+    const sub = payload.sub
+    const email = payload.email.toLowerCase()
+    const name = payload.name?.trim() || email.split('@')[0] || '게스트'
+
+    const existing = await this.prisma.user.findUnique({
+      where: { email },
+      include: { avatar: true },
+    })
+    if (existing) {
+      // 기존 계정에 Google 식별자를 연결(최초 1회). passwordHash 는 그대로 둔다.
+      if (existing.googleSub !== sub) {
+        const updated = await this.prisma.user.update({
+          where: { id: existing.id },
+          data: { googleSub: sub },
+          include: { avatar: true },
+        })
+        return this.issueSession(updated)
+      }
+      return this.issueSession(existing)
+    }
+
+    const nickname = name.slice(0, 16)
+    const user = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          email,
+          provider: 'google',
+          googleSub: sub,
+          nickname,
+        },
+      })
+      const avatar = await tx.avatar.create({
+        data: { ...this.makeDefaultAvatar(nickname), ownerId: created.id },
+      })
+      return tx.user.update({
+        where: { id: created.id },
+        data: { avatarId: avatar.id },
+        include: { avatar: true },
+      })
+    })
+
+    return this.issueSession(user)
+  }
+
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
       include: { avatar: true },
     })
-    if (!user)
+    // passwordHash 가 없는 계정(소셜 전용)은 비밀번호 로그인 불가 — 계정 존재 여부를
+    // 노출하지 않도록 미존재와 동일한 invalid_credentials 로 응답한다.
+    if (!user || !user.passwordHash)
       throw new UnauthorizedException({
         code: 'invalid_credentials',
         message: '이메일 또는 비밀번호가 일치하지 않아요',

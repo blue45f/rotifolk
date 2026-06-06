@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { LoginSchema } from '@rotifolk/shared'
 import type { LoginDto, User } from '@rotifolk/shared'
-import { useLogin } from '@features/auth/queries'
+import { useAuthConfig, useGoogleLogin, useLogin } from '@features/auth/queries'
+import { GoogleSignInButton } from '@features/auth/GoogleSignInButton'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
@@ -19,8 +20,20 @@ export default function LoginPage() {
   const location = useLocation()
   const toast = useToast()
   const setSession = useAuthStore((s) => s.setSession)
+  const authConfig = useAuthConfig()
+  const googleLogin = useGoogleLogin()
   const [kakaoLoading, setKakaoLoading] = useState(false)
   const from = (location.state as { from?: string } | null)?.from ?? '/'
+
+  const handleGoogleCredential = async (credential: string) => {
+    try {
+      const data = await googleLogin.mutateAsync(credential)
+      toast.show(`${data.user.nickname}님, 환영해요! ✨`, 'success')
+      navigate(from)
+    } catch (e) {
+      toast.show((e as Error).message, 'error')
+    }
+  }
 
   const {
     register,
@@ -71,6 +84,14 @@ export default function LoginPage() {
           {kakaoLoading ? '카카오로 입장 중…' : '카카오로 시작하기'}
         </button>
         <p className={styles.kakaoHint}>데모 환경: 실제 카카오 인증 없이 닉네임으로 진입</p>
+        {authConfig.data?.googleClientId && (
+          <div className={styles.googleRow}>
+            <GoogleSignInButton
+              clientId={authConfig.data.googleClientId}
+              onCredential={handleGoogleCredential}
+            />
+          </div>
+        )}
         <form
           className={styles.form}
           onSubmit={handleSubmit(async (data) => {
