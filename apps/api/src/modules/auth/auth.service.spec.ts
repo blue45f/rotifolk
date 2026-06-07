@@ -143,6 +143,9 @@ function makePrismaMock(opts: {
 }
 
 const jwtMock = { sign: vi.fn(() => 'signed.jwt.token') }
+// AuthService now also takes ConfigService (for GOOGLE_CLIENT_ID); the
+// password-path tests don't touch Google, so an empty config is sufficient.
+const configMock = { get: vi.fn(() => undefined) }
 
 describe('AuthService (critical auth path)', () => {
   beforeEach(() => {
@@ -152,7 +155,7 @@ describe('AuthService (critical auth path)', () => {
   describe('signUp', () => {
     it('hashes the password with argon2 and never returns it in the user object', async () => {
       const prisma = makePrismaMock({ existingByEmail: null })
-      const service = new AuthService(prisma as never, jwtMock as never)
+      const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
 
       const result = await service.signUp({
         email: 'new@example.com',
@@ -176,7 +179,7 @@ describe('AuthService (critical auth path)', () => {
 
     it('rejects a duplicate email with the email_taken code', async () => {
       const prisma = makePrismaMock({ existingByEmail: makeUserRow() })
-      const service = new AuthService(prisma as never, jwtMock as never)
+      const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
 
       await expect(
         service.signUp({
@@ -195,7 +198,7 @@ describe('AuthService (critical auth path)', () => {
     it('issues a session for valid credentials', async () => {
       const passwordHash = await argon2.hash('correct-horse')
       const prisma = makePrismaMock({ existingByEmail: makeUserRow({ passwordHash }) })
-      const service = new AuthService(prisma as never, jwtMock as never)
+      const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
 
       const result = await service.login({
         email: 'alice@example.com',
@@ -211,6 +214,7 @@ describe('AuthService (critical auth path)', () => {
       const noUser = new AuthService(
         makePrismaMock({ existingByEmail: null }) as never,
         jwtMock as never,
+        configMock as never,
       )
       const unknownErr = await noUser
         .login({ email: 'ghost@example.com', password: 'whatever' } as never)
@@ -221,6 +225,7 @@ describe('AuthService (critical auth path)', () => {
       const wrongPw = new AuthService(
         makePrismaMock({ existingByEmail: makeUserRow({ passwordHash }) }) as never,
         jwtMock as never,
+        configMock as never,
       )
       const wrongErr = await wrongPw
         .login({ email: 'alice@example.com', password: 'not-it' } as never)

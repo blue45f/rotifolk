@@ -6,6 +6,29 @@ import { disconnectSocket } from '@features/live/socket'
 
 export const authKeys = {
   me: ['auth', 'me'] as const,
+  config: ['auth', 'config'] as const,
+}
+
+// 공개 설정(Google 클라이언트 ID 노출 여부). null 이면 버튼 숨김.
+export function useAuthConfig() {
+  return useQuery({
+    queryKey: authKeys.config,
+    queryFn: () => api.get<{ googleClientId: string | null }>('auth/config'),
+    staleTime: Infinity,
+  })
+}
+
+export function useGoogleLogin() {
+  const queryClient = useQueryClient()
+  const setSession = useAuthStore((s) => s.setSession)
+  return useMutation({
+    mutationFn: (credential: string) =>
+      api.post<{ token: string; user: User }>('auth/google', { credential }),
+    onSuccess: (data) => {
+      setSession(data)
+      queryClient.setQueryData(authKeys.me, { user: data.user })
+    },
+  })
 }
 
 export function useSignUp() {

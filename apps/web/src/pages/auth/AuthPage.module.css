@@ -74,6 +74,11 @@
   color: var(--color-text-muted);
   margin-bottom: var(--space-5);
 }
+.googleRow {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-5);
+}
 .alt {
   margin-top: var(--space-4);
   text-align: center;

@@ -1355,6 +1355,12 @@ export const handlers = [
   http.get(`${API}/auth/me`, async () => {
     return HttpResponse.json(await delay({ user: mockUsers[0] }))
   }),
+  http.get(`${API}/auth/config`, async () => {
+    return HttpResponse.json(await delay({ googleClientId: null }))
+  }),
+  http.post(`${API}/auth/google`, async () => {
+    return HttpResponse.json(await delay({ token: MOCK_TOKEN, user: mockUsers[0] }))
+  }),
 
   // Parties
   http.get(`${API}/parties`, async ({ request }) => {

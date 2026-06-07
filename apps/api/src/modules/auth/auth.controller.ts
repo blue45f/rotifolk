@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards, UsePipes } from '@nestjs/common'
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { LoginSchema, SignUpSchema } from '@rotifolk/shared'
 import type { LoginDto, SignUpDto } from '@rotifolk/shared'
@@ -29,6 +37,22 @@ export class AuthController {
   @Post('kakao')
   async kakaoSim(@Body() body: { kakaoId: string; nickname: string }) {
     return this.authService.kakaoSimulate(body)
+  }
+
+  @Get('config')
+  config() {
+    return this.authService.publicConfig()
+  }
+
+  @Post('google')
+  async google(@Body() body: { credential?: unknown }) {
+    const credential = typeof body.credential === 'string' ? body.credential.trim() : ''
+    if (!credential)
+      throw new BadRequestException({
+        code: 'google_credential_required',
+        message: 'Google 인증 정보가 필요해요',
+      })
+    return this.authService.googleAuth(credential)
   }
 
   @Get('me')
