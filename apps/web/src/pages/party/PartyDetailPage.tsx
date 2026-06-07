@@ -39,6 +39,7 @@ import { useAuthStore } from '@store/authStore'
 import { useMyParties } from '@features/parties/queries'
 import { useRecents } from '@features/recents/useRecents'
 import { downloadIcs } from '@features/ics/buildIcs'
+import { usePageMeta } from '@hooks/usePageMeta'
 import { api } from '@services/api'
 import styles from './PartyDetailPage.module.css'
 
@@ -96,6 +97,14 @@ export default function PartyDetailPage() {
   const { items: recentItems, track } = useRecents()
   const { data: myParties } = useMyParties()
   void recentItems
+
+  const metaParty = data?.party
+  usePageMeta({
+    title: metaParty?.title,
+    description: metaParty
+      ? `${CATEGORY_META[metaParty.config.category].label} · ${metaParty.config.totalRounds}라운드 · ${metaParty.currentParticipants}/${metaParty.maxParticipants}명 — Rotifolk 로테이션 파티`
+      : undefined,
+  })
 
   const { data: saved } = useQuery({
     queryKey: ['saved', partyId],

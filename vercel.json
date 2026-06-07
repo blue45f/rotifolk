@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "corepack enable && pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @rotifolk/web... run build",
+  "outputDirectory": "apps/web/dist",
+  "framework": null,
+  "build": {
+    "env": {
+      "VITE_API_URL": "/api",
+      "VITE_SOCKET_URL": "https://rotifolk.3.107.235.143.nip.io"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://rotifolk.3.107.235.143.nip.io/api/:path*"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

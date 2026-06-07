@@ -11,6 +11,7 @@ import { Chip } from '@components/ui/Chip/Chip'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
+import { usePageMeta } from '@hooks/usePageMeta'
 import styles from './DiscoverPage.module.css'
 
 const PAGE_INCREMENT = 20
@@ -43,6 +44,10 @@ const STATUSES: { value: StatusKey; label: string; icon: IconName }[] = [
 ]
 
 export default function DiscoverPage() {
+  usePageMeta({
+    title: '로테이션 파티 둘러보기',
+    description: '와인·커피·차·위스키 로테이션 모임을 카테고리·지역·날짜로 둘러보세요.',
+  })
   const [params, setParams] = useSearchParams()
   const category = params.get('category') as PartyCategory | null
   const area = params.get('area')
