@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Card } from '@components/ui/Card/Card'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
@@ -619,6 +619,7 @@ function createProjectedRuleHealth(args: {
 }
 
 export default function AdminPage() {
+  const location = useLocation()
   const [tab, setTab] = useState<TabKey>('open')
   const [platformFeePercent, setPlatformFeePercent] = useState('')
   const [refundRetentionPercent, setRefundRetentionPercent] = useState('')
@@ -655,6 +656,9 @@ export default function AdminPage() {
   const autoApplyStopToken = useRef({ requested: false })
   const queryClient = useQueryClient()
   const toast = useToast()
+  const adminFrom = encodeURIComponent(
+    `${location.pathname}${location.search}${location.hash}` || '/',
+  )
 
   const { data: openData, isError: isOpenReportsError } = useQuery({
     queryKey: ['admin', 'reports', 'open'],
@@ -3808,7 +3812,10 @@ export default function AdminPage() {
                     <div className={styles.reportEvidence}>
                       <span>커뮤니티 신고 대상</span>
                       {r.communityPost && (
-                        <Link to="/community" className={styles.reportEvidenceLink}>
+                        <Link
+                          to={`/community?from=${adminFrom}`}
+                          className={styles.reportEvidenceLink}
+                        >
                           글: {r.communityPost.title}
                         </Link>
                       )}

@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate, Link, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { LoginSchema } from '@rotifolk/shared'
 import type { LoginDto, User } from '@rotifolk/shared'
 import { useAuthConfig, useGoogleLogin, useLogin } from '@features/auth/queries'
@@ -12,24 +12,57 @@ import { Card } from '@components/ui/Card/Card'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
+import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
 import styles from './AuthPage.module.css'
+
+const DEMO_ACCOUNT: LoginDto = {
+  email: 'host@rotifolk.dev',
+  password: 'rotifolk1234!',
+}
+
+function resolveReturnPath(raw: string | null, location: Location): string {
+  if (!raw) return '/'
+  if (!raw.startsWith('/')) return '/'
+  if (raw.includes('://')) return '/'
+  try {
+    const target = new URL(raw, location.origin)
+    if (target.origin !== location.origin) return '/'
+    return `${target.pathname}${target.search}${target.hash}`
+  } catch {
+    return '/'
+  }
+}
 
 export default function LoginPage() {
   const login = useLogin()
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const toast = useToast()
   const setSession = useAuthStore((s) => s.setSession)
   const authConfig = useAuthConfig()
   const googleLogin = useGoogleLogin()
   const [kakaoLoading, setKakaoLoading] = useState(false)
-  const from = (location.state as { from?: string } | null)?.from ?? '/'
+  const stateFrom = (location.state as { from?: string } | null)?.from
+  const from = useMemo(
+    () => resolveReturnPath(searchParams.get('from') ?? stateFrom, location),
+    [location, searchParams, stateFrom],
+  )
+  const isDemoMode = searchParams.get('demo') === '1'
+  const fromTutorial = normalizeTutorialStep(searchParams.get('fromTutorial'))
+
+  const completeDemoStep = useCallback(() => {
+    if (fromTutorial === 'demo') {
+      addTutorialStep('demo')
+    }
+  }, [fromTutorial])
 
   const handleGoogleCredential = async (credential: string) => {
     try {
       const data = await googleLogin.mutateAsync(credential)
       toast.show(`${data.user.nickname}님, 환영해요! ✨`, 'success')
-      navigate(from)
+      completeDemoStep()
+      navigate(from, { replace: true })
     } catch (e) {
       toast.show((e as Error).message, 'error')
     }
@@ -38,8 +71,44 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm<LoginDto>({ resolver: zodResolver(LoginSchema) })
+  } = useForm<LoginDto>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: isDemoMode
+      ? {
+          email: DEMO_ACCOUNT.email,
+          password: DEMO_ACCOUNT.password,
+        }
+      : undefined,
+  })
+
+  const fillDemoForm = useCallback(() => {
+    setValue('email', DEMO_ACCOUNT.email, { shouldValidate: true })
+    setValue('password', DEMO_ACCOUNT.password, { shouldValidate: true })
+  }, [setValue])
+
+  const runDemoLogin = useCallback(async () => {
+    try {
+      fillDemoForm()
+      const data = await login.mutateAsync(DEMO_ACCOUNT)
+      toast.show('데모 계정으로 입장했어요. ✨', 'success')
+      completeDemoStep()
+      navigate(from, { replace: true })
+      setSession(data)
+    } catch (e) {
+      toast.show((e as Error).message, 'error')
+    }
+  }, [fillDemoForm, from, login, navigate, setSession, toast])
+
+  const autoDemoMode = useRef(false)
+  useEffect(() => {
+    if (!isDemoMode) return
+    fillDemoForm()
+    if (searchParams.get('auto') !== '1' || autoDemoMode.current) return
+    autoDemoMode.current = true
+    void runDemoLogin()
+  }, [fillDemoForm, isDemoMode, runDemoLogin, searchParams])
 
   const handleKakao = async () => {
     if (kakaoLoading) return
@@ -60,7 +129,8 @@ export default function LoginPage() {
       })
       setSession(data)
       toast.show(`${data.user.nickname}님, 카카오로 입장 완료! 🎉`, 'success')
-      navigate(from)
+      completeDemoStep()
+      navigate(from, { replace: true })
     } catch (e) {
       toast.show((e as Error).message, 'error')
     } finally {
@@ -98,7 +168,8 @@ export default function LoginPage() {
             try {
               await login.mutateAsync(data)
               toast.show('환영해요! 다음 라운드로 안내할게요 ✨', 'success')
-              navigate(from)
+              completeDemoStep()
+              navigate(from, { replace: true })
             } catch (e) {
               toast.show((e as Error).message, 'error')
             }
@@ -126,12 +197,26 @@ export default function LoginPage() {
         </form>
         <p className={styles.alt}>
           아직 계정이 없으세요?{' '}
-          <Link to="/signup" className={styles.link}>
+          <Link to={`/signup?from=${encodeURIComponent(from)}`} className={styles.link}>
             회원가입
           </Link>
         </p>
         <div className={styles.devHint}>
-          데모 계정: <code>host@rotifolk.dev / rotifolk1234!</code>
+          데모 계정: <code>{`${DEMO_ACCOUNT.email} / ${DEMO_ACCOUNT.password}`}</code>
+          <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'center' }}>
+            <Button type="button" size="sm" variant="outline" onClick={fillDemoForm}>
+              데모 값 채우기
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="gold"
+              onClick={runDemoLogin}
+              isLoading={login.isPending}
+            >
+              데모 계정으로 바로 시작
+            </Button>
+          </div>
         </div>
       </Card>
     </div>

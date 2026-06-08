@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@store/authStore'
 import { api } from '@services/api'
@@ -7,6 +7,7 @@ import styles from './BottomNav.module.css'
 
 const BASE_ITEMS = [
   { to: '/', label: '홈', icon: '🏠', end: true, key: 'home' },
+  { to: '/tutorial', label: '튜토리얼', icon: '🧭', key: 'tutorial' },
   { to: '/community', label: '커뮤니티', icon: '💬', key: 'community' },
   { to: '/quick', label: '즉석', icon: '⚡', emphasize: true, key: 'quick' },
   { to: '/chats', label: '채팅', icon: '💌', key: 'chats' },
@@ -16,6 +17,7 @@ const BASE_ITEMS = [
 const ADMIN_ITEM = { to: '/admin', label: '관리', icon: '🛡️', key: 'admin' } as const
 
 export function BottomNav() {
+  const location = useLocation()
   const me = useAuthStore((s) => s.user)
   const isAdmin = me?.role === 'admin'
   const { data: chatUnread } = useQuery({
@@ -24,14 +26,23 @@ export function BottomNav() {
     enabled: !!me,
   })
   const items = isAdmin ? [...BASE_ITEMS, ADMIN_ITEM] : BASE_ITEMS
+  const encodedCurrentPath = encodeURIComponent(
+    `${location.pathname}${location.search}${location.hash}` || '/',
+  )
+  const itemsWithReturn = items.map((it) => {
+    if (it.to === '/tutorial' || it.to === '/community') {
+      return { ...it, to: `${it.to}?from=${encodedCurrentPath}` }
+    }
+    return it
+  })
 
   return (
     <nav className={styles.nav} aria-label="하단 메뉴">
-      {items.map((it) => {
+      {itemsWithReturn.map((it) => {
         const showBadge = it.key === 'chats' && (chatUnread?.rooms ?? 0) > 0
         return (
           <NavLink
-            key={it.to}
+            key={it.key}
             to={it.to}
             end={'end' in it ? it.end : false}
             className={({ isActive }) =>

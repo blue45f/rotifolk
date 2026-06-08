@@ -195,6 +195,69 @@
   text-decoration: underline;
 }
 
+.quickStartGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--space-3);
+}
+
+.quickStartCard {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 110px;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
+  color: inherit;
+  background: var(--color-surface);
+  transition:
+    transform var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart);
+}
+
+.quickStartCard:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--color-primary) 30%, transparent);
+  box-shadow: 0 12px 28px color-mix(in oklab, var(--color-primary) 16%, transparent);
+}
+
+.quickStartIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  background: color-mix(in oklab, var(--color-primary) 16%, transparent);
+}
+
+.quickStartBody {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.quickStartBody strong {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.quickStartBody small {
+  color: var(--color-text-muted);
+  line-height: var(--lh-relaxed);
+}
+
+.quickStartAction {
+  color: var(--color-primary);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+
 .liveDot {
   width: 10px;
   height: 10px;

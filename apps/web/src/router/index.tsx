@@ -1,5 +1,5 @@
 import { Suspense, lazy, type ComponentType } from 'react'
-import { createBrowserRouter, type RouteObject } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useLocation, type RouteObject } from 'react-router-dom'
 import RootLayout from '@components/layout/RootLayout'
 import RouteError from '@components/feedback/RouteError'
 import Loading from '@components/feedback/Loading'
@@ -14,6 +14,48 @@ function lazyPage(loader: () => Promise<{ default: ComponentType }>) {
   )
 }
 
+function AliasHelpRedirect({
+  topic,
+  fromOverride,
+}: {
+  topic: 'host' | 'guest'
+  fromOverride: string
+}) {
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const returnPath = searchParams.get('from') ?? fromOverride
+  searchParams.delete('topic')
+  searchParams.delete('from')
+  searchParams.set('from', returnPath)
+  searchParams.set('topic', topic)
+  const query = searchParams.toString()
+  return <Navigate to={`/help${query ? `?${query}` : ''}`} replace />
+}
+
+function AliasPoliciesRedirect({
+  filter,
+  section,
+  fromOverride,
+}: {
+  filter: 'all' | 'required' | 'optional'
+  section: 'refund' | 'cancel' | 'noshow' | 'privacy' | 'safety'
+  fromOverride: string
+}) {
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const returnPath = searchParams.get('from') ?? fromOverride
+  searchParams.delete('filter')
+  searchParams.delete('section')
+  searchParams.delete('from')
+  searchParams.set('from', returnPath)
+  if (filter !== 'all') {
+    searchParams.set('filter', filter)
+  }
+  searchParams.set('section', section)
+  const query = searchParams.toString()
+  return <Navigate to={`/policies${query ? `?${query}` : ''}`} replace />
+}
+
 export const routes: RouteObject[] = [
   {
     path: '/',
@@ -26,6 +68,14 @@ export const routes: RouteObject[] = [
       { path: 'vibe', element: lazyPage(() => import('@pages/vibe/VibePage')) },
       { path: 'community', element: lazyPage(() => import('@pages/community/CommunityPage')) },
       {
+        path: 'help/host',
+        element: <AliasHelpRedirect topic="host" fromOverride="/help/host" />,
+      },
+      {
+        path: 'help/guest',
+        element: <AliasHelpRedirect topic="guest" fromOverride="/help/guest" />,
+      },
+      {
         path: 'neighborhood',
         element: lazyPage(() => import('@pages/neighborhood/NeighborhoodPage')),
       },
@@ -33,7 +83,30 @@ export const routes: RouteObject[] = [
       { path: 'parties/:partyId', element: lazyPage(() => import('@pages/party/PartyDetailPage')) },
       { path: 'venues', element: lazyPage(() => import('@pages/venues/VenuesPage')) },
       { path: 'help', element: lazyPage(() => import('@pages/help/HelpPage')) },
+      { path: 'tutorial', element: lazyPage(() => import('@pages/tutorial/TutorialPage')) },
       { path: 'policies', element: lazyPage(() => import('@pages/policies/PoliciesPage')) },
+      {
+        path: 'terms',
+        element: <AliasPoliciesRedirect filter="required" section="refund" fromOverride="/terms" />,
+      },
+      {
+        path: 'privacy',
+        element: (
+          <AliasPoliciesRedirect filter="required" section="privacy" fromOverride="/privacy" />
+        ),
+      },
+      {
+        path: 'cancel-policy',
+        element: (
+          <AliasPoliciesRedirect filter="optional" section="cancel" fromOverride="/cancel-policy" />
+        ),
+      },
+      {
+        path: 'safety',
+        element: (
+          <AliasPoliciesRedirect filter="required" section="safety" fromOverride="/safety" />
+        ),
+      },
       {
         path: 'hosts/:hostId',
         element: lazyPage(() => import('@pages/host-profile/HostProfilePage')),

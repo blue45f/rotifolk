@@ -16,7 +16,9 @@ const POPULAR: Suggestion[] = [
   { to: '/quick', emoji: '⚡', label: '즉석 파티 열기', hint: '5분 만에 한 잔 모임을 시작해요' },
   { to: '/neighborhood', emoji: '📍', label: '내 동네', hint: '걸어갈 수 있는 거리의 모임' },
   { to: '/help', emoji: '💡', label: 'FAQ', hint: '처음이라면 여기부터' },
+  { to: '/tutorial', emoji: '🧭', label: '튜토리얼', hint: '8단계로 첫 진입 동선 따라가기' },
   { to: '/policies', emoji: '📜', label: '정책', hint: '환불/개인정보/안전 정책 보기' },
+  { to: '/terms', emoji: '🧾', label: '이용약관', hint: '약관 항목을 빠르게 확인해요' },
 ]
 
 function pathHint(pathname: string): { hint: string; cta?: Suggestion } {
@@ -55,10 +57,24 @@ function pathHint(pathname: string): { hint: string; cta?: Suggestion } {
 }
 
 export default function NotFoundPage() {
-  const { pathname } = useLocation()
+  const location = useLocation()
+  const { pathname } = location
   const { hint, cta } = pathHint(pathname)
   const { items: recents } = useRecents()
   const recentTop = recents.slice(0, 4)
+  const currentPath = `${location.pathname}${location.search}${location.hash}`
+  const currentPathEncoded = encodeURIComponent(currentPath || '/')
+  const popularWithReturn = POPULAR.map((suggestion) =>
+    suggestion.to === '/help'
+      ? { ...suggestion, to: `/help?from=${currentPathEncoded}` }
+      : suggestion.to === '/tutorial'
+        ? { ...suggestion, to: `/tutorial?from=${currentPathEncoded}` }
+        : suggestion.to === '/policies'
+          ? { ...suggestion, to: `/policies?from=${currentPathEncoded}` }
+          : suggestion.to === '/terms'
+            ? { ...suggestion, to: `/terms?from=${currentPathEncoded}` }
+            : suggestion,
+  )
 
   return (
     <div className={styles.page}>
@@ -93,7 +109,7 @@ export default function NotFoundPage() {
       <section className={styles.section}>
         <h2>자주 가는 페이지</h2>
         <div className={styles.suggestionGrid}>
-          {POPULAR.map((p) => (
+          {popularWithReturn.map((p) => (
             <Link key={p.to} to={p.to} className={styles.suggestionCard}>
               <span className={styles.suggestionEmoji}>{p.emoji}</span>
               <span className={styles.suggestionBody}>

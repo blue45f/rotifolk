@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate, Link } from 'react-router-dom'
+import { useLocation, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { SignUpSchema } from '@rotifolk/shared'
 import type { SignUpDto } from '@rotifolk/shared'
 import { useSignUp } from '@features/auth/queries'
+import { normalizeTutorialStep } from '@features/tutorial/progress'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
@@ -27,7 +28,20 @@ function passwordStrength(pw: string): { level: StrengthLevel; label: string } |
 export default function SignUpPage() {
   const signUp = useSignUp()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const toast = useToast()
+  const returnPath = `${location.pathname}${location.search}${location.hash}` || '/'
+  const fromTutorial = normalizeTutorialStep(searchParams.get('fromTutorial'))
+  const loginHref = fromTutorial
+    ? `/login?fromTutorial=${fromTutorial}&from=${encodeURIComponent(returnPath)}`
+    : `/login?from=${encodeURIComponent(returnPath)}`
+  const policyRequiredHref = fromTutorial
+    ? `/policies?filter=required&fromTutorial=${fromTutorial}&from=${encodeURIComponent(returnPath)}`
+    : `/policies?filter=required&from=${encodeURIComponent(returnPath)}`
+  const policyOptionalHref = fromTutorial
+    ? `/policies?filter=optional&fromTutorial=${fromTutorial}&from=${encodeURIComponent(returnPath)}`
+    : `/policies?filter=optional&from=${encodeURIComponent(returnPath)}`
   const [referralCode, setReferralCode] = useState('')
   const [pwValue, setPwValue] = useState('')
   const [agreed, setAgreed] = useState(false)
@@ -126,22 +140,12 @@ export default function SignUpPage() {
               className={styles.agreeCheck}
             />
             <span>
-              <Link
-                to="/policies"
-                className={styles.link}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                이용약관
+              <Link to={policyRequiredHref} className={styles.link}>
+                필수 약관
               </Link>{' '}
               및{' '}
-              <Link
-                to="/policies#privacy"
-                className={styles.link}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                개인정보 처리방침
+              <Link to={policyOptionalHref} className={styles.link}>
+                선택약관
               </Link>
               에 동의합니다
             </span>
@@ -153,7 +157,7 @@ export default function SignUpPage() {
         </form>
         <p className={styles.alt}>
           이미 계정이 있으세요?{' '}
-          <Link to="/login" className={styles.link}>
+          <Link to={loginHref} className={styles.link}>
             로그인
           </Link>
         </p>

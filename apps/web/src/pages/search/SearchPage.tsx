@@ -289,7 +289,7 @@ export default function SearchPage() {
             {/* 읽기 전용 정보 칩 — 클릭/포커스 불가한 비대화형 요소.
                 인식된 조건 행은 RecognizedConditions로 추출(스토리북 공유, DRY). */}
             <RecognizedConditions chips={parsedChips} />
-            <p className={styles.count}>
+            <p className={styles.count} role="status" aria-live="polite" aria-atomic="true">
               <strong>{results.length}</strong>개의 결과
             </p>
             <div className={styles.grid}>

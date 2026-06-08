@@ -16,6 +16,7 @@ const SEGMENT_TITLES: Record<string, string> = {
   parties: '파티',
   venues: '공간',
   help: '도움말',
+  tutorial: '튜토리얼',
   policies: '약관·정책',
   hosts: '호스트',
   'match-card': '매치 카드',
