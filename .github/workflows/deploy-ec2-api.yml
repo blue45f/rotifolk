@@ -1,0 +1,116 @@
+name: Deploy API to EC2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'packages/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.dockerignore'
+      - '.github/workflows/deploy-ec2-api.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+      EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+      REMOTE_DIR: /tmp/rotifolk-src
+      API_IMAGE: rotifolk-api:latest
+      API_CONTAINER: rotifolk-api
+      API_ENV_FILE: /opt/rotifolk-runtime.env
+      API_DATA_VOLUME: rotifolk-data
+      API_NETWORK: termsdesk_default
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Skip deployment when EC2 secrets are not configured
+        if: env.EC2_HOST == '' || env.EC2_USER == '' || env.EC2_SSH_KEY == ''
+        run: echo "EC2_HOST, EC2_USER, or EC2_SSH_KEY is not configured; skipping EC2 deployment."
+
+      - name: Configure SSH
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/rotifolk_ec2.pem
+          chmod 600 ~/.ssh/rotifolk_ec2.pem
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload source to EC2
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
+        run: |
+          set -euo pipefail
+          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes ${EC2_USER}@${EC2_HOST}"
+
+          $SSH "rm -rf '$REMOTE_DIR' && mkdir -p '$REMOTE_DIR'"
+
+          tar \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='apps/web/dist' \
+            --exclude='apps/api/dist' \
+            --exclude='dist' \
+            --exclude='coverage' \
+            --exclude='.turbo' \
+            --exclude='.vercel' \
+            -czf - . \
+            | $SSH "tar -xzf - -C '$REMOTE_DIR'"
+
+      - name: Build and restart API container
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
+        run: |
+          set -euo pipefail
+          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes ${EC2_USER}@${EC2_HOST}"
+
+          $SSH "
+            set -euo pipefail
+            cd '$REMOTE_DIR'
+            sudo docker build -f apps/api/Dockerfile -t '$API_IMAGE' .
+            sudo docker rm -f '$API_CONTAINER' || true
+            sudo docker run -d \
+              --name '$API_CONTAINER' \
+              --restart unless-stopped \
+              --env-file '$API_ENV_FILE' \
+              --network '$API_NETWORK' \
+              -v '$API_DATA_VOLUME':/app/data \
+              '$API_IMAGE'
+          "
+
+      - name: Smoke test API
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
+        run: |
+          set -euo pipefail
+          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes ${EC2_USER}@${EC2_HOST}"
+
+          $SSH "
+            set -euo pipefail
+            for attempt in \$(seq 1 30); do
+              if sudo docker exec '$API_CONTAINER' node -e \"fetch('http://127.0.0.1:3000/api/health').then((r)=>{if(!r.ok)process.exit(1);return r.text()}).then(console.log)\"; then
+                break
+              fi
+              sleep 2
+            done
+            sudo docker exec '$API_CONTAINER' node -e \"fetch('http://127.0.0.1:3000/api/auth/config').then((r)=>{if(!r.ok)process.exit(1);return r.text()}).then(console.log)\"
+          "
+
+      - name: Cleanup EC2 build artifacts
+        if: always() && env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
+        run: |
+          set -euo pipefail
+          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes ${EC2_USER}@${EC2_HOST}"
+          $SSH "rm -rf '$REMOTE_DIR' && sudo docker image prune -f"

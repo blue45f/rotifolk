@@ -326,3 +326,132 @@
 .themeOption:hover {
   background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
 }
+
+/* Shell resilience pass: keep the app header usable on compressed and mobile viewports. */
+.inner,
+.brand,
+.nav,
+.actions {
+  min-width: 0;
+}
+
+.actions {
+  flex-wrap: nowrap;
+}
+
+.commandBtn,
+.iconButton,
+.notificationLink,
+.userButton,
+.userBtn {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (min-width: 768px) {
+  .inner {
+    display: grid;
+    grid-template-columns: minmax(132px, max-content) minmax(0, 1fr) max-content;
+    align-items: center;
+    column-gap: clamp(10px, 2vw, 24px);
+  }
+
+  .brand {
+    justify-self: start;
+  }
+
+  .nav {
+    justify-self: center;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    gap: clamp(4px, 0.8vw, 12px);
+    padding-inline: 2px;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .actions {
+    justify-self: end;
+  }
+}
+
+@media (max-width: 767px) {
+  .inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: calc(var(--header-h) + env(safe-area-inset-top, 0px));
+    padding-block: max(var(--space-2), env(safe-area-inset-top, 0px)) var(--space-2);
+  }
+
+  .brand {
+    width: auto;
+    max-width: 100%;
+    flex: initial;
+  }
+
+  .logo {
+    max-width: clamp(92px, 34vw, 152px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .actions {
+    width: auto;
+    max-width: min(58vw, 284px);
+    justify-self: end;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    gap: 6px;
+    padding: 2px;
+    margin-right: -2px;
+  }
+
+  .actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .commandBtn {
+    padding-inline: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand {
+    width: auto;
+    max-width: 100%;
+  }
+
+  .actions {
+    flex: initial;
+    max-width: min(56vw, 236px);
+    row-gap: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .logo {
+    max-width: 26vw;
+  }
+
+  .actions {
+    max-width: 60vw;
+  }
+
+  .commandBtn {
+    padding-inline: 10px;
+  }
+}

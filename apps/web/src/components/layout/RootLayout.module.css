@@ -6,8 +6,15 @@
 }
 .main {
   flex: 1;
-  padding-bottom: calc(var(--bottom-nav-h) + var(--space-12));
+  min-width: 0;
+  padding-bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px) + var(--space-8));
 }
 .shell[data-live='true'] .main {
   padding-bottom: 0;
+}
+
+@media (min-width: 1024px) {
+  .main {
+    padding-bottom: var(--space-12);
+  }
 }

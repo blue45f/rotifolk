@@ -92,3 +92,59 @@
     0 0 0 4px color-mix(in oklab, var(--brand-gold-500) 22%, transparent),
     inset 0 1px 0 color-mix(in oklab, white 40%, transparent);
 }
+
+/* Mobile nav hardening: preserve touch targets and avoid squeezing 6+ tabs into unreadable columns. */
+.nav {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(54px, 1fr);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding-inline: max(var(--space-2), env(safe-area-inset-left, 0px)) max(var(--space-2), env(safe-area-inset-right, 0px));
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  min-width: 54px;
+  min-height: 52px;
+  scroll-snap-align: center;
+  touch-action: manipulation;
+}
+
+.icon {
+  flex: 0 0 auto;
+}
+
+.active {
+  background: linear-gradient(180deg, oklch(100% 0 80 / 0.92), oklch(94% 0.025 10 / 0.82));
+  box-shadow: 0 10px 22px oklch(30% 0.115 10 / 0.12);
+}
+
+@media (max-width: 420px) {
+  .nav {
+    grid-auto-columns: minmax(50px, 1fr);
+    gap: 2px;
+  }
+
+  .item {
+    min-width: 50px;
+    padding-inline: 2px;
+  }
+
+  .label {
+    font-size: 10px;
+    letter-spacing: -0.02em;
+  }
+}
+
+@media (max-width: 340px) {
+  .nav {
+    grid-auto-columns: 52px;
+    justify-content: start;
+  }
+}
