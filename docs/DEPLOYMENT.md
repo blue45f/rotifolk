@@ -14,6 +14,31 @@
 > 권한 없는 기여자에게도 파이프라인이 초록색으로 유지됩니다. 실제 배포를
 > 활성화하려면 아래 시크릿/대시보드 작업을 직접 수행해야 합니다.
 
+## 현재 운영 메모 (2026-06-08 기준)
+
+현재 실제 운영은 아래 상태로 확인되었습니다. 이 절은 “현재 배포 상태”를 기록한
+메모이며, 아래의 Render/Vercel 표준 가이드와 다를 수 있습니다.
+
+- GitHub Actions의 **Deploy web to Vercel**은 `VERCEL_TOKEN`이 비어 있어서 workflow
+  자체 배포가 스킵됩니다. GitHub Actions에서 성공으로 보이더라도 실제 Vercel CLI
+  배포가 수행됐다는 뜻은 아닙니다.
+- GitHub Actions의 **Deploy API to Render**도 `RENDER_DEPLOY_HOOK_URL`이 비어 있어서
+  workflow 자체 배포가 스킵됩니다. Render Deploy Hook을 쓰려면 해당 secret을 먼저
+  등록해야 합니다.
+- 2026-06-08 운영 웹 복구/배포는 Vercel Git integration으로 생성된 production
+  deployment를 `vercel promote`로 현재 운영 alias에 연결하는 방식으로 처리했습니다.
+- 2026-06-08 운영 API 배포는 Render가 아니라 EC2에 SSH로 접속해
+  `rotifolk-api:latest` Docker 이미지를 직접 빌드하고 기존 `rotifolk-api`
+  컨테이너를 교체하는 방식으로 처리했습니다.
+- 현재 Vercel rewrite는 `vercel.json` 기준
+  `https://rotifolk.3.107.235.143.nip.io/api/:path*`로 API 요청을 전달합니다. 이
+  호스트는 EC2의 Caddy가 `rotifolk-api:3000` 컨테이너로 reverse proxy합니다.
+- EC2 API 컨테이너는 `/opt/rotifolk-runtime.env`와 `rotifolk-data:/app/data` Docker
+  volume을 사용합니다. 컨테이너 교체 시 이 env 파일과 volume은 유지해야 합니다.
+- EC2 디스크는 2026-06-08 확인 당시 `/` 기준 약 `2.1GB` 여유만 남아 있었습니다.
+  Docker build는 가능했지만 여유가 작으므로, 반복 배포 전에는 dangling image/layer
+  정리 또는 디스크 증설을 고려해야 합니다.
+
 ---
 
 ## 1. 아키텍처 개요
