@@ -45,8 +45,8 @@ export default function LoginPage() {
   const [kakaoLoading, setKakaoLoading] = useState(false)
   const stateFrom = (location.state as { from?: string } | null)?.from
   const from = useMemo(
-    () => resolveReturnPath(searchParams.get('from') ?? stateFrom, location),
-    [location, searchParams, stateFrom],
+    () => resolveReturnPath(searchParams.get('from') ?? stateFrom ?? null, window.location),
+    [searchParams, stateFrom],
   )
   const isDemoMode = searchParams.get('demo') === '1'
   const fromTutorial = normalizeTutorialStep(searchParams.get('fromTutorial'))

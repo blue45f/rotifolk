@@ -145,7 +145,7 @@ const normalizeSectionHashes = (value: unknown): Record<TermsSectionId, string> 
   return result
 }
 
-export const buildTermsEvidence = (agreedIds: TermsSectionId[]): TermsConsentEvidence => {
+export const buildTermsEvidence = (agreedIds: readonly TermsSectionId[]): TermsConsentEvidence => {
   const sectionHashes = buildSectionHashes()
   const orderedSectionTokens = TERMS_ALL_SECTION_IDS.map((id) => `${id}:${sectionHashes[id]}`).join(
     '|',
@@ -186,7 +186,7 @@ const writeTermsState = (state: TermsConsentState) => {
   writeJSON(TERMS_CONSENT_STORAGE_KEY, state)
 }
 
-export const buildRates = (agreedIds: TermsSectionId[]) => {
+export const buildRates = (agreedIds: readonly TermsSectionId[]) => {
   const requiredRate = Math.round(
     (TERMS_REQUIRED_SECTION_IDS.filter((id) => agreedIds.includes(id)).length /
       TERMS_REQUIRED_SECTION_IDS.length) *
@@ -199,7 +199,7 @@ export const buildRates = (agreedIds: TermsSectionId[]) => {
 
 export const isTermsVersionOutdated = (value?: string) => value !== TERMS_VERSION
 
-export const hasRequiredTerms = (agreedIds: TermsSectionId[]) =>
+export const hasRequiredTerms = (agreedIds: readonly TermsSectionId[]) =>
   TERMS_REQUIRED_SECTION_IDS.every((id) => agreedIds.includes(id))
 
 export const readTermsConsentHistory = (): TermsHistoryRecord[] => {

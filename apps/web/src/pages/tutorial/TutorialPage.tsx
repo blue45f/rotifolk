@@ -3,7 +3,6 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import {
-  hasRequiredTerms,
   addTutorialStep,
   readTutorialProgress,
   setTutorialProgress,
@@ -11,13 +10,13 @@ import {
   type TutorialStepId,
 } from '@features/tutorial/progress'
 import {
+  hasRequiredTerms,
   TERMS_CONSENT_CHANGED_EVENT,
   TERMS_CONSENT_STORAGE_KEY,
   toTermsConsentState,
   readTermsConsentState,
   TERMS_REQUIRED_SECTION_IDS,
   type TermsConsentState,
-  type TermsSectionId,
 } from '@features/legal/termsConsent'
 import {
   COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT,

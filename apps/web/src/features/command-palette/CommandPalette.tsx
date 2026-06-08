@@ -346,51 +346,57 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
   const groupedCommands = useMemo<CommandSection[]>(() => {
     const q = query.trim().toLowerCase()
 
-    const navItems: CommandItem[] = COMMAND_SEEDS.filter(
-      (seed) => seed.kind === 'navigation' && visibleSeed(seed, role),
+    const navItems: CommandNavigationItem[] = COMMAND_SEEDS.filter(
+      (seed): seed is NavigationSeed => seed.kind === 'navigation' && visibleSeed(seed, role),
     )
-      .map((seed) => ({
-        id: seed.id,
-        kind: 'navigation',
-        path: enrichNavigationPath(seed.path, fromQuery),
-        emoji: seed.emoji,
-        label: t(seed.labelKey) ?? seed.labelFallback,
-        hint: t(seed.groupKey),
-        groupKey: seed.groupKey,
-      }))
+      .map(
+        (seed): CommandNavigationItem => ({
+          id: seed.id,
+          kind: 'navigation' as const,
+          path: enrichNavigationPath(seed.path, fromQuery),
+          emoji: seed.emoji,
+          label: t(seed.labelKey) ?? seed.labelFallback,
+          hint: t(seed.groupKey),
+          groupKey: seed.groupKey,
+        }),
+      )
       .filter((item) => {
         return !q || item.label.toLowerCase().includes(q) || item.path.toLowerCase().includes(q)
       })
 
-    const actionItems: CommandItem[] = COMMAND_SEEDS.filter(
-      (seed) => seed.kind === 'action' && visibleSeed(seed, role),
+    const actionItems: CommandActionItem[] = COMMAND_SEEDS.filter(
+      (seed): seed is ActionSeed => seed.kind === 'action' && visibleSeed(seed, role),
     )
-      .map((seed) => ({
-        id: seed.id,
-        kind: 'action',
-        action: seed.action,
-        emoji: seed.emoji,
-        label: t(seed.labelKey) ?? seed.labelFallback,
-        hint: t(seed.groupKey),
-        groupKey: seed.groupKey,
-      }))
+      .map(
+        (seed): CommandActionItem => ({
+          id: seed.id,
+          kind: 'action' as const,
+          action: seed.action,
+          emoji: seed.emoji,
+          label: t(seed.labelKey) ?? seed.labelFallback,
+          hint: t(seed.groupKey),
+          groupKey: seed.groupKey,
+        }),
+      )
       .filter((item) => !q || item.label.toLowerCase().includes(q))
 
-    const recentItems: CommandItem[] = (
+    const recentItems: CommandNavigationItem[] = (
       q ? recentSearches.filter((term) => term.toLowerCase().includes(q)) : recentSearches
     )
       .slice(0, 6)
-      .map((term, index) => ({
-        id: `recent-${index}-${term}`,
-        kind: 'navigation',
-        path: toSearchPath(term),
-        emoji: '🧠',
-        label: term,
-        hint: t('command.group.recent'),
-        groupKey: 'command.group.recent',
-      }))
+      .map(
+        (term, index): CommandNavigationItem => ({
+          id: `recent-${index}-${term}`,
+          kind: 'navigation',
+          path: toSearchPath(term),
+          emoji: '🧠',
+          label: term,
+          hint: t('command.group.recent'),
+          groupKey: 'command.group.recent',
+        }),
+      )
 
-    const queryItems: CommandItem[] = q
+    const queryItems: CommandNavigationItem[] = q
       ? [
           {
             id: 'search-query',

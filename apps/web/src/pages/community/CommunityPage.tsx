@@ -32,7 +32,6 @@ import {
   TERMS_CONSENT_STORAGE_KEY,
   toTermsConsentState,
   type TermsConsentState,
-  type TermsSectionId,
 } from '@features/legal/termsConsent'
 import {
   COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT,
@@ -89,6 +88,10 @@ type CommunityReportGuard = {
   at: number
 }
 
+const isCommunityPostCategory = (value: unknown): value is CommunityPostCategory =>
+  typeof value === 'string' &&
+  Object.prototype.hasOwnProperty.call(COMMUNITY_POST_CATEGORY_LABEL, value)
+
 const readJSON = <T,>(raw: string | null): T | null => {
   if (!raw) return null
   try {
@@ -111,15 +114,14 @@ const readDraftState = () => {
     category?: 'all' | CommunityPostCategory
   }>(localStorage.getItem(COMMUNITY_DRAFT_STORAGE_KEY))
 
+  const category = parsed?.category
+
   return {
     title: typeof parsed?.title === 'string' ? parsed.title : '',
     body: typeof parsed?.body === 'string' ? parsed.body : '',
     tagText: typeof parsed?.tagText === 'string' ? parsed.tagText : '',
     area: typeof parsed?.area === 'string' ? parsed.area : '',
-    category:
-      parsed?.category === 'all' || COMMUNITY_CATEGORIES.includes(parsed.category as any)
-        ? (parsed.category as 'all' | CommunityPostCategory)
-        : 'all',
+    category: category === 'all' || isCommunityPostCategory(category) ? category : 'all',
   }
 }
 

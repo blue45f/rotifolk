@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
@@ -29,7 +29,7 @@ interface PolicySection {
   title: string
   required: boolean
   searchText: string
-  body: JSX.Element
+  body: ReactNode
 }
 
 const tiers = refundSchedule(24)
@@ -188,9 +188,8 @@ export default function PoliciesPage() {
   const tutorialStep = normalizeTutorialStep(searchParams.get('fromTutorial'))
   const isTutorialMode = tutorialStep === 'policies' || tutorialStep === 'policies-sync'
   const [search, setSearch] = useState<string>(searchParams.get('q') ?? '')
-  const [filter, setFilter] = useState<FilterMode>(
-    isFilterMode(searchParams.get('filter')) ? searchParams.get('filter')! : 'all',
-  )
+  const filterParam = searchParams.get('filter')
+  const [filter, setFilter] = useState<FilterMode>(isFilterMode(filterParam) ? filterParam : 'all')
   const [agreedIds, setAgreedIds] = useState<TermsSectionId[]>(() => initialState.agreedIds)
   const [version, setVersion] = useState(initialState.version)
   const [updatedAt, setUpdatedAt] = useState(initialState.updatedAt)
