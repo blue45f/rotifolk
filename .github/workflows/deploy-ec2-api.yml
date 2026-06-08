@@ -28,6 +28,10 @@ jobs:
       EC2_HOST: ${{ secrets.EC2_HOST }}
       EC2_USER: ${{ secrets.EC2_USER }}
       EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      EC2_SECURITY_GROUP_ID: ${{ secrets.EC2_SECURITY_GROUP_ID }}
       REMOTE_DIR: /tmp/rotifolk-src
       API_IMAGE: rotifolk-api:latest
       API_CONTAINER: rotifolk-api
@@ -39,23 +43,44 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Skip deployment when EC2 secrets are not configured
-        if: env.EC2_HOST == '' || env.EC2_USER == '' || env.EC2_SSH_KEY == ''
-        run: echo "EC2_HOST, EC2_USER, or EC2_SSH_KEY is not configured; skipping EC2 deployment."
+        if: env.EC2_HOST == '' || env.EC2_USER == '' || env.EC2_SSH_KEY == '' || env.AWS_ACCESS_KEY_ID == '' || env.AWS_SECRET_ACCESS_KEY == '' || env.AWS_REGION == '' || env.EC2_SECURITY_GROUP_ID == ''
+        run: echo "EC2/AWS deployment secrets are not fully configured; skipping EC2 deployment."
+
+      - name: Configure AWS credentials
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Authorize runner SSH ingress
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
+        run: |
+          set -euo pipefail
+          RUNNER_IP="$(curl -fsSL https://api.ipify.org)"
+          RUNNER_SSH_CIDR="${RUNNER_IP}/32"
+          echo "RUNNER_SSH_CIDR=$RUNNER_SSH_CIDR" >> "$GITHUB_ENV"
+          aws ec2 authorize-security-group-ingress \
+            --region "$AWS_REGION" \
+            --group-id "$EC2_SECURITY_GROUP_ID" \
+            --ip-permissions "IpProtocol=tcp,FromPort=22,ToPort=22,IpRanges=[{CidrIp=${RUNNER_SSH_CIDR},Description=github-actions-${GITHUB_RUN_ID}}]" \
+            || true
 
       - name: Configure SSH
-        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
           printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/rotifolk_ec2.pem
           chmod 600 ~/.ssh/rotifolk_ec2.pem
-          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+          ssh-keyscan -T 20 -H "$EC2_HOST" >> ~/.ssh/known_hosts
 
       - name: Upload source to EC2
-        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
         run: |
           set -euo pipefail
-          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes ${EC2_USER}@${EC2_HOST}"
+          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes -o ConnectTimeout=20 ${EC2_USER}@${EC2_HOST}"
 
           $SSH "rm -rf '$REMOTE_DIR' && mkdir -p '$REMOTE_DIR'"
 
@@ -72,10 +97,10 @@ jobs:
             | $SSH "tar -xzf - -C '$REMOTE_DIR'"
 
       - name: Build and restart API container
-        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
         run: |
           set -euo pipefail
-          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes ${EC2_USER}@${EC2_HOST}"
+          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes -o ConnectTimeout=20 ${EC2_USER}@${EC2_HOST}"
 
           $SSH "
             set -euo pipefail
@@ -92,10 +117,10 @@ jobs:
           "
 
       - name: Smoke test API
-        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
         run: |
           set -euo pipefail
-          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes ${EC2_USER}@${EC2_HOST}"
+          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes -o ConnectTimeout=20 ${EC2_USER}@${EC2_HOST}"
 
           $SSH "
             set -euo pipefail
@@ -112,5 +137,17 @@ jobs:
         if: always() && env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != ''
         run: |
           set -euo pipefail
-          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes ${EC2_USER}@${EC2_HOST}"
-          $SSH "rm -rf '$REMOTE_DIR' && sudo docker image prune -f"
+          SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes -o ConnectTimeout=20 ${EC2_USER}@${EC2_HOST}"
+          $SSH "rm -rf '$REMOTE_DIR' && sudo docker image prune -f" || true
+
+      - name: Revoke runner SSH ingress
+        if: always() && env.RUNNER_SSH_CIDR != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
+        run: |
+          set -euo pipefail
+          aws ec2 revoke-security-group-ingress \
+            --region "$AWS_REGION" \
+            --group-id "$EC2_SECURITY_GROUP_ID" \
+            --protocol tcp \
+            --port 22 \
+            --cidr "$RUNNER_SSH_CIDR" \
+            || true
