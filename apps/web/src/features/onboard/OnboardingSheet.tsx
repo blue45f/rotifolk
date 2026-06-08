@@ -27,7 +27,11 @@ const SLIDES = [
   },
 ] as const
 
-export default function OnboardingSheet() {
+interface OnboardingSheetProps {
+  forceOpenSignal?: number
+}
+
+export default function OnboardingSheet({ forceOpenSignal = 0 }: OnboardingSheetProps) {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState(0)
 
@@ -36,6 +40,12 @@ export default function OnboardingSheet() {
       if (!localStorage.getItem(KEY)) setOpen(true)
     } catch {}
   }, [])
+
+  useEffect(() => {
+    if (forceOpenSignal <= 0) return
+    setStep(0)
+    setOpen(true)
+  }, [forceOpenSignal])
 
   const close = () => {
     setOpen(false)

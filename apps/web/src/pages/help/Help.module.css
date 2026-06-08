@@ -19,6 +19,113 @@
   color: var(--color-text-muted);
 }
 
+.quickStart {
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.quickStartTitle {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+}
+
+.fastGuide {
+  margin-top: var(--space-2);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.fastGuideItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  min-height: 74px;
+}
+
+.fastGuideItem strong {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--color-primary) 16%, transparent);
+  color: var(--color-primary);
+  font-size: var(--fs-sm);
+}
+
+.fastGuideItem div {
+  min-width: 0;
+}
+
+.fastGuideItem h3 {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.fastGuideItem p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  line-height: var(--lh-relaxed);
+}
+
+.fastGuideItem a {
+  justify-self: end;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-soft);
+  color: var(--color-primary);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.fastGuideItem a:hover {
+  background: color-mix(in oklab, var(--color-primary) 14%, transparent);
+}
+
+.quickStartGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-3);
+}
+
+.quickStartCard {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  text-align: left;
+  color: inherit;
+  display: grid;
+  gap: var(--space-2);
+  text-decoration: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart);
+}
+
+.quickStartCard:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--color-primary) 30%, transparent);
+}
+
+.quickStartCard span {
+  font-size: 1.8rem;
+}
+
+.quickStartCard small {
+  color: var(--color-text-muted);
+}
+
 .searchRow {
   margin-top: var(--space-5);
   margin-bottom: var(--space-2);

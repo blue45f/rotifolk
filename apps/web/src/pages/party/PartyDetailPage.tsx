@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { normalizeTutorialStep } from '@features/tutorial/progress'
 import { motion } from 'framer-motion'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -87,6 +88,8 @@ const PAYMENT_METHODS: { value: PaymentMethod; label: string; emoji: string }[] 
 export default function PartyDetailPage() {
   const { partyId } = useParams<{ partyId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const me = useAuthStore((s) => s.user)
   const { data, isLoading } = useParty(partyId)
   const join = useJoinParty(partyId!)
@@ -112,6 +115,15 @@ export default function PartyDetailPage() {
     enabled: !!me && !!partyId,
   })
   const isSaved = saved?.some((s) => s.id === partyId) ?? false
+  const currentPath = `${location.pathname}${location.search}${location.hash}` || '/'
+  const tutorialStep = normalizeTutorialStep(searchParams.get('fromTutorial'))
+  const policyFromTutorial =
+    tutorialStep === 'policies'
+      ? '&fromTutorial=policies'
+      : tutorialStep === 'policies-sync'
+        ? '&fromTutorial=policies-sync'
+        : ''
+  const policyHref = `/policies?from=${encodeURIComponent(currentPath)}${policyFromTutorial}`
 
   // 지인 회피 — 같은 모임에 차단/회피/같은 회사 대상이 있으면 사전 경고 (해시 대조, 이름 비노출)
   const { data: avoidOverlaps } = useQuery({
@@ -824,7 +836,7 @@ export default function PartyDetailPage() {
               <li>🍴 {SNACK_PACKAGE_LABEL[party.pricing.snackPackage]}</li>
               <li>🔄 환불: 시작 {party.pricing.refundDeadlineHours}시간 전까지 전액</li>
             </ul>
-            <Link to="/policies" className={styles.policyLink}>
+            <Link to={policyHref} className={styles.policyLink}>
               환불·취소·노쇼 정책 자세히 보기 →
             </Link>
 

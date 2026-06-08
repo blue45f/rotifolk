@@ -1,5 +1,6 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { useEffect, useRef, useState } from 'react'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { useLocale, useT } from '@features/i18n/i18n'
@@ -9,13 +10,34 @@ import { api } from '@services/api'
 import { notificationKeys } from '@features/notifications/useNotificationsRealtime'
 import styles from './Header.module.css'
 
-export function Header() {
+interface HeaderProps {
+  onOpenCommand?: () => void
+  onOpenOnboarding?: () => void
+}
+
+type ThemeOption = {
+  value: 'light' | 'dark' | 'system'
+  labelKey: 'theme.light' | 'theme.dark' | 'theme.system'
+  emoji: string
+}
+
+const THEME_OPTIONS: ThemeOption[] = [
+  { value: 'light', labelKey: 'theme.light', emoji: '☀️' },
+  { value: 'dark', labelKey: 'theme.dark', emoji: '🌙' },
+  { value: 'system', labelKey: 'theme.system', emoji: '🖥️' },
+]
+
+export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
   const user = useAuthStore((s) => s.user)
   const isAdmin = user?.role === 'admin'
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const t = useT()
   const [locale, setLocale] = useLocale()
+  const location = useLocation()
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false)
+  const themeMenuRef = useRef<HTMLDivElement>(null)
+  const themeButtonRef = useRef<HTMLButtonElement>(null)
   const { data: unread } = useQuery({
     queryKey: notificationKeys.unread,
     queryFn: () => api.get<{ count: number }>('notifications/unread-count'),
@@ -23,13 +45,36 @@ export function Header() {
     staleTime: 60_000,
   })
 
-  const isDark =
-    theme === 'dark' ||
-    (theme === 'system' &&
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-color-scheme: dark)').matches)
+  const themeModeLabel =
+    theme === 'light' ? t('theme.light') : theme === 'dark' ? t('theme.dark') : t('theme.system')
   const nextLocale = locale === 'ko' ? 'en' : 'ko'
   const langLabel = locale === 'ko' ? 'EN' : '한'
+  const currentPath = `${location.pathname}${location.search}${location.hash}`
+  const encodedCurrentPath = encodeURIComponent(currentPath || '/')
+  const demoLoginHref = `/login?demo=1&auto=1&from=${encodeURIComponent(currentPath || '/')}`
+
+  useEffect(() => {
+    if (!themeMenuOpen) return
+    const onDocDown = (e: MouseEvent) => {
+      const target = e.target as Node
+      if (!themeMenuRef.current?.contains(target) && !themeButtonRef.current?.contains(target)) {
+        setThemeMenuOpen(false)
+      }
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setThemeMenuOpen(false)
+        themeButtonRef.current?.focus()
+      }
+    }
+    window.addEventListener('mousedown', onDocDown)
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('mousedown', onDocDown)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [themeMenuOpen])
+
   return (
     <header className={styles.header}>
       <div className={`container ${styles.inner}`}>
@@ -45,10 +90,31 @@ export function Header() {
           <NavLink to="/venues" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.venues')}
           </NavLink>
+          <NavLink
+            to={`/community?from=${encodedCurrentPath}`}
+            className={({ isActive }) => (isActive ? styles.active : '')}
+          >
+            {t('nav.community')}
+          </NavLink>
           <NavLink to="/digest" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.digest')}
           </NavLink>
-          <NavLink to="/policies" className={({ isActive }) => (isActive ? styles.active : '')}>
+          <NavLink
+            to={`/help?from=${encodedCurrentPath}`}
+            className={({ isActive }) => (isActive ? styles.active : '')}
+          >
+            {t('nav.help')}
+          </NavLink>
+          <NavLink
+            to={`/tutorial?from=${encodedCurrentPath}`}
+            className={({ isActive }) => (isActive ? styles.active : '')}
+          >
+            {t('nav.tutorial')}
+          </NavLink>
+          <NavLink
+            to={`/policies?from=${encodedCurrentPath}`}
+            className={({ isActive }) => (isActive ? styles.active : '')}
+          >
             {t('nav.policies')}
           </NavLink>
           {user && (
@@ -64,6 +130,24 @@ export function Header() {
         </nav>
 
         <div className={styles.actions}>
+          {onOpenCommand && onOpenOnboarding && (
+            <button
+              type="button"
+              className={styles.commandBtn}
+              onClick={() => onOpenOnboarding()}
+              aria-label={t('command.quick.onboarding')}
+              title={t('command.quick.onboarding')}
+            >
+              🧭
+              <span className={styles.commandBtnHint}>튜토리얼</span>
+            </button>
+          )}
+          {!user && (
+            <Link to={demoLoginHref} className={styles.commandBtn} aria-label="데모 계정 빠른 시작">
+              <span aria-hidden="true">🎁</span>
+              <span className={styles.commandBtnHint}>데모</span>
+            </Link>
+          )}
           <button
             type="button"
             className={styles.langBtn}
@@ -73,15 +157,59 @@ export function Header() {
           >
             {langLabel}
           </button>
-          <button
-            type="button"
-            className={styles.themeBtn}
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            aria-label={isDark ? t('btn.light') : t('btn.dark')}
-            title={isDark ? t('btn.light') : t('btn.dark')}
-          >
-            {isDark ? '🌞' : '🌙'}
-          </button>
+          {onOpenCommand && (
+            <button
+              type="button"
+              className={styles.commandBtn}
+              onClick={() => onOpenCommand()}
+              aria-label={`${t('command.openLabel')} (⌘K / /)`}
+              title={`${t('command.openLabel')} (⌘K / /)`}
+            >
+              <span aria-hidden="true">⌘K</span>
+              <span className={styles.commandBtnHint} aria-hidden="true">
+                /
+              </span>
+            </button>
+          )}
+          <div className={styles.themeWrap}>
+            <button
+              ref={themeButtonRef}
+              type="button"
+              className={styles.themeBtn}
+              onClick={() => setThemeMenuOpen((prev) => !prev)}
+              aria-label={t('theme.switchLabel')}
+              aria-expanded={themeMenuOpen}
+              aria-haspopup="menu"
+            >
+              {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '🖥️'}
+            </button>
+            <span className={styles.themeModeText}>{themeModeLabel}</span>
+            {themeMenuOpen && (
+              <div
+                ref={themeMenuRef}
+                className={styles.themeMenu}
+                role="menu"
+                aria-label={t('theme.modeLabel')}
+              >
+                {THEME_OPTIONS.map((item) => (
+                  <button
+                    key={item.value}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={theme === item.value}
+                    className={styles.themeOption}
+                    onClick={() => {
+                      setTheme(item.value)
+                      setThemeMenuOpen(false)
+                    }}
+                  >
+                    <span aria-hidden="true">{item.emoji}</span>
+                    <span>{t(item.labelKey)}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           {user && (
             <Link to="/notifications" className={styles.bell} aria-label="알림">
               <span aria-hidden="true">🔔</span>
@@ -98,12 +226,12 @@ export function Header() {
             </Link>
           ) : (
             <>
-              <Link to="/login">
+              <Link to={`/login?from=${encodedCurrentPath}`}>
                 <Button variant="ghost" size="sm">
                   {t('btn.login')}
                 </Button>
               </Link>
-              <Link to="/signup">
+              <Link to={`/signup?from=${encodedCurrentPath}`}>
                 <Button variant="primary" size="sm">
                   {t('btn.signup')}
                 </Button>

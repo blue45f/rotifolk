@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
@@ -24,6 +24,7 @@ export default function HomePage() {
     withBrand: false,
     description: '와인·커피·차·위스키 로테이션 모임. 모르는 사람들이 진짜 친해지는 5분 라운드.',
   })
+  const location = useLocation()
   const me = useAuthStore((s) => s.user)
   const { data: parties, isLoading } = useParties({ status: 'open', pageSize: 6 })
   const { data: nowParties } = useQuery({
@@ -31,6 +32,10 @@ export default function HomePage() {
     queryFn: () => api.get<PartySummary[]>('parties/happening-now'),
     refetchInterval: 30_000,
   })
+  const currentPath = `${location.pathname}${location.search}${location.hash}` || '/'
+  const encodedCurrentPath = encodeURIComponent(currentPath)
+  const tutorialHref = `/tutorial?from=${encodedCurrentPath}`
+  const communityHref = `/community?guide=1&from=${encodedCurrentPath}`
   const reduce = useReducedMotion() ?? false
   const recommended = me && parties ? recommendParties(parties.items, userToContext(me), 3) : []
   const { items: recents } = useRecents()
@@ -39,6 +44,7 @@ export default function HomePage() {
     openParties: parties?.items ?? [],
     liveParties: nowParties ?? [],
   })
+  const demoLoginHref = `/login?demo=1&auto=1&from=${encodedCurrentPath}`
   const activeSeats = Math.min(10, Math.round(pulse.averageFillRate / 10))
   const nextPartyTime = pulse.nextParty
     ? new Date(pulse.nextParty.startAt).toLocaleString('ko-KR', {
@@ -101,6 +107,53 @@ export default function HomePage() {
         </div>
 
         <div className={styles.heroEdge} aria-hidden="true" />
+      </section>
+
+      <section className={`container ${styles.section}`} aria-labelledby="quick-start-title">
+        <header className={styles.sectionHead}>
+          <h2 id="quick-start-title" className={styles.sectionTitle}>
+            지금 바로 시작하기
+          </h2>
+          <p className={styles.sectionSub}>처음 오더라도 오늘 바로 체험해볼 동선을 추천해요.</p>
+        </header>
+        <div className={styles.quickStartGrid}>
+          <Link to={tutorialHref} className={styles.quickStartCard}>
+            <span className={styles.quickStartIcon} aria-hidden="true">
+              🧭
+            </span>
+            <div className={styles.quickStartBody}>
+              <strong>튜토리얼 다시 보기</strong>
+              <small>8단계 가이드로 핵심 흐름과 동선을 다시 확인해요.</small>
+            </div>
+            <span className={styles.quickStartAction} aria-hidden="true">
+              시작 →
+            </span>
+          </Link>
+          <Link to={communityHref} className={styles.quickStartCard}>
+            <span className={styles.quickStartIcon} aria-hidden="true">
+              💬
+            </span>
+            <div className={styles.quickStartBody}>
+              <strong>커뮤니티 첫 질문 가이드</strong>
+              <small>템플릿으로 1분 안에 질문/후기/팁 게시물을 써요.</small>
+            </div>
+            <span className={styles.quickStartAction} aria-hidden="true">
+              시작 →
+            </span>
+          </Link>
+          <Link to={demoLoginHref} className={styles.quickStartCard}>
+            <span className={styles.quickStartIcon} aria-hidden="true">
+              🎁
+            </span>
+            <div className={styles.quickStartBody}>
+              <strong>데모로 즉시 체험</strong>
+              <small>가입 없이 데모 계정으로 핵심 플로우를 먼저 봐요.</small>
+            </div>
+            <span className={styles.quickStartAction} aria-hidden="true">
+              시작 →
+            </span>
+          </Link>
+        </div>
       </section>
 
       <section className={styles.pulseBand} aria-labelledby="pulse-title">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useLocation, useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
 import { computeHostLevel } from '@rotifolk/shared'
@@ -61,6 +61,8 @@ interface HostProfile {
 export default function HostProfilePage() {
   const { hostId } = useParams<{ hostId: string }>()
   const me = useAuthStore((s) => s.user)
+  const location = useLocation()
+  const currentPath = `${location.pathname}${location.search}${location.hash}`
   const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
@@ -203,7 +205,7 @@ export default function HostProfilePage() {
       {!me && (
         <Card padding="lg" variant="soft">
           <p className={styles.muted}>로그인하면 이 호스트를 팔로우할 수 있어요.</p>
-          <Link to="/login">
+          <Link to={`/login?from=${encodeURIComponent(currentPath || '/')}`}>
             <Button variant="primary">로그인</Button>
           </Link>
         </Card>
