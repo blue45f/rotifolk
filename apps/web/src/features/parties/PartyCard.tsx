@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
 import {
@@ -43,6 +43,7 @@ const DRINK_HINT: Record<string, string> = {
 }
 
 export function PartyCard({ party }: Props) {
+  const navigate = useNavigate()
   const cat = CATEGORY_META[party.category]
   // 돌싱/자녀 등 자격 제한이 있을 때만 칩으로 노출(전체 허용이면 숨김).
   const marital = party.maritalRequirement ?? []
@@ -197,13 +198,17 @@ export function PartyCard({ party }: Props) {
           </span>
         </div>
         {party.hostNickname && (
-          <Link
-            to={`/hosts/${party.hostId}`}
+          <button
+            type="button"
             className={styles.hostLink}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(`/hosts/${party.hostId}`)
+            }}
           >
             🎙️ {party.hostNickname}
-          </Link>
+          </button>
         )}
       </div>
     </Link>
