@@ -31,6 +31,8 @@ body {
   text-rendering: optimizeLegibility;
   font-feature-settings: 'ss01', 'ss02', 'cv01', 'cv02';
   font-synthesis-weight: none;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 #root {

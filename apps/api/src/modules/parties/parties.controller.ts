@@ -157,4 +157,51 @@ export class PartiesController {
   end(@CurrentUser() me: JwtUserPayload, @Param('id') id: string) {
     return this.parties.end(me.sub, id)
   }
+
+  @Get(':id/after-party')
+  @UseGuards(AuthGuard('jwt'))
+  getAfterParty(@CurrentUser() me: JwtUserPayload, @Param('id') partyId: string) {
+    void me
+    void partyId
+    return { ok: true }
+  }
+
+  @Post(':id/after-party/vote')
+  @UseGuards(AuthGuard('jwt'))
+  voteAfterParty(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('id') partyId: string,
+    @Body() dto: any,
+  ) {
+    void me
+    void partyId
+    void dto
+    return { ok: true }
+  }
+
+  @Post(':id/after-party/venue-vote')
+  @UseGuards(AuthGuard('jwt'))
+  voteVenueAfterParty(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('id') partyId: string,
+    @Body() dto: any,
+  ) {
+    void me
+    void partyId
+    void dto
+    return { ok: true }
+  }
+
+  @Post(':id/after-party/confirm')
+  @UseGuards(AuthGuard('jwt'))
+  confirmAfterParty(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('id') partyId: string,
+    @Body() dto: any,
+  ) {
+    void me
+    void partyId
+    void dto
+    return { ok: true }
+  }
 }

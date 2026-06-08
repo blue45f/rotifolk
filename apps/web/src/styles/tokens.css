@@ -143,10 +143,10 @@
 
   --lh-tight: 1.1;
   --lh-snug: 1.25;
-  --lh-normal: 1.5;
+  --lh-normal: 1.6;
   --lh-relaxed: 1.7;
 
-  --tracking-tight: -0.022em;
+  --tracking-tight: -0.012em;
   --tracking-normal: 0;
   --tracking-wide: 0.04em;
   --tracking-uppercase: 0.18em;
@@ -227,8 +227,8 @@
   --color-surface-elev: oklch(28% 0.038 290);
 
   --color-text: oklch(94% 0.01 80);
-  --color-text-muted: oklch(70% 0.015 290);
-  --color-text-subtle: oklch(55% 0.018 290);
+  --color-text-muted: oklch(77% 0.012 290);
+  --color-text-subtle: oklch(64% 0.015 290);
   --color-text-inverse: var(--brand-ink-900);
 
   --color-border: color-mix(in oklab, white 9%, transparent);
