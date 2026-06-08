@@ -32,8 +32,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       EC2_SECURITY_GROUP_ID: ${{ secrets.EC2_SECURITY_GROUP_ID }}
-      REMOTE_DIR: /tmp/rotifolk-src
-      API_IMAGE: rotifolk-api:latest
+      API_IMAGE: rotifolk-api:${{ github.sha }}
+      API_LATEST_IMAGE: rotifolk-api:latest
       API_CONTAINER: rotifolk-api
       API_ENV_FILE: /opt/rotifolk-runtime.env
       API_DATA_VOLUME: rotifolk-data
@@ -76,27 +76,24 @@ jobs:
           chmod 600 ~/.ssh/rotifolk_ec2.pem
           ssh-keyscan -T 20 -H "$EC2_HOST" >> ~/.ssh/known_hosts
 
-      - name: Upload source to EC2
+      - name: Build API image
+        if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
+        env:
+          DOCKER_BUILDKIT: 1
+        run: |
+          set -euo pipefail
+          docker build -f apps/api/Dockerfile -t "$API_IMAGE" -t "$API_LATEST_IMAGE" .
+
+      - name: Load API image into EC2
         if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
         run: |
           set -euo pipefail
           SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes -o ConnectTimeout=20 ${EC2_USER}@${EC2_HOST}"
 
-          $SSH "rm -rf '$REMOTE_DIR' && mkdir -p '$REMOTE_DIR'"
+          $SSH "sudo docker image prune -f && sudo docker builder prune -f --filter until=24h"
+          docker save "$API_IMAGE" "$API_LATEST_IMAGE" | gzip | $SSH "gunzip | sudo docker load"
 
-          tar \
-            --exclude='.git' \
-            --exclude='node_modules' \
-            --exclude='apps/web/dist' \
-            --exclude='apps/api/dist' \
-            --exclude='dist' \
-            --exclude='coverage' \
-            --exclude='.turbo' \
-            --exclude='.vercel' \
-            -czf - . \
-            | $SSH "tar -xzf - -C '$REMOTE_DIR'"
-
-      - name: Build and restart API container
+      - name: Restart API container
         if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
         run: |
           set -euo pipefail
@@ -104,8 +101,6 @@ jobs:
 
           $SSH "
             set -euo pipefail
-            cd '$REMOTE_DIR'
-            sudo docker build -f apps/api/Dockerfile -t '$API_IMAGE' .
             sudo docker rm -f '$API_CONTAINER' || true
             sudo docker run -d \
               --name '$API_CONTAINER' \
@@ -138,7 +133,7 @@ jobs:
         run: |
           set -euo pipefail
           SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes -o ConnectTimeout=20 ${EC2_USER}@${EC2_HOST}"
-          $SSH "rm -rf '$REMOTE_DIR' && sudo docker image prune -f" || true
+          $SSH "sudo docker image prune -f && sudo docker builder prune -f --filter until=24h" || true
 
       - name: Revoke runner SSH ingress
         if: always() && env.RUNNER_SSH_CIDR != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
