@@ -447,9 +447,17 @@
   );
   box-shadow: var(--shadow-md);
   --ring-c: var(--brand-gold-500);
+  transition: 
+    transform var(--dur-base) var(--ease-spring),
+    box-shadow var(--dur-base) var(--ease-out-quart);
+}
+.ring:hover {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: var(--shadow-glow);
 }
 .ring_perfect {
   --ring-c: var(--brand-gold-500);
+  box-shadow: var(--shadow-glow);
 }
 .ring_great {
   --ring-c: var(--color-success, oklch(58% 0.11 160));

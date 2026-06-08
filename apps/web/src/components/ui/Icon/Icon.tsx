@@ -22,6 +22,7 @@ export type IconName =
   | 'moon' // 모집 중 (was 🌙)
   | 'live' // 진행 중 (was 🔴)
   | 'archive' // 지난 모임 (was 📜)
+  | 'music' // BGM (was 🎵)
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {
   name: IconName
@@ -107,6 +108,14 @@ const GLYPHS: Record<IconName, ReactNode> = {
       <path d="M7 4h8a2.5 2.5 0 0 1 2.5 2.5V18a2 2 0 0 1-2 2H7" />
       <path d="M7 4a2.5 2.5 0 0 0-2.5 2.5V7H7" />
       <path d="M9.5 9.5h5M9.5 13h5M9.5 16.5h3" />
+    </>
+  ),
+  // Lounge BGM Double Note
+  music: (
+    <>
+      <path d="M9 18V5l12-2v13" />
+      <circle cx="6" cy="18" r="3" fill="currentColor" />
+      <circle cx="18" cy="16" r="3" fill="currentColor" />
     </>
   ),
 }

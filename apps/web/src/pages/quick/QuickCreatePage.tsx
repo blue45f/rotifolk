@@ -8,6 +8,7 @@ import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import styles from './QuickCreate.module.css'
 
@@ -125,7 +126,8 @@ export default function QuickCreatePage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Badge tone="gold" size="md">
-          ⚡ 1분 만에 즉석 모임
+          <Icon name="bolt" size={0.95} style={{ marginRight: '4px', verticalAlign: 'middle' }} />{' '}
+          1분 만에 즉석 모임
         </Badge>
         <h1 className={styles.title}>
           지금, <span className={styles.accent}>한 잔 어때요?</span>
@@ -171,7 +173,12 @@ export default function QuickCreatePage() {
                   className={`${styles.venueChip} ${venueId === v.id ? styles.venueActive : ''}`}
                   onClick={() => setVenueId(v.id)}
                 >
-                  📍 {v.area} · <strong>{v.name}</strong>
+                  <Icon
+                    name="pin"
+                    size={0.9}
+                    style={{ marginRight: '4px', verticalAlign: 'middle' }}
+                  />{' '}
+                  {v.area} · <strong>{v.name}</strong>
                 </button>
               ))}
             </div>
@@ -217,8 +224,9 @@ export default function QuickCreatePage() {
             onClick={handleCreate}
             isLoading={creating}
             disabled={!venueId}
+            leftIcon={<Icon name="bolt" />}
           >
-            ⚡ 지금 모임 열기
+            지금 모임 열기
           </Button>
         </Card>
       </main>

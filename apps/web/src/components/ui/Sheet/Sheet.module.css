@@ -31,9 +31,11 @@
 }
 
 .v_modal {
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-xl);
   max-height: 86dvh;
+  width: calc(100% - var(--space-6));
   margin: auto;
+  transition: width var(--dur-base) var(--ease-out);
 }
 .v_modal.s_sm {
   max-width: 360px;
@@ -47,6 +49,7 @@
 
 .v_sheet {
   max-width: 560px;
+  width: 100%;
   margin-inline: auto;
 }
 
@@ -81,18 +84,25 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.04);
+  background: color-mix(in oklab, var(--brand-ink-900) 4%, transparent);
   font-size: 14px;
   color: var(--color-text-muted);
-  transition: background var(--dur-fast);
+  transition: 
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-spring);
+  cursor: pointer;
 }
 .close:hover {
-  background: rgba(0, 0, 0, 0.08);
+  background: color-mix(in oklab, var(--brand-ink-900) 8%, transparent);
+  transform: scale(1.05);
+}
+.close:active {
+  transform: scale(0.95);
 }
 .v_modal .panel {
   border-radius: var(--radius-2xl);

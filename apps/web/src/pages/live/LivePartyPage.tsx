@@ -26,6 +26,7 @@ import { useConfirm } from '@components/feedback/Confirm/ConfirmProvider'
 import { useVenueMenu } from '@features/venues/queries'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useBgmQueue, getEmbedUrl, type BgmTrack } from '@features/bgm/useBgmQueue'
 import styles from './LiveParty.module.css'
 
@@ -151,7 +152,12 @@ export default function LivePartyPage() {
               {cat.emoji} {cat.label}
             </Badge>
             <Badge tone="danger" size="md">
-              🔴 LIVE
+              <Icon
+                name="live"
+                size={0.9}
+                style={{ marginRight: '4px', verticalAlign: 'middle' }}
+              />{' '}
+              LIVE
             </Badge>
             {state.currentRoundIndex && (
               <Badge tone="primary" size="md">
@@ -171,7 +177,7 @@ export default function LivePartyPage() {
             onClick={() => setShowBgm(true)}
             aria-label="BGM 큐 열기"
           >
-            🎵
+            <Icon name="music" size={1.05} style={{ verticalAlign: 'middle' }} />
             {bgm.tracks.length > 0 && <span className={styles.bgmBadge}>{bgm.tracks.length}</span>}
           </button>
         </div>
@@ -451,6 +457,13 @@ function RecreationOverlay({
 }) {
   const [pick, setPick] = useState<'a' | 'b' | null>(null)
   const p = rec.payload ?? {}
+
+  // 밸런스 게임 득표 모의 통계
+  const aVotes = 6 + (pick === 'a' ? 1 : 0)
+  const bVotes = 4 + (pick === 'b' ? 1 : 0)
+  const totalVotes = aVotes + bVotes
+  const aPercent = Math.round((aVotes / totalVotes) * 100)
+  const bPercent = 100 - aPercent
   return (
     <motion.div
       className={styles.recOverlay}
@@ -478,13 +491,38 @@ function RecreationOverlay({
               {(['a', 'b'] as const).map((side) => (
                 <button
                   key={side}
-                  className={`${styles.recChoice} ${pick === side ? styles.recChoiceOn : ''}`}
-                  onClick={() => setPick(side)}
+                  className={`${styles.recChoice} ${pick === side ? styles.recChoiceOn : ''} ${pick && pick !== side ? styles.recChoiceOff : ''}`}
+                  onClick={() => !pick && setPick(side)}
+                  disabled={!!pick}
                 >
-                  {String(p[side] ?? '')}
+                  <span className={styles.choiceAlphabet}>{side.toUpperCase()}</span>
+                  <span className={styles.choiceText}>{String(p[side] ?? '')}</span>
                 </button>
               ))}
             </div>
+
+            {pick && (
+              <motion.div
+                className={styles.pollResults}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className={styles.pollLabels}>
+                  <span>
+                    {aPercent}% ({aVotes}명)
+                  </span>
+                  <span>우리 방 선택 현황</span>
+                  <span>
+                    {bPercent}% ({bVotes}명)
+                  </span>
+                </div>
+                <div className={styles.pollBarContainer}>
+                  <div className={styles.pollBarA} style={{ width: `${aPercent}%` }} />
+                  <div className={styles.pollBarB} style={{ width: `${bPercent}%` }} />
+                </div>
+              </motion.div>
+            )}
           </>
         )}
         {rec.kind === 'ideal-type' && (

@@ -1,0 +1,431 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  margin-top: var(--space-8);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.headerTitle h2 {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-tight);
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+}
+
+.loading {
+  padding: var(--space-12);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+/* ============ RSVP Section ============ */
+.rsvpSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--color-surface);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+.sectionTitle {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rsvpGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.rsvpBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+  transition: all var(--dur-fast) var(--ease-spring);
+  cursor: pointer;
+}
+
+.rsvpBtn strong {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+
+.rsvpBtn span {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-subtle);
+}
+
+.rsvpBtn:hover {
+  transform: translateY(-2px);
+  background: var(--color-surface);
+  border-color: var(--brand-burgundy-300);
+}
+
+.rsvpGo.active {
+  background: var(--brand-burgundy-700);
+  color: var(--brand-cream-50);
+  border-color: var(--brand-burgundy-700);
+}
+
+.rsvpMaybe.active {
+  background: var(--brand-gold-500);
+  color: var(--brand-ink-900);
+  border-color: var(--brand-gold-500);
+}
+
+.rsvpNo.active {
+  background: var(--color-text-subtle);
+  color: var(--brand-cream-50);
+  border-color: var(--color-text-subtle);
+}
+
+.rsvpGo.active span,
+.rsvpNo.active span {
+  color: var(--brand-cream-100);
+}
+
+.rsvpMaybe.active span {
+  color: var(--brand-ink-800);
+}
+
+.progressArea {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--space-2);
+}
+
+.progressLabel {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+}
+
+.progressBar {
+  height: 6px;
+  background: var(--color-surface-soft);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-burgundy-400), var(--brand-burgundy-700));
+  border-radius: var(--radius-pill);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.votersAvatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.avatarBadge {
+  font-size: 10px;
+  font-weight: var(--fw-semibold);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  color: var(--brand-cream-50);
+  border: 1px solid transparent;
+}
+
+.avatarBadge.go {
+  background: color-mix(in oklab, var(--brand-burgundy-700) 85%, transparent);
+}
+
+.avatarBadge.maybe {
+  background: color-mix(in oklab, var(--brand-gold-600) 80%, transparent);
+  color: var(--brand-ink-900);
+}
+
+/* ============ Venues Section ============ */
+.venuesSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionDesc {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+  margin-top: -6px;
+}
+
+.venuesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+
+.venueCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--dur-base) var(--ease-out-quart);
+}
+
+.venueCard:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--brand-gold-500) 35%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.venueVoted {
+  border-color: var(--brand-gold-500);
+  box-shadow: 0 0 0 1px var(--brand-gold-400);
+}
+
+.venueBody {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.venueDist {
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--brand-gold-600);
+}
+
+.venueBody h4 {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.venueBody small {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+}
+
+.venueVoteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+  width: 100%;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+
+.venueVoteBtn:hover {
+  background: var(--color-surface);
+}
+
+.venueVoteBtn.voted {
+  background: var(--brand-gold-100);
+  color: var(--brand-ink-900);
+}
+
+.voteCount {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+}
+
+.venueVoteBtn strong {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+
+/* ============ Host Section ============ */
+.hostSection {
+  background: color-mix(in oklab, var(--brand-gold-100) 30%, transparent);
+  border: 1px dashed var(--brand-gold-500);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-top: var(--space-2);
+}
+
+.hostPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.hostPrompt p {
+  font-size: var(--fs-xs);
+  color: var(--brand-gold-700);
+  font-weight: var(--fw-medium);
+}
+
+.confirmForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+}
+
+.formGroup input {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.formGroup input:focus {
+  outline: 2px solid var(--brand-gold-500);
+  outline-offset: 1px;
+}
+
+.formActions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* ============ Confirmed Box ============ */
+.confirmedBox {
+  background: var(--grad-cellar);
+  color: var(--brand-cream-50);
+  border: 1px solid color-mix(in oklab, var(--brand-gold-500) 45%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-glow);
+}
+
+.confirmedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  color: var(--brand-gold-400);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+}
+
+.livePulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 8px var(--color-success);
+  animation: pulse-ring 1.8s infinite;
+}
+
+.confirmedVenueName {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-black);
+}
+
+.confirmedMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--brand-cream-200);
+}
+
+.confirmedMeta .divider {
+  width: 1px;
+  height: 12px;
+  background: color-mix(in oklab, white 24%, transparent);
+}
+
+.confirmedActions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.confirmedActions a {
+  display: inline-flex;
+}
+
+/* ============ Mobile Breakpoint ============ */
+@media (max-width: 640px) {
+  .container {
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
+  .rsvpGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+  .rsvpBtn {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 12px 16px;
+  }
+  .venuesGrid {
+    grid-template-columns: 1fr;
+  }
+  .confirmedActions {
+    flex-direction: column;
+  }
+  .confirmedActions button,
+  .confirmedActions a {
+    width: 100%;
+  }
+}

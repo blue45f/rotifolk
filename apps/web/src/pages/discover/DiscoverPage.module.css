@@ -47,3 +47,22 @@
   justify-content: center;
   margin-top: var(--space-6);
 }
+
+/* ============ Mobile Breakpoints ============ */
+@media (max-width: 640px) {
+  .page {
+    padding-block: var(--space-6) var(--space-10);
+  }
+  .filters {
+    gap: var(--space-2);
+  }
+  .grid {
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 380px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

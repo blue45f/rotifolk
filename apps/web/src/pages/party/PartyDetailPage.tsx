@@ -33,6 +33,7 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Sheet } from '@components/ui/Sheet/Sheet'
+import { AfterPartyManager } from '@features/parties/AfterPartyManager'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
@@ -199,6 +200,17 @@ export default function PartyDetailPage() {
   const [rating, setRating] = useState(5)
   const [reviewBody, setReviewBody] = useState('')
   const [anonymous, setAnonymous] = useState(true)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+
+  const PRESET_FEEDBACK_TAGS = [
+    '🎙️ 진행이 매끄러워요',
+    '🏛️ 장소가 멋져요',
+    '🍷 음료/페어링이 최고예요',
+    '⏱️ 시간 약속이 정확해요',
+    '🧡 매너가 좋고 친절해요',
+    '💬 대화가 잘 통해요',
+  ]
+
   const submitReview = useMutation({
     mutationFn: () =>
       api.post('reviews', {
@@ -207,10 +219,12 @@ export default function PartyDetailPage() {
         rating,
         body: reviewBody.trim(),
         anonymous,
+        tags: selectedTags,
       }),
     onSuccess: () => {
       toast.show('후기가 등록됐어요 ✨', 'success')
       setReviewBody('')
+      setSelectedTags([])
       queryClient.invalidateQueries({ queryKey: ['reviews', partyId] })
     },
     onError: (e) => toast.show((e as Error).message, 'error'),
@@ -343,6 +357,11 @@ export default function PartyDetailPage() {
             .map((r) => AVOID_REASON_LABEL[r])
             .join(' · ')}
           ). 신중히 결정하세요.
+        </div>
+      )}
+      {avoidOverlaps && avoidOverlaps.length === 0 && !isHost && (
+        <div className={styles.safeBar} role="status">
+          🛡️ <strong>지인 회피 안심 모임</strong> (등록된 회피 연락처/회원이 이 모임에 없습니다.)
         </div>
       )}
       <motion.section
@@ -693,6 +712,10 @@ export default function PartyDetailPage() {
             )
           })()}
 
+          {party.config.groupAfterParty && (status === 'live' || status === 'ended') && (
+            <AfterPartyManager partyId={party.id} isHost={isHost} />
+          )}
+
           {(reviews && reviews.length > 0) || (status === 'ended' && joinedMe) ? (
             <Card padding="lg">
               <h2 className={styles.h2}>후기</h2>
@@ -721,6 +744,32 @@ export default function PartyDetailPage() {
                     onChange={(e) => setReviewBody(e.target.value)}
                     rows={3}
                   />
+
+                  <div className={styles.feedbackTagContainer}>
+                    <p className={styles.feedbackTitle}>
+                      어떤 점이 가장 만족스러웠나요? (중복 선택)
+                    </p>
+                    <div className={styles.feedbackTagGrid}>
+                      {PRESET_FEEDBACK_TAGS.map((tag) => {
+                        const active = selectedTags.includes(tag)
+                        return (
+                          <button
+                            type="button"
+                            key={tag}
+                            className={`${styles.feedbackTagChip} ${active ? styles.feedbackTagChipActive : ''}`}
+                            onClick={() =>
+                              setSelectedTags((prev) =>
+                                prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+                              )
+                            }
+                          >
+                            {tag}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
                   <label className={styles.anonRow}>
                     <input
                       type="checkbox"
@@ -754,6 +803,15 @@ export default function PartyDetailPage() {
                         </time>
                       </div>
                       <p>{r.body}</p>
+                      {r.tags && r.tags.length > 0 && (
+                        <div className={styles.reviewTags}>
+                          {r.tags.map((tag: string) => (
+                            <span key={tag} className={styles.reviewTag}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       {r.hostReply ? (
                         <div className={styles.reply}>
                           <div className={styles.replyHead}>
@@ -960,6 +1018,39 @@ export default function PartyDetailPage() {
                 <p className={styles.hostLink}>프로필 보기 →</p>
               </div>
             </Link>
+
+            {(() => {
+              const hostFeedbackCounts = (reviews ?? []).reduce<Record<string, number>>(
+                (acc, rev) => {
+                  if (rev.tags) {
+                    rev.tags.forEach((tag: string) => {
+                      acc[tag] = (acc[tag] || 0) + 1
+                    })
+                  }
+                  return acc
+                },
+                {},
+              )
+
+              const sortedHostFeedbacks = Object.entries(hostFeedbackCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+
+              if (sortedHostFeedbacks.length === 0) return null
+
+              return (
+                <div className={styles.hostFeedbackSummary}>
+                  <div className={styles.hostFeedbackTitle}>참가자들이 꼽은 호스트 매력</div>
+                  <div className={styles.hostFeedbackGrid}>
+                    {sortedHostFeedbacks.map(([tag, count]) => (
+                      <span key={tag} className={styles.hostFeedbackBadge}>
+                        {tag} <span className={styles.hostFeedbackCount}>{count}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
           </Card>
         </aside>
       </div>

@@ -123,9 +123,11 @@
 .timeActive,
 .peopleActive {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--brand-cream-50);
   border-color: var(--color-primary);
-  box-shadow: 0 8px 18px rgba(122, 31, 61, 0.3);
+  box-shadow: 
+    0 8px 20px color-mix(in oklab, var(--brand-burgundy-900) 20%, transparent),
+    var(--shadow-sm);
 }
 
 .timeBtn {
@@ -174,17 +176,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: var(--space-5) var(--space-8);
+  gap: 8px;
+  padding: var(--space-5) var(--space-10);
   background: var(--color-surface);
-  border: 2px solid var(--brand-gold-400, #c49b2a);
+  border: 1px solid color-mix(in oklab, var(--brand-gold-500) 45%, transparent);
   border-radius: var(--radius-xl);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out-quart);
-  min-width: 200px;
+  transition: 
+    transform var(--dur-fast) var(--ease-spring),
+    box-shadow var(--dur-fast) var(--ease-out-quart),
+    background var(--dur-fast) var(--ease-out-quart);
+  min-width: 240px;
+  box-shadow: var(--shadow-sm);
 }
 .codeBlock:hover {
-  background: color-mix(in oklab, var(--brand-gold-100) 40%, var(--color-surface));
+  transform: translateY(-3px);
+  box-shadow: 
+    0 14px 28px color-mix(in oklab, var(--brand-burgundy-900) 10%, transparent),
+    var(--shadow-glow);
+  background: color-mix(in oklab, var(--brand-gold-100) 30%, var(--color-surface));
 }
 .codeLabel {
   font-size: var(--fs-xs);
@@ -194,10 +204,11 @@
 }
 .codeValue {
   font-family: var(--font-mono);
-  font-size: clamp(2rem, 6vw, 3rem);
+  font-size: clamp(2rem, 6vw, 2.75rem);
   font-weight: var(--fw-bold);
   letter-spacing: 0.12em;
   color: var(--brand-burgundy-800, #7a1f3d);
+  text-shadow: 0 4px 10px color-mix(in oklab, var(--brand-burgundy-700) 10%, transparent);
 }
 .codeHint {
   font-size: var(--fs-2xs);
@@ -209,4 +220,70 @@
   gap: var(--space-2);
   width: 100%;
   max-width: 320px;
+}
+
+/* ============ Responsive Mobile ============ */
+@media (max-width: 640px) {
+  .page {
+    padding-block: var(--space-6) var(--space-10);
+  }
+  .header {
+    margin-bottom: var(--space-6);
+  }
+  .title {
+    font-size: 1.8rem;
+  }
+  .preview {
+    padding: var(--space-6) var(--space-4);
+  }
+  .previewEmoji {
+    font-size: 3rem;
+  }
+  .config {
+    padding: var(--space-4);
+  }
+  
+  /* Flex wrap items fill row responsively on mobile */
+  .catBtn {
+    flex: 1 1 calc(50% - var(--space-2));
+    justify-content: center;
+    padding: 8px 12px;
+  }
+  .venueChip {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    padding: 10px 14px;
+    font-size: var(--fs-xs);
+  }
+  .timeBtn {
+    flex: 1 1 calc(33.33% - var(--space-2));
+    padding: 8px 10px;
+    min-width: 70px;
+  }
+  .timeBtn strong {
+    font-size: var(--fs-md);
+  }
+  .peopleBtn {
+    flex: 1 1 calc(33.33% - var(--space-2));
+    justify-content: center;
+    padding: 8px 12px;
+  }
+  
+  .codeBlock {
+    min-width: 100%;
+    padding: var(--space-4) var(--space-6);
+  }
+  .codeValue {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .catBtn {
+    flex: 1 1 100%;
+  }
+  .timeBtn,
+  .peopleBtn {
+    flex: 1 1 calc(50% - var(--space-2));
+  }
 }

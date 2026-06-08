@@ -2,30 +2,37 @@
 .hero {
   position: relative;
   overflow: hidden;
-  min-height: clamp(540px, 86vh, 760px);
+  min-height: clamp(560px, 90vh, 800px);
   display: flex;
   align-items: flex-end;
   padding-bottom: var(--space-16);
   isolation: isolate;
   color: var(--brand-cream-50);
-  background: var(--grad-cellar);
+  background-image: 
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--brand-ink-900) 92%, transparent) 0%,
+      color-mix(in oklab, var(--brand-ink-900) 45%, transparent) 40%,
+      color-mix(in oklab, var(--brand-ink-900) 80%, transparent) 80%,
+      var(--color-bg) 100%
+    ),
+    url('/images/wine_cellar_twilight_bg.png');
+  background-size: cover;
+  background-position: center 65%;
+  background-repeat: no-repeat;
+  transition: background-position 0.3s var(--ease-out);
 }
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(
-      120% 60% at 50% 110%,
-      color-mix(in oklab, var(--brand-burgundy-700) 55%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      60% 40% at 50% -10%,
-      color-mix(in oklab, var(--brand-ink-900) 90%, transparent),
-      transparent 70%
-    );
+  background: radial-gradient(
+    110% 70% at 20% 25%,
+    color-mix(in oklab, var(--brand-burgundy-700) 15%, transparent),
+    transparent 60%
+  );
   z-index: 0;
+  pointer-events: none;
 }
 
 .cellar {
@@ -111,6 +118,15 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  background: color-mix(in oklab, var(--brand-ink-900) 45%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: var(--space-7) var(--space-8);
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklab, white 8%, transparent);
+  box-shadow: 
+    0 24px 48px color-mix(in oklab, var(--brand-ink-900) 40%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
 }
 .kicker {
   font-size: var(--fs-xs);
@@ -667,18 +683,25 @@
   color: var(--brand-cream-50);
   isolation: isolate;
   transition:
-    transform var(--dur-base) var(--ease-out-quart),
+    transform var(--dur-base) var(--ease-spring),
     box-shadow var(--dur-base) var(--ease-out-quart);
 }
 .catTile:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 
+    0 22px 40px color-mix(in oklab, var(--brand-burgundy-900) 28%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 20%, transparent),
+    var(--shadow-lg);
 }
 .tileSurface {
   position: absolute;
   inset: 0;
   z-index: -1;
   background: var(--tile-bg, var(--grad-burgundy-night));
+  transition: filter var(--dur-base) var(--ease-out);
+}
+.catTile:hover .tileSurface {
+  filter: brightness(1.08) saturate(1.04);
 }
 .tileSurface::after {
   content: '';
@@ -687,18 +710,26 @@
   background:
     radial-gradient(
       120% 80% at 100% 0%,
-      color-mix(in oklab, white 22%, transparent),
-      transparent 50%
+      color-mix(in oklab, white 24%, transparent),
+      transparent 55%
     ),
     linear-gradient(
       180deg,
-      transparent 50%,
-      color-mix(in oklab, var(--brand-ink-900) 40%, transparent) 100%
+      transparent 40%,
+      color-mix(in oklab, var(--brand-ink-900) 45%, transparent) 100%
     );
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.catTile:hover .tileSurface::after {
+  opacity: 0.9;
 }
 .tileEmoji {
-  font-size: 2.6rem;
+  font-size: 2.8rem;
+  transition: transform var(--dur-base) var(--ease-spring);
   filter: drop-shadow(0 12px 24px color-mix(in oklab, var(--brand-ink-900) 60%, transparent));
+}
+.catTile:hover .tileEmoji {
+  transform: scale(1.1) rotate(6deg);
 }
 .tileBody {
   display: flex;
@@ -810,6 +841,11 @@
   }
   .heroInner {
     padding-block: var(--space-12) var(--space-8);
+    padding-inline: var(--space-3);
+  }
+  .heroCopy {
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-lg);
   }
   .heroProof {
     font-size: var(--fs-xs);
@@ -872,5 +908,65 @@
   .signalGrid {
     width: 100%;
     grid-template-columns: 1fr;
+  }
+}
+
+/* ============ Extra Small Mobile ============ */
+@media (max-width: 380px) {
+  .heroTitle {
+    font-size: 2.2rem;
+  }
+  .quickStartGrid {
+    grid-template-columns: 1fr;
+  }
+  .partyGrid {
+    grid-template-columns: 1fr;
+  }
+  .orbit {
+    --orbit-size: 144px;
+  }
+  .orbitSeat:nth-child(n) {
+    transform: translate(-50%, -50%) rotate(0deg) translateY(-62px);
+    width: 8px;
+    height: 8px;
+  }
+  .orbitSeat:nth-child(2) {
+    transform: translate(-50%, -50%) rotate(36deg) translateY(-62px);
+  }
+  .orbitSeat:nth-child(3) {
+    transform: translate(-50%, -50%) rotate(72deg) translateY(-62px);
+  }
+  .orbitSeat:nth-child(4) {
+    transform: translate(-50%, -50%) rotate(108deg) translateY(-62px);
+  }
+  .orbitSeat:nth-child(5) {
+    transform: translate(-50%, -50%) rotate(144deg) translateY(-62px);
+  }
+  .orbitSeat:nth-child(6) {
+    transform: translate(-50%, -50%) rotate(180deg) translateY(-62px);
+  }
+  .orbitSeat:nth-child(7) {
+    transform: translate(-50%, -50%) rotate(216deg) translateY(-62px);
+  }
+  .orbitSeat:nth-child(8) {
+    transform: translate(-50%, -50%) rotate(252deg) translateY(-62px);
+  }
+  .orbitSeat:nth-child(9) {
+    transform: translate(-50%, -50%) rotate(288deg) translateY(-62px);
+  }
+  .orbitSeat:nth-child(10) {
+    transform: translate(-50%, -50%) rotate(324deg) translateY(-62px);
+  }
+  .orbitCore strong {
+    font-size: var(--fs-xl);
+  }
+  .orbitCore span {
+    font-size: var(--fs-3xs);
+  }
+  .areaSignals {
+    font-size: var(--fs-2xs);
+    gap: var(--space-1);
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }

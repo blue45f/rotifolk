@@ -10,7 +10,6 @@ import {
   type MatchScope,
 } from '@rotifolk/shared'
 import { useParty } from '@features/parties/queries'
-import { useEnsurePartyRoom } from '@features/chat/queries'
 import {
   useDecideContactExchangeRequest,
   useMyPartyMatches,
@@ -26,6 +25,8 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useAuthStore } from '@store/authStore'
+import { AfterPartyManager } from '@features/parties/AfterPartyManager'
 import styles from './MatchReveal.module.css'
 
 const EASE = [0.19, 1, 0.22, 1] as const
@@ -64,11 +65,11 @@ export default function MatchRevealPage() {
   const { partyId } = useParams<{ partyId: string }>()
   const navigate = useNavigate()
   const toast = useToast()
+  const me = useAuthStore((s) => s.user)
   const reduce = useReducedMotion() ?? false
   const { data: party } = useParty(partyId)
   const { data, isLoading } = useMyPartyMatches(partyId)
   const { data: popular } = usePartyPopular(partyId)
-  const ensureRoom = useEnsurePartyRoom()
   const requestContact = useRequestContactExchange(partyId)
   const decideContact = useDecideContactExchangeRequest(partyId)
   const [busyKey, setBusyKey] = useState<string | null>(null)
@@ -85,16 +86,6 @@ export default function MatchRevealPage() {
       toast.show('복사했어요', 'success')
     } catch {
       toast.show('복사에 실패했어요', 'error')
-    }
-  }
-
-  const openGroup = async () => {
-    if (!partyId) return
-    try {
-      const room = await ensureRoom.mutateAsync(partyId)
-      navigate(`/chats/${room.id}`)
-    } catch (e) {
-      toast.show((e as Error).message, 'error')
     }
   }
 
@@ -213,20 +204,7 @@ export default function MatchRevealPage() {
             </div>
 
             {data?.groupAfterParty && (
-              <div className={styles.groupPanel}>
-                <div>
-                  <strong>전원 채팅방도 열 수 있어요</strong>
-                  <span>오늘 만난 사람들과 한 방에서 가볍게 이어가요.</span>
-                </div>
-                <Button
-                  variant="gold"
-                  size="lg"
-                  isLoading={ensureRoom.isPending}
-                  onClick={openGroup}
-                >
-                  전원 채팅방 열기
-                </Button>
-              </div>
+              <AfterPartyManager partyId={partyId!} isHost={party?.party.hostId === me?.id} />
             )}
           </>
         )}

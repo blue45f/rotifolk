@@ -1,4 +1,4 @@
-import { Suspense, lazy, type ComponentType } from 'react'
+import { Suspense, lazy, useEffect, type ComponentType } from 'react'
 import { createBrowserRouter, Navigate, useLocation, type RouteObject } from 'react-router-dom'
 import RootLayout from '@components/layout/RootLayout'
 import RouteError from '@components/feedback/RouteError'
@@ -12,6 +12,19 @@ function lazyPage(loader: () => Promise<{ default: ComponentType }>) {
       <C />
     </Suspense>
   )
+}
+
+const TERMSDESK_BASE = 'https://termsdesk.vercel.app'
+const TERMS_URL = `${TERMSDESK_BASE}/p/rotifolk/terms-of-service`
+const PRIVACY_URL = `${TERMSDESK_BASE}/p/rotifolk/privacy-policy`
+const REFUND_URL = `${TERMSDESK_BASE}/p/rotifolk/refund-policy`
+
+function ExternalRedirect({ to }: { to: string }) {
+  useEffect(() => {
+    window.location.replace(to)
+  }, [to])
+
+  return <Loading />
 }
 
 function AliasHelpRedirect({
@@ -87,19 +100,15 @@ export const routes: RouteObject[] = [
       { path: 'policies', element: lazyPage(() => import('@pages/policies/PoliciesPage')) },
       {
         path: 'terms',
-        element: <AliasPoliciesRedirect filter="required" section="refund" fromOverride="/terms" />,
+        element: <ExternalRedirect to={TERMS_URL} />,
       },
       {
         path: 'privacy',
-        element: (
-          <AliasPoliciesRedirect filter="required" section="privacy" fromOverride="/privacy" />
-        ),
+        element: <ExternalRedirect to={PRIVACY_URL} />,
       },
       {
         path: 'cancel-policy',
-        element: (
-          <AliasPoliciesRedirect filter="optional" section="cancel" fromOverride="/cancel-policy" />
-        ),
+        element: <ExternalRedirect to={REFUND_URL} />,
       },
       {
         path: 'safety',

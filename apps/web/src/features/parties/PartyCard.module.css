@@ -12,9 +12,11 @@
     border-color var(--dur-base) var(--ease-out-quart);
 }
 .card:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-5px);
+  border-color: color-mix(in oklab, var(--color-primary) 45%, transparent);
+  box-shadow: 
+    0 24px 38px color-mix(in oklab, var(--brand-burgundy-900) 14%, transparent),
+    var(--shadow-lg);
 }
 
 .cover {

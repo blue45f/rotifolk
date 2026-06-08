@@ -33,6 +33,11 @@ interface PolicySection {
 }
 
 const tiers = refundSchedule(24)
+const TERMSDESK_BASE = 'https://termsdesk.vercel.app'
+const TERMS_URL = `${TERMSDESK_BASE}/p/rotifolk/terms-of-service`
+const PRIVACY_URL = `${TERMSDESK_BASE}/p/rotifolk/privacy-policy`
+const REFUND_URL = `${TERMSDESK_BASE}/p/rotifolk/refund-policy`
+const SUPPORT_URL = `${TERMSDESK_BASE}/support/rotifolk`
 
 const POLICY_SECTIONS: PolicySection[] = [
   {
@@ -490,6 +495,19 @@ export default function PoliciesPage() {
           누구나 안심하고 동네 로테이션 모임을 열고 참여할 수 있도록 정한 약속이에요. 동의 상태는 이
           페이지에서 바로 관리할 수 있어요.
         </p>
+        <div className={styles.footerLinks} aria-label="TermsDesk 정본 정책">
+          <a href={TERMS_URL} target="_blank" rel="noreferrer">
+            정본 이용약관
+          </a>
+          <span aria-hidden="true">·</span>
+          <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
+            정본 개인정보처리방침
+          </a>
+          <span aria-hidden="true">·</span>
+          <a href={REFUND_URL} target="_blank" rel="noreferrer">
+            정본 환불 정책
+          </a>
+        </div>
       </header>
 
       <section className={styles.statusPanel} aria-label="약관 동의 상태">
@@ -733,11 +751,24 @@ export default function PoliciesPage() {
       </section>
 
       <p className={styles.footer}>
-        마지막 업데이트 {POLICIES_TERMS_VERSION_DATE} · 문의는 고객센터로 보내주세요.
+        마지막 업데이트 {POLICIES_TERMS_VERSION_DATE} · 문의는 TermsDesk 공식 지원 보드로
+        보내주세요.
       </p>
 
       <div className={styles.footerLinks}>
         <Link to={backTarget}>이전 단계로 돌아가기</Link>
+        <span aria-hidden="true">·</span>
+        <a href={`${SUPPORT_URL}?category=site-inquiry`} target="_blank" rel="noreferrer">
+          사이트 문의
+        </a>
+        <span aria-hidden="true">·</span>
+        <a href={`${SUPPORT_URL}?category=partnership`} target="_blank" rel="noreferrer">
+          제휴 문의
+        </a>
+        <span aria-hidden="true">·</span>
+        <a href={`${SUPPORT_URL}?category=bug`} target="_blank" rel="noreferrer">
+          버그 제보
+        </a>
         <span aria-hidden="true">·</span>
         <Link
           to={

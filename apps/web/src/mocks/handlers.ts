@@ -1170,6 +1170,33 @@ const mockContactExchangeRequests: MockContactExchangeRequest[] = [
 const mockAvoidPeople: Array<{ id: string; label: string | null; createdAt: string }> = [
   { id: 'avoid-person-1', label: '전 직장 지인', createdAt: nowIso() },
 ]
+const mockReviews: Array<{
+  id: string
+  partyId: string | null
+  targetUserId: string | null
+  rating: number
+  body: string
+  anonymous: boolean
+  tags: string[]
+  author: { nickname: string; avatarId: string | null }
+  hostReply: string | null
+  hostRepliedAt: string | null
+  createdAt: string
+}> = [
+  {
+    id: 'review_party_1',
+    partyId: 'party-1',
+    targetUserId: 'host-1',
+    rating: 5,
+    body: '라운드 전환이 자연스럽고 대화 주제가 좋아서 어색하지 않았어요.',
+    anonymous: false,
+    tags: ['🎙️ 진행이 매끄러워요', '🏛️ 장소가 멋져요'],
+    author: { nickname: '윤슬', avatarId: 'a_w1' },
+    hostReply: null,
+    hostRepliedAt: null,
+    createdAt: nowIso(),
+  },
+]
 const mockNotifications = [
   {
     id: 'nt_welcome',
@@ -1595,23 +1622,11 @@ export const handlers = [
       }),
     )
   }),
-  http.get(`${API}/parties/:partyId/reviews`, async () =>
-    HttpResponse.json(
-      await delay([
-        {
-          id: 'review_party_1',
-          rating: 5,
-          body: '라운드 전환이 자연스럽고 대화 주제가 좋아서 어색하지 않았어요.',
-          anonymous: false,
-          tags: ['진행좋음', '분위기좋음'],
-          author: { nickname: '윤슬', avatarId: 'a_w1' },
-          hostReply: null,
-          hostRepliedAt: null,
-          createdAt: nowIso(),
-        },
-      ]),
-    ),
-  ),
+  http.get(`${API}/parties/:partyId/reviews`, async ({ params }) => {
+    const partyId = params.partyId
+    const list = mockReviews.filter((r) => r.partyId === partyId || r.id === 'review_party_1')
+    return HttpResponse.json(await delay(list))
+  }),
   http.get(`${API}/parties/:partyId/photos`, async ({ params }) =>
     HttpResponse.json(
       await delay([
@@ -2692,9 +2707,9 @@ export const handlers = [
     ]
     return HttpResponse.json(await delay({ ok: true }))
   }),
-
   // Recent reviews (digest)
   http.get(`${API}/reviews/recent`, async () => HttpResponse.json(await delay([]))),
+
   http.post(`${API}/reviews`, async ({ request }) => {
     const body = (await request.json()) as {
       partyId?: string
@@ -2704,24 +2719,29 @@ export const handlers = [
       anonymous?: boolean
       tags?: string[]
     }
-    return HttpResponse.json(
-      await delay({
-        id: `review_${Date.now()}`,
-        partyId: body.partyId ?? null,
-        targetUserId: body.targetUserId ?? null,
-        rating: body.rating ?? 5,
-        body: body.body ?? '',
-        anonymous: body.anonymous ?? true,
-        tags: body.tags ?? [],
-        author: { nickname: mockUsers[0].nickname, avatarId: mockUsers[0].avatarId },
-        hostReply: null,
-        hostRepliedAt: null,
-        createdAt: nowIso(),
-      }),
-    )
+    const newReview = {
+      id: `review_${Date.now()}`,
+      partyId: body.partyId ?? null,
+      targetUserId: body.targetUserId ?? null,
+      rating: body.rating ?? 5,
+      body: body.body ?? '',
+      anonymous: body.anonymous ?? true,
+      tags: body.tags ?? [],
+      author: { nickname: mockUsers[0].nickname, avatarId: mockUsers[0].avatarId ?? null },
+      hostReply: null,
+      hostRepliedAt: null,
+      createdAt: nowIso(),
+    }
+    mockReviews.unshift(newReview)
+    return HttpResponse.json(await delay(newReview))
   }),
   http.patch(`${API}/reviews/:id/reply`, async ({ params, request }) => {
     const body = (await request.json().catch(() => ({}))) as { body?: string }
+    const rev = mockReviews.find((r) => r.id === params.id)
+    if (rev) {
+      rev.hostReply = body.body ?? ''
+      rev.hostRepliedAt = nowIso()
+    }
     return HttpResponse.json(
       await delay({
         id: params.id,
@@ -2998,4 +3018,133 @@ export const handlers = [
   http.patch(`${API}/me/privacy`, async ({ request }) =>
     HttpResponse.json(await delay((await request.json()) as Record<string, unknown>)),
   ),
+
+  // ============ After Party (2차 모임) 모의 핸들러 ============
+  http.get(`${API}/parties/:partyId/after-party`, async ({ params }) => {
+    const data = getOrCreateAfterParty(params.partyId as string)
+    return HttpResponse.json(await delay(data))
+  }),
+
+  http.post(`${API}/parties/:partyId/after-party/vote`, async ({ params, request }) => {
+    const {
+      status,
+      nickname,
+      userId = 'me',
+    } = (await request.json()) as {
+      status: 'go' | 'maybe' | 'no'
+      nickname?: string
+      userId?: string
+    }
+    const data = getOrCreateAfterParty(params.partyId as string)
+
+    const existing = data.votes.find((v) => v.userId === userId)
+    if (existing) {
+      existing.status = status
+    } else {
+      data.votes.push({ userId, status, nickname: nickname ?? '나', avatarId: 'a_default' })
+    }
+    return HttpResponse.json(await delay(data))
+  }),
+
+  http.post(`${API}/parties/:partyId/after-party/venue-vote`, async ({ params, request }) => {
+    const { venueId, userId = 'me' } = (await request.json()) as {
+      venueId: string
+      userId?: string
+    }
+    const data = getOrCreateAfterParty(params.partyId as string)
+
+    const venue = data.suggestedVenues.find((v) => v.id === venueId)
+    if (venue) {
+      const idx = venue.votes.indexOf(userId)
+      if (idx >= 0) {
+        venue.votes.splice(idx, 1)
+      } else {
+        venue.votes.push(userId)
+      }
+    }
+    return HttpResponse.json(await delay(data))
+  }),
+
+  http.post(`${API}/parties/:partyId/after-party/confirm`, async ({ params, request }) => {
+    const body = (await request.json()) as { venueName: string; address: string; time: string }
+    const data = getOrCreateAfterParty(params.partyId as string)
+
+    data.status = 'confirmed'
+    data.confirmedVenue = {
+      name: body.venueName,
+      type: '호스트 확정 장소',
+      area: '연남',
+      address: body.address || '서울 마포구 연남동 123-45 2층',
+      time: body.time || '오후 9시 30분',
+      link: 'https://map.naver.com',
+    }
+    return HttpResponse.json(await delay(data))
+  }),
 ]
+
+// ============ After Party (2차 모임) 모의 DB ============
+const mockAfterParties: Record<
+  string,
+  {
+    status: 'voting' | 'confirmed' | 'cancelled'
+    votes: { userId: string; status: 'go' | 'maybe' | 'no'; nickname: string; avatarId?: string }[]
+    suggestedVenues: {
+      id: string
+      name: string
+      type: string
+      area: string
+      distance: string
+      votes: string[]
+    }[]
+    confirmedVenue?: {
+      name: string
+      type: string
+      area: string
+      address: string
+      time: string
+      link: string
+    } | null
+  }
+> = {}
+
+function getOrCreateAfterParty(partyId: string) {
+  if (!mockAfterParties[partyId]) {
+    mockAfterParties[partyId] = {
+      status: 'voting',
+      votes: [
+        { userId: 'u_m1', status: 'go', nickname: '도현', avatarId: 'a_m1' },
+        { userId: 'u_w1', status: 'go', nickname: '윤슬', avatarId: 'a_w1' },
+        { userId: 'u_m2', status: 'maybe', nickname: '현우', avatarId: 'a_m2' },
+        { userId: 'u_w2', status: 'no', nickname: '서연', avatarId: 'a_w2' },
+      ],
+      suggestedVenues: [
+        {
+          id: 'v_af1',
+          name: '연남 어스름 (2차)',
+          type: '위스키 & 와인바',
+          area: '연남',
+          distance: '도보 3분',
+          votes: ['u_m1', 'u_w1'],
+        },
+        {
+          id: 'v_af2',
+          name: '길목 이자카야',
+          type: '캐주얼 펍',
+          area: '연남',
+          distance: '도보 5분',
+          votes: ['u_m2'],
+        },
+        {
+          id: 'v_af3',
+          name: '누보 디저트 카페',
+          type: '카페 & 논알콜',
+          area: '연남',
+          distance: '도보 2분',
+          votes: [],
+        },
+      ],
+      confirmedVenue: null,
+    }
+  }
+  return mockAfterParties[partyId]
+}
