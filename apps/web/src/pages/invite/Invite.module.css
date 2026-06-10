@@ -164,3 +164,82 @@
   color: var(--color-text-muted);
   margin-top: var(--space-1);
 }
+.noticeLink {
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
+  text-decoration: underline;
+}
+
+/* ── 게스트 합류 ───────────────────────────── */
+.guestJoined {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklab, var(--brand-gold-500) 36%, transparent);
+  background: color-mix(in oklab, var(--brand-gold-500) 10%, var(--color-surface));
+}
+.guestJoinedBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--fs-sm);
+}
+.guestJoinedBody strong {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.guestJoinedBody span {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+}
+
+.guestForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.presetField {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.presetLegend {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--space-2);
+}
+.presetRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.presetBtn {
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
+    border-color var(--dur-base) var(--ease-out);
+}
+.presetBtn:hover {
+  transform: translateY(-2px);
+}
+.presetBtn:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+}
+.presetBtnOn {
+  border-color: var(--brand-gold-500);
+  background: color-mix(in oklab, var(--brand-gold-500) 14%, transparent);
+}
+.presetHint {
+  margin-top: var(--space-2);
+  font-size: var(--fs-2xs);
+  color: var(--color-text-subtle);
+}

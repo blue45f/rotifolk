@@ -195,6 +195,32 @@ export const CheckInSchema = z.object({
 })
 export type CheckInDto = z.infer<typeof CheckInSchema>
 
+/** 게스트(비로그인) 링크 합류 — 닉네임 + 아바타 프리셋만으로 참가. */
+export const GuestJoinSchema = z.object({
+  nickname: z.string().trim().min(1).max(16),
+  avatar: z
+    .object({
+      emoji: z.string().min(1).max(8),
+      hue: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+    })
+    .optional(),
+  /** 재방문 식별 토큰(localStorage 'rotifolk-guest-token') — 있으면 기존 참가를 돌려준다(멱등). */
+  token: z.string().min(8).max(64).optional(),
+})
+export type GuestJoinDto = z.infer<typeof GuestJoinSchema>
+
+/** 현장 합류 — 호스트가 이름만 입력해 즉석 등록(아바타 자동 배정). */
+export const HostAddGuestSchema = z.object({
+  name: z.string().trim().min(1).max(16),
+})
+export type HostAddGuestDto = z.infer<typeof HostAddGuestSchema>
+
+/** 가입 후 게스트 참여 이력 연결 — guestToken으로 본인 행을 클레임. */
+export const ClaimGuestSchema = z.object({
+  guestToken: z.string().min(8).max(64),
+})
+export type ClaimGuestDto = z.infer<typeof ClaimGuestSchema>
+
 export const ContactExchangeRequestSchema = z.object({
   channel: ConnectionChannelEnum,
 })

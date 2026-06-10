@@ -9,7 +9,19 @@ interface ManifestIcon {
   purpose: string
 }
 
-const manifest = JSON.parse(manifestSource) as { icons: ManifestIcon[] }
+interface ManifestShortcut {
+  name: string
+  url: string
+  icons: Pick<ManifestIcon, 'src' | 'sizes' | 'type'>[]
+}
+
+const manifest = JSON.parse(manifestSource) as {
+  id: string
+  start_url: string
+  description: string
+  icons: ManifestIcon[]
+  shortcuts: ManifestShortcut[]
+}
 
 // Compile-time glob of the deployable icon assets — a manifest entry pointing at a
 // file missing from public/ fails here instead of as a 404 on someone's home screen.
@@ -47,6 +59,40 @@ describe('manifest.webmanifest icons', () => {
   it('points every icon at a file that exists in public/', () => {
     for (const icon of manifest.icons) {
       expect(publicAssets, `${icon.src} is missing from public/`).toContain(icon.src)
+    }
+  })
+})
+
+describe('manifest.webmanifest identity', () => {
+  it('pins an explicit id so the install identity survives start_url changes', () => {
+    expect(manifest.id).toBe('/')
+  })
+
+  it('keeps the description in sync with the index.html meta description', () => {
+    expect(indexHtml).toContain(`content="${manifest.description}"`)
+  })
+})
+
+describe('manifest.webmanifest shortcuts', () => {
+  it('offers long-press jumps to discover and quick-create', () => {
+    expect(manifest.shortcuts.map((shortcut) => shortcut.url)).toEqual(['/discover', '/quick'])
+  })
+
+  it('keeps every shortcut url inside the manifest scope', () => {
+    for (const shortcut of manifest.shortcuts) {
+      expect(shortcut.url, `${shortcut.name} escapes scope "/"`).toMatch(/^\//)
+    }
+  })
+
+  it('gives every shortcut a 96x96+ PNG icon that exists in public/', () => {
+    for (const shortcut of manifest.shortcuts) {
+      expect(shortcut.icons.length, `${shortcut.name} has no icons`).toBeGreaterThan(0)
+      for (const icon of shortcut.icons) {
+        expect(publicAssets, `${icon.src} is missing from public/`).toContain(icon.src)
+        expect(icon.type).toBe('image/png')
+        const [width = 0] = icon.sizes.split('x').map(Number)
+        expect(width, `${icon.src} is below the 96x96 shortcut minimum`).toBeGreaterThanOrEqual(96)
+      }
     }
   })
 })

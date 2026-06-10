@@ -10,7 +10,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import EmptyState from '@components/feedback/EmptyState'
-import Loading from '@components/feedback/Loading'
+import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
 import { usePageMeta } from '@hooks/usePageMeta'
 import styles from './DiscoverPage.module.css'
 
@@ -231,7 +231,7 @@ export default function DiscoverPage() {
 
       <section className={`container ${styles.list}`}>
         {isLoading ? (
-          <Loading />
+          <PartyCardSkeletonGrid />
         ) : !data || data.items.length === 0 ? (
           <EmptyState
             emoji="🍷"

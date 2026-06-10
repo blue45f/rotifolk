@@ -9,7 +9,7 @@ import { PartyCard } from '@features/parties/PartyCard'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
+import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
 import EmptyState from '@components/feedback/EmptyState'
 import { useAuthStore } from '@store/authStore'
 import { useRecents } from '@features/recents/useRecents'
@@ -387,7 +387,7 @@ export default function HomePage() {
           </Link>
         </header>
         {isLoading ? (
-          <Loading />
+          <PartyCardSkeletonGrid />
         ) : !parties || parties.items.length === 0 ? (
           <EmptyState
             emoji="🌙"

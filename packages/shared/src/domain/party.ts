@@ -327,9 +327,14 @@ export type ParticipationStatus =
 export interface Participation extends Timestamps {
   id: ID
   partyId: ID
+  /** 회원은 실제 userId, 게스트는 `guest:<participationId>` 합성 키 (라운드 memberIds와 동일 형태). */
   userId: ID
   status: ParticipationStatus
   seatNumber?: number | null
   checkedInAt?: ISODateString | null
   user?: PublicUser
+  /** 게스트(비로그인) 참가자 여부 — 가입 없이 초대 링크/현장 등록으로 합류. */
+  isGuest?: boolean
+  guestName?: string | null
+  guestAvatar?: { emoji: string; hue: string } | null
 }

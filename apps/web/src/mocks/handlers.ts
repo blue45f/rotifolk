@@ -19,6 +19,8 @@ import {
   REVENUE_MONITORING_POLICY,
   buildCommunityCommentTree,
   computeRevenueHealthScore,
+  guestParticipantKey,
+  pickGuestAvatar,
 } from '@rotifolk/shared'
 import { quoteVenueBooking, recommendVenues, suggestOffHoursSlots } from '@rotifolk/shared'
 import {
@@ -1354,6 +1356,40 @@ function shapePayment(payment: MockPayment) {
   }
 }
 
+// ── 게스트(비로그인) 참가 — guest-join/현장 등록으로 생성되는 모의 상태 ──
+const mockGuestParticipants: Participation[] = []
+const mockGuestTokens = new Map<string, string>() // participationId → guestToken
+let mockGuestSeq = 0
+
+function makeGuestParticipation(
+  partyId: string,
+  name: string,
+  avatar: { emoji: string; hue: string } | undefined,
+  status: 'confirmed' | 'checked-in',
+): Participation {
+  const id = `pt_guest_${++mockGuestSeq}`
+  return {
+    id,
+    partyId,
+    userId: guestParticipantKey(id),
+    status,
+    seatNumber: null,
+    checkedInAt: status === 'checked-in' ? nowIso() : null,
+    isGuest: true,
+    guestName: name,
+    guestAvatar: avatar ?? pickGuestAvatar(name),
+    createdAt: nowIso(),
+    updatedAt: nowIso(),
+  }
+}
+
+function findGuestByToken(partyId: string, token: string): Participation | undefined {
+  if (!token) return undefined
+  return mockGuestParticipants.find(
+    (g) => g.partyId === partyId && g.status !== 'cancelled' && mockGuestTokens.get(g.id) === token,
+  )
+}
+
 function updateBookingStatus(id: string, status: string, ownerMessage?: string | null) {
   const booking = mockVenueBookings.find((item) => item.id === id)
   const now = nowIso()
@@ -1387,6 +1423,23 @@ export const handlers = [
   }),
   http.post(`${API}/auth/google`, async () => {
     return HttpResponse.json(await delay({ token: MOCK_TOKEN, user: mockUsers[0] }))
+  }),
+  // 가입 후 게스트 참여 이력 클레임 — 토큰 일치 행을 회원 소유로 전환(모의)
+  http.post(`${API}/auth/claim-guest`, async ({ request }) => {
+    const body = (await request.json()) as { guestToken?: string }
+    let claimed = 0
+    if (body.guestToken) {
+      for (const g of mockGuestParticipants) {
+        if (mockGuestTokens.get(g.id) === body.guestToken) {
+          mockGuestTokens.delete(g.id)
+          g.isGuest = false
+          g.userId = mockUsers[0].id
+          g.user = mockUsers[0] as never
+          claimed += 1
+        }
+      }
+    }
+    return HttpResponse.json(await delay({ claimed }))
   }),
 
   // Parties
@@ -1554,7 +1607,52 @@ export const handlers = [
       createdAt: u.createdAt,
       updatedAt: u.updatedAt,
     }))
-    return HttpResponse.json(await delay({ party, participants }))
+    const guests = mockGuestParticipants.filter(
+      (g) => g.partyId === party.id && g.status !== 'cancelled',
+    )
+    return HttpResponse.json(await delay({ party, participants: [...participants, ...guests] }))
+  }),
+  // 게스트(비로그인) 링크 합류 — 토큰 멱등 처리 포함
+  http.post(`${API}/parties/:id/guest-join`, async ({ params, request }) => {
+    const body = (await request.json()) as {
+      nickname?: string
+      avatar?: { emoji: string; hue: string }
+      token?: string
+    }
+    const partyId = String(params.id)
+    const token = body.token ?? `mock-guest-${Date.now()}`
+    const existing = findGuestByToken(partyId, token)
+    if (existing) {
+      return HttpResponse.json(await delay({ participation: existing, guestToken: token }))
+    }
+    const participation = makeGuestParticipation(
+      partyId,
+      body.nickname ?? '게스트',
+      body.avatar,
+      'confirmed',
+    )
+    mockGuestTokens.set(participation.id, token)
+    mockGuestParticipants.push(participation)
+    return HttpResponse.json(await delay({ participation, guestToken: token }))
+  }),
+  // 게스트 재방문 식별
+  http.get(`${API}/parties/:id/guests/me`, async ({ params, request }) => {
+    const url = new URL(request.url)
+    const token = url.searchParams.get('token') ?? ''
+    const participation = findGuestByToken(String(params.id), token) ?? null
+    return HttpResponse.json(await delay({ participation }))
+  }),
+  // 현장 합류 — 호스트가 이름만으로 게스트 등록 (즉시 체크인)
+  http.post(`${API}/parties/:id/guests`, async ({ params, request }) => {
+    const body = (await request.json()) as { name?: string }
+    const participation = makeGuestParticipation(
+      String(params.id),
+      body.name ?? '게스트',
+      undefined,
+      'checked-in',
+    )
+    mockGuestParticipants.push(participation)
+    return HttpResponse.json(await delay(participation))
   }),
   http.post(`${API}/parties/:id/join`, async ({ params }) =>
     HttpResponse.json(

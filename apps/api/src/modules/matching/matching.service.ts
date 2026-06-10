@@ -19,6 +19,7 @@ import {
   computePopularity,
   filterConnectionsExcluding,
   groupByN,
+  guestParticipantKey,
   repairForbiddenPairs,
   CONNECTION_CHANNEL_ORDER,
   resolveChannelsByPolicy,
@@ -69,10 +70,14 @@ export class MatchingService {
         message: '최소 2명 필요해요',
       })
 
-    const ids = participants.map((p) => p.userId)
-    const heteroPool: HeteroParticipant[] = participants
-      .filter((p) => p.user.gender === 'male' || p.user.gender === 'female')
-      .map((p) => ({ userId: p.userId, gender: p.user.gender as 'male' | 'female' }))
+    // 게스트(비로그인)는 합성 키로 라운드에 포함 — matching 모듈에는 식별자 목록만
+    // 전달되므로 알고리즘 계약 변경 없이 회원과 동일하게 로테이션을 돈다.
+    const ids = participants.map((p) => p.userId ?? guestParticipantKey(p.id))
+    const heteroPool: HeteroParticipant[] = participants.flatMap((p) =>
+      p.userId && (p.user?.gender === 'male' || p.user?.gender === 'female')
+        ? [{ userId: p.userId, gender: p.user.gender as 'male' | 'female' }]
+        : [],
+    )
 
     const created: { index: number; pairs: string[][] }[] = []
 
@@ -282,11 +287,12 @@ export class MatchingService {
       this.forbiddenPairsForParty(partyId),
     ])
     const normalizedVotes = votes.map((v) => ({ fromUserId: v.fromUserId, toUserId: v.toUserId }))
+    // 게스트는 투표/채팅이 불가하므로 매칭 연결 대상에서 제외(가입 전환 유도).
     const connections = filterConnectionsExcluding(
       computeConnections({
         scope: party.matchScope as MatchScope,
         votes: normalizedVotes,
-        allUserIds: participants.map((p) => p.userId),
+        allUserIds: participants.flatMap((p) => (p.userId ? [p.userId] : [])),
         maxPerPerson: party.maxMatchesPerPerson,
       }),
       forbiddenPairs,
@@ -391,7 +397,7 @@ export class MatchingService {
       computeConnections({
         scope: party.matchScope as MatchScope,
         votes,
-        allUserIds: participants.map((p) => p.userId),
+        allUserIds: participants.flatMap((p) => (p.userId ? [p.userId] : [])),
         maxPerPerson: party.maxMatchesPerPerson,
       }),
       forbiddenPairs,
@@ -444,10 +450,11 @@ export class MatchingService {
     const popularity = party.revealPopular
       ? computePopularity(
           votes.map((v) => ({ toUserId: v.toUserId })),
-          participants.map((p) => ({
-            userId: p.userId,
-            gender: p.user.gender as Gender | null,
-          })),
+          participants.flatMap((p) =>
+            p.userId
+              ? [{ userId: p.userId, gender: (p.user?.gender ?? null) as Gender | null }]
+              : [],
+          ),
         )
       : { popularMale: null, popularFemale: null }
 
@@ -813,7 +820,7 @@ export class MatchingService {
       computeConnections({
         scope: party.matchScope as MatchScope,
         votes,
-        allUserIds: participants.map((p) => p.userId),
+        allUserIds: participants.flatMap((p) => (p.userId ? [p.userId] : [])),
         maxPerPerson: party.maxMatchesPerPerson,
       }),
       forbiddenPairs,
@@ -862,6 +869,7 @@ export class MatchingService {
     const participants = await this.prisma.participation.findMany({
       where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
       select: {
+        id: true,
         userId: true,
         user: {
           select: {
@@ -873,8 +881,9 @@ export class MatchingService {
         },
       },
     })
-    const ids = participants.map((p) => p.userId)
-    if (ids.length < 2) return []
+    // 차단/회피 관계는 회원에게만 존재 — 게스트는 합성 키로 제약 없이 포함된다.
+    const ids = participants.flatMap((p) => (p.userId ? [p.userId] : []))
+    if (participants.length < 2) return []
 
     // 참가자들 사이의 차단 관계 (양방향은 computeForbiddenPairs가 처리하므로 blockerId만 수집).
     const blocks = await this.prisma.userBlock.findMany({
@@ -889,10 +898,10 @@ export class MatchingService {
     }
 
     const forbiddenInput: ForbiddenParticipant[] = participants.map((p) => ({
-      userId: p.userId,
+      userId: p.userId ?? guestParticipantKey(p.id),
       phoneHash: p.user?.phoneHash ?? null,
       avoidHashes: (p.user?.avoidContacts ?? []).map((a) => a.phoneHash),
-      blockedUserIds: blockedByUser.get(p.userId) ?? [],
+      blockedUserIds: (p.userId && blockedByUser.get(p.userId)) || [],
       company: p.user?.company ?? null,
       avoidSameCompany: p.user?.avoidSameCompany ?? false,
     }))

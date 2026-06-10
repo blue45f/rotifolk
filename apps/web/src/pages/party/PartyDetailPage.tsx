@@ -24,6 +24,8 @@ import {
   type Party,
 } from '@rotifolk/shared'
 import { ShareButton } from '@features/share/ShareButton'
+import { useGuestSession, useHostAddGuest } from '@features/guest/queries'
+import { GuestConversionBanner } from '@features/guest/GuestConversionBanner'
 import { useParty, useJoinParty, useCancelJoin } from '@features/parties/queries'
 import { buildPartyEventJsonLd } from '@features/parties/partyEventJsonLd'
 import { useVenue } from '@features/venues/queries'
@@ -34,6 +36,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Input } from '@components/ui/Input/Input'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { AfterPartyManager } from '@features/parties/AfterPartyManager'
 import Loading from '@components/feedback/Loading'
@@ -43,7 +46,7 @@ import { useAuthStore } from '@store/authStore'
 import { useMyParties } from '@features/parties/queries'
 import { useRecents } from '@features/recents/useRecents'
 import { downloadIcs } from '@features/ics/buildIcs'
-import { usePageMeta } from '@hooks/usePageMeta'
+import { SITE_ORIGIN, usePageMeta } from '@hooks/usePageMeta'
 import { api } from '@services/api'
 import styles from './PartyDetailPage.module.css'
 
@@ -104,6 +107,12 @@ export default function PartyDetailPage() {
   const { data: myParties } = useMyParties()
   void recentItems
 
+  // 게스트(비로그인) 방문 — 이 파티에 게스트로 참여 중이면 전환 배너를 띄운다
+  const { data: guestSession } = useGuestSession(me ? undefined : partyId)
+  const addGuest = useHostAddGuest(partyId)
+  const [showAddGuest, setShowAddGuest] = useState(false)
+  const [newGuestName, setNewGuestName] = useState('')
+
   const metaParty = data?.party
   // Event JSON-LD의 location(Place)용 — 상세 응답엔 venueId만 있어 공개 단건 조회로 보강.
   const { data: metaVenue } = useVenue(metaParty?.venueId)
@@ -115,9 +124,8 @@ export default function PartyDetailPage() {
     jsonLd: metaParty
       ? buildPartyEventJsonLd(
           metaParty,
-          typeof window !== 'undefined'
-            ? `${window.location.origin}/parties/${metaParty.id}`
-            : `/parties/${metaParty.id}`,
+          // canonical(usePageMeta)과 같은 프로덕션 정식 URL — dev 출처가 구조화 데이터에 새지 않게.
+          `${SITE_ORIGIN}/parties/${metaParty.id}`,
           metaVenue?.venue,
         )
       : undefined,
@@ -356,8 +364,15 @@ export default function PartyDetailPage() {
     })
   }
 
+  const guestMe = !me ? (guestSession?.participation ?? null) : null
+
   return (
     <div className={styles.page}>
+      {guestMe && (
+        <div className={`container ${styles.guestBannerWrap}`}>
+          <GuestConversionBanner from={`/parties/${party.id}`} />
+        </div>
+      )}
       {conflict && !joinedMe && (
         <div className={styles.clashBar} role="alert">
           ⚠️ 같은 시간대에 이미 신청한 모임이 있어요 — <strong>{conflict.party.title}</strong>
@@ -624,14 +639,21 @@ export default function PartyDetailPage() {
                   <div key={p.id} className={styles.part}>
                     <Avatar
                       size="lg"
-                      hue="#7A1F3D"
+                      hue={p.guestAvatar?.hue ?? '#7A1F3D'}
                       pattern="gradient"
-                      emoji={p.user?.nickname?.[0]}
+                      emoji={p.guestAvatar?.emoji ?? (p.user?.nickname ?? p.guestName ?? '익')[0]}
                       ring="soft"
                     />
                     <div>
-                      <div className={styles.partName}>{p.user?.nickname ?? '익명'}</div>
+                      <div className={styles.partName}>
+                        {p.user?.nickname ?? p.guestName ?? '익명'}
+                      </div>
                       <div className={styles.partMeta}>
+                        {p.isGuest && (
+                          <Badge tone="gold" size="sm">
+                            🎟 게스트
+                          </Badge>
+                        )}
                         {p.user?.mbti && <span>{p.user.mbti}</span>}
                         {p.user?.verifiedFields?.includes('identity') && (
                           <Badge tone="info" size="sm">
@@ -927,6 +949,9 @@ export default function PartyDetailPage() {
                 >
                   💬 단톡방 입장
                 </Button>
+                <Button variant="ghost" size="md" fullWidth onClick={() => setShowAddGuest(true)}>
+                  🎟 게스트 추가 (현장 합류)
+                </Button>
               </div>
             ) : joinedMe ? (
               <div className={styles.stack}>
@@ -1103,6 +1128,49 @@ export default function PartyDetailPage() {
           ))}
         </div>
         <p className={styles.payNote}>※ 실제 결제는 발생하지 않는 시뮬레이션이에요.</p>
+      </Sheet>
+
+      <Sheet
+        open={showAddGuest}
+        onClose={() => setShowAddGuest(false)}
+        title="🎟 게스트 추가"
+        description="가입 없이 현장에서 합류한 분을 이름만으로 등록해요 (아바타 자동 배정)"
+        variant="modal"
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShowAddGuest(false)}>
+              취소
+            </Button>
+            <Button
+              variant="primary"
+              isLoading={addGuest.isPending}
+              disabled={!newGuestName.trim()}
+              onClick={async () => {
+                try {
+                  await addGuest.mutateAsync(newGuestName.trim())
+                  toast.show(`${newGuestName.trim()}님을 게스트로 등록했어요`, 'success')
+                  setNewGuestName('')
+                  setShowAddGuest(false)
+                } catch (e) {
+                  toast.show((e as Error).message, 'error')
+                }
+              }}
+            >
+              등록하기
+            </Button>
+          </>
+        }
+      >
+        <Input
+          label="게스트 이름"
+          placeholder="현장에서 부를 이름 (최대 16자)"
+          maxLength={16}
+          value={newGuestName}
+          onChange={(e) => setNewGuestName(e.target.value)}
+          hint="등록 즉시 체크인 상태로 로스터와 라운드 편성에 포함돼요"
+          autoFocus
+        />
       </Sheet>
     </div>
   )

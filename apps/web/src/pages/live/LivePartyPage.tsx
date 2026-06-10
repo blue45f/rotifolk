@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -15,6 +15,11 @@ import { SendNoteSheet } from '@features/notes/SendNoteSheet'
 import { usePartyNotes } from '@features/notes/queries'
 import { useParty } from '@features/parties/queries'
 import { useLiveParty } from '@features/live/useLiveParty'
+import { detectRoundMilestone, ROUND_MILESTONE_MESSAGE } from '@features/live/roundMilestones'
+import { TimingPanel } from '@features/live/TimingPanel'
+import { usePartyTimingSettings } from '@features/live/useTimingSettings'
+import { notifyRoundEnded, playRoundChime } from '@features/live/roundAlarm'
+import { isLongBreakAfterRound } from '@features/live/partyTiming'
 import { CATEGORY_META } from '@features/categories/meta'
 import { useAuthStore } from '@store/authStore'
 import { Button } from '@components/ui/Button/Button'
@@ -48,6 +53,8 @@ export default function LivePartyPage() {
   const [showOrder, setShowOrder] = useState(false)
   const [showFinal, setShowFinal] = useState(false)
   const [showBgm, setShowBgm] = useState(false)
+  const [showOps, setShowOps] = useState(false)
+  const { settings: timing, update: updateTiming } = usePartyTimingSettings(partyId)
   const [noteTarget, setNoteTarget] = useState<{ id: string; nickname: string } | null>(null)
   const [orderCart, setOrderCart] = useState<Record<string, number>>({})
   const [orderTab, setOrderTab] = useState<'drink' | 'snack' | 'dessert'>('drink')
@@ -58,6 +65,10 @@ export default function LivePartyPage() {
     payload?: Record<string, unknown>
     until: number
   } | null>(null)
+  // 타이머 매초 낭독 대신 마일스톤만 스크린리더에 알린다 — 표시용 타이머는 aria-hidden
+  const [timerMilestone, setTimerMilestone] = useState('')
+  const prevRemainingRef = useRef(state.remainingSec)
+  const announcedRoundRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (state.status === 'ended') setShowFinal(true)
@@ -88,6 +99,29 @@ export default function LivePartyPage() {
       return () => clearTimeout(t)
     }
   }, [state.lastEvent])
+
+  useEffect(() => {
+    if (state.status !== 'live' || !state.currentRoundIndex) return
+    if (announcedRoundRef.current === state.currentRoundIndex) return
+    announcedRoundRef.current = state.currentRoundIndex
+    setTimerMilestone(`라운드 ${state.currentRoundIndex} 시작`)
+  }, [state.status, state.currentRoundIndex])
+
+  useEffect(() => {
+    const prevSec = prevRemainingRef.current
+    prevRemainingRef.current = state.remainingSec
+    const milestone = detectRoundMilestone(
+      prevSec,
+      state.remainingSec,
+      state.currentRound?.durationSec ?? 0,
+    )
+    if (milestone) setTimerMilestone(ROUND_MILESTONE_MESSAGE[milestone])
+    // 라운드 알람 — 호스트가 토글을 켰을 때만 종료 시점에 차임+브라우저 알림
+    if (milestone === 'ended' && timing.alarmOn && data?.party && user?.id === data.party.hostId) {
+      playRoundChime()
+      notifyRoundEnded(data.party.title)
+    }
+  }, [state.remainingSec, state.currentRound, timing.alarmOn, data?.party, user?.id])
 
   if (isLoading || !data) return <Loading />
   const { party, participants } = data
@@ -168,8 +202,11 @@ export default function LivePartyPage() {
           <h1 className={styles.title}>{party.title}</h1>
         </div>
         <div className={styles.headRight}>
-          <span className={styles.timer} aria-live="polite">
+          <span className={styles.timer} aria-hidden="true">
             {mm}:{ss}
+          </span>
+          <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            {timerMilestone}
           </span>
           <button
             type="button"
@@ -199,10 +236,11 @@ export default function LivePartyPage() {
           <PairPanel
             partners={partners.map((p) => ({
               id: p!.userId,
-              nickname: p!.user?.nickname ?? '익명',
+              nickname: p!.user?.nickname ?? p!.guestName ?? '익명',
               mbti: p!.user?.mbti,
               interests: p!.user?.interests ?? [],
               verified: !!p!.user?.verifiedFields?.includes('identity'),
+              isGuest: !!p!.isGuest,
             }))}
             seatLabel={state.myPair.seatLabel}
             lastCard={state.lastCard?.prompt}
@@ -224,6 +262,17 @@ export default function LivePartyPage() {
             participantCount={state.participantCount}
             roundIndex={state.currentRoundIndex}
             isHost={isHost}
+            longBreakMin={
+              isHost &&
+              isLongBreakAfterRound(
+                state.currentRoundIndex,
+                timing.breakEveryN >= 1 && timing.breakMin >= 1
+                  ? { everyNRounds: timing.breakEveryN, breakMin: timing.breakMin }
+                  : null,
+              )
+                ? timing.breakMin
+                : null
+            }
           />
         )}
 
@@ -264,6 +313,7 @@ export default function LivePartyPage() {
       <footer className={styles.footer}>
         {isHost ? (
           <HostBar
+            onOpenOps={() => setShowOps(true)}
             onNextRound={() => send('host:round:start', { partyId: party.id })}
             onEndRound={() => send('host:round:end', { partyId: party.id })}
             onCheers={() => send('host:event:fire', { partyId: party.id, kind: 'cheers' })}
@@ -409,6 +459,20 @@ export default function LivePartyPage() {
             </Button>
           </Link>
         </div>
+      </Sheet>
+
+      <Sheet
+        open={showOps}
+        onClose={() => setShowOps(false)}
+        title="⏱ 타이밍 · 운영"
+        description="로스터 확인, 시작 지연, 종료 역산, 휴식 규칙, 라운드 알람"
+      >
+        <TimingPanel
+          party={party}
+          participants={participants}
+          settings={timing}
+          onUpdate={updateTiming}
+        />
       </Sheet>
 
       <Sheet
@@ -579,6 +643,7 @@ function PairPanel({
     mbti?: string | null
     interests: string[]
     verified?: boolean
+    isGuest?: boolean
   }[]
   seatLabel: string
   lastCard?: string
@@ -615,6 +680,7 @@ function PairPanel({
             <Avatar size="xl" hue="#FCFAF5" pattern="gradient" emoji={p.nickname[0]} ring="glow" />
             <h2 className={styles.partnerName}>{p.nickname}</h2>
             <div className={styles.partnerMeta}>
+              {p.isGuest && <Badge tone="gold">🎟 게스트</Badge>}
               {p.verified && <Badge tone="info">✓ 본인인증</Badge>}
               {hubId === p.id && <Badge tone="gold">🔥 핫시트</Badge>}
               {p.mbti && (
@@ -834,12 +900,16 @@ function WaitPanel({
   participantCount,
   roundIndex,
   isHost,
+  longBreakMin,
 }: {
   status: string
   participantCount: number
   roundIndex: number | null
   isHost: boolean
+  /** 휴식 규칙(N라운드마다 M분)에 걸린 긴 휴식이면 분 단위 값 */
+  longBreakMin?: number | null
 }) {
+  const inLongBreak = status !== 'ended' && !!roundIndex && !!longBreakMin
   return (
     <div className={styles.wait}>
       <motion.div
@@ -848,27 +918,32 @@ function WaitPanel({
         transition={{ repeat: Infinity, duration: 3 }}
         aria-hidden="true"
       >
-        {status === 'ended' ? '🌹' : '🍷'}
+        {status === 'ended' ? '🌹' : inLongBreak ? '☕' : '🍷'}
       </motion.div>
       <h2 className={styles.waitTitle}>
         {status === 'ended'
           ? '오늘의 라운드를 마쳤어요'
-          : roundIndex
-            ? `라운드 ${roundIndex} 휴식`
-            : '곧 라운드가 시작됩니다'}
+          : inLongBreak
+            ? `쉬는 시간 — ${longBreakMin}분`
+            : roundIndex
+              ? `라운드 ${roundIndex} 휴식`
+              : '곧 라운드가 시작됩니다'}
       </h2>
       <p className={styles.waitSub}>
         {status === 'ended'
           ? '곧 최종 매칭을 공개할게요'
-          : isHost
-            ? '“다음 라운드 시작”을 눌러 라운드를 시작해주세요'
-            : `호스트가 다음 라운드를 곧 시작합니다. 함께한 인원: ${participantCount}명`}
+          : inLongBreak
+            ? `라운드 ${roundIndex}까지 마쳤어요. 화장실·리필 타임! ${longBreakMin}분 뒤 다음 라운드를 시작해 주세요.`
+            : isHost
+              ? '“다음 라운드 시작”을 눌러 라운드를 시작해주세요'
+              : `호스트가 다음 라운드를 곧 시작합니다. 함께한 인원: ${participantCount}명`}
       </p>
     </div>
   )
 }
 
 function HostBar({
+  onOpenOps,
   onNextRound,
   onEndRound,
   onCheers,
@@ -879,6 +954,7 @@ function HostBar({
   onAnnounce,
   onFire,
 }: {
+  onOpenOps: () => void
   onNextRound: () => void
   onEndRound: () => void
   onCheers: () => void
@@ -943,6 +1019,9 @@ function HostBar({
           </div>
         ) : (
           <>
+            <Button variant="soft" size="sm" onClick={onOpenOps}>
+              ⏱ 타이밍
+            </Button>
             <Button variant="soft" size="sm" onClick={() => setComposing(true)}>
               📣 공지
             </Button>
