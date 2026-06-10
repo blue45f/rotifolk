@@ -12,7 +12,16 @@ export interface PageMeta {
   description?: string
   /** title 뒤에 ` · Rotifolk`를 자동으로 붙일지 (기본 true). 이미 브랜드를 포함한 제목이면 false. */
   withBrand?: boolean
+  /**
+   * 라우트별 구조화 데이터(schema.org JSON-LD). 넘기면 <head>에
+   * `<script type="application/ld+json">`으로 주입하고 라우트 이탈 시 제거한다.
+   * 데이터 로딩 중에는 undefined를 넘겨 주입을 미룰 수 있다.
+   */
+  jsonLd?: Record<string, unknown>
 }
+
+/** usePageMeta가 주입한 JSON-LD script를 표시하는 속성 (index.html의 정적 블록과 구분). */
+const JSON_LD_ATTR = 'data-page-meta-jsonld'
 
 /** name= 또는 property= 메타 태그의 content를 갱신한다(없으면 무시 — 정적 기본값은 index.html이 보장). */
 function setMetaContent(selector: string, content: string): void {
@@ -30,9 +39,12 @@ function setMetaContent(selector: string, content: string): void {
  *
  * 주의: SPA 크롤은 정적 index.html 메타만 읽는 봇이 많다. 이 훅은 동적 OG의 점진적 향상이며,
  * 정식 라우트별 OG가 필요하면 서버사이드/프리렌더가 별도로 필요하다(형제 webtoon-index 참조).
+ * 반면 JSON-LD는 Google이 JS 실행 후 읽으므로 동적 주입(`jsonLd`)만으로도 리치 결과에 유효하다.
  */
 export function usePageMeta(meta: PageMeta): void {
-  const { title, description, withBrand = true } = meta
+  const { title, description, withBrand = true, jsonLd } = meta
+  // 호출부가 렌더마다 새 객체를 만들어도 effect가 헛돌지 않도록 직렬화 문자열을 deps로 쓴다.
+  const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined
 
   useEffect(() => {
     const resolvedTitle = title ? (withBrand ? `${title} · ${BRAND}` : title) : DEFAULT_TITLE
@@ -56,4 +68,18 @@ export function usePageMeta(meta: PageMeta): void {
       setMetaContent('meta[name="twitter:description"]', DEFAULT_DESCRIPTION)
     }
   }, [title, description, withBrand])
+
+  useEffect(() => {
+    if (!jsonLdText) return
+    // DOM API로 넣는 text는 HTML 파서를 거치지 않으므로 내용 escape가 필요 없다.
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.setAttribute(JSON_LD_ATTR, '')
+    script.text = jsonLdText
+    document.head.append(script)
+    return () => {
+      // 라우트 이탈/데이터 변경 시 제거해 다음 라우트가 stale 구조화 데이터를 물려받지 않게 한다.
+      script.remove()
+    }
+  }, [jsonLdText])
 }

@@ -159,7 +159,7 @@ export default function HomePage() {
       <section className={styles.pulseBand} aria-labelledby="pulse-title">
         <div className={`container ${styles.pulseInner}`}>
           <div className={styles.pulseCopy}>
-            <span className={styles.kicker}>IRL ROTATION SIGNAL</span>
+            <span className={styles.pulseKicker}>지금 흐르는 라운드</span>
             <h2 id="pulse-title">오늘의 사람 흐름을 한눈에</h2>
             <p>
               모집, 체크인, 라이브 라운드, 매칭 이후 채팅까지 끊기지 않게 이어지는 Rotifolk 운영

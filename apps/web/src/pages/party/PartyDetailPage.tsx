@@ -25,6 +25,8 @@ import {
 } from '@rotifolk/shared'
 import { ShareButton } from '@features/share/ShareButton'
 import { useParty, useJoinParty, useCancelJoin } from '@features/parties/queries'
+import { buildPartyEventJsonLd } from '@features/parties/partyEventJsonLd'
+import { useVenue } from '@features/venues/queries'
 import { useEnsurePartyRoom } from '@features/chat/queries'
 import { CATEGORY_META } from '@features/categories/meta'
 import { Button } from '@components/ui/Button/Button'
@@ -103,10 +105,21 @@ export default function PartyDetailPage() {
   void recentItems
 
   const metaParty = data?.party
+  // Event JSON-LD의 location(Place)용 — 상세 응답엔 venueId만 있어 공개 단건 조회로 보강.
+  const { data: metaVenue } = useVenue(metaParty?.venueId)
   usePageMeta({
     title: metaParty?.title,
     description: metaParty
       ? `${CATEGORY_META[metaParty.config.category].label} · ${metaParty.config.totalRounds}라운드 · ${metaParty.currentParticipants}/${metaParty.maxParticipants}명 — Rotifolk 로테이션 파티`
+      : undefined,
+    jsonLd: metaParty
+      ? buildPartyEventJsonLd(
+          metaParty,
+          typeof window !== 'undefined'
+            ? `${window.location.origin}/parties/${metaParty.id}`
+            : `/parties/${metaParty.id}`,
+          metaVenue?.venue,
+        )
       : undefined,
   })
 

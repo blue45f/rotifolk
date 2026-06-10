@@ -403,6 +403,12 @@
   gap: var(--space-4);
   max-width: 520px;
 }
+.pulseKicker {
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-wide);
+  color: color-mix(in oklab, var(--brand-gold-400) 90%, white);
+  font-weight: var(--fw-medium);
+}
 .pulseCopy h2 {
   font-size: var(--fs-4xl);
   line-height: var(--lh-tight);

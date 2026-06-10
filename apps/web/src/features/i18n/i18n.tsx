@@ -66,6 +66,11 @@ const KO: Record<string, string> = {
   'btn.clear': '전체삭제',
   'btn.dark': '다크 모드',
   'btn.light': '라이트 모드',
+  'footer.tagline': '좋은 와인처럼, 좋은 만남도 천천히 깊어집니다.',
+  'footer.navLabel': '약관 및 도움말',
+  'footer.terms': '이용약관',
+  'footer.privacy': '개인정보처리방침',
+  'footer.refund': '환불 정책',
 }
 
 const EN: Record<string, string> = {
@@ -120,6 +125,11 @@ const EN: Record<string, string> = {
   'btn.clear': 'Clear all',
   'btn.dark': 'Dark mode',
   'btn.light': 'Light mode',
+  'footer.tagline': 'Like good wine, good company deepens slowly.',
+  'footer.navLabel': 'Legal and help',
+  'footer.terms': 'Terms of Service',
+  'footer.privacy': 'Privacy Policy',
+  'footer.refund': 'Refund Policy',
 }
 
 const DICTS: Record<Locale, Record<string, string>> = { ko: KO, en: EN }
