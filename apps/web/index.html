@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#7A1F3D" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#1A1320" media="(prefers-color-scheme: dark)" />
@@ -43,6 +44,41 @@
     />
     <meta name="twitter:image" content="https://rotifolk.vercel.app/og.png" />
     <meta name="twitter:image:alt" content="Rotifolk — 와인·커피·차·위스키 로테이션 파티 매칭" />
+
+    <!--
+      Structured data (JSON-LD): sitewide WebSite (+ SearchAction → /search?q=,
+      see src/pages/search/SearchPage.tsx) and Organization. Party detail pages
+      additionally inject a per-party schema.org Event at runtime via
+      usePageMeta({ jsonLd }) (src/hooks/usePageMeta.ts). Keep the base URL in
+      sync with the canonical/OG tags above.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "name": "Rotifolk",
+            "url": "https://rotifolk.vercel.app/",
+            "inLanguage": "ko",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://rotifolk.vercel.app/search?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "Organization",
+            "name": "Rotifolk",
+            "url": "https://rotifolk.vercel.app/",
+            "logo": "https://rotifolk.vercel.app/og.png"
+          }
+        ]
+      }
+    </script>
 
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link

@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Header } from './Header'
 import { BottomNav } from './BottomNav'
+import { SiteFooter } from './SiteFooter'
 import { useApplyTheme } from '@store/themeStore'
 import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
 import OnboardingSheet from '@features/onboard/OnboardingSheet'
@@ -73,6 +74,7 @@ export default function RootLayout() {
       <main id="main-content" role="main" tabIndex={-1} className={styles.main}>
         <Outlet />
       </main>
+      {!isLive && <SiteFooter />}
       {!isLive && <BottomNav />}
       {!isLive && <OnboardingSheet forceOpenSignal={onboardingOpenSignal} />}
       {isCommandOpen && (

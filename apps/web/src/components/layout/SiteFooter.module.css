@@ -1,0 +1,70 @@
+.footer {
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-xs);
+  /* 모바일: 고정 하단 탭바(BottomNav) 위로 푸터 내용을 띄운다 */
+  padding-block: var(--space-8)
+    calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px) + var(--space-6));
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.brandLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.brandName {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-primary);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-4);
+  row-gap: var(--space-1);
+}
+
+.links a {
+  padding-block: var(--space-1);
+  color: var(--color-text-subtle);
+  transition: color var(--dur-fast) var(--ease-out-quart);
+}
+
+.links a:hover {
+  color: var(--color-text);
+}
+
+/* 국내 관례: 개인정보처리방침 링크는 다른 약관보다 또렷하게 */
+.privacy {
+  color: var(--color-text-muted);
+  font-weight: var(--fw-semibold);
+}
+
+.copyright {
+  font-size: var(--fs-2xs);
+}
+
+@media (min-width: 1024px) {
+  /* 데스크톱은 하단 탭바가 없으므로 일반 여백으로 */
+  .footer {
+    padding-block: var(--space-8);
+  }
+  .inner {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-6);
+  }
+}
