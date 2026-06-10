@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
@@ -27,6 +27,7 @@ import {
   ROTATION_FORMAT_LABEL,
 } from '@rotifolk/shared'
 import { useCreateParty } from '@features/parties/queries'
+import { clearHostDraft, loadHostDraft, saveHostDraft } from '@features/parties/hostDraft'
 import { useVenues } from '@features/venues/queries'
 import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
 import { Button } from '@components/ui/Button/Button'
@@ -168,6 +169,38 @@ const VERIFY_OPTIONS: VerificationField[] = [
 const CHILDREN_OPTS: ChildrenPolicy[] = ['any', 'has', 'none']
 const numOrNull = (v: string) => (v === '' ? null : Number(v))
 
+// '처음부터'용 빈 폼 값. RHF reset은 누락된 키의 입력 DOM을 비우지 않고 되읽으므로 전부 명시한다.
+const BLANK_FORM: Partial<CreatePartyDto> = {
+  ...DEFAULTS,
+  title: '',
+  description: '',
+  venueId: '',
+  startAt: '',
+  endAt: '',
+  maleAgeMin: null,
+  maleAgeMax: null,
+  femaleAgeMin: null,
+  femaleAgeMax: null,
+  requiredVerifications: [],
+  maritalRequirement: [],
+  childrenPolicy: 'any',
+}
+// 빈 폼은 드래프트로 저장하지 않는다 — reset이 일으키는 후속 알림(필드어레이 재동기화 등)이
+// '처음부터' 직후 빈 폼을 도로 저장해 복원 배지를 되살리는 것을 내용 기준으로 차단.
+const BLANK_FORM_JSON = JSON.stringify(BLANK_FORM)
+
+/** 드래프트를 DEFAULTS 위에 얹는다. 섹션은 얕은 병합으로 새로 생긴 필드가 비지 않게 한다. */
+function withDraft(draft: Partial<CreatePartyDto> | null) {
+  if (!draft) return DEFAULTS
+  return {
+    ...DEFAULTS,
+    ...draft,
+    config: { ...DEFAULTS.config, ...draft.config },
+    pricing: { ...DEFAULTS.pricing, ...draft.pricing },
+    recruitment: { ...DEFAULTS.recruitment, ...draft.recruitment },
+  }
+}
+
 /** ISO 문자열을 datetime-local 입력 값(로컬 시각)으로 변환. */
 function toLocalInput(iso?: string | null): string {
   if (!iso) return ''
@@ -185,21 +218,51 @@ export default function HostCreatePage() {
   const { data: venues } = useVenues({ partnered: true })
   const create = useCreateParty()
 
+  // 드래프트는 마운트 시 1회 읽어 defaultValues로 주입 — 새로고침·실수 이탈에도 입력이 살아남는다.
+  const [draft] = useState(() => loadHostDraft())
+  const [draftRestored, setDraftRestored] = useState(draft != null)
+  const [confirmRestart, setConfirmRestart] = useState(false)
+
   const {
     register,
     handleSubmit,
     control,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<CreatePartyDto>({
     resolver: zodResolver(CreatePartySchema) as never,
-    defaultValues: DEFAULTS as never,
+    defaultValues: withDraft(draft) as never,
   })
 
   const watched = watch()
   const priceRules = useFieldArray({ control, name: 'pricing.pricingRules' })
   const [step, setStep] = useState<'concept' | 'venue' | 'rounds' | 'match' | 'price'>('concept')
+
+  // 입력이 멈추고 600ms 뒤 드래프트 저장. 빈 폼('처음부터' 직후 포함)은 저장하지 않는다.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const subscription = watch((data) => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        if (JSON.stringify(data) !== BLANK_FORM_JSON) saveHostDraft(data)
+      }, 600)
+    })
+    return () => {
+      clearTimeout(timer)
+      subscription.unsubscribe()
+    }
+  }, [watch])
+
+  /** 드래프트를 버리고 백지에서 다시 시작. */
+  const restartFromScratch = () => {
+    clearHostDraft()
+    reset(BLANK_FORM as never)
+    setDraftRestored(false)
+    setConfirmRestart(false)
+    setStep('concept')
+  }
 
   const STEP_ORDER = ['concept', 'venue', 'rounds', 'match', 'price'] as const
   const currentIndex = STEP_ORDER.indexOf(step)
@@ -222,6 +285,7 @@ export default function HostCreatePage() {
   const onSubmit = handleSubmit(async (data) => {
     try {
       const created = await create.mutateAsync(data)
+      clearHostDraft()
       toast.show('파티가 열렸어요! ✨', 'success')
       navigate(`/host/parties/${created.id}`)
     } catch (e) {
@@ -267,6 +331,50 @@ export default function HostCreatePage() {
       </header>
 
       <div className={`container ${styles.body}`}>
+        {draftRestored && (
+          <div className={styles.draftBar} role="status">
+            <Badge tone="gold" size="sm">
+              임시저장
+            </Badge>
+            {confirmRestart ? (
+              <>
+                <span className={styles.draftText}>
+                  작성 중이던 내용을 지우고 처음부터 시작할까요?
+                </span>
+                <div className={styles.draftActions}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={() => setConfirmRestart(false)}
+                  >
+                    계속 작성
+                  </Button>
+                  <Button variant="danger" size="sm" type="button" onClick={restartFromScratch}>
+                    지우고 시작
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className={styles.draftText}>
+                  이어서 작성할 수 있게 임시저장본을 불러왔어요.
+                </span>
+                <div className={styles.draftActions}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    onClick={() => setConfirmRestart(true)}
+                  >
+                    처음부터
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {step === 'concept' && (
           <Card padding="lg" className={styles.card}>
             <div className={styles.stepHead}>
@@ -392,12 +500,18 @@ export default function HostCreatePage() {
                 <Input
                   type="datetime-local"
                   label="시작 시각"
-                  onChange={(e) => setValue('startAt', new Date(e.target.value).toISOString())}
+                  defaultValue={toLocalInput(watched.startAt)}
+                  onChange={(e) => {
+                    if (e.target.value) setValue('startAt', new Date(e.target.value).toISOString())
+                  }}
                 />
                 <Input
                   type="datetime-local"
                   label="종료 시각"
-                  onChange={(e) => setValue('endAt', new Date(e.target.value).toISOString())}
+                  defaultValue={toLocalInput(watched.endAt)}
+                  onChange={(e) => {
+                    if (e.target.value) setValue('endAt', new Date(e.target.value).toISOString())
+                  }}
                 />
               </div>
             </div>

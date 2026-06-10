@@ -24,7 +24,7 @@ function toEventStatus(status: Party['status']): string {
  * 파티 1건을 schema.org Event 객체로 변환한다.
  *
  * @param party 파티 상세 (useParty 응답의 party)
- * @param pageUrl 이 파티의 정식 URL (예: `${origin}/parties/:id`)
+ * @param pageUrl 이 파티의 정식 URL (예: `${SITE_ORIGIN}/parties/:id` — usePageMeta.ts의 canonical과 동일 출처)
  * @param venue 파티 장소 (로딩 전이면 생략 — location 없이 생성)
  */
 export function buildPartyEventJsonLd(

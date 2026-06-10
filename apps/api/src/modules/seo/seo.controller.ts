@@ -5,7 +5,9 @@ import { PrismaService } from '@/prisma/prisma.service'
 /**
  * SEO 엔드포인트. Nest 글로벌 프리픽스(`api`) 때문에 실제 경로는
  * `/api/seo/sitemap.xml` · `/api/seo/robots.txt` 이며, apps/web 의 Vite dev
- * 프록시(및 프로덕션 rewrite)가 `/sitemap.xml` · `/robots.txt` 를 여기로 넘긴다.
+ * 프록시(vite.config.ts)와 프로덕션 rewrite(루트 vercel.json)가
+ * `/sitemap.xml` · `/robots.txt` 를 여기로 넘긴다. robots 의 `Sitemap:` 절대
+ * URL 도 같은 baseUrl() 에서 나오므로 rewrite 를 거쳐 그대로 해석된다.
  */
 
 // 정적 공개 콘텐츠 라우트만 sitemap 에 싣는다. 인증이 필요한 me/*, host/*, chats,

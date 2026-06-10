@@ -1,12 +1,24 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { usePageMeta, type PageMeta } from './usePageMeta'
+import { SITE_ORIGIN, usePageMeta, type PageMeta } from './usePageMeta'
 
 const JSON_LD_SELECTOR = 'script[type="application/ld+json"][data-page-meta-jsonld]'
 
 function injectedJsonLd(): HTMLScriptElement | null {
   return document.head.querySelector<HTMLScriptElement>(JSON_LD_SELECTOR)
+}
+
+/** index.html의 정적 canonical/og:url 기본 태그를 jsdom head에 재현한다 (테스트 후 직접 제거). */
+function injectCanonicalTags(): { canonical: HTMLLinkElement; ogUrl: HTMLMetaElement } {
+  const canonical = document.createElement('link')
+  canonical.rel = 'canonical'
+  canonical.href = `${SITE_ORIGIN}/`
+  const ogUrl = document.createElement('meta')
+  ogUrl.setAttribute('property', 'og:url')
+  ogUrl.content = `${SITE_ORIGIN}/`
+  document.head.append(canonical, ogUrl)
+  return { canonical, ogUrl }
 }
 
 describe('usePageMeta', () => {
@@ -16,6 +28,34 @@ describe('usePageMeta', () => {
 
     unmount()
     expect(document.title).toBe('Rotifolk · 로테이션 파티 매칭')
+  })
+
+  it('path를 넘기면 canonical·og:url을 프로덕션 URL로 갱신하고, 언마운트 시 루트로 복원한다', () => {
+    const { canonical, ogUrl } = injectCanonicalTags()
+    const { unmount } = renderHook(() => usePageMeta({ title: '와인 파티', path: '/parties/p1' }))
+
+    expect(canonical.href).toBe(`${SITE_ORIGIN}/parties/p1`)
+    expect(ogUrl.content).toBe(`${SITE_ORIGIN}/parties/p1`)
+
+    unmount()
+    expect(canonical.href).toBe(`${SITE_ORIGIN}/`)
+    expect(ogUrl.content).toBe(`${SITE_ORIGIN}/`)
+    canonical.remove()
+    ogUrl.remove()
+  })
+
+  it('path를 생략하면 현재 location.pathname을 canonical 경로로 쓴다', () => {
+    const { canonical, ogUrl } = injectCanonicalTags()
+    window.history.pushState({}, '', '/discover')
+    const { unmount } = renderHook(() => usePageMeta({ title: '둘러보기' }))
+
+    expect(canonical.href).toBe(`${SITE_ORIGIN}/discover`)
+    expect(ogUrl.content).toBe(`${SITE_ORIGIN}/discover`)
+
+    unmount()
+    window.history.pushState({}, '', '/')
+    canonical.remove()
+    ogUrl.remove()
   })
 
   it('jsonLd가 없으면 JSON-LD script를 주입하지 않는다', () => {

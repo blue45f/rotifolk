@@ -22,7 +22,7 @@
 - GitHub Actions의 **Deploy API to Render**는 `RENDER_DEPLOY_HOOK_URL`이 비어 있어서 workflow 자체 배포가 스킵됩니다. 현재 운영 API는 Render가 아니라 EC2를 사용합니다.
 - 2026-06-08 운영 웹 복구/배포는 Vercel Git integration으로 처리되며, main push 후 `https://rotifolk.vercel.app` production alias가 최신 production deployment에 연결됩니다. 필요할 때만 `vercel promote`를 수동으로 사용합니다.
 - 2026-06-08 운영 API 배포는 **Deploy API to EC2** workflow로 자동화했습니다. GitHub runner가 `apps/api/Dockerfile`로 Docker 이미지를 빌드하고, 배포 중 GitHub Actions runner IP만 EC2 보안그룹에 `/32`로 임시 허용한 뒤, 이미지를 EC2에 스트리밍 로드하고 `rotifolk-api` 컨테이너를 교체합니다. cleanup에서 임시 SSH 허용 규칙을 회수합니다.
-- 현재 Vercel rewrite는 `vercel.json` 기준 `https://rotifolk.3.107.235.143.nip.io/api/:path*`로 API 요청을 전달합니다. 이 호스트는 EC2의 Caddy가 `rotifolk-api:3000` 컨테이너로 reverse proxy합니다.
+- 현재 Vercel rewrite는 `vercel.json` 기준 `https://rotifolk.3.107.235.143.nip.io/api/:path*`로 API 요청을 전달합니다. 이 호스트는 EC2의 Caddy가 `rotifolk-api:3000` 컨테이너로 reverse proxy합니다. `/sitemap.xml`·`/robots.txt`도 같은 오리진의 `/api/seo/*` 엔드포인트로 rewrite되어 SPA catch-all보다 먼저 매칭됩니다.
 - EC2 API 컨테이너는 `/opt/rotifolk-runtime.env`와 `rotifolk-data:/app/data` Docker volume을 사용합니다. 컨테이너 교체 시 이 env 파일과 volume은 유지해야 합니다.
 - EC2 디스크는 2026-06-08 Docker builder cache 정리 후 `/` 기준 약 `4.5GB` 여유로 회복되었습니다. 반복 배포 전에는 dangling image/layer 정리 또는 디스크 증설을 계속 고려해야 합니다.
 

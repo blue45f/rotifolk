@@ -43,7 +43,7 @@ import { useAuthStore } from '@store/authStore'
 import { useMyParties } from '@features/parties/queries'
 import { useRecents } from '@features/recents/useRecents'
 import { downloadIcs } from '@features/ics/buildIcs'
-import { usePageMeta } from '@hooks/usePageMeta'
+import { SITE_ORIGIN, usePageMeta } from '@hooks/usePageMeta'
 import { api } from '@services/api'
 import styles from './PartyDetailPage.module.css'
 
@@ -115,9 +115,8 @@ export default function PartyDetailPage() {
     jsonLd: metaParty
       ? buildPartyEventJsonLd(
           metaParty,
-          typeof window !== 'undefined'
-            ? `${window.location.origin}/parties/${metaParty.id}`
-            : `/parties/${metaParty.id}`,
+          // canonical(usePageMeta)과 같은 프로덕션 정식 URL — dev 출처가 구조화 데이터에 새지 않게.
+          `${SITE_ORIGIN}/parties/${metaParty.id}`,
           metaVenue?.venue,
         )
       : undefined,

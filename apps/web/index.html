@@ -18,8 +18,9 @@
 
     <!--
       Static OG / Twitter / canonical defaults. usePageMeta() (src/hooks/usePageMeta.ts)
-      enhances title + description per route at runtime; these are the crawler-safe
-      fallbacks. Production base URL is a best guess — update if the domain changes.
+      enhances title + description + canonical/og:url per route at runtime; these are
+      the crawler-safe fallbacks for bots that skip JS. Production base URL is a best
+      guess — if the domain changes, update SITE_ORIGIN (usePageMeta.ts) with it.
     -->
     <link rel="canonical" href="https://rotifolk.vercel.app/" />
     <meta property="og:type" content="website" />
@@ -50,7 +51,7 @@
       see src/pages/search/SearchPage.tsx) and Organization. Party detail pages
       additionally inject a per-party schema.org Event at runtime via
       usePageMeta({ jsonLd }) (src/hooks/usePageMeta.ts). Keep the base URL in
-      sync with the canonical/OG tags above.
+      sync with the canonical/OG tags above and SITE_ORIGIN (usePageMeta.ts).
     -->
     <script type="application/ld+json">
       {

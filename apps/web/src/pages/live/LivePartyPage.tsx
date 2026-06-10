@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -15,6 +15,7 @@ import { SendNoteSheet } from '@features/notes/SendNoteSheet'
 import { usePartyNotes } from '@features/notes/queries'
 import { useParty } from '@features/parties/queries'
 import { useLiveParty } from '@features/live/useLiveParty'
+import { detectRoundMilestone, ROUND_MILESTONE_MESSAGE } from '@features/live/roundMilestones'
 import { CATEGORY_META } from '@features/categories/meta'
 import { useAuthStore } from '@store/authStore'
 import { Button } from '@components/ui/Button/Button'
@@ -58,6 +59,10 @@ export default function LivePartyPage() {
     payload?: Record<string, unknown>
     until: number
   } | null>(null)
+  // 타이머 매초 낭독 대신 마일스톤만 스크린리더에 알린다 — 표시용 타이머는 aria-hidden
+  const [timerMilestone, setTimerMilestone] = useState('')
+  const prevRemainingRef = useRef(state.remainingSec)
+  const announcedRoundRef = useRef<number | null>(null)
 
   useEffect(() => {
     if (state.status === 'ended') setShowFinal(true)
@@ -88,6 +93,24 @@ export default function LivePartyPage() {
       return () => clearTimeout(t)
     }
   }, [state.lastEvent])
+
+  useEffect(() => {
+    if (state.status !== 'live' || !state.currentRoundIndex) return
+    if (announcedRoundRef.current === state.currentRoundIndex) return
+    announcedRoundRef.current = state.currentRoundIndex
+    setTimerMilestone(`라운드 ${state.currentRoundIndex} 시작`)
+  }, [state.status, state.currentRoundIndex])
+
+  useEffect(() => {
+    const prevSec = prevRemainingRef.current
+    prevRemainingRef.current = state.remainingSec
+    const milestone = detectRoundMilestone(
+      prevSec,
+      state.remainingSec,
+      state.currentRound?.durationSec ?? 0,
+    )
+    if (milestone) setTimerMilestone(ROUND_MILESTONE_MESSAGE[milestone])
+  }, [state.remainingSec, state.currentRound])
 
   if (isLoading || !data) return <Loading />
   const { party, participants } = data
@@ -168,8 +191,11 @@ export default function LivePartyPage() {
           <h1 className={styles.title}>{party.title}</h1>
         </div>
         <div className={styles.headRight}>
-          <span className={styles.timer} aria-live="polite">
+          <span className={styles.timer} aria-hidden="true">
             {mm}:{ss}
+          </span>
+          <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+            {timerMilestone}
           </span>
           <button
             type="button"

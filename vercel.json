@@ -15,6 +15,14 @@
       "source": "/api/:path*",
       "destination": "https://rotifolk.3.107.235.143.nip.io/api/:path*"
     },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://rotifolk.3.107.235.143.nip.io/api/seo/sitemap.xml"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "https://rotifolk.3.107.235.143.nip.io/api/seo/robots.txt"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

@@ -96,5 +96,15 @@ describe('SeoController', () => {
       expect(txt).toContain('Disallow: /me')
       expect(txt).toContain('Sitemap: https://rotifolk.vercel.app/sitemap.xml')
     })
+
+    it('builds the Sitemap URL from the same base-url resolution as the sitemap', () => {
+      process.env.PUBLIC_BASE_URL = 'https://rotifolk.com/'
+
+      const txt = makeController([]).robots()
+
+      // 후행 슬래시는 정규화되고, /sitemap.xml 은 rewrite 를 거쳐 같은 도메인에서 해석된다.
+      expect(txt).toContain('Sitemap: https://rotifolk.com/sitemap.xml')
+      expect(txt).not.toContain('rotifolk.com//sitemap.xml')
+    })
   })
 })

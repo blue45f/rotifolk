@@ -150,6 +150,37 @@
   }
 }
 
+/* —— Draft restore bar: quiet notice + restart escape hatch —— */
+.draftBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  animation: fade-up var(--dur-base) var(--ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .draftBar {
+    animation: none;
+  }
+}
+.draftText {
+  flex: 1;
+  min-width: 16ch;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--lh-normal);
+}
+.draftActions {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
 /* —— Step heading: number eyebrow + title + lead —— */
 .stepHead {
   display: flex;
