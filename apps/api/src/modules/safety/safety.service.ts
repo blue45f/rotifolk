@@ -61,7 +61,8 @@ export class SafetyService {
       where: { partyId, status: { not: 'cancelled' } },
       select: { userId: true },
     })
-    const ids = participants.map((p) => p.userId)
+    // 게스트(userId 없음)는 차단 관계가 존재하지 않으므로 대조에서 제외.
+    const ids = participants.flatMap((p) => (p.userId ? [p.userId] : []))
     if (ids.length === 0) return { conflict: false as const, with: [] as string[] }
 
     const blocks = await this.prisma.userBlock.findMany({

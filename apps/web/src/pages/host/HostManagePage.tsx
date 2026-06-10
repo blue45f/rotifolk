@@ -237,9 +237,11 @@ export default function HostManagePage() {
                   key={p.id}
                   partyId={party.id}
                   userId={p.userId}
-                  nickname={p.user?.nickname ?? '익명'}
+                  nickname={p.user?.nickname ?? p.guestName ?? '익명'}
                   seatNumber={p.seatNumber ?? i + 1}
                   status={p.status}
+                  isGuest={!!p.isGuest}
+                  avatar={p.guestAvatar ?? null}
                   onCheckIn={() => handleCheckIn(p.userId)}
                 />
               ))}
@@ -491,10 +493,22 @@ interface GuestRowProps {
   nickname: string
   seatNumber: number
   status: string
+  /** 비로그인 게스트 참가자 — 로스터에 게스트 배지를 단다. */
+  isGuest?: boolean
+  avatar?: { emoji: string; hue: string } | null
   onCheckIn: () => void
 }
 
-function GuestRow({ partyId, userId, nickname, seatNumber, status, onCheckIn }: GuestRowProps) {
+function GuestRow({
+  partyId,
+  userId,
+  nickname,
+  seatNumber,
+  status,
+  isGuest,
+  avatar,
+  onCheckIn,
+}: GuestRowProps) {
   const storageKey = `rotifolk-guest-memo-${partyId}-${userId}`
   const [memo, setMemo] = useState(() => {
     try {
@@ -514,13 +528,20 @@ function GuestRow({ partyId, userId, nickname, seatNumber, status, onCheckIn }: 
     <div className={styles.part}>
       <Avatar
         size="lg"
-        hue="#7A1F3D"
+        hue={avatar?.hue ?? '#7A1F3D'}
         pattern="gradient"
-        emoji={nickname[0]}
+        emoji={avatar?.emoji ?? nickname[0]}
         ring={status === 'checked-in' ? 'glow' : 'soft'}
       />
       <div className={styles.partInfo}>
-        <strong>{nickname}</strong>
+        <strong>
+          {nickname}{' '}
+          {isGuest && (
+            <Badge tone="gold" size="sm">
+              🎟 게스트
+            </Badge>
+          )}
+        </strong>
         <span>좌석 #{seatNumber}</span>
         {memo && !open && <span className={styles.memoPreview}>📝 {memo.slice(0, 40)}</span>}
         {open && (

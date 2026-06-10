@@ -222,6 +222,47 @@ export class AuthService {
     return { user: toPublicUser(user) }
   }
 
+  /**
+   * 게스트 참여 이력 클레임 — 같은 기기 토큰(guestToken)으로 남긴 게스트 참가 행에
+   * 내 userId를 연결한다. 이미 그 파티에 회원으로 참여 중이면 게스트 행은 취소 처리해
+   * 로스터 중복을 막는다. 토큰은 소진(null) 처리해 중복 클레임을 차단한다.
+   */
+  async claimGuestParticipations(userId: string, guestToken: string) {
+    const rows = await this.prisma.participation.findMany({
+      where: { guestToken, userId: null },
+    })
+    if (rows.length === 0) return { claimed: 0 }
+
+    let claimed = 0
+    await this.prisma.$transaction(async (tx) => {
+      for (const row of rows) {
+        const existing = await tx.participation.findUnique({
+          where: { partyId_userId: { partyId: row.partyId, userId } },
+          select: { id: true },
+        })
+        if (existing) {
+          await tx.participation.update({
+            where: { id: row.id },
+            data: { status: 'cancelled', guestToken: null },
+          })
+          continue
+        }
+        await tx.participation.update({
+          where: { id: row.id },
+          data: { userId, guestToken: null },
+        })
+        claimed += 1
+      }
+      if (claimed > 0) {
+        await tx.user.update({
+          where: { id: userId },
+          data: { joinedCount: { increment: claimed } },
+        })
+      }
+    })
+    return { claimed }
+  }
+
   private issueSession(user: { id: string; email: string; role: string; nickname: string }) {
     const token = this.jwt.sign({
       sub: user.id,

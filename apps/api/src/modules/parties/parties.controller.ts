@@ -14,6 +14,8 @@ import { AuthGuard } from '@nestjs/passport'
 import {
   CheckInSchema,
   CreatePartySchema,
+  GuestJoinSchema,
+  HostAddGuestSchema,
   JoinPartySchema,
   PartyQuerySchema,
   UpdatePartySchema,
@@ -21,6 +23,8 @@ import {
 import type {
   CheckInDto,
   CreatePartyDto,
+  GuestJoinDto,
+  HostAddGuestDto,
   JoinPartyDto,
   PartyQueryDto,
   UpdatePartyDto,
@@ -127,6 +131,32 @@ export class PartiesController {
   @UseGuards(AuthGuard('jwt'))
   cancelJoin(@CurrentUser() me: JwtUserPayload, @Param('id') partyId: string) {
     return this.parties.cancel(me.sub, partyId)
+  }
+
+  /** 게스트(비로그인) 링크 합류 — 가입 없이 닉네임+아바타만으로 참가 (auth X). */
+  @Post(':id/guest-join')
+  guestJoin(
+    @Param('id') partyId: string,
+    @Body(new ZodValidationPipe(GuestJoinSchema)) dto: GuestJoinDto,
+  ) {
+    return this.parties.guestJoin(partyId, dto)
+  }
+
+  /** 게스트 재방문 식별 — localStorage 토큰으로 내 게스트 참가 조회 (auth X). */
+  @Get(':id/guests/me')
+  guestSession(@Param('id') partyId: string, @Query('token') token?: string) {
+    return this.parties.guestSession(partyId, token ?? '')
+  }
+
+  /** 현장 합류 — 호스트가 이름만 입력해 게스트 즉석 등록. */
+  @Post(':id/guests')
+  @UseGuards(AuthGuard('jwt'))
+  addGuest(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('id') partyId: string,
+    @Body(new ZodValidationPipe(HostAddGuestSchema)) dto: HostAddGuestDto,
+  ) {
+    return this.parties.hostAddGuest(me.sub, partyId, dto)
   }
 
   @Post(':id/check-in/:userId')

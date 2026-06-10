@@ -8,8 +8,8 @@ import {
   UsePipes,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { LoginSchema, SignUpSchema } from '@rotifolk/shared'
-import type { LoginDto, SignUpDto } from '@rotifolk/shared'
+import { ClaimGuestSchema, LoginSchema, SignUpSchema } from '@rotifolk/shared'
+import type { ClaimGuestDto, LoginDto, SignUpDto } from '@rotifolk/shared'
 import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 import { AuthService } from './auth.service'
@@ -59,5 +59,15 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   me(@CurrentUser() user: JwtUserPayload) {
     return this.authService.me(user.sub)
+  }
+
+  /** 가입/로그인 후 게스트 참여 이력 연결 — guestToken으로 내 계정에 클레임. */
+  @Post('claim-guest')
+  @UseGuards(AuthGuard('jwt'))
+  claimGuest(
+    @CurrentUser() user: JwtUserPayload,
+    @Body(new ZodValidationPipe(ClaimGuestSchema)) dto: ClaimGuestDto,
+  ) {
+    return this.authService.claimGuestParticipations(user.sub, dto.guestToken)
   }
 }

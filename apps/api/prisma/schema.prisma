@@ -319,12 +319,17 @@ model Participation {
   id          String    @id @default(cuid())
   partyId     String
   party       Party     @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String? // 게스트(비로그인) 참가자는 null — guestName/guestToken으로 식별
+  user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
   status      String    @default("pending") // pending|confirmed|waitlist|checked-in|cancelled|no-show
   seatNumber  Int?
   checkedInAt DateTime?
   note        String?
+
+  // 게스트(비로그인) 참가 — 초대 링크/현장 등록으로 합류, 가입 시 guestToken으로 본인 행 클레임
+  guestName       String?
+  guestAvatarJson String? // { emoji, hue } — 아바타 모듈 프리셋 재사용
+  guestToken      String? // 기기 재방문·클레임 식별 토큰(같은 기기는 여러 파티에서 재사용)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -332,6 +337,7 @@ model Participation {
   @@unique([partyId, userId])
   @@index([userId])
   @@index([partyId, status])
+  @@index([guestToken])
 }
 
 // ======================== ROUND / PAIR ========================

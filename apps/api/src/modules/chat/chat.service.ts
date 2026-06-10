@@ -48,7 +48,11 @@ export class ChatService {
         title: party.title,
       },
     })
-    const memberIds = new Set<string>([party.hostId, ...party.participations.map((p) => p.userId)])
+    // 게스트(비로그인)는 계정이 없어 단톡방 멤버십을 만들 수 없다 — 회원만 입장.
+    const memberIds = new Set<string>([
+      party.hostId,
+      ...party.participations.flatMap((p) => (p.userId ? [p.userId] : [])),
+    ])
     await this.prisma.chatMembership.createMany({
       data: [...memberIds].map((uid) => ({ roomId: room.id, userId: uid })),
     })

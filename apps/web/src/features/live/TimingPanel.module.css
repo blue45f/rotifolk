@@ -1,0 +1,206 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.h3 {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+  letter-spacing: 0.01em;
+}
+
+.muted {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+.mutedInline {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+  margin-left: var(--space-2);
+}
+
+/* ── 로스터 ─────────────────────────────── */
+.roster {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 200px;
+  overflow-y: auto;
+}
+.rosterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 0;
+}
+.rosterName {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 공통 컨트롤 ────────────────────────── */
+.statLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+.statSep {
+  color: var(--color-text-subtle);
+}
+.btnRow {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.inlineFields {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+.inlineField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
+.timeInput,
+.numInput {
+  font: inherit;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  min-width: 110px;
+}
+.numInput {
+  min-width: 90px;
+}
+.timeInput:focus-visible,
+.numInput:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(122, 31, 61, 0.16);
+}
+
+.solveResult {
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+.solveResult strong {
+  color: var(--color-primary);
+}
+.solveWarn {
+  font-size: var(--fs-xs);
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* ── 토글 스위치 ────────────────────────── */
+.switch {
+  width: 44px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface-soft);
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--dur-base) var(--ease-out);
+}
+.knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-base) var(--ease-spring);
+}
+.switchOn {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.switchOn .knob {
+  transform: translateX(18px);
+}
+.switch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(122, 31, 61, 0.22);
+}
+
+/* ── 타임라인 ───────────────────────────── */
+.timeline {
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.block {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+  font-size: var(--fs-xs);
+}
+.blockBreak {
+  background: transparent;
+  color: var(--color-text-subtle);
+  padding-block: 2px;
+}
+.blockLongBreak {
+  background: color-mix(in oklab, var(--brand-gold-500) 14%, var(--color-surface));
+  border: 1px dashed color-mix(in oklab, var(--brand-gold-500) 45%, transparent);
+  color: var(--color-text);
+}
+.blockTime {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+  min-width: 72px;
+}
+.blockLabel {
+  flex: 1;
+  font-weight: var(--fw-medium);
+}
+.blockDur {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-subtle);
+}

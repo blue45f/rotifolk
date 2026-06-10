@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import {
   BadRequestException,
   ForbiddenException,
@@ -10,12 +11,16 @@ import {
   channelsFromLegacyMode,
   checkEligibility,
   legacyModeFromChannels,
+  participationIdFromGuestKey,
+  pickGuestAvatar,
   quoteRefund,
 } from '@rotifolk/shared'
 import type {
   ChildrenPolicy,
   ConnectionChannel,
   CreatePartyDto,
+  GuestJoinDto,
+  HostAddGuestDto,
   MaritalStatus,
   PartyCategory,
   PartyConfig,
@@ -601,6 +606,128 @@ export class PartiesService {
   }
 
   /**
+   * 게스트(비로그인) 링크 합류 — 닉네임+아바타 프리셋만으로 참가 행 생성.
+   * 같은 token이 이미 이 파티에 참여 중이면 기존 행을 돌려준다(재방문 멱등).
+   * 프로필이 없으므로 자격 검사(나이·인증 등)는 호스트 책임 하에 생략하고
+   * 정원만 검사한다(성별 미상 → 성비 평가는 통과 처리).
+   */
+  async guestJoin(partyId: string, dto: GuestJoinDto) {
+    const party = await this.prisma.party.findUnique({
+      where: { id: partyId },
+      select: { id: true, hostId: true, title: true, status: true, maxParticipants: true },
+    })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (party.status !== 'open' && party.status !== 'live')
+      throw new BadRequestException({ code: 'party_closed', message: '신청이 마감된 파티에요' })
+
+    if (dto.token) {
+      const existing = await this.prisma.participation.findFirst({
+        where: { partyId, guestToken: dto.token, status: { in: ['confirmed', 'checked-in'] } },
+      })
+      if (existing) {
+        return { participation: toParticipation(existing), guestToken: dto.token }
+      }
+    }
+
+    const guestToken = dto.token ?? randomUUID()
+    const avatar = dto.avatar ?? pickGuestAvatar(dto.nickname)
+
+    const created = await this.prisma.$transaction(async (tx) => {
+      const confirmedCount = await tx.participation.count({
+        where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
+      })
+      if (confirmedCount >= party.maxParticipants)
+        throw new BadRequestException({ code: 'party_full', message: '정원이 가득 찼어요' })
+      const row = await tx.participation.create({
+        data: {
+          partyId,
+          userId: null,
+          status: 'confirmed',
+          guestName: dto.nickname,
+          guestAvatarJson: toJsonString(avatar),
+          guestToken,
+        },
+      })
+      if (confirmedCount + 1 >= party.maxParticipants) {
+        await tx.party.updateMany({
+          where: { id: partyId, status: 'open' },
+          data: { status: 'full' },
+        })
+      }
+      return row
+    })
+
+    await this.prisma.notification
+      .create({
+        data: {
+          userId: party.hostId,
+          kind: 'party_join',
+          title: '새 게스트 참가자',
+          body: `${dto.nickname}님이 게스트로 ${party.title}에 합류했어요.`,
+          link: `/host/parties/${partyId}`,
+        },
+      })
+      .catch(() => undefined)
+    this.notifEmitter.toUser(party.hostId, {
+      kind: 'party_join',
+      title: '새 게스트 참가자',
+      body: `${dto.nickname}님이 게스트로 합류했어요.`,
+      link: `/host/parties/${partyId}`,
+    })
+
+    return { participation: toParticipation(created), guestToken }
+  }
+
+  /** 게스트 재방문 식별 — 토큰으로 이 파티의 내 게스트 참가 행을 조회. */
+  async guestSession(partyId: string, token: string) {
+    if (!token) return { participation: null }
+    const row = await this.prisma.participation.findFirst({
+      where: { partyId, guestToken: token, status: { in: ['confirmed', 'checked-in'] } },
+    })
+    return { participation: row ? toParticipation(row) : null }
+  }
+
+  /** 현장 합류 — 호스트가 이름만으로 즉석 등록. 도착해 있는 사람이므로 바로 체크인 처리. */
+  async hostAddGuest(hostId: string, partyId: string, dto: HostAddGuestDto) {
+    const party = await this.prisma.party.findUnique({
+      where: { id: partyId },
+      select: { id: true, hostId: true, status: true, maxParticipants: true },
+    })
+    if (!party || party.hostId !== hostId)
+      throw new ForbiddenException({ code: 'forbidden', message: '호스트만 추가할 수 있어요' })
+    if (party.status === 'ended' || party.status === 'cancelled')
+      throw new BadRequestException({ code: 'party_closed', message: '종료된 파티에요' })
+
+    const created = await this.prisma.$transaction(async (tx) => {
+      const confirmedCount = await tx.participation.count({
+        where: { partyId, status: { in: ['confirmed', 'checked-in'] } },
+      })
+      if (confirmedCount >= party.maxParticipants)
+        throw new BadRequestException({ code: 'party_full', message: '정원이 가득 찼어요' })
+      const row = await tx.participation.create({
+        data: {
+          partyId,
+          userId: null,
+          status: 'checked-in',
+          checkedInAt: new Date(),
+          guestName: dto.name,
+          guestAvatarJson: toJsonString(pickGuestAvatar(dto.name)),
+          guestToken: null, // 현장 등록은 기기 토큰이 없음 — 클레임 대상 아님
+        },
+      })
+      if (confirmedCount + 1 >= party.maxParticipants) {
+        await tx.party.updateMany({
+          where: { id: partyId, status: 'open' },
+          data: { status: 'full' },
+        })
+      }
+      return row
+    })
+    return toParticipation(created)
+  }
+
+  /**
    * 정원·성비를 평가해 확정/대기열 여부를 결정. 트랜잭션 안에서 호출해
    * 조회→판정→생성이 한 단위로 직렬화되도록 한다(동시 신청 정원 초과 방지).
    */
@@ -663,6 +790,7 @@ export class PartiesService {
 
       for (const w of waitlisted) {
         if (confirmed >= party.maxParticipants) break
+        if (!w.userId) continue // 게스트는 대기열에 들어가지 않음(방어적 가드)
         const g = w.user?.gender
         let ok = true
         if ((g === 'male' || g === 'female') && party.genderRatioTarget !== 'any') {
@@ -764,6 +892,21 @@ export class PartiesService {
     if (!party || party.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트만 체크인할 수 있어요' })
 
+    // 게스트는 합성 키(guest:<participationId>)로 체크인 — 회원과 같은 엔드포인트를 쓴다.
+    const guestParticipationId = participationIdFromGuestKey(userId)
+    if (guestParticipationId) {
+      const part = await this.prisma.participation.findUnique({
+        where: { id: guestParticipationId },
+      })
+      if (!part || part.partyId !== partyId || part.userId)
+        throw new NotFoundException({ code: 'not_joined', message: '참여 기록이 없어요' })
+      const updated = await this.prisma.participation.update({
+        where: { id: guestParticipationId },
+        data: { status: 'checked-in', checkedInAt: new Date(), seatNumber: seatNumber ?? null },
+      })
+      return toParticipation(updated)
+    }
+
     const updated = await this.prisma.participation.update({
       where: { partyId_userId: { partyId, userId } },
       data: { status: 'checked-in', checkedInAt: new Date(), seatNumber: seatNumber ?? null },
@@ -823,18 +966,21 @@ export class PartiesService {
         select: { userId: true },
       }),
     ])
-    const notifyParticipants = participants.filter((pp) => pp.userId !== hostId)
+    // 게스트(userId 없음)는 인앱 알림 대상이 아님 — 회원 참가자에게만 발송.
+    const notifyUserIds = participants
+      .map((pp) => pp.userId)
+      .filter((id): id is string => !!id && id !== hostId)
     await this.prisma.notification.createMany({
-      data: notifyParticipants.map((pp) => ({
-        userId: pp.userId,
+      data: notifyUserIds.map((userId) => ({
+        userId,
         kind: 'party_starting',
         title: '🎉 파티가 시작됐어요!',
         body: `${p.title} 파티가 지금 시작됩니다.`,
         link: `/live/${partyId}`,
       })),
     })
-    for (const pp of notifyParticipants) {
-      this.notifEmitter.toUser(pp.userId, {
+    for (const userId of notifyUserIds) {
+      this.notifEmitter.toUser(userId, {
         kind: 'party_starting',
         title: '🎉 파티가 시작됐어요!',
         body: `${p.title}`,

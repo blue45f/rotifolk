@@ -223,7 +223,7 @@ export class MeService {
    * 원본 번호 비교 없이 해시·차단·회사 정보만으로 판단.
    */
   async avoidCheck(userId: string, partyId: string): Promise<AvoidMatchDto[]> {
-    const parts = await this.prisma.participation.findMany({
+    const rows = await this.prisma.participation.findMany({
       where: { partyId, status: { in: ['confirmed', 'checked-in'] }, userId: { not: userId } },
       select: {
         user: {
@@ -231,6 +231,8 @@ export class MeService {
         },
       },
     })
+    // 게스트(비로그인)는 연락처/회사 정보가 없어 회피 대조 대상이 아니다.
+    const parts = rows.flatMap((p) => (p.user ? [{ user: p.user }] : []))
 
     const me = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },

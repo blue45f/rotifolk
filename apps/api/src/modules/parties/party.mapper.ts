@@ -26,8 +26,8 @@ import type {
   MaritalStatus,
   ChildrenPolicy,
 } from '@rotifolk/shared'
-import { channelsFromLegacyMode } from '@rotifolk/shared'
-import { parseJsonArray } from '@/common/json-utils'
+import { channelsFromLegacyMode, guestParticipantKey } from '@rotifolk/shared'
+import { parseJsonArray, parseJsonObject } from '@/common/json-utils'
 import { toPublicSummary } from '../users/user.mapper'
 
 type HostShape = {
@@ -152,14 +152,26 @@ export function toPartySummary(row: PartyRow): PartySummary {
 export function toParticipation(
   row: PrismaParticipation & { user?: (PrismaUser & { avatar?: PrismaAvatar | null }) | null },
 ): Participation {
+  // 게스트(비로그인)는 userId가 없으므로 합성 키를 동일 형태로 노출 —
+  // 라운드 memberIds·체크인 경로·로스터 매칭이 회원과 같은 코드로 동작한다.
+  const isGuest = !row.userId
+  const guestAvatar = row.guestAvatarJson
+    ? (parseJsonObject(row.guestAvatarJson) as { emoji?: string; hue?: string })
+    : null
   return {
     id: row.id,
     partyId: row.partyId,
-    userId: row.userId,
+    userId: row.userId ?? guestParticipantKey(row.id),
     status: row.status as Participation['status'],
     seatNumber: row.seatNumber,
     checkedInAt: row.checkedInAt ? row.checkedInAt.toISOString() : null,
     user: row.user ? (toPublicSummary(row.user as never) as never) : undefined,
+    isGuest: isGuest || undefined,
+    guestName: row.guestName,
+    guestAvatar:
+      guestAvatar?.emoji && guestAvatar?.hue
+        ? { emoji: guestAvatar.emoji, hue: guestAvatar.hue }
+        : null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   }
