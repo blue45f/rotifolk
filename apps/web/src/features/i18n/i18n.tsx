@@ -22,6 +22,7 @@ const KO: Record<string, string> = {
   'nav.home': '홈',
   'nav.venues': '장소',
   'nav.community': '커뮤니티',
+  'nav.clubs': '클럽',
   'nav.neighborhood': '동네',
   'nav.host': '호스트 콘솔',
   'nav.digest': '다이제스트',
@@ -71,6 +72,7 @@ const KO: Record<string, string> = {
   'footer.terms': '이용약관',
   'footer.privacy': '개인정보처리방침',
   'footer.refund': '환불 정책',
+  'footer.support': '문의하기',
 }
 
 const EN: Record<string, string> = {
@@ -81,6 +83,7 @@ const EN: Record<string, string> = {
   'nav.home': 'Home',
   'nav.venues': 'Venues',
   'nav.community': 'Community',
+  'nav.clubs': 'Clubs',
   'nav.neighborhood': 'Neighborhood',
   'nav.host': 'Host console',
   'nav.digest': 'Digest',
@@ -130,6 +133,7 @@ const EN: Record<string, string> = {
   'footer.terms': 'Terms of Service',
   'footer.privacy': 'Privacy Policy',
   'footer.refund': 'Refund Policy',
+  'footer.support': 'Contact us',
 }
 
 const DICTS: Record<Locale, Record<string, string>> = { ko: KO, en: EN }

@@ -96,6 +96,9 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
           >
             {t('nav.community')}
           </NavLink>
+          <NavLink to="/clubs" className={({ isActive }) => (isActive ? styles.active : '')}>
+            {t('nav.clubs')}
+          </NavLink>
           <NavLink to="/digest" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.digest')}
           </NavLink>

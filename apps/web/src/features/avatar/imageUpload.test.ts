@@ -3,7 +3,10 @@ import {
   AVATAR_RESIZE_MAX_DIM,
   AVATAR_UPLOAD_MAX_BYTES,
   AvatarImageError,
+  POST_IMAGE_RESIZE_MAX_DIM,
+  POST_IMAGE_UPLOAD_MAX_BYTES,
   resizeAvatarImage,
+  resizePostImage,
   scaleToFit,
 } from './imageUpload'
 
@@ -119,5 +122,38 @@ describe('resizeAvatarImage', () => {
     const err = await resizeAvatarImage(makeImageFile()).catch((e) => e)
     expect(err).toBeInstanceOf(AvatarImageError)
     expect((err as AvatarImageError).code).toBe('process_failed')
+  })
+})
+
+describe('resizePostImage', () => {
+  it('svg 파일은 svg_not_allowed로 거부한다 (XSS 면)', async () => {
+    const err = await resizePostImage(makeImageFile(10, 'image/svg+xml', 'a.svg')).catch((e) => e)
+    expect(err).toBeInstanceOf(AvatarImageError)
+    expect((err as AvatarImageError).code).toBe('svg_not_allowed')
+  })
+
+  it('이미지가 아닌 파일은 not_image로 거부한다', async () => {
+    const err = await resizePostImage(makeImageFile(10, 'application/pdf', 'a.pdf')).catch((e) => e)
+    expect(err).toBeInstanceOf(AvatarImageError)
+    expect((err as AvatarImageError).code).toBe('not_image')
+  })
+
+  it('2MB를 넘는 원본은 too_large로 거부한다', async () => {
+    const err = await resizePostImage(makeImageFile(POST_IMAGE_UPLOAD_MAX_BYTES + 1)).catch(
+      (e) => e,
+    )
+    expect(err).toBeInstanceOf(AvatarImageError)
+    expect((err as AvatarImageError).code).toBe('too_large')
+  })
+
+  it('긴 변을 1600px로 줄여 data URL을 돌려준다', async () => {
+    bitmapSize = { width: 4000, height: 3000 }
+    const result = await resizePostImage(makeImageFile())
+    expect(result.startsWith('data:image/webp')).toBe(true)
+    expect(canvasCalls[0]).toEqual({
+      width: POST_IMAGE_RESIZE_MAX_DIM,
+      height: 1200,
+      type: 'image/webp',
+    })
   })
 })

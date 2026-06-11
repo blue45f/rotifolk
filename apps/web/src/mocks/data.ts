@@ -8,6 +8,9 @@ import type {
   Venue,
   VenueBooking,
   MenuItem,
+  ClubCategory,
+  ClubComment,
+  ClubPost,
   CommunityComment,
   CommunityPost,
   QuestionCard,
@@ -876,3 +879,104 @@ export const mockVenueBookings: VenueBooking[] = [
 ]
 
 export const MOCK_TOKEN = 'msw-mock-jwt-token'
+
+/* ── 클럽(정기 모임 그룹) mock ──────────────────────────────────── */
+
+export interface MockClub {
+  id: string
+  name: string
+  category: ClubCategory
+  description: string
+  visibility: 'public' | 'private'
+  ownerIndex: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MockClubMember {
+  clubId: string
+  userIndex: number
+  role: 'owner' | 'member'
+  joinedAt: string
+}
+
+export interface MockClubPost extends ClubPost {
+  status: 'open' | 'hidden' | 'removed'
+}
+
+export interface MockClubComment extends ClubComment {
+  status: 'visible' | 'removed'
+}
+
+export const mockClubs: MockClub[] = [
+  {
+    id: 'club_hannam_wine',
+    name: '한남 내추럴 와인회',
+    category: 'natural-wine',
+    description:
+      '한 달에 두 번, 한남동에서 내추럴 와인을 한 병씩 들고 모이는 클럽입니다. 첫 잔은 늘 가장 거친 병부터 엽니다.',
+    visibility: 'public',
+    ownerIndex: 0,
+    createdAt: minutesAgo(60 * 24 * 30),
+    updatedAt: minutesAgo(60 * 24 * 2),
+  },
+  {
+    id: 'club_quiet_coffee',
+    name: '조용한 커피 클럽',
+    category: 'coffee',
+    description:
+      '성수의 조용한 로스터리를 돌며 같은 원두를 다르게 내려 마시는 비공개 클럽이에요. 멤버 추천으로만 천천히 늘립니다.',
+    visibility: 'private',
+    ownerIndex: 2,
+    createdAt: minutesAgo(60 * 24 * 14),
+    updatedAt: minutesAgo(60 * 24),
+  },
+]
+
+export const mockClubMembers: MockClubMember[] = [
+  { clubId: 'club_hannam_wine', userIndex: 0, role: 'owner', joinedAt: minutesAgo(60 * 24 * 30) },
+  { clubId: 'club_hannam_wine', userIndex: 2, role: 'member', joinedAt: minutesAgo(60 * 24 * 20) },
+  { clubId: 'club_hannam_wine', userIndex: 3, role: 'member', joinedAt: minutesAgo(60 * 24 * 9) },
+  { clubId: 'club_quiet_coffee', userIndex: 2, role: 'owner', joinedAt: minutesAgo(60 * 24 * 14) },
+]
+
+export const mockClubPosts: MockClubPost[] = [
+  {
+    id: 'clp_first_bottle',
+    clubId: 'club_hannam_wine',
+    title: '6월 둘째 주 모임 병 추천 받아요',
+    body: '이번엔 쥐라 지역으로 가볼까 해요. 산미 강한 병 좋아하는 분 추천 부탁드립니다. 참고: https://example.com/jura-guide',
+    imageData: null,
+    status: 'open',
+    commentCount: 2,
+    lastCommentAt: minutesAgo(60 * 5),
+    author: communityAuthor(0),
+    createdAt: minutesAgo(60 * 26),
+    updatedAt: minutesAgo(60 * 26),
+  },
+]
+
+export const mockClubComments: MockClubComment[] = [
+  {
+    id: 'clc_root',
+    postId: 'clp_first_bottle',
+    parentId: null,
+    body: '오버누아 한 병 들고 갈게요. 산미 좋아하시면 만족하실 거예요.',
+    status: 'visible',
+    author: communityAuthor(2),
+    replies: [],
+    createdAt: minutesAgo(60 * 8),
+    updatedAt: minutesAgo(60 * 8),
+  },
+  {
+    id: 'clc_reply',
+    postId: 'clp_first_bottle',
+    parentId: 'clc_root',
+    body: '오 그럼 저는 치즈 맡겠습니다.',
+    status: 'visible',
+    author: communityAuthor(3),
+    replies: [],
+    createdAt: minutesAgo(60 * 5),
+    updatedAt: minutesAgo(60 * 5),
+  },
+]

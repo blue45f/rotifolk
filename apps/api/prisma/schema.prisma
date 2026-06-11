@@ -100,6 +100,10 @@ model User {
   avoidContacts     AvoidContact[]    @relation("AvoidOwner")
   communityPosts     CommunityPost[]   @relation("CommunityPostAuthor")
   communityComments  CommunityComment[] @relation("CommunityCommentAuthor")
+  clubsOwned         Club[]            @relation("ClubOwner")
+  clubMemberships    ClubMember[]      @relation("ClubMemberships")
+  clubPosts          ClubPost[]        @relation("ClubPostAuthor")
+  clubComments       ClubComment[]     @relation("ClubCommentAuthor")
   contactExchangeRequestsSent     ContactExchangeRequest[] @relation("ContactExchangeRequester")
   contactExchangeRequestsReceived ContactExchangeRequest[] @relation("ContactExchangeReceiver")
   contactExchangeRequestsDecided  ContactExchangeRequest[] @relation("ContactExchangeDecider")
@@ -689,6 +693,7 @@ model CommunityPost {
   category     String   @default("question") // question | after-party | venue-tip | match-review
   area         String?
   tagsJson     String   @default("[]")
+  imageData    String? // 첨부 이미지(data URL, 래스터 포맷만) — 없으면 null
   status       String   @default("open") // open | hidden | removed
   commentCount Int      @default(0)
   lastCommentAt DateTime?
@@ -998,4 +1003,83 @@ model AvoidContact {
 
   @@unique([userId, phoneHash])
   @@index([phoneHash])
+}
+
+// ======================== CLUB (정기 모임 그룹) ========================
+// 카테고리(와인/커피/차 등)별 카페형 커뮤니티. 클럽 게시판은 글+댓글(1단 답글).
+model Club {
+  id          String @id @default(cuid())
+  ownerId     String
+  owner       User   @relation("ClubOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  name        String
+  category    String @default("wine") // CLUB_CATEGORIES (custom 제외 파티 분류)
+  description String
+  visibility  String @default("public") // public | private (비공개는 게시판이 멤버 전용)
+
+  // 멤버/글 수는 _count로 계산한다(카운터 컬럼 드리프트 방지).
+  members ClubMember[]
+  posts   ClubPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category, createdAt])
+  @@index([ownerId])
+}
+
+model ClubMember {
+  id     String @id @default(cuid())
+  clubId String
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation("ClubMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  role   String @default("member") // owner | member
+
+  createdAt DateTime @default(now())
+
+  @@unique([clubId, userId])
+  @@index([userId, createdAt])
+}
+
+model ClubPost {
+  id        String  @id @default(cuid())
+  clubId    String
+  club      Club    @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User    @relation("ClubPostAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  imageData String? // 첨부 이미지(data URL, 래스터 포맷만)
+  status    String  @default("open") // open | hidden | removed
+
+  commentCount  Int       @default(0)
+  lastCommentAt DateTime?
+
+  comments ClubComment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([clubId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model ClubComment {
+  id       String   @id @default(cuid())
+  postId   String
+  post     ClubPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User     @relation("ClubCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  parentId String?
+  parent   ClubComment?  @relation("ClubReplyThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  ClubComment[] @relation("ClubReplyThread")
+  body     String
+  status   String @default("visible") // visible | hidden | removed
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId, createdAt])
+  @@index([parentId, createdAt])
+  @@index([authorId, createdAt])
 }

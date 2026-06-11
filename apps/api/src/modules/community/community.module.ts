@@ -94,7 +94,9 @@ class CommunityController {
         },
         party: { select: { title: true } },
         comments: {
-          where: { status: 'visible' },
+          // removed 댓글도 함께 읽어 "답글이 남아 있는 삭제 댓글"을
+          // 플레이스홀더로 살려 보낸다(스레드 유지). 나머지 removed는 버린다.
+          where: { status: { in: ['visible', 'removed'] } },
           include: {
             author: {
               select: { id: true, nickname: true, avatarId: true, role: true, isVerified: true },
@@ -112,7 +114,7 @@ class CommunityController {
 
     return {
       ...mapCommunityPost(post),
-      comments: buildCommunityCommentTree(post.comments.map(mapCommunityComment)),
+      comments: buildCommunityCommentTree(threadCommentsWithPlaceholders(post.comments)),
     }
   }
 
@@ -131,6 +133,7 @@ class CommunityController {
         category: dto.category,
         area: dto.area ?? null,
         tagsJson: JSON.stringify(dto.tags),
+        imageData: dto.imageData ?? null,
       },
       include: {
         author: {
@@ -172,6 +175,7 @@ class CommunityController {
         ...(typeof dto.category !== 'undefined' ? { category: dto.category } : {}),
         ...(typeof dto.area !== 'undefined' ? { area: dto.area } : {}),
         ...(typeof dto.tags !== 'undefined' ? { tagsJson: JSON.stringify(dto.tags) } : {}),
+        ...(typeof dto.imageData !== 'undefined' ? { imageData: dto.imageData } : {}),
       },
       include: {
         author: {
@@ -319,22 +323,16 @@ class CommunityController {
         message: '작성자만 댓글을 삭제할 수 있어요',
       })
 
-    const commentsToRemove = await this.prisma.communityComment.findMany({
-      where: {
-        postId,
-        status: 'visible',
-        OR: [{ id: commentId }, { parentId: commentId }],
-      },
-      select: { id: true },
-    })
+    // 답글이 남아 있으면 스레드 보존을 위해 본 댓글만 removed로 바꾸고
+    // (GET이 플레이스홀더로 살려 보낸다) 답글은 그대로 둔다.
     await this.prisma.$transaction([
-      this.prisma.communityComment.updateMany({
-        where: { id: { in: commentsToRemove.map((comment) => comment.id) } },
+      this.prisma.communityComment.update({
+        where: { id: commentId },
         data: { status: 'removed' },
       }),
       this.prisma.communityPost.update({
         where: { id: postId },
-        data: { commentCount: { decrement: commentsToRemove.length } },
+        data: { commentCount: { decrement: 1 } },
       }),
     ])
     return { ok: true }
@@ -533,6 +531,7 @@ type JsonPost = {
   area: string | null
   partyId: string | null
   tagsJson: string
+  imageData: string | null
   commentCount: number
   lastCommentAt: Date | null
   createdAt: Date
@@ -552,6 +551,7 @@ type JsonComment = {
   postId: string
   parentId: string | null
   body: string
+  status?: string
   createdAt: Date
   updatedAt: Date
   author: {
@@ -584,6 +584,7 @@ function mapCommunityPost(post: JsonPost): CommunityPost {
     partyId: post.partyId,
     partyTitle: post.party?.title ?? null,
     tags: safeTags(post.tagsJson),
+    imageData: post.imageData,
     commentCount: post.commentCount,
     lastCommentAt: post.lastCommentAt?.toISOString() ?? null,
     author: post.author,
@@ -603,4 +604,42 @@ function mapCommunityComment(comment: JsonComment): CommunityComment {
     createdAt: comment.createdAt.toISOString(),
     updatedAt: comment.updatedAt.toISOString(),
   }
+}
+
+/** removed 댓글의 플레이스홀더 — 본문·작성자를 비워 개인정보 노출 없이 스레드만 유지. */
+function mapDeletedCommentPlaceholder(comment: JsonComment): CommunityComment {
+  return {
+    ...mapCommunityComment(comment),
+    body: '',
+    deleted: true,
+    author: {
+      id: 'deleted',
+      nickname: '알 수 없음',
+      avatarId: null,
+      role: 'user',
+      isVerified: false,
+    },
+  }
+}
+
+/**
+ * visible 댓글은 그대로, removed 댓글은 "visible 답글이 남아 있을 때만"
+ * 플레이스홀더로 변환해 돌려준다(답글 없는 removed는 응답에서 제외).
+ */
+export function threadCommentsWithPlaceholders(comments: JsonComment[]): CommunityComment[] {
+  const hasVisibleReply = new Set<string>()
+  for (const comment of comments) {
+    if (comment.status !== 'removed' && comment.parentId) {
+      hasVisibleReply.add(comment.parentId)
+    }
+  }
+  const result: CommunityComment[] = []
+  for (const comment of comments) {
+    if (comment.status === 'removed') {
+      if (hasVisibleReply.has(comment.id)) result.push(mapDeletedCommentPlaceholder(comment))
+      continue
+    }
+    result.push(mapCommunityComment(comment))
+  }
+  return result
 }

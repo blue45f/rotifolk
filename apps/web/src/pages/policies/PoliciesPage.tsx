@@ -742,24 +742,22 @@ export default function PoliciesPage() {
       </section>
 
       <p className={styles.footer}>
-        마지막 업데이트 {POLICIES_TERMS_VERSION_DATE} · 문의는 TermsDesk 공식 지원 보드로
-        보내주세요.
+        마지막 업데이트 {POLICIES_TERMS_VERSION_DATE} · 문의는 인앱 문의 폼으로 보내주세요. 접수가
+        안 될 때는{' '}
+        <a href={SUPPORT_URL} target="_blank" rel="noreferrer">
+          외부 지원 보드
+        </a>
+        가 폴백이에요.
       </p>
 
       <div className={styles.footerLinks}>
         <Link to={backTarget}>이전 단계로 돌아가기</Link>
         <span aria-hidden="true">·</span>
-        <a href={`${SUPPORT_URL}?category=site-inquiry`} target="_blank" rel="noreferrer">
-          사이트 문의
-        </a>
+        <Link to="/support?category=contact">사이트 문의</Link>
         <span aria-hidden="true">·</span>
-        <a href={`${SUPPORT_URL}?category=partnership`} target="_blank" rel="noreferrer">
-          제휴 문의
-        </a>
+        <Link to="/support?category=partnership">제휴 문의</Link>
         <span aria-hidden="true">·</span>
-        <a href={`${SUPPORT_URL}?category=bug`} target="_blank" rel="noreferrer">
-          버그 제보
-        </a>
+        <Link to="/support?category=bug">버그 제보</Link>
         <span aria-hidden="true">·</span>
         <Link
           to={

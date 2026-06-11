@@ -13,10 +13,10 @@ async function bootstrap() {
     bufferLogs: true,
     bodyParser: false,
   })
-  // 기본 json 한도(100kb)는 아바타 사진 업로드(data URL, 스키마 캡 300K자)에 부족 —
-  // zod 캡이 실효성을 갖도록 본문 한도를 512kb로 상향한다.
-  app.useBodyParser('json', { limit: '512kb' })
-  app.useBodyParser('urlencoded', { extended: true, limit: '512kb' })
+  // 기본 json 한도(100kb)는 data URL 업로드에 부족 — 아바타(캡 300K자)와
+  // 게시글 첨부 이미지(캡 700K자)의 zod 캡이 실효성을 갖도록 1mb로 상향한다.
+  app.useBodyParser('json', { limit: '1mb' })
+  app.useBodyParser('urlencoded', { extended: true, limit: '1mb' })
   // Structured logging via nestjs-pino (JSON in prod, pino-pretty in dev) +
   // HTTP request autoLogging. Replaces the default unstructured console logger.
   app.useLogger(app.get(Logger))
