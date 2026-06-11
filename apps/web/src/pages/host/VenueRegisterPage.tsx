@@ -6,7 +6,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Card } from '@components/ui/Card/Card'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './VenueRegister.module.css'
 
 const KINDS: { value: VenueKind; label: string; emoji: string }[] = [

@@ -9,7 +9,7 @@ import { GoogleSignInButton } from '@features/auth/GoogleSignInButton'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
@@ -99,7 +99,7 @@ export default function LoginPage() {
     } catch (e) {
       toast.show((e as Error).message, 'error')
     }
-  }, [fillDemoForm, from, login, navigate, setSession, toast])
+  }, [completeDemoStep, fillDemoForm, from, login, navigate, setSession, toast])
 
   const autoDemoMode = useRef(false)
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from 'react-router-dom'
@@ -12,7 +12,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
 import Loading from '@components/feedback/Loading'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './HostApply.module.css'
 
 type ApplicationStatus = 'pending' | 'approved' | 'rejected'
@@ -84,7 +84,6 @@ export default function HostApplyPage() {
     register,
     handleSubmit,
     control,
-    watch,
     reset,
     formState: { errors, isSubmitted },
   } = useForm<HostApplyFormValues>({
@@ -93,9 +92,9 @@ export default function HostApplyPage() {
     mode: 'onSubmit',
   })
 
-  const introduction = watch('introduction')
-  const hostingStyle = watch('hostingStyle')
-  const plannedCategories = watch('plannedCategories')
+  const introduction = useWatch({ control, name: 'introduction' }) ?? ''
+  const hostingStyle = useWatch({ control, name: 'hostingStyle' }) ?? ''
+  const plannedCategories = useWatch({ control, name: 'plannedCategories' }) ?? []
   const introLen = introduction.trim().length
 
   const create = useMutation({

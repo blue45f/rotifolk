@@ -31,20 +31,29 @@ interface OnboardingSheetProps {
   forceOpenSignal?: number
 }
 
+function shouldOpenInitialOnboarding(): boolean {
+  try {
+    return !localStorage.getItem(KEY)
+  } catch {
+    return false
+  }
+}
+
 export default function OnboardingSheet({ forceOpenSignal = 0 }: OnboardingSheetProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(shouldOpenInitialOnboarding)
   const [step, setStep] = useState(0)
 
   useEffect(() => {
-    try {
-      if (!localStorage.getItem(KEY)) setOpen(true)
-    } catch {}
-  }, [])
-
-  useEffect(() => {
     if (forceOpenSignal <= 0) return
-    setStep(0)
-    setOpen(true)
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setStep(0)
+      setOpen(true)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [forceOpenSignal])
 
   const close = () => {

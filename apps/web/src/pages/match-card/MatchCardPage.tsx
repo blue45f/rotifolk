@@ -8,7 +8,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './MatchCard.module.css'
 
 interface HostProfileLite {

@@ -1,16 +1,5 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type Dispatch,
-  type ReactNode,
-  type SetStateAction,
-} from 'react'
-
-export type Locale = 'ko' | 'en'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { LocaleContext, type Locale, type LocaleContextValue } from './i18nContext'
 
 const STORAGE_KEY = 'rotifolk-locale'
 
@@ -138,14 +127,6 @@ const EN: Record<string, string> = {
 
 const DICTS: Record<Locale, Record<string, string>> = { ko: KO, en: EN }
 
-interface LocaleContextValue {
-  locale: Locale
-  setLocale: Dispatch<SetStateAction<Locale>>
-  dict: Record<string, string>
-}
-
-const LocaleContext = createContext<LocaleContextValue | null>(null)
-
 function detectInitialLocale(): Locale {
   if (typeof window === 'undefined') return 'ko'
   try {
@@ -173,35 +154,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [locale])
 
   const value = useMemo<LocaleContextValue>(
-    () => ({ locale, setLocale, dict: DICTS[locale] }),
+    () => ({ locale, setLocale, dict: DICTS[locale], fallbackDict: KO }),
     [locale],
   )
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>
-}
-
-function useLocaleContext(): LocaleContextValue {
-  const ctx = useContext(LocaleContext)
-  if (!ctx) {
-    throw new Error('useLocale/useT must be used within <I18nProvider>')
-  }
-  return ctx
-}
-
-export function useLocale(): [Locale, Dispatch<SetStateAction<Locale>>] {
-  const { locale, setLocale } = useLocaleContext()
-  return [locale, setLocale]
-}
-
-export function useT() {
-  const { dict } = useLocaleContext()
-  return useCallback(
-    (key: string): string => {
-      const hit = dict[key]
-      if (hit !== undefined) return hit
-      // fallback to Korean dictionary, then the key itself
-      return KO[key] ?? key
-    },
-    [dict],
-  )
 }

@@ -3,7 +3,7 @@ import type { Participation, Party } from '@rotifolk/shared'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import {
   buildTimeline,
   endTimeFromHHmm,

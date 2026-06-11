@@ -41,7 +41,7 @@ import { Sheet } from '@components/ui/Sheet/Sheet'
 import { AfterPartyManager } from '@features/parties/AfterPartyManager'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { useAuthStore } from '@store/authStore'
 import { useMyParties } from '@features/parties/queries'
 import { useRecents } from '@features/recents/useRecents'
@@ -112,6 +112,7 @@ export default function PartyDetailPage() {
   const addGuest = useHostAddGuest(partyId)
   const [showAddGuest, setShowAddGuest] = useState(false)
   const [newGuestName, setNewGuestName] = useState('')
+  const [nowMs] = useState(() => Date.now())
 
   const metaParty = data?.party
   // Event JSON-LD의 location(Place)용 — 상세 응답엔 venueId만 있어 공개 단건 조회로 보강.
@@ -352,7 +353,7 @@ export default function PartyDetailPage() {
   const isFull = party.currentParticipants >= party.maxParticipants
   const status = party.status
   const isFree = party.pricing.basePriceKRW === 0
-  const hoursUntilStart = (start.getTime() - Date.now()) / 3_600_000
+  const hoursUntilStart = (start.getTime() - nowMs) / 3_600_000
   const canRefund = !!paidPayment && hoursUntilStart >= 24
 
   // track recent visit (one-shot per detail page mount)

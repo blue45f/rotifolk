@@ -26,8 +26,8 @@ import { Button } from '@components/ui/Button/Button'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Sheet } from '@components/ui/Sheet/Sheet'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
-import { useConfirm } from '@components/feedback/Confirm/ConfirmProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { useConfirm } from '@components/feedback/Confirm/useConfirm'
 import { useVenueMenu } from '@features/venues/queries'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
@@ -71,7 +71,14 @@ export default function LivePartyPage() {
   const announcedRoundRef = useRef<number | null>(null)
 
   useEffect(() => {
-    if (state.status === 'ended') setShowFinal(true)
+    if (state.status !== 'ended') return
+    let cancelled = false
+    queueMicrotask(() => {
+      if (!cancelled) setShowFinal(true)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [state.status])
 
   useEffect(() => {
@@ -79,11 +86,16 @@ export default function LivePartyPage() {
       const msg = String(state.lastEvent.payload?.message ?? '').trim()
       if (msg) {
         const until = Date.now() + 30_000
-        setAnnouncement({ message: msg, until })
-        const t = setTimeout(() => {
+        const showTimer = window.setTimeout(() => {
+          setAnnouncement({ message: msg, until })
+        }, 0)
+        const clearTimer = setTimeout(() => {
           setAnnouncement((cur) => (cur && cur.until === until ? null : cur))
         }, 30_000)
-        return () => clearTimeout(t)
+        return () => {
+          window.clearTimeout(showTimer)
+          clearTimeout(clearTimer)
+        }
       }
     }
   }, [state.lastEvent])
@@ -92,11 +104,16 @@ export default function LivePartyPage() {
     const k = state.lastEvent?.kind
     if (k && REC_KINDS.has(k)) {
       const until = Date.now() + 40_000
-      setRec({ kind: k, payload: state.lastEvent?.payload, until })
-      const t = setTimeout(() => {
+      const showTimer = window.setTimeout(() => {
+        setRec({ kind: k, payload: state.lastEvent?.payload, until })
+      }, 0)
+      const clearTimer = setTimeout(() => {
         setRec((cur) => (cur && cur.until === until ? null : cur))
       }, 40_000)
-      return () => clearTimeout(t)
+      return () => {
+        window.clearTimeout(showTimer)
+        clearTimeout(clearTimer)
+      }
     }
   }, [state.lastEvent])
 
@@ -831,12 +848,14 @@ function ConversationKit({
   totalRounds: number
 }) {
   const suggested = suggestKitKind(roundIndex, totalRounds)
-  const [kind, setKind] = useState<PromptKind>(suggested)
-  const [idx, setIdx] = useState(0)
-  useEffect(() => {
-    setKind(suggestKitKind(roundIndex, totalRounds))
-    setIdx(0)
-  }, [roundIndex, totalRounds])
+  const sourceKey = `${roundIndex ?? 'none'}:${totalRounds}`
+  const [override, setOverride] = useState<{
+    sourceKey: string
+    kind: PromptKind
+    idx: number
+  } | null>(null)
+  const kind = override?.sourceKey === sourceKey ? override.kind : suggested
+  const idx = override?.sourceKey === sourceKey ? override.idx : 0
   const card = buildConversationCard(kind, idx)
   return (
     <div className={styles.kit}>
@@ -852,8 +871,7 @@ function ConversationKit({
             className={`${styles.kitChip} ${kind === k.value ? styles.kitChipOn : ''}`}
             aria-pressed={kind === k.value}
             onClick={() => {
-              setKind(k.value)
-              setIdx(0)
+              setOverride({ sourceKey, kind: k.value, idx: 0 })
             }}
           >
             <span aria-hidden="true">{k.emoji}</span> {k.label}
@@ -871,7 +889,7 @@ function ConversationKit({
         {card.text}
       </motion.p>
       {card.hint && <p className={styles.kitSub}>{card.hint}</p>}
-      <Button variant="soft" onClick={() => setIdx((n) => n + 1)}>
+      <Button variant="soft" onClick={() => setOverride({ sourceKey, kind, idx: idx + 1 })}>
         🎲 다음 주제
       </Button>
     </div>

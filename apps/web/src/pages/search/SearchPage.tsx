@@ -35,8 +35,15 @@ export default function SearchPage() {
 
   useEffect(() => {
     if (urlQuery !== input) {
-      setInput(urlQuery)
-      setDebounced(urlQuery)
+      let cancelled = false
+      queueMicrotask(() => {
+        if (cancelled) return
+        setInput(urlQuery)
+        setDebounced(urlQuery)
+      })
+      return () => {
+        cancelled = true
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlQuery])

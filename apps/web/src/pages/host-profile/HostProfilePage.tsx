@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLocation, useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
 import { computeHostLevel } from '@rotifolk/shared'
 import { Sheet } from '@components/ui/Sheet/Sheet'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
-import { useConfirm } from '@components/feedback/Confirm/ConfirmProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { useConfirm } from '@components/feedback/Confirm/useConfirm'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { Avatar } from '@components/ui/Avatar/Avatar'
@@ -227,15 +227,21 @@ const INTRO_KEY = (hostId: string) => `rotifolk-host-intro-${hostId}`
 const INTRO_MAX = 400
 
 function HostIntroSlot({ hostId, isSelf }: { hostId: string; isSelf: boolean }) {
-  const [intro, setIntro] = useState('')
+  return <HostIntroSlotContent key={hostId} hostId={hostId} isSelf={isSelf} />
+}
+
+function readHostIntro(hostId: string): string {
+  try {
+    return localStorage.getItem(INTRO_KEY(hostId)) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function HostIntroSlotContent({ hostId, isSelf }: { hostId: string; isSelf: boolean }) {
+  const [intro, setIntro] = useState(() => readHostIntro(hostId))
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
-
-  useEffect(() => {
-    try {
-      setIntro(localStorage.getItem(INTRO_KEY(hostId)) ?? '')
-    } catch {}
-  }, [hostId])
 
   if (!intro && !isSelf) return null
 

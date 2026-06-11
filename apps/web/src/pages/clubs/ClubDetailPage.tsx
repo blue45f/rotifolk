@@ -34,7 +34,7 @@ import { Tabs } from '@components/ui/Tabs/Tabs'
 import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './Clubs.module.css'
 
 const TABS = [

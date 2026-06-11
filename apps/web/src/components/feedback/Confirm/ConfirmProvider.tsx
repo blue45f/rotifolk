@@ -1,20 +1,8 @@
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useRef, useState, type ReactNode } from 'react'
 
 import { Button } from '@components/ui/Button/Button'
 import { Sheet } from '@components/ui/Sheet/Sheet'
-
-interface ConfirmOptions {
-  title: string
-  description?: string
-  confirmLabel?: string
-  cancelLabel?: string
-  /** Renders the confirm button with the danger variant (for destructive actions). */
-  danger?: boolean
-}
-
-type ConfirmFn = (options: ConfirmOptions) => Promise<boolean>
-
-const ConfirmContext = createContext<ConfirmFn | null>(null)
+import { ConfirmContext, type ConfirmFn, type ConfirmOptions } from './ConfirmContext'
 
 /**
  * Imperative `confirm()` resolving to a boolean, backed by the branded modal
@@ -65,10 +53,4 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       </Sheet>
     </ConfirmContext.Provider>
   )
-}
-
-export function useConfirm(): ConfirmFn {
-  const ctx = useContext(ConfirmContext)
-  if (!ctx) throw new Error('useConfirm must be used within a ConfirmProvider')
-  return ctx
 }

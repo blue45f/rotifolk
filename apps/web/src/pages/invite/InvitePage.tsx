@@ -15,7 +15,7 @@ import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Input } from '@components/ui/Input/Input'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { useAuthStore } from '@store/authStore'
 import styles from './Invite.module.css'
 
@@ -54,6 +54,7 @@ export default function InvitePage() {
   // 직접 올린 아바타 사진(data URL) — null이면 프리셋으로 폴백.
   const [guestImage, setGuestImage] = useState<string | null>(null)
   const [imageBusy, setImageBusy] = useState(false)
+  const [nowMs] = useState(() => Date.now())
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (isLoading) return <Loading label="초대장을 여는 중" />
@@ -81,7 +82,6 @@ export default function InvitePage() {
     minute: '2-digit',
   })
 
-  const nowMs = Date.now()
   const diffMs = start.getTime() - nowMs
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
   const countdownLabel =

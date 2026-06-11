@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NOTE_EMOJIS } from '@rotifolk/shared'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Button } from '@components/ui/Button/Button'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { useSendNote } from './queries'
 import styles from './SendNoteSheet.module.css'
 

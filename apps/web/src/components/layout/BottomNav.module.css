@@ -2,6 +2,9 @@
   position: fixed;
   bottom: 0;
   inset-inline: 0;
+  inline-size: 100vw;
+  max-inline-size: 100vw;
+  min-inline-size: 0;
   height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0));
   padding-bottom: env(safe-area-inset-bottom, 0);
   background: color-mix(in oklab, var(--color-surface) 92%, transparent);
@@ -107,10 +110,12 @@
   grid-auto-flow: column;
   grid-auto-columns: minmax(54px, 1fr);
   overflow-x: auto;
+  overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
-  padding-inline: max(var(--space-2), env(safe-area-inset-left, 0px)) max(var(--space-2), env(safe-area-inset-right, 0px));
+  padding-inline: max(var(--space-2), env(safe-area-inset-left, 0px))
+    max(var(--space-2), env(safe-area-inset-right, 0px));
 }
 
 .nav::-webkit-scrollbar {

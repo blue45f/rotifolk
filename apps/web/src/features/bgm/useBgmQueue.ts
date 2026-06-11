@@ -131,8 +131,15 @@ export function useBgmQueue(
   // Reload when partyId changes
   useEffect(() => {
     const cached = readCache(partyId)
-    setTracks(cached.tracks)
-    setCurrent(cached.current)
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setTracks(cached.tracks)
+      setCurrent(cached.current)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [partyId])
 
   // Persist on change

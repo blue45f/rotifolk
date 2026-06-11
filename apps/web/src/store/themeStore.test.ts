@@ -36,13 +36,14 @@ describe('THEME_STORAGE_KEY', () => {
  */
 describe('no-FOUC inline bootstrap logic', () => {
   function bootstrap(storedRaw: string | null, prefersDark: boolean): 'light' | 'dark' {
-    let pref: 'light' | 'dark' | 'system' = 'system'
     try {
-      pref = storedRaw ? JSON.parse(storedRaw).state.theme : 'system'
+      const pref: 'light' | 'dark' | 'system' = storedRaw
+        ? JSON.parse(storedRaw).state.theme
+        : 'system'
+      return pref === 'dark' || (pref !== 'light' && prefersDark) ? 'dark' : 'light'
     } catch {
-      pref = 'system'
+      return prefersDark ? 'dark' : 'light'
     }
-    return pref === 'dark' || (pref !== 'light' && prefersDark) ? 'dark' : 'light'
   }
 
   it('reads a persisted dark preference from the zustand shape', () => {

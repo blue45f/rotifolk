@@ -341,7 +341,13 @@ export default function TutorialPage() {
   useEffect(() => {
     if (!fromTutorial) return
     addTutorialStep(fromTutorial)
-    setCompleted(readTutorialProgress())
+    let cancelled = false
+    queueMicrotask(() => {
+      if (!cancelled) setCompleted(readTutorialProgress())
+    })
+    return () => {
+      cancelled = true
+    }
   }, [fromTutorial])
 
   useEffect(() => {

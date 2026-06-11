@@ -7,8 +7,8 @@ import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
-import { useConfirm } from '@components/feedback/Confirm/ConfirmProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { useConfirm } from '@components/feedback/Confirm/useConfirm'
 import styles from './BlockedUsers.module.css'
 
 interface BlockedUser {

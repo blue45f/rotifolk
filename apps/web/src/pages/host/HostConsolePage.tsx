@@ -190,11 +190,18 @@ export default function HostConsolePage() {
 
   useEffect(() => {
     if (!revenue) return
-    if (scenarioPlatformFeePercent === '') {
-      setScenarioPlatformFeePercent(String(revenue.platformFeePercent))
-    }
-    if (scenarioRefundPercent === '') {
-      setScenarioRefundPercent(String(revenue.refundRetentionPercent))
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      if (scenarioPlatformFeePercent === '') {
+        setScenarioPlatformFeePercent(String(revenue.platformFeePercent))
+      }
+      if (scenarioRefundPercent === '') {
+        setScenarioRefundPercent(String(revenue.refundRetentionPercent))
+      }
+    })
+    return () => {
+      cancelled = true
     }
   }, [revenue, scenarioPlatformFeePercent, scenarioRefundPercent])
 
@@ -214,8 +221,6 @@ export default function HostConsolePage() {
     setSummaryPartyId('')
     setSummaryCompareMode('previous_period')
   }
-
-  if (isLoading) return <Loading />
 
   const total = data?.length ?? 0
   const live = data?.filter((p) => p.status === 'live').length ?? 0
@@ -386,6 +391,8 @@ export default function HostConsolePage() {
       totalTickets,
     ],
   )
+
+  if (isLoading) return <Loading />
 
   const filteredParties =
     statusFilter === 'all'

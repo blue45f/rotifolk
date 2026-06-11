@@ -7,7 +7,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { api } from '@services/api'
 import {
   REVENUE_MONITORING_POLICY,
@@ -771,46 +771,51 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!revenueRules) return
-    setPlatformFeePercent(String(revenueRules.platformFeePercent))
-    setRefundRetentionPercent(String(revenueRules.refundRetentionPercent))
-    setMinimumHostPayoutPercent(String(revenueRules.minimumHostPayoutPercent))
-  }, [
-    revenueRules?.platformFeePercent,
-    revenueRules?.refundRetentionPercent,
-    revenueRules?.minimumHostPayoutPercent,
-  ])
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setPlatformFeePercent(String(revenueRules.platformFeePercent))
+      setRefundRetentionPercent(String(revenueRules.refundRetentionPercent))
+      setMinimumHostPayoutPercent(String(revenueRules.minimumHostPayoutPercent))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [revenueRules])
   useEffect(() => {
     if (!monitoringPolicy?.healthAlerts) return
-    setMonitoringWarningRate(String(monitoringPolicy.healthAlerts.warningRefundRatePercent))
-    setMonitoringDangerRate(String(monitoringPolicy.healthAlerts.dangerRefundRatePercent))
-    setMonitoringTopPartyRate(String(monitoringPolicy.healthAlerts.topPartyConcentrationPercent))
-  }, [
-    monitoringPolicy?.healthAlerts?.warningRefundRatePercent,
-    monitoringPolicy?.healthAlerts?.dangerRefundRatePercent,
-    monitoringPolicy?.healthAlerts?.topPartyConcentrationPercent,
-  ])
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setMonitoringWarningRate(String(monitoringPolicy.healthAlerts.warningRefundRatePercent))
+      setMonitoringDangerRate(String(monitoringPolicy.healthAlerts.dangerRefundRatePercent))
+      setMonitoringTopPartyRate(String(monitoringPolicy.healthAlerts.topPartyConcentrationPercent))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [monitoringPolicy?.healthAlerts])
   useEffect(() => {
     if (!revenueSummary) return
-    if (plannerTransactionCount === '') {
-      setPlannerTransactionCount(
-        String(revenueSummary.totalPaidCount + revenueSummary.totalRefundedCount),
-      )
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      if (plannerTransactionCount === '') {
+        setPlannerTransactionCount(
+          String(revenueSummary.totalPaidCount + revenueSummary.totalRefundedCount),
+        )
+      }
+      if (plannerAvgTicket === '') {
+        setPlannerAvgTicket(String(revenueSummary.avgTicketKRW))
+      }
+      if (plannerRefundRate === '') {
+        setPlannerRefundRate(String(revenueSummary.refundRatePercent.toFixed(1)))
+      }
+    })
+    return () => {
+      cancelled = true
     }
-    if (plannerAvgTicket === '') {
-      setPlannerAvgTicket(String(revenueSummary.avgTicketKRW))
-    }
-    if (plannerRefundRate === '') {
-      setPlannerRefundRate(String(revenueSummary.refundRatePercent.toFixed(1)))
-    }
-  }, [
-    plannerAvgTicket,
-    plannerRefundRate,
-    plannerTransactionCount,
-    revenueSummary?.avgTicketKRW,
-    revenueSummary?.refundRatePercent,
-    revenueSummary?.totalPaidCount,
-    revenueSummary?.totalRefundedCount,
-  ])
+  }, [plannerAvgTicket, plannerRefundRate, plannerTransactionCount, revenueSummary])
 
   const patch = useMutation({
     mutationFn: (input: {
@@ -1195,7 +1200,7 @@ export default function AdminPage() {
     if (revenueInsights.length === 0 || isAutoApplyingInsights) return
     if (!revenueSummary || saveMonitoringPolicy.isPending || saveRule.isPending) return
 
-    let plan: RevenueInsightExecutionPlanWithQueue | null = null
+    let plan: RevenueInsightExecutionPlanWithQueue | null
     if (onlyFailed) {
       const failedSteps = autoApplyTimeline.filter((step) => step.status === 'failed')
       if (failedSteps.length === 0) {
@@ -1536,106 +1541,76 @@ export default function AdminPage() {
     revenueSummary?.rules.minimumHostPayoutPercent ?? revenueRules?.minimumHostPayoutPercent ?? 0
   const draftMinimumHostPayoutPercent =
     parsedMinimumHostPayoutPercent ?? activeMinimumHostPayoutPercent
-  const revenueHealthScore = useMemo<RevenueHealthScore | null>(() => {
-    if (!revenueSummary) return null
-    return createProjectedRuleHealth({
-      totalPaidKRW: totalPaid,
-      totalTickets: totalTickets,
-      refundRatePercent,
-      platformRevenueKRW: platformRevenue,
-      hostPayoutKRW: hostPayout,
-      minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
-      topPartyConcentrationPercent,
-      monitoring: monitoringThresholds ?? FALLBACK_MONITORING_ALERTS,
-      netSalesChangePercent,
-    })
-  }, [
-    monitoringThresholds,
-    platformRevenue,
-    refundRatePercent,
-    totalPaid,
-    totalTickets,
-    activeMinimumHostPayoutPercent,
-    hostPayout,
-    topPartyConcentrationPercent,
-    netSalesChangePercent,
-    revenueSummary,
-    revenueRules?.minimumHostPayoutPercent,
-  ])
+  const revenueHealthScore: RevenueHealthScore | null = revenueSummary
+    ? createProjectedRuleHealth({
+        totalPaidKRW: totalPaid,
+        totalTickets,
+        refundRatePercent,
+        platformRevenueKRW: platformRevenue,
+        hostPayoutKRW: hostPayout,
+        minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
+        topPartyConcentrationPercent,
+        monitoring: monitoringThresholds ?? FALLBACK_MONITORING_ALERTS,
+        netSalesChangePercent,
+      })
+    : null
 
-  const trendComparisonKpis = useMemo<RevenueTrendKpiItem[]>(
-    () =>
-      !previousPeriod
-        ? []
-        : [
-            {
-              label: '총 결제액',
-              currentValue: totalPaid,
-              previousValue: previousPeriod.grossPaidKRW,
-              unit: 'currency',
-              percentDelta: grossPaidChangePercent,
-            },
-            {
-              label: '총 환불액',
-              currentValue: totalRefunded,
-              previousValue: previousPeriod.grossRefundedKRW,
-              unit: 'currency',
-              percentDelta:
-                previousPeriod.grossRefundedKRW > 0
-                  ? ((totalRefunded - previousPeriod.grossRefundedKRW) /
-                      previousPeriod.grossRefundedKRW) *
-                    100
-                  : null,
-            },
-            {
-              label: '실 결제액',
-              currentValue: netSales,
-              previousValue: previousPeriod.netSalesKRW,
-              unit: 'currency',
-              percentDelta: netSalesChangePercent,
-            },
-            {
-              label: '플랫폼 수익',
-              currentValue: platformRevenue,
-              previousValue: previousPeriod.platformRevenueKRW,
-              unit: 'currency',
-              percentDelta: platformRevenueChangePercent,
-            },
-            {
-              label: '호스트 정산',
-              currentValue: hostPayout,
-              previousValue: previousPeriod.hostPayoutKRW,
-              unit: 'currency',
-              percentDelta:
-                previousPeriod.hostPayoutKRW > 0
-                  ? ((hostPayout - previousPeriod.hostPayoutKRW) / previousPeriod.hostPayoutKRW) *
-                    100
-                  : null,
-            },
-            {
-              label: '환불률',
-              currentValue: refundRatePercent,
-              previousValue: previousPeriod.refundRatePercent,
-              unit: 'percent',
-              percentDelta: refundRateDelta,
-              isRatePoint: true,
-            },
-          ],
-    [
-      hostPayout,
-      netSales,
-      previousPeriod,
-      platformRevenue,
-      refundRateDelta,
-      refundRatePercent,
-      totalPaid,
-      totalRefunded,
-      grossPaidChangePercent,
-      platformRevenueChangePercent,
-      netSalesChangePercent,
-    ],
-  )
-  const monitoringThresholdSimulation = useMemo<MonitoringThresholdSimulation | null>(() => {
+  const trendComparisonKpis: RevenueTrendKpiItem[] = !previousPeriod
+    ? []
+    : [
+        {
+          label: '총 결제액',
+          currentValue: totalPaid,
+          previousValue: previousPeriod.grossPaidKRW,
+          unit: 'currency',
+          percentDelta: grossPaidChangePercent,
+        },
+        {
+          label: '총 환불액',
+          currentValue: totalRefunded,
+          previousValue: previousPeriod.grossRefundedKRW,
+          unit: 'currency',
+          percentDelta:
+            previousPeriod.grossRefundedKRW > 0
+              ? ((totalRefunded - previousPeriod.grossRefundedKRW) /
+                  previousPeriod.grossRefundedKRW) *
+                100
+              : null,
+        },
+        {
+          label: '실 결제액',
+          currentValue: netSales,
+          previousValue: previousPeriod.netSalesKRW,
+          unit: 'currency',
+          percentDelta: netSalesChangePercent,
+        },
+        {
+          label: '플랫폼 수익',
+          currentValue: platformRevenue,
+          previousValue: previousPeriod.platformRevenueKRW,
+          unit: 'currency',
+          percentDelta: platformRevenueChangePercent,
+        },
+        {
+          label: '호스트 정산',
+          currentValue: hostPayout,
+          previousValue: previousPeriod.hostPayoutKRW,
+          unit: 'currency',
+          percentDelta:
+            previousPeriod.hostPayoutKRW > 0
+              ? ((hostPayout - previousPeriod.hostPayoutKRW) / previousPeriod.hostPayoutKRW) * 100
+              : null,
+        },
+        {
+          label: '환불률',
+          currentValue: refundRatePercent,
+          previousValue: previousPeriod.refundRatePercent,
+          unit: 'percent',
+          percentDelta: refundRateDelta,
+          isRatePoint: true,
+        },
+      ]
+  const monitoringThresholdSimulation: MonitoringThresholdSimulation | null = (() => {
     if (
       !revenueSummary ||
       !hasMonitoringInput ||
@@ -1682,24 +1657,7 @@ export default function AdminPage() {
       topPartyConcentrationPercent,
       netSalesChangePercent,
     })
-  }, [
-    hasMonitoringInput,
-    hasMonitoringInputChanged,
-    parsedMonitoringDanger,
-    parsedMonitoringTopParty,
-    parsedMonitoringWarning,
-    monitoringThresholds.dangerRefundRatePercent,
-    monitoringThresholds.topPartyConcentrationPercent,
-    monitoringThresholds.warningRefundRatePercent,
-    netSalesChangePercent,
-    platformRevenue,
-    refundRatePercent,
-    revenueHealthScore,
-    revenueSummary,
-    topPartyConcentrationPercent,
-    totalPaid,
-    totalTickets,
-  ])
+  })()
 
   const parsedPlannerTransactionCount = parsePositiveIntegerInput(plannerTransactionCount)
   const parsedPlannerAvgTicket = parseMoneyInput(plannerAvgTicket)
@@ -1711,7 +1669,7 @@ export default function AdminPage() {
     parsedPlannerRefundRate !== null &&
     hasRuleInput
 
-  const planningProjection = useMemo<RevenuePlanningProjection | null>(() => {
+  const planningProjection: RevenuePlanningProjection | null = (() => {
     if (
       !revenueSummary ||
       !hasPlannerInput ||
@@ -1733,78 +1691,41 @@ export default function AdminPage() {
       baseHostPayout: hostPayout,
       targetPlatformRevenue: parsedPlannerTargetRevenue,
     })
-  }, [
-    hasPlannerInput,
-    hasRuleInput,
-    hostPayout,
-    parsedPlannerAvgTicket,
-    parsedPlannerRefundRate,
-    parsedPlannerTargetRevenue,
-    parsedPlannerTransactionCount,
-    parsedPlatformFee,
-    parsedRefundRetention,
-    platformRevenue,
-    revenueSummary,
-  ])
+  })()
 
-  const plannerFeeRangeText = useMemo(() => {
-    if (
-      planningProjection?.requiredPlatformFeePercent === null ||
-      planningProjection?.requiredPlatformFeePercent === undefined
-    ) {
-      return null
-    }
+  const plannerFeeRangeText =
+    planningProjection?.requiredPlatformFeePercent === null ||
+    planningProjection?.requiredPlatformFeePercent === undefined
+      ? null
+      : planningProjection.requiredFeeReachable
+        ? `목표 플랫폼 수익을 맞추려면 수수료율을 ${clampPercentToRange(
+            planningProjection.requiredPlatformFeePercent,
+          ).toFixed(1)}%로 조정해야 해요.`
+        : '목표값이 현재 시나리오에서는 수수료율만으로는 어렵습니다. 목표 수익/환불률/거래 가정을 조정해 주세요.'
 
-    if (planningProjection.requiredFeeReachable) {
-      return `목표 플랫폼 수익을 맞추려면 수수료율을 ${clampPercentToRange(
-        planningProjection.requiredPlatformFeePercent,
-      ).toFixed(1)}%로 조정해야 해요.`
-    }
+  const plannerTargetAchievementPercent =
+    !planningProjection || parsedPlannerTargetRevenue === null || parsedPlannerTargetRevenue <= 0
+      ? null
+      : (planningProjection.platformRevenueKRW / parsedPlannerTargetRevenue) * 100
 
-    return `목표값이 현재 시나리오에서는 수수료율만으로는 어렵습니다. 목표 수익/환불률/거래 가정을 조정해 주세요.`
-  }, [planningProjection])
+  const planningProjectionHealthScore: RevenueHealthScore | null =
+    !planningProjection ||
+    parsedPlannerTransactionCount === null ||
+    parsedPlannerRefundRate === null
+      ? null
+      : createProjectedRuleHealth({
+          totalPaidKRW: planningProjection.projectedGrossPaidKRW,
+          totalTickets: parsedPlannerTransactionCount,
+          refundRatePercent: parsedPlannerRefundRate,
+          platformRevenueKRW: planningProjection.platformRevenueKRW,
+          hostPayoutKRW: planningProjection.hostPayoutKRW,
+          minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
+          topPartyConcentrationPercent,
+          monitoring: monitoringThresholds,
+          netSalesChangePercent,
+        })
 
-  const plannerTargetAchievementPercent = useMemo(() => {
-    if (
-      !planningProjection ||
-      parsedPlannerTargetRevenue === null ||
-      parsedPlannerTargetRevenue <= 0
-    )
-      return null
-    return (planningProjection.platformRevenueKRW / parsedPlannerTargetRevenue) * 100
-  }, [parsedPlannerTargetRevenue, planningProjection])
-
-  const planningProjectionHealthScore = useMemo<RevenueHealthScore | null>(() => {
-    if (
-      !planningProjection ||
-      parsedPlannerTransactionCount === null ||
-      parsedPlannerRefundRate === null
-    ) {
-      return null
-    }
-
-    return createProjectedRuleHealth({
-      totalPaidKRW: planningProjection.projectedGrossPaidKRW,
-      totalTickets: parsedPlannerTransactionCount,
-      refundRatePercent: parsedPlannerRefundRate,
-      platformRevenueKRW: planningProjection.platformRevenueKRW,
-      hostPayoutKRW: planningProjection.hostPayoutKRW,
-      minimumHostPayoutPercent: activeMinimumHostPayoutPercent,
-      topPartyConcentrationPercent,
-      monitoring: monitoringThresholds,
-      netSalesChangePercent,
-    })
-  }, [
-    activeMinimumHostPayoutPercent,
-    monitoringThresholds,
-    netSalesChangePercent,
-    parsedPlannerRefundRate,
-    parsedPlannerTransactionCount,
-    planningProjection,
-    topPartyConcentrationPercent,
-  ])
-
-  const plannerSensitivityScenarios = useMemo<PlannerSensitivityScenario[]>(() => {
+  const plannerSensitivityScenarios: PlannerSensitivityScenario[] = (() => {
     if (
       !revenueSummary ||
       !hasPlannerInput ||
@@ -1914,22 +1835,9 @@ export default function AdminPage() {
         '환불률이 3%p 악화되었을 때',
       ),
     ]
-  }, [
-    hasPlannerInput,
-    hasRuleInput,
-    parsedPlatformFee,
-    parsedPlannerAvgTicket,
-    parsedPlannerRefundRate,
-    parsedPlannerTransactionCount,
-    parsedRefundRetention,
-    planningProjectionHealthScore,
-    planningProjection,
-    platformRevenue,
-    hostPayout,
-    revenueSummary,
-  ])
+  })()
 
-  const plannerTargetAdvice = useMemo(() => {
+  const plannerTargetAdvice = (() => {
     if (
       parsedPlannerTargetRevenue === null ||
       parsedPlannerTargetRevenue <= 0 ||
@@ -1981,134 +1889,92 @@ export default function AdminPage() {
       label: '보완',
       message: `기본 민감도 범위에서 가장 높은 수익 시나리오로도 ${best.shortfall.toLocaleString()}원 부족해요.`,
     }
-  }, [
-    parsedPlannerTargetRevenue,
-    plannerSensitivityScenarios,
-    planningProjection?.platformRevenueKRW,
-  ])
+  })()
 
-  const presetScenarios = useMemo<RevenueRulePresetProjection[]>(() => {
-    if (!revenueSummary || totalTickets <= 0) {
-      return []
-    }
+  const presetScenarios: RevenueRulePresetProjection[] =
+    !revenueSummary || totalTickets <= 0
+      ? []
+      : REVENUE_RULE_PRESETS.map((preset) => {
+          const presetMinimumHostPayoutPercent =
+            preset.minimumHostPayoutPercent ??
+            revenueRules?.minimumHostPayoutPercent ??
+            activeMinimumHostPayoutPercent
+          const projection = createPlannerProjection({
+            transactionCount: totalTickets,
+            avgTicket,
+            refundRate: refundRatePercent,
+            platformFeePercent: preset.platformFeePercent,
+            refundRetentionPercent: preset.refundRetentionPercent,
+            basePlatformRevenue: platformRevenue,
+            baseHostPayout: hostPayout,
+            targetPlatformRevenue: null,
+          })
+          const projectedHealthScore = createProjectedRuleHealth({
+            totalPaidKRW: totalPaid,
+            totalTickets,
+            refundRatePercent,
+            platformRevenueKRW: projection.platformRevenueKRW,
+            hostPayoutKRW: projection.hostPayoutKRW,
+            minimumHostPayoutPercent: presetMinimumHostPayoutPercent,
+            topPartyConcentrationPercent,
+            monitoring: monitoringThresholds,
+            netSalesChangePercent,
+          })
 
-    return REVENUE_RULE_PRESETS.map((preset) => {
-      const presetMinimumHostPayoutPercent =
-        preset.minimumHostPayoutPercent ??
-        revenueRules?.minimumHostPayoutPercent ??
-        activeMinimumHostPayoutPercent
-      const projection = createPlannerProjection({
-        transactionCount: totalTickets,
-        avgTicket,
-        refundRate: refundRatePercent,
-        platformFeePercent: preset.platformFeePercent,
-        refundRetentionPercent: preset.refundRetentionPercent,
-        basePlatformRevenue: platformRevenue,
-        baseHostPayout: hostPayout,
-        targetPlatformRevenue: null,
-      })
-      const projectedHealthScore = createProjectedRuleHealth({
-        totalPaidKRW: totalPaid,
-        totalTickets,
-        refundRatePercent,
-        platformRevenueKRW: projection.platformRevenueKRW,
-        hostPayoutKRW: projection.hostPayoutKRW,
-        minimumHostPayoutPercent: presetMinimumHostPayoutPercent,
-        topPartyConcentrationPercent,
-        monitoring: monitoringThresholds,
-        netSalesChangePercent,
-      })
+          return {
+            preset,
+            projection,
+            isCurrent:
+              revenueRules?.platformFeePercent === preset.platformFeePercent &&
+              revenueRules?.refundRetentionPercent === preset.refundRetentionPercent &&
+              revenueRules?.minimumHostPayoutPercent === presetMinimumHostPayoutPercent,
+            projectedHealthScore,
+            healthScoreDelta:
+              projectedHealthScore && revenueHealthScore
+                ? projectedHealthScore.score - revenueHealthScore.score
+                : null,
+          }
+        })
 
-      return {
-        preset,
-        projection,
-        isCurrent:
-          revenueRules?.platformFeePercent === preset.platformFeePercent &&
-          revenueRules?.refundRetentionPercent === preset.refundRetentionPercent &&
-          revenueRules?.minimumHostPayoutPercent === presetMinimumHostPayoutPercent,
-        projectedHealthScore,
-        healthScoreDelta:
-          projectedHealthScore && revenueHealthScore
-            ? projectedHealthScore.score - revenueHealthScore.score
-            : null,
-      }
-    })
-  }, [
-    avgTicket,
-    hostPayout,
-    platformRevenue,
-    activeMinimumHostPayoutPercent,
-    monitoringThresholds,
-    refundRatePercent,
-    totalPaid,
-    totalTickets,
-    topPartyConcentrationPercent,
-    netSalesChangePercent,
-    revenueHealthScore,
-    revenueRules,
-    revenueSummary,
-  ])
-
-  const projected = useMemo(() => {
-    if (!hasRuleInput || !revenueSummary) return null
-    if (parsedPlatformFee === null || parsedRefundRetention === null) return null
-    const nextPlatformFee = Math.round((totalPaid * parsedPlatformFee) / 100)
-    const nextRefundRetention = Math.round((totalRefunded * parsedRefundRetention) / 100)
-    const nextPlatformRevenue = nextPlatformFee + nextRefundRetention
-    const nextHostPayout = Math.max(totalPaid - nextPlatformFee, 0)
-    const currentHostPayout = revenueSummary.hostPayoutKRW
-    return {
-      nextPlatformFee,
-      nextRefundRetention,
-      nextPlatformRevenue,
-      nextHostPayout,
-      hostRevenueDelta: nextHostPayout - currentHostPayout,
-      platformRevenueDelta: nextPlatformRevenue - platformRevenue,
-    }
-  }, [
-    hasRuleInput,
-    revenueSummary,
-    totalPaid,
-    totalRefunded,
-    parsedPlatformFee,
-    parsedRefundRetention,
-    platformRevenue,
-  ])
-  const projectedHealthScore = useMemo<RevenueHealthScore | null>(() => {
-    if (!revenueSummary || !projected) return null
-    if (ruleSimulation.data?.simulatedHealthScore) {
-      return ruleSimulation.data.simulatedHealthScore
-    }
-    return createProjectedRuleHealth({
-      totalPaidKRW: totalPaid,
-      totalTickets,
-      refundRatePercent,
-      platformRevenueKRW: projected.nextPlatformRevenue,
-      hostPayoutKRW: projected.nextHostPayout,
-      minimumHostPayoutPercent: draftMinimumHostPayoutPercent,
-      topPartyConcentrationPercent,
-      monitoring: monitoringThresholds,
-      netSalesChangePercent,
-    })
-  }, [
-    draftMinimumHostPayoutPercent,
-    netSalesChangePercent,
-    parsedPlatformFee,
-    projected,
-    refundRatePercent,
-    totalPaid,
-    totalTickets,
-    monitoringThresholds,
-    topPartyConcentrationPercent,
-    revenueSummary,
-    ruleSimulation.data?.simulatedHealthScore,
-  ])
+  const projected =
+    !hasRuleInput || !revenueSummary || parsedPlatformFee === null || parsedRefundRetention === null
+      ? null
+      : (() => {
+          const nextPlatformFee = Math.round((totalPaid * parsedPlatformFee) / 100)
+          const nextRefundRetention = Math.round((totalRefunded * parsedRefundRetention) / 100)
+          const nextPlatformRevenue = nextPlatformFee + nextRefundRetention
+          const nextHostPayout = Math.max(totalPaid - nextPlatformFee, 0)
+          const currentHostPayout = revenueSummary.hostPayoutKRW
+          return {
+            nextPlatformFee,
+            nextRefundRetention,
+            nextPlatformRevenue,
+            nextHostPayout,
+            hostRevenueDelta: nextHostPayout - currentHostPayout,
+            platformRevenueDelta: nextPlatformRevenue - platformRevenue,
+          }
+        })()
+  const projectedHealthScore: RevenueHealthScore | null =
+    !revenueSummary || !projected
+      ? null
+      : (ruleSimulation.data?.simulatedHealthScore ??
+        createProjectedRuleHealth({
+          totalPaidKRW: totalPaid,
+          totalTickets,
+          refundRatePercent,
+          platformRevenueKRW: projected.nextPlatformRevenue,
+          hostPayoutKRW: projected.nextHostPayout,
+          minimumHostPayoutPercent: draftMinimumHostPayoutPercent,
+          topPartyConcentrationPercent,
+          monitoring: monitoringThresholds,
+          netSalesChangePercent,
+        }))
   const projectedHealthDelta =
     projectedHealthScore && (ruleSimulation.data?.currentHealthScore ?? revenueHealthScore)
       ? projectedHealthScore.score -
         (ruleSimulation.data?.currentHealthScore ?? revenueHealthScore)!.score
       : null
-  const revenueInsights = useMemo<RevenueInsight[]>(() => {
+  const revenueInsights: RevenueInsight[] = (() => {
     if (!revenueSummary || !revenueHealthScore) return []
 
     const pushInsight = (insight: Omit<RevenueInsight, 'priority'>, priority: number) => {
@@ -2238,27 +2104,13 @@ export default function AdminPage() {
     }
 
     return insights.sort((a, b) => b.priority - a.priority)
-  }, [
-    activeMinimumHostPayoutPercent,
-    grossPaidChangePercent,
-    hostPayout,
-    monitoringThresholds.dangerRefundRatePercent,
-    monitoringThresholds.topPartyConcentrationPercent,
-    monitoringThresholds.warningRefundRatePercent,
-    platformRevenue,
-    projectedHealthDelta,
-    refundRatePercent,
-    revenueHealthScore,
-    revenueSummary,
-    topPartyConcentrationPercent,
-    totalPaid,
-  ])
-  const pendingAutoApplyQueue = useMemo<RevenueInsightExecutionTimelineStep[]>(() => {
+  })()
+  const pendingAutoApplyQueue: RevenueInsightExecutionTimelineStep[] = (() => {
     const plan = buildRevenueInsightExecutionPlan(revenueInsights)
     if (!plan) return []
 
     return plan.queue.map((step) => buildExecutionTimelineStep(step, 'pending', '실행 대기'))
-  }, [revenueInsights])
+  })()
   const projectedHealthDropWarning = projectedHealthDelta !== null && projectedHealthDelta <= -10
   const isProjectedHealthCritical = projectedHealthScore?.level === 'critical'
   const needsReasonForHighRiskSave =

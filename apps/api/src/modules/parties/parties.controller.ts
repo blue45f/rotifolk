@@ -13,25 +13,46 @@ import {
 import { AuthGuard } from '@nestjs/passport'
 import {
   CheckInSchema,
+  CreateDerivedPartySchema,
   CreatePartySchema,
   GuestJoinSchema,
   HostAddGuestSchema,
   JoinPartySchema,
   PartyQuerySchema,
+  SendPartyInvitationsSchema,
   UpdatePartySchema,
 } from '@rotifolk/shared'
 import type {
   CheckInDto,
+  CreateDerivedPartyDto,
   CreatePartyDto,
   GuestJoinDto,
   HostAddGuestDto,
   JoinPartyDto,
   PartyQueryDto,
+  SendPartyInvitationsDto,
   UpdatePartyDto,
 } from '@rotifolk/shared'
 import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 import { PartiesService } from './parties.service'
+
+type AfterPartyVoteDto = Readonly<{
+  status?: 'go' | 'maybe' | 'no'
+  nickname?: string
+  userId?: string
+}>
+
+type AfterPartyVenueVoteDto = Readonly<{
+  venueId?: string
+  userId?: string
+}>
+
+type AfterPartyConfirmDto = Readonly<{
+  venueName?: string
+  address?: string
+  time?: string
+}>
 
 @Controller('parties')
 export class PartiesController {
@@ -201,7 +222,7 @@ export class PartiesController {
   voteAfterParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
-    @Body() dto: any,
+    @Body() dto: AfterPartyVoteDto,
   ) {
     void me
     void partyId
@@ -214,7 +235,7 @@ export class PartiesController {
   voteVenueAfterParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
-    @Body() dto: any,
+    @Body() dto: AfterPartyVenueVoteDto,
   ) {
     void me
     void partyId
@@ -227,7 +248,7 @@ export class PartiesController {
   confirmAfterParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
-    @Body() dto: any,
+    @Body() dto: AfterPartyConfirmDto,
   ) {
     void me
     void partyId
@@ -238,8 +259,7 @@ export class PartiesController {
   @Get(':partyId/derived-candidates')
   @UseGuards(AuthGuard('jwt'))
   derivedCandidates(@CurrentUser() me: JwtUserPayload, @Param('partyId') partyId: string) {
-    void me
-    return this.parties.listDerivedCandidates(partyId)
+    return this.parties.listDerivedCandidates(me.sub, partyId)
   }
 
   @Post(':partyId/derive')
@@ -247,10 +267,9 @@ export class PartiesController {
   deriveParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body() body: any,
+    @Body(new ZodValidationPipe(CreateDerivedPartySchema)) body: CreateDerivedPartyDto,
   ) {
-    void me
-    return this.parties.createDerivedParty(partyId, body)
+    return this.parties.createDerivedParty(me.sub, partyId, body)
   }
 
   @Post(':partyId/invitations')
@@ -258,9 +277,8 @@ export class PartiesController {
   inviteToParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body() body: any,
+    @Body(new ZodValidationPipe(SendPartyInvitationsSchema)) body: SendPartyInvitationsDto,
   ) {
-    void me
-    return this.parties.sendInvitations(partyId, body)
+    return this.parties.sendInvitations(me.sub, partyId, body)
   }
 }

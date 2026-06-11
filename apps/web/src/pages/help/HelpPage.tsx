@@ -198,8 +198,15 @@ export default function HelpPage() {
     const rawOpen = fromQuery ? Number.parseInt(fromQuery, 10) : NaN
     const requestedOpen = Number.isInteger(rawOpen) && rawOpen >= 0 ? rawOpen : 0
 
-    setTab(requestedTab)
-    setOpen(requestedOpen)
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setTab(requestedTab)
+      setOpen(requestedOpen)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [isTutorialMode, searchParams])
 
   useEffect(() => {
