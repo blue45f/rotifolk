@@ -43,6 +43,30 @@ export class SafetyController {
     return this.safety.listMyBlocks(me.sub)
   }
 
+  @Get('blocks/phones')
+  @UseGuards(AuthGuard('jwt'))
+  myPhoneBlocks(@CurrentUser() me: JwtUserPayload) {
+    return this.safety.listMyPhoneBlocks(me.sub)
+  }
+
+  @Get('blocks/candidates')
+  @UseGuards(AuthGuard('jwt'))
+  blockCandidates(@CurrentUser() me: JwtUserPayload) {
+    return this.safety.listBlockCandidates(me.sub)
+  }
+
+  @Post('blocks/phones')
+  @UseGuards(AuthGuard('jwt'))
+  blockPhone(@CurrentUser() me: JwtUserPayload, @Body() body: { phone: string; reason?: string }) {
+    return this.safety.blockPhone(me.sub, body.phone, body.reason)
+  }
+
+  @Delete('blocks/phones/:id')
+  @UseGuards(AuthGuard('jwt'))
+  unblockPhone(@CurrentUser() me: JwtUserPayload, @Param('id') id: string) {
+    return this.safety.unblockPhone(me.sub, id)
+  }
+
   @Get('parties/:partyId/block-check')
   @UseGuards(AuthGuard('jwt'))
   blockCheck(@CurrentUser() me: JwtUserPayload, @Param('partyId') partyId: string) {

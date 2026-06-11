@@ -9,6 +9,6 @@ export async function startMockServiceWorker() {
     onUnhandledRequest: 'bypass',
     serviceWorker: { url: '/mockServiceWorker.js' },
   })
-  // eslint-disable-next-line no-console
+
   console.info('🧪 MSW running — Rotifolk is in mock mode')
 }

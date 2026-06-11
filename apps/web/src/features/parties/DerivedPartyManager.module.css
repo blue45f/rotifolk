@@ -1,0 +1,253 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  margin-top: var(--space-6);
+  box-shadow: var(--shadow-md);
+  outline: 1px solid color-mix(in oklab, var(--color-accent) 28%, transparent);
+  outline-offset: -2px;
+}
+
+.title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-black);
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.desc {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--lh-normal);
+  margin-bottom: var(--space-6);
+}
+
+/* Candidate Grid */
+.gridTitle {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.candidateCard {
+  background: color-mix(in oklab, var(--color-surface-soft) 40%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+
+.candidateCardDimmed {
+  opacity: 0.45;
+  border-color: transparent;
+}
+
+.candidateCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-accent);
+  background: color-mix(in oklab, var(--color-accent) 6%, var(--color-surface));
+}
+
+.badge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+}
+
+.name {
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-md);
+  margin-block: var(--space-2) 2px;
+}
+
+.rating {
+  font-size: var(--fs-xs);
+  color: var(--color-accent);
+  font-weight: var(--fw-semibold);
+  margin-bottom: var(--space-2);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.tag {
+  background: color-mix(in oklab, var(--color-surface-soft) 68%, transparent);
+  color: var(--color-text-muted);
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+/* Derived Form */
+.form {
+  background: color-mix(in oklab, var(--color-surface-soft) 34%, transparent);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.formTitle {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 576px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  margin-top: var(--space-1);
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.alignEnd {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+/* Invitation section */
+.invitationSection {
+  background: color-mix(in oklab, var(--color-primary) 6%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--color-primary) 18%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.invTitle {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+  margin-bottom: -2px;
+}
+
+.invitationDesc {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  margin-bottom: var(--space-3);
+}
+
+.formGridSpaced {
+  margin-bottom: var(--space-3);
+}
+
+.selectInput {
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--fs-md);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+  resize: vertical;
+}
+
+.messageField {
+  margin-bottom: var(--space-4);
+}
+
+.progressContainer {
+  margin-block: var(--space-2);
+}
+
+.progressBar {
+  height: 6px;
+  background: color-mix(in oklab, var(--color-text) 10%, transparent);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  margin-bottom: var(--space-1);
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-accent);
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+.progressLabel {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.actionRow {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}

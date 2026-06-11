@@ -234,4 +234,33 @@ export class PartiesController {
     void dto
     return { ok: true }
   }
+
+  @Get(':partyId/derived-candidates')
+  @UseGuards(AuthGuard('jwt'))
+  derivedCandidates(@CurrentUser() me: JwtUserPayload, @Param('partyId') partyId: string) {
+    void me
+    return this.parties.listDerivedCandidates(partyId)
+  }
+
+  @Post(':partyId/derive')
+  @UseGuards(AuthGuard('jwt'))
+  deriveParty(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('partyId') partyId: string,
+    @Body() body: any,
+  ) {
+    void me
+    return this.parties.createDerivedParty(partyId, body)
+  }
+
+  @Post(':partyId/invitations')
+  @UseGuards(AuthGuard('jwt'))
+  inviteToParty(
+    @CurrentUser() me: JwtUserPayload,
+    @Param('partyId') partyId: string,
+    @Body() body: any,
+  ) {
+    void me
+    return this.parties.sendInvitations(partyId, body)
+  }
 }

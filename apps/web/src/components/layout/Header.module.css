@@ -187,12 +187,15 @@
 .themeBtn {
   width: 36px;
   height: 36px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   font-size: 18px;
   background: var(--color-surface-soft);
   transition: background var(--dur-fast) var(--ease-out-quart);
+  touch-action: manipulation;
 }
 .themeWrap {
   position: relative;
@@ -214,12 +217,15 @@
   position: relative;
   width: 36px;
   height: 36px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: 50%;
   display: grid;
   place-items: center;
   font-size: 16px;
   background: var(--color-surface-soft);
   transition: background var(--dur-fast) var(--ease-out-quart);
+  touch-action: manipulation;
 }
 .bell:hover {
   background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
@@ -243,6 +249,7 @@
 
 .commandBtn {
   min-width: 36px;
+  min-height: 40px;
   height: 36px;
   padding: 0 10px;
   border-radius: 999px;
@@ -257,6 +264,7 @@
   transition:
     background var(--dur-fast) var(--ease-out-quart),
     border-color var(--dur-fast) var(--ease-out-quart);
+  touch-action: manipulation;
 }
 .commandBtn:hover {
   background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
@@ -272,6 +280,7 @@
 
 .langBtn {
   min-width: 36px;
+  min-height: 40px;
   height: 36px;
   padding: 0 10px;
   border-radius: 999px;
@@ -286,6 +295,7 @@
   transition:
     background var(--dur-fast) var(--ease-out-quart),
     border-color var(--dur-fast) var(--ease-out-quart);
+  touch-action: manipulation;
 }
 .langBtn:hover {
   background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
@@ -318,6 +328,7 @@
   color: var(--color-text);
   text-align: left;
   cursor: pointer;
+  touch-action: manipulation;
 }
 .themeOption[aria-checked='true'] {
   background: color-mix(in oklab, var(--color-primary) 15%, var(--color-surface));
@@ -325,6 +336,15 @@
 }
 .themeOption:hover {
   background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
+}
+
+.themeBtn:focus-visible,
+.langBtn:focus-visible,
+.commandBtn:focus-visible,
+.bell:focus-visible,
+.themeOption:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 80%, transparent);
+  outline-offset: 2px;
 }
 
 /* Shell resilience pass: keep the app header usable on compressed and mobile viewports. */

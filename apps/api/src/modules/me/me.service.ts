@@ -1,6 +1,5 @@
-import { createHash } from 'node:crypto'
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { detectAvoidOverlaps, normalizePhoneKR } from '@rotifolk/shared'
+import { detectAvoidOverlaps } from '@rotifolk/shared'
 import type {
   AddAvoidContactsDto,
   AddAvoidPersonDto,
@@ -16,16 +15,7 @@ import type {
 import type { Prisma } from '@prisma/client'
 import { PrismaService } from '@/prisma/prisma.service'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
-
-/** 연락처 페퍼 — 원본 번호는 저장하지 않고 해시 대조에만 사용. */
-const PEPPER = process.env.CONTACT_PEPPER ?? 'rotifolk-pepper'
-
-/** 정규화된 번호 + 페퍼의 sha256 — 원본 미보관 지인 회피 대조용. */
-function hashPhone(phone: string): string {
-  return createHash('sha256')
-    .update(PEPPER + normalizePhoneKR(phone))
-    .digest('hex')
-}
+import { hashPhone } from '@/common/contact-hash'
 
 export interface AvoidContactDto {
   id: string

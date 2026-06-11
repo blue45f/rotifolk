@@ -54,6 +54,23 @@ export class PartiesService {
     private readonly notifEmitter: NotificationsEmitter,
   ) {}
 
+  async listDerivedCandidates(partyId: string) {
+    void partyId
+    return []
+  }
+
+  async createDerivedParty(partyId: string, body: any) {
+    void partyId
+    void body
+    return { id: 'mock-derived-party-id', ok: true }
+  }
+
+  async sendInvitations(partyId: string, body: any) {
+    void partyId
+    void body
+    return { ok: true }
+  }
+
   /** config.connectionChannels(있으면) 또는 레거시 connectionMode에서 유도한 채널 배열. */
   private resolveChannels(config: PartyConfig): ConnectionChannel[] {
     return config.connectionChannels && config.connectionChannels.length > 0

@@ -3,6 +3,7 @@ import type {
   Paginated,
   Participation,
   Party,
+  PartyCategory,
   PartySummary,
   QuestionCard,
   RevenueHealthAlertThreshold,
@@ -35,6 +36,50 @@ import {
   mockVenues,
   toSummary,
 } from './data'
+
+type MockBlock = {
+  id: string
+  nickname: string
+  avatarId: string | null
+  blockedAt: string
+  reason: string | null
+}
+
+type MockPhoneBlock = {
+  id: string
+  label: string | null
+  createdAt: string
+}
+
+let mockBlocks: MockBlock[] = [
+  {
+    id: 'user_3',
+    nickname: '민우',
+    avatarId: 'avatar_3',
+    blockedAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+    reason: '사적인 대화 강요 및 불쾌감 조성',
+  },
+  {
+    id: 'user_4',
+    nickname: '지수',
+    avatarId: 'avatar_4',
+    blockedAt: new Date(Date.now() - 86400000 * 7).toISOString(),
+    reason: '반복적인 약속 지각 및 노쇼',
+  },
+]
+
+let mockPhoneBlocks: MockPhoneBlock[] = [
+  {
+    id: 'pb-1',
+    label: '전 직장 동료',
+    createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
+  },
+  {
+    id: 'pb-2',
+    label: '고등학교 동창 (관계 단절)',
+    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+  },
+]
 
 const API = '*/api'
 
@@ -423,13 +468,13 @@ let mockRevenueRules: MockRevenueRuleConfig = {
   updatedAt: nowIso(),
   updatedBy: null,
 }
-let mockRevenueRuleHistories: MockRevenueRuleHistory[] = []
+const mockRevenueRuleHistories: MockRevenueRuleHistory[] = []
 let mockMonitoringPolicy: RevenueHealthAlertThreshold = {
   ...REVENUE_MONITORING_POLICY.healthAlerts,
 }
 let mockMonitoringPolicyUpdatedAt = nowIso()
 let mockMonitoringPolicyUpdatedBy: string | null = null
-let mockMonitoringPolicyHistories: MonitoringPolicyHistory[] = []
+const mockMonitoringPolicyHistories: MonitoringPolicyHistory[] = []
 
 function appendRevenueRuleHistory(
   from: Pick<
@@ -2071,10 +2116,59 @@ export const handlers = [
     )
   }),
 
-  // Safety (empty list of blocks by default; reports succeed)
-  http.get(`${API}/blocks`, async () => HttpResponse.json(await delay([]))),
-  http.post(`${API}/blocks/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
-  http.delete(`${API}/blocks/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
+  // Safety (in-memory block state)
+  http.get(`${API}/blocks`, async () => {
+    return HttpResponse.json(await delay(mockBlocks))
+  }),
+  http.get(`${API}/blocks/candidates`, async () => {
+    const blockedIds = mockBlocks.map((b) => b.id)
+    const candidates = mockUsers.filter(
+      (u) => u.id !== mockUsers[0].id && !blockedIds.includes(u.id),
+    )
+    return HttpResponse.json(await delay(candidates))
+  }),
+  http.post(`${API}/blocks/:userId`, async ({ params, request }) => {
+    const { userId } = params
+    const body = (await request.json().catch(() => ({}))) as { reason?: string }
+    const user = mockUsers.find((u) => u.id === userId)
+    if (user) {
+      mockBlocks = mockBlocks.filter((b) => b.id !== userId)
+      mockBlocks.push({
+        id: user.id,
+        nickname: user.nickname,
+        avatarId: user.avatarId || null,
+        blockedAt: new Date().toISOString(),
+        reason: body.reason || '기타 사유',
+      })
+    }
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
+  http.delete(`${API}/blocks/:userId`, async ({ params }) => {
+    const { userId } = params
+    mockBlocks = mockBlocks.filter((b) => b.id !== userId)
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
+
+  // Phone Blocks (지인 회피)
+  http.get(`${API}/blocks/phones`, async () => {
+    return HttpResponse.json(await delay(mockPhoneBlocks))
+  }),
+  http.post(`${API}/blocks/phones`, async ({ request }) => {
+    const body = (await request.json()) as { phone: string; reason?: string }
+    const newBlock = {
+      id: `pb-${Date.now()}`,
+      label: body.reason || null,
+      createdAt: new Date().toISOString(),
+    }
+    mockPhoneBlocks.push(newBlock)
+    return HttpResponse.json(await delay(newBlock))
+  }),
+  http.delete(`${API}/blocks/phones/:id`, async ({ params }) => {
+    const { id } = params
+    mockPhoneBlocks = mockPhoneBlocks.filter((b) => b.id !== id)
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
+
   http.post(`${API}/reports`, async ({ request }) => {
     const body = (await request.json()) as CreateReportDto
     const post = body.communityPostId
@@ -3177,6 +3271,61 @@ export const handlers = [
       link: 'https://map.naver.com',
     }
     return HttpResponse.json(await delay(data))
+  }),
+
+  // Derived Party (파생 파티 및 초대 독려)
+  http.get(`${API}/parties/:partyId/derived-candidates`, async () => {
+    const candidates = mockUsers.slice(1, 6).map((u, i) => {
+      const voteCount = 8 - i
+      const rating = 4.5 + i * 0.1
+      const topTags = [
+        ['대화가 잘 통해요', '리액션이 좋아요', '센스있어요'][i % 3],
+        ['첫인상이 좋아요', '공감 능력이 뛰어남', '배려심이 넘침'][(i + 1) % 3],
+      ]
+      return {
+        id: u.id,
+        nickname: u.nickname,
+        avatarId: u.avatarId || null,
+        voteCount,
+        rating: Math.min(5, Math.round(rating * 10) / 10),
+        topTags,
+        phone: `010-****-${1000 + i}`,
+      }
+    })
+    return HttpResponse.json(await delay(candidates))
+  }),
+
+  http.post(`${API}/parties/:partyId/derive`, async ({ params, request }) => {
+    const { partyId } = params
+    const body = (await request.json()) as {
+      title: string
+      category: string
+      maxParticipants?: number
+      targetUserIds: string[]
+    }
+    const origin = mockParties.find((p) => p.id === partyId) || mockParties[0]
+    const newPartyId = `derived_${Date.now()}`
+    const newParty = {
+      ...origin,
+      id: newPartyId,
+      title: body.title,
+      category: body.category as PartyCategory,
+      status: 'open' as const,
+      createdAt: new Date().toISOString(),
+      participations: [],
+      host: mockUsers[0],
+    }
+    mockParties.unshift(newParty)
+    return HttpResponse.json(await delay({ id: newPartyId, ok: true }))
+  }),
+
+  http.post(`${API}/parties/:partyId/invitations`, async ({ request }) => {
+    const body = (await request.json()) as {
+      targetUserIds: string[]
+      channel: string
+      template: string
+    }
+    return HttpResponse.json(await delay({ ok: true, count: body.targetUserIds.length }))
   }),
 ]
 

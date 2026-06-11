@@ -13,8 +13,23 @@ import {
   type UpdateReportStatusDto,
 } from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
+import { hashPhone, normalizeContactPhone } from '@/common/contact-hash'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
+
+interface AvoidContactRow {
+  id: string
+  label: string | null
+  createdAt: Date
+}
+
+function toAvoidContactDto(row: AvoidContactRow) {
+  return {
+    id: row.id,
+    label: row.label,
+    createdAt: row.createdAt.toISOString(),
+  }
+}
 
 @Injectable()
 export class SafetyService {
@@ -45,10 +60,63 @@ export class SafetyService {
   }
 
   async listMyBlocks(blockerId: string) {
-    return this.prisma.userBlock.findMany({
+    const rows = await this.prisma.userBlock.findMany({
       where: { blockerId },
       include: { blocked: { select: { id: true, nickname: true, avatarId: true } } },
       orderBy: { createdAt: 'desc' },
+    })
+    return rows.map((row) => ({
+      id: row.blocked.id,
+      nickname: row.blocked.nickname,
+      avatarId: row.blocked.avatarId,
+      reason: row.reason,
+      blockedAt: row.createdAt.toISOString(),
+    }))
+  }
+
+  async listMyPhoneBlocks(userId: string) {
+    const rows = await this.prisma.avoidContact.findMany({
+      where: { userId },
+      select: { id: true, label: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+    })
+    return rows.map(toAvoidContactDto)
+  }
+
+  async blockPhone(userId: string, phone: string, reason?: string) {
+    const normalizedPhone = normalizeContactPhone(phone)
+    if (normalizedPhone.length < 9 || normalizedPhone.length > 20) {
+      throw new BadRequestException({
+        code: 'invalid_phone',
+        message: '올바른 전화번호를 입력해주세요',
+      })
+    }
+    const phoneHash = hashPhone(phone)
+    const label = reason?.trim() || null
+    const row = await this.prisma.avoidContact.upsert({
+      where: { userId_phoneHash: { userId, phoneHash } },
+      create: { userId, phoneHash, label },
+      update: { label },
+    })
+    return toAvoidContactDto(row)
+  }
+
+  async unblockPhone(userId: string, id: string) {
+    await this.prisma.avoidContact.deleteMany({ where: { id, userId } })
+    return { ok: true }
+  }
+
+  async listBlockCandidates(userId: string) {
+    const blocks = await this.prisma.userBlock.findMany({
+      where: { blockerId: userId },
+      select: { blockedId: true },
+    })
+    const blockedIds = blocks.map((b) => b.blockedId)
+    return this.prisma.user.findMany({
+      where: { id: { not: userId, notIn: blockedIds } },
+      select: { id: true, nickname: true, avatarId: true },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
     })
   }
 

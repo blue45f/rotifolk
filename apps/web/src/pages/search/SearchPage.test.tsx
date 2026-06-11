@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import type { Paginated, PartySummary } from '@rotifolk/shared'
 import { api } from '@services/api'
 import SearchPage from './SearchPage'
@@ -165,5 +166,26 @@ describe('SearchPage smart search', () => {
       ).toBeInTheDocument(),
     )
     expect(screen.getByRole('heading', { name: '소믈리에의 밤', level: 3 })).toBeInTheDocument()
+  })
+
+  it('최근 검색 기록 패널에서 개별 삭제/전체 삭제가 바로 반영된다', async () => {
+    mockParties([])
+    const recents = ['와인', '칵테일', '브런치']
+    localStorage.setItem('rotifolk-recent-searches', JSON.stringify(recents))
+
+    renderSearch('')
+
+    const input = await screen.findByRole('searchbox', { name: '파티 검색' })
+    await userEvent.click(input)
+
+    expect(await screen.findByText('최근 검색')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '와인 검색 기록 삭제' })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: '와인 검색 기록 삭제' }))
+    expect(screen.queryByRole('button', { name: '와인 검색 기록 삭제' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '칵테일 검색 기록 삭제' })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: '전체 삭제' }))
+    expect(screen.queryByText('최근 검색')).not.toBeInTheDocument()
   })
 })

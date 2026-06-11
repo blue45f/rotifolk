@@ -16,13 +16,14 @@
   background: var(--color-surface);
   border-radius: var(--radius-md);
   padding-inline: var(--space-3);
+  min-height: 44px;
   transition:
     border-color var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out);
 }
 .wrap:focus-within {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(122, 31, 61, 0.12);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 20%, transparent);
 }
 .input {
   flex: 1;
@@ -61,5 +62,5 @@
   border-color: var(--color-danger);
 }
 .hasError .wrap:focus-within {
-  box-shadow: 0 0 0 4px rgba(193, 63, 78, 0.12);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-danger) 25%, transparent);
 }
