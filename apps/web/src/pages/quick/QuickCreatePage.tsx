@@ -9,7 +9,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Icon } from '@components/ui/Icon/Icon'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './QuickCreate.module.css'
 
 const TIME_PRESETS = [30, 60, 90, 120, 180] as const

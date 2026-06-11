@@ -58,11 +58,12 @@ export default function DiscoverPage() {
   const status = (params.get('status') as StatusKey | null) ?? 'open'
 
   const [pageSize, setPageSize] = useState(PAGE_INCREMENT)
+  const [todayBase] = useState(() => new Date())
 
-  const today = isoDate(new Date())
-  const tomorrow = isoDate(new Date(Date.now() + 86_400_000))
+  const today = isoDate(todayBase)
+  const tomorrow = isoDate(new Date(todayBase.getTime() + 86_400_000))
   const nextSaturday = (() => {
-    const d = new Date()
+    const d = new Date(todayBase)
     const day = d.getDay()
     const diff = (6 - day + 7) % 7 || 7
     d.setDate(d.getDate() + diff)

@@ -5,7 +5,7 @@ import { useAuthStore } from '@store/authStore'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Icon } from '@components/ui/Icon/Icon'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './AfterPartyManager.module.css'
 
 interface Props {

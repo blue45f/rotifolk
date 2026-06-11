@@ -14,7 +14,7 @@ import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './AdminModeration.module.css'
 
 /** AdminPage(통계·정산)와 분리된 콘텐츠 모더레이션 전용 라우트. */

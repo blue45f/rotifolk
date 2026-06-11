@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { useAuthStore } from '@store/authStore'
 import { useRecentSearches } from '@features/search/useRecentSearches'
-import { useT } from '@features/i18n/i18n'
+import { useT } from '@features/i18n/useI18n'
 import styles from './CommandPalette.module.css'
 
 type UserRole = 'admin' | 'host' | 'participant' | null
@@ -429,7 +429,13 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
   const activeId = flat[activeIndex]?.id
 
   useEffect(() => {
-    setActiveIndex(flat.length > 0 ? 0 : -1)
+    let cancelled = false
+    queueMicrotask(() => {
+      if (!cancelled) setActiveIndex(flat.length > 0 ? 0 : -1)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [flat])
 
   function runAction(action: CommandAction) {

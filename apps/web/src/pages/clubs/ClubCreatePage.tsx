@@ -11,7 +11,7 @@ import { useCreateClub } from '@features/clubs/queries'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './Clubs.module.css'
 
 const NAME_MIN = 2

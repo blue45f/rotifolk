@@ -8,12 +8,13 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { useEffect, useState } from 'react'
 import { CATEGORY_META } from '@features/categories/meta'
 import { api } from '@services/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { QuestionCard } from '@rotifolk/shared'
+import DerivedPartyManager from '@features/parties/DerivedPartyManager'
 import HostAnalyticsTab from './HostAnalyticsTab'
 import styles from './HostManage.module.css'
 
@@ -220,6 +221,7 @@ export default function HostManagePage() {
             { value: 'cards', label: '질문 카드', icon: '🃏' },
             { value: 'orders', label: '주문', icon: '🍷' },
             { value: 'analytics', label: '분석', icon: '📊' },
+            { value: 'encore', label: '앵콜 초대', icon: '✉️' },
           ]}
           value={tab}
           onChange={setTab}
@@ -483,6 +485,17 @@ export default function HostManagePage() {
         )}
 
         {tab === 'analytics' && <HostAnalyticsTab participants={participants} />}
+
+        {tab === 'encore' && (
+          <DerivedPartyManager
+            partyId={party.id}
+            originTitle={party.title}
+            originCategory={party.config.category}
+            originCoverImageUrl={party.coverImageUrl ?? null}
+            originStartAt={party.startAt}
+            originVenueArea={cat.label}
+          />
+        )}
       </div>
     </div>
   )

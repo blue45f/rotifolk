@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useT } from '@features/i18n/i18n'
+import { useT } from '@features/i18n/useI18n'
 import styles from './SiteFooter.module.css'
 
 export function SiteFooter() {

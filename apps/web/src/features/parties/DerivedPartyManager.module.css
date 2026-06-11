@@ -1,253 +1,555 @@
-.card {
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+.heroCopy {
+  min-height: 260px;
+  padding: var(--space-6);
+  color: var(--color-text-inverse);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--brand-ink-900) 96%, var(--brand-burgundy-700)),
+      color-mix(in oklab, var(--brand-burgundy-900) 82%, black)
+    ),
+    var(--brand-ink-900);
+  border: 1px solid color-mix(in oklab, white 12%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+.heroCopy::after {
+  content: '';
+  position: absolute;
+  inset: auto -20% -38% 28%;
+  height: 160px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--brand-gold-500) 22%, transparent),
+    transparent
+  );
+  transform: rotate(-8deg);
+  opacity: 0.82;
+  pointer-events: none;
+}
+
+.kicker,
+.sectionEyebrow {
+  margin: 0 0 var(--space-2);
+  color: color-mix(in oklab, var(--brand-gold-300) 88%, white);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+}
+
+.heroCopy h2,
+.controls h3,
+.candidatePanel h3 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.heroCopy h2 {
+  max-width: 620px;
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-tight);
+}
+
+.heroCopy p:not(.kicker) {
+  max-width: 620px;
+  margin: var(--space-3) 0 0;
+  color: color-mix(in oklab, var(--brand-cream-50) 78%, transparent);
+  line-height: var(--lh-normal);
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  max-width: 680px;
+}
+
+.statGrid span {
+  min-width: 0;
+  padding: var(--space-3);
+  color: color-mix(in oklab, var(--brand-cream-50) 74%, transparent);
+  background: color-mix(in oklab, white 8%, transparent);
+  border: 1px solid color-mix(in oklab, white 12%, transparent);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-inset);
+  font-size: var(--fs-xs);
+}
+
+.statGrid strong {
+  display: block;
+  margin-bottom: 2px;
+  color: white;
+  font-size: var(--fs-xl);
+  line-height: var(--lh-tight);
+}
+
+.visual {
+  min-height: 260px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+  box-shadow: var(--shadow-md);
+}
+
+.coverImage,
+.coverFallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.coverFallback {
+  background:
+    linear-gradient(
+      130deg,
+      color-mix(in oklab, var(--brand-burgundy-800) 92%, black),
+      color-mix(in oklab, var(--brand-gold-700) 42%, var(--brand-burgundy-900))
+    ),
+    var(--brand-burgundy-900);
+}
+
+.visualOverlay {
+  position: absolute;
+  inset: auto var(--space-4) var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  color: white;
+  background: color-mix(in oklab, var(--brand-ink-900) 72%, transparent);
+  border: 1px solid color-mix(in oklab, white 14%, transparent);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(16px);
+}
+
+.originLabel {
+  color: color-mix(in oklab, var(--brand-gold-300) 88%, white);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+
+.visualOverlay strong {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-snug);
+}
+
+.avatarStack {
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+}
+
+.avatarStack > * + * {
+  margin-left: -8px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form,
+.candidatePanel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  padding: var(--space-6);
-  margin-top: var(--space-6);
-  box-shadow: var(--shadow-md);
-  outline: 1px solid color-mix(in oklab, var(--color-accent) 28%, transparent);
-  outline-offset: -2px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
-.title {
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-black);
-  color: var(--color-text);
-  letter-spacing: -0.02em;
-  margin-bottom: var(--space-1);
+.form {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
 }
 
-.desc {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  line-height: var(--lh-normal);
-  margin-bottom: var(--space-6);
-}
-
-/* Candidate Grid */
-.gridTitle {
-  font-size: var(--fs-md);
+.form h3,
+.candidatePanel h3 {
+  font-size: var(--fs-lg);
   font-weight: var(--fw-bold);
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: calc(var(--space-1) + 1px);
   color: var(--color-text);
-  margin-bottom: var(--space-3);
-  display: flex;
-  justify-content: space-between;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.input,
+.selectInput,
+.textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    background-color var(--dur-base) var(--ease-out);
+}
+
+.input,
+.selectInput {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+}
+
+.textarea {
+  min-height: 120px;
+  padding: var(--space-3);
+  resize: vertical;
+  line-height: var(--lh-normal);
+}
+
+.input:focus,
+.selectInput:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 18%, transparent);
+}
+
+.input:disabled,
+.selectInput:disabled,
+.textarea:disabled {
+  color: var(--color-text-subtle);
+  background: var(--color-surface-soft);
+  cursor: not-allowed;
+}
+
+.helpText {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+}
+
+.inviteReady,
+.resultBox {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: color-mix(in oklab, var(--color-success-bg) 72%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--color-success) 18%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+}
+
+.inviteReady {
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+}
+
+.linkButton {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: 1px solid color-mix(in oklab, var(--color-success) 26%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-success);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+}
+
+.linkButton:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--color-success) 28%, transparent);
+  outline-offset: 2px;
+}
+
+.resultBox span,
+.resultBox a {
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+
+.resultBox a {
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
+}
+
+.candidatePanel {
+  min-width: 0;
+  padding: var(--space-4);
+}
+
+.panelHead,
+.selectionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.panelHead {
+  margin-bottom: var(--space-3);
+}
+
+.modeGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.modeGroup button {
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 3px);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.modeGroup button:hover,
+.modeGroup button:focus-visible {
+  color: var(--color-text);
+}
+
+.modeGroup button:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--color-primary) 18%, transparent);
+  outline-offset: 2px;
+}
+
+.modeGroup .modeActive {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.selectionBar {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.selectionBar span {
+  font-weight: var(--fw-semibold);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(188px, 1fr));
   gap: var(--space-3);
-  margin-bottom: var(--space-6);
 }
 
 .candidateCard {
-  background: color-mix(in oklab, var(--color-surface-soft) 40%, transparent);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  min-width: 0;
+  min-height: 238px;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
   text-align: center;
-  position: relative;
+  cursor: pointer;
   transition:
     transform var(--dur-base) var(--ease-out),
     border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
     background-color var(--dur-base) var(--ease-out);
-}
-
-.candidateCardDimmed {
-  opacity: 0.45;
-  border-color: transparent;
 }
 
 .candidateCard:hover {
   transform: translateY(-2px);
-  border-color: var(--color-accent);
-  background: color-mix(in oklab, var(--color-accent) 6%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-primary) 36%, var(--color-border));
+  box-shadow: var(--shadow-md);
 }
 
-.badge {
+.candidateCard:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--color-primary) 22%, transparent);
+  outline-offset: 2px;
+}
+
+.candidateSelected {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--brand-gold-100) 52%, var(--color-surface)),
+      var(--color-surface)
+    ),
+    var(--color-surface);
+  border-color: color-mix(in oklab, var(--brand-gold-600) 52%, var(--color-border));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 24%, transparent),
+    var(--shadow-sm);
+}
+
+.rank {
   position: absolute;
   top: var(--space-2);
-  right: var(--space-2);
-  background: var(--color-accent);
-  color: var(--color-accent-fg);
-  font-size: 10px;
-  font-weight: var(--fw-bold);
-  padding: 2px 6px;
+  left: var(--space-2);
+  padding: 3px 7px;
+  color: var(--brand-burgundy-800);
+  background: var(--brand-gold-100);
+  border: 1px solid color-mix(in oklab, var(--brand-gold-600) 18%, transparent);
   border-radius: var(--radius-pill);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-black);
 }
 
 .name {
+  width: 100%;
+  margin-top: var(--space-2);
+  overflow: hidden;
+  color: var(--color-text);
   font-weight: var(--fw-bold);
-  font-size: var(--fs-md);
-  margin-block: var(--space-2) 2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.rating {
+.gender,
+.rating,
+.phoneFlag {
+  color: var(--color-text-muted);
   font-size: var(--fs-xs);
-  color: var(--color-accent);
-  font-weight: var(--fw-semibold);
-  margin-bottom: var(--space-2);
+}
+
+.vote {
+  margin-top: var(--space-1);
+  color: var(--color-primary);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-black);
+  line-height: var(--lh-tight);
+}
+
+.phoneFlag {
+  padding: 2px 8px;
+  background: var(--color-surface-soft);
+  border-radius: var(--radius-pill);
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
   justify-content: center;
-  margin-top: 2px;
+  gap: 4px;
+  margin-top: var(--space-2);
 }
 
-.tag {
-  background: color-mix(in oklab, var(--color-surface-soft) 68%, transparent);
+.tags small {
+  max-width: 100%;
+  padding: 2px 6px;
+  overflow: hidden;
   color: var(--color-text-muted);
-  font-size: 10px;
-  padding: 1px 5px;
-  border-radius: var(--radius-sm);
+  background: color-mix(in oklab, var(--color-primary-soft) 62%, transparent);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-3xs);
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Derived Form */
-.form {
-  background: color-mix(in oklab, var(--color-surface-soft) 34%, transparent);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  margin-bottom: var(--space-6);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.formTitle {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
-}
-
-@media (max-width: 576px) {
-  .formGrid {
+@media (max-width: 960px) {
+  .hero,
+  .workspace {
     grid-template-columns: 1fr;
+  }
+
+  .visual {
+    min-height: 220px;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--fs-sm);
-  color: var(--color-text);
-  cursor: pointer;
-  margin-top: var(--space-1);
+@media (max-width: 680px) {
+  .heroCopy {
+    min-height: auto;
+    padding: var(--space-5);
+  }
+
+  .heroCopy h2 {
+    font-size: var(--fs-2xl);
+  }
+
+  .statGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHead,
+  .selectionBar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .modeGroup {
+    width: 100%;
+  }
+
+  .modeGroup button {
+    flex: 1;
+    padding-inline: var(--space-2);
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
+  }
 }
 
-.fieldLabel {
-  display: block;
-  margin-bottom: var(--space-2);
-  color: var(--color-text);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-}
+@media (prefers-reduced-motion: reduce) {
+  .candidateCard {
+    transition: none;
+  }
 
-.alignEnd {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
-
-/* Invitation section */
-.invitationSection {
-  background: color-mix(in oklab, var(--color-primary) 6%, var(--color-surface));
-  border: 1px solid color-mix(in oklab, var(--color-primary) 18%, transparent);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.invTitle {
-  font-size: var(--fs-md);
-  font-weight: var(--fw-bold);
-  color: var(--color-primary);
-  margin-bottom: -2px;
-}
-
-.invitationDesc {
-  color: var(--color-text-muted);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-normal);
-  margin-bottom: var(--space-3);
-}
-
-.formGridSpaced {
-  margin-bottom: var(--space-3);
-}
-
-.selectInput {
-  width: 100%;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--fs-md);
-}
-
-.textarea {
-  width: 100%;
-  min-height: 80px;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--fs-sm);
-  resize: vertical;
-}
-
-.messageField {
-  margin-bottom: var(--space-4);
-}
-
-.progressContainer {
-  margin-block: var(--space-2);
-}
-
-.progressBar {
-  height: 6px;
-  background: color-mix(in oklab, var(--color-text) 10%, transparent);
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-  margin-bottom: var(--space-1);
-}
-
-.progressFill {
-  height: 100%;
-  background: var(--color-accent);
-  width: 0%;
-  transition: width 0.1s linear;
-}
-
-.progressLabel {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-}
-
-.actionRow {
-  display: flex;
-  gap: var(--space-2);
-  justify-content: flex-end;
+  .candidateCard:hover {
+    transform: none;
+  }
 }

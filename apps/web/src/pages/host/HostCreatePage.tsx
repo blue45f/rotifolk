@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
+import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import type {
@@ -34,7 +34,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
 import { Badge } from '@components/ui/Badge/Badge'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './HostCreate.module.css'
 
 const DEFAULTS: Partial<CreatePartyDto> = {
@@ -227,7 +227,6 @@ export default function HostCreatePage() {
     register,
     handleSubmit,
     control,
-    watch,
     setValue,
     reset,
     formState: { errors },
@@ -236,24 +235,17 @@ export default function HostCreatePage() {
     defaultValues: withDraft(draft) as never,
   })
 
-  const watched = watch()
+  const watched = useWatch({ control }) as Partial<CreatePartyDto>
   const priceRules = useFieldArray({ control, name: 'pricing.pricingRules' })
   const [step, setStep] = useState<'concept' | 'venue' | 'rounds' | 'match' | 'price'>('concept')
 
   // 입력이 멈추고 600ms 뒤 드래프트 저장. 빈 폼('처음부터' 직후 포함)은 저장하지 않는다.
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined
-    const subscription = watch((data) => {
-      clearTimeout(timer)
-      timer = setTimeout(() => {
-        if (JSON.stringify(data) !== BLANK_FORM_JSON) saveHostDraft(data)
-      }, 600)
-    })
-    return () => {
-      clearTimeout(timer)
-      subscription.unsubscribe()
-    }
-  }, [watch])
+    const timer = setTimeout(() => {
+      if (JSON.stringify(watched) !== BLANK_FORM_JSON) saveHostDraft(watched)
+    }, 600)
+    return () => clearTimeout(timer)
+  }, [watched])
 
   /** 드래프트를 버리고 백지에서 다시 시작. */
   const restartFromScratch = () => {

@@ -18,13 +18,18 @@ import {
 import type {
   ChildrenPolicy,
   ConnectionChannel,
+  CreateDerivedPartyDto,
+  CreateDerivedPartyResponseDto,
   CreatePartyDto,
+  DerivedPartyCandidateDto,
   GuestJoinDto,
   HostAddGuestDto,
   MaritalStatus,
   PartyCategory,
   PartyConfig,
   PartyQueryDto,
+  SendPartyInvitationsDto,
+  SendPartyInvitationsResponseDto,
   UpdatePartyDto,
   VerificationField,
 } from '@rotifolk/shared'
@@ -47,6 +52,8 @@ const CATEGORY_LABEL: Record<PartyCategory, string> = {
   custom: '모임',
 }
 
+const ACTIVE_PARTICIPATION_STATUSES = ['confirmed', 'checked-in'] as const
+
 @Injectable()
 export class PartiesService {
   constructor(
@@ -54,21 +61,379 @@ export class PartiesService {
     private readonly notifEmitter: NotificationsEmitter,
   ) {}
 
-  async listDerivedCandidates(partyId: string) {
-    void partyId
-    return []
+  async listDerivedCandidates(
+    hostId: string,
+    partyId: string,
+  ): Promise<DerivedPartyCandidateDto[]> {
+    const party = await this.prisma.party.findUnique({
+      where: { id: partyId },
+      select: { id: true, hostId: true },
+    })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (party.hostId !== hostId)
+      throw new ForbiddenException({
+        code: 'forbidden',
+        message: '본인이 호스트인 파티만 분석할 수 있어요',
+      })
+
+    const [midVotes, finalVotes, participations, reviews] = await Promise.all([
+      this.prisma.midMatchVote.findMany({
+        where: { partyId },
+        select: { fromUserId: true, toUserId: true },
+      }),
+      this.prisma.finalMatchVote.findMany({
+        where: { partyId },
+        select: { fromUserId: true, toUserId: true },
+      }),
+      this.prisma.participation.findMany({
+        where: {
+          partyId,
+          status: { in: [...ACTIVE_PARTICIPATION_STATUSES] },
+          userId: { not: null },
+        },
+        select: {
+          user: {
+            select: {
+              id: true,
+              nickname: true,
+              avatarId: true,
+              avatar: { select: { imageData: true } },
+              gender: true,
+              phone: true,
+              showLikesReceived: true,
+              joinPopularityRanking: true,
+            },
+          },
+        },
+      }),
+      this.prisma.review.findMany({
+        where: { partyId, targetUserId: { not: null } },
+        select: { targetUserId: true, rating: true, tagsJson: true },
+      }),
+    ])
+
+    const distinctLikes = new Map<string, number>()
+    const seen = new Set<string>()
+    for (const vote of [...midVotes, ...finalVotes]) {
+      const key = `${vote.fromUserId}->${vote.toUserId}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      distinctLikes.set(vote.toUserId, (distinctLikes.get(vote.toUserId) ?? 0) + 1)
+    }
+
+    const reviewStats = new Map<
+      string,
+      { ratingTotal: number; ratingCount: number; tags: Map<string, number> }
+    >()
+    for (const review of reviews) {
+      if (!review.targetUserId) continue
+      const stat = reviewStats.get(review.targetUserId) ?? {
+        ratingTotal: 0,
+        ratingCount: 0,
+        tags: new Map<string, number>(),
+      }
+      stat.ratingTotal += review.rating
+      stat.ratingCount += 1
+      for (const tag of parseJsonArray<string>(review.tagsJson)) {
+        stat.tags.set(tag, (stat.tags.get(tag) ?? 0) + 1)
+      }
+      reviewStats.set(review.targetUserId, stat)
+    }
+
+    const rows = participations
+      .map((p) => p.user)
+      .filter((u): u is NonNullable<typeof u> => !!u)
+      .filter((u) => u.joinPopularityRanking !== false)
+      .map((user) => {
+        const inviteScore = distinctLikes.get(user.id) ?? 0
+        const stat = reviewStats.get(user.id)
+        const rating =
+          stat && stat.ratingCount > 0
+            ? Math.round((stat.ratingTotal / stat.ratingCount) * 10) / 10
+            : null
+        const topTags = stat
+          ? [...stat.tags.entries()]
+              .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko-KR'))
+              .slice(0, 3)
+              .map(([tag]) => tag)
+          : []
+
+        return {
+          id: user.id,
+          nickname: user.nickname,
+          avatarId: user.avatarId,
+          avatarImage: user.avatar?.imageData ?? null,
+          gender: this.derivedCandidateGender(user.gender),
+          voteCount: user.showLikesReceived === false ? null : inviteScore,
+          inviteScore,
+          rating,
+          topTags,
+          hasPhone: !!user.phone,
+        }
+      })
+      .sort(
+        (a, b) =>
+          b.inviteScore - a.inviteScore ||
+          (b.rating ?? 0) - (a.rating ?? 0) ||
+          a.nickname.localeCompare(b.nickname, 'ko-KR'),
+      )
+
+    return rows.map((row, index) => ({ ...row, rank: index + 1 }))
   }
 
-  async createDerivedParty(partyId: string, body: any) {
-    void partyId
-    void body
-    return { id: 'mock-derived-party-id', ok: true }
+  async createDerivedParty(
+    hostId: string,
+    partyId: string,
+    body: CreateDerivedPartyDto,
+  ): Promise<CreateDerivedPartyResponseDto> {
+    const origin = await this.prisma.party.findUnique({ where: { id: partyId } })
+    if (!origin)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (origin.hostId !== hostId)
+      throw new ForbiddenException({
+        code: 'forbidden',
+        message: '본인이 호스트인 파티만 파생 모임을 만들 수 있어요',
+      })
+
+    const title = String(body.title ?? '').trim()
+    if (!title)
+      throw new BadRequestException({ code: 'invalid_title', message: '모임 이름을 입력해 주세요' })
+
+    const maxParticipants = Math.max(2, Math.min(80, Number(body.maxParticipants ?? 12)))
+    const startAt = new Date(body.startAt)
+    const durationMs = Math.max(60 * 60_000, origin.endAt.getTime() - origin.startAt.getTime())
+    const endAt = body.endAt ? new Date(body.endAt) : new Date(startAt.getTime() + durationMs)
+    if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime()) || endAt <= startAt) {
+      throw new BadRequestException({
+        code: 'invalid_time',
+        message: '파생 모임 시간을 다시 확인해 주세요',
+      })
+    }
+
+    const tags = Array.from(
+      new Set([...parseJsonArray<string>(origin.tagsJson), '#앵콜', '#인기멤버']),
+    )
+    const quickCode = await this.createQuickCode()
+    const minParticipants = Math.min(Math.max(2, origin.minParticipants), maxParticipants)
+    const targetUserIds = this.uniqueStringArray(body.targetUserIds)
+
+    const created = await this.prisma.party.create({
+      data: {
+        title,
+        description:
+          typeof body.description === 'string' && body.description.trim()
+            ? body.description.trim()
+            : `${origin.title}에서 반응이 좋았던 멤버들을 위한 앵콜 초청 모임입니다.`,
+        hostId: origin.hostId,
+        venueId: origin.venueId,
+        coverImageUrl: origin.coverImageUrl,
+        startAt,
+        endAt,
+        minParticipants,
+        maxParticipants,
+        status: 'open',
+        category: body.category,
+        rotationMode: origin.rotationMode,
+        roundDurationSec: origin.roundDurationSec,
+        totalRounds: origin.totalRounds,
+        breakBetweenRoundsSec: origin.breakBetweenRoundsSec,
+        enableMidMatching: origin.enableMidMatching,
+        enableFinalMatching: origin.enableFinalMatching,
+        enableQuiz: origin.enableQuiz,
+        enableQuestionCards: origin.enableQuestionCards,
+        enableLiveOrders: origin.enableLiveOrders,
+        enableAvatarOnly: origin.enableAvatarOnly,
+        format: origin.format,
+        rotationFormat: origin.rotationFormat,
+        groupSize: origin.groupSize,
+        matchScope: origin.matchScope,
+        contactExchangePolicy: origin.contactExchangePolicy,
+        maxMatchesPerPerson: origin.maxMatchesPerPerson,
+        connectionMode: origin.connectionMode,
+        connectionChannelsJson: origin.connectionChannelsJson,
+        groupAfterParty: origin.groupAfterParty,
+        revealPopular: origin.revealPopular,
+        enableNotes: origin.enableNotes,
+        noteDelivery: origin.noteDelivery,
+        noteQuota: origin.noteQuota,
+        enableConversationKit: origin.enableConversationKit,
+        basePriceKRW: origin.basePriceKRW,
+        drinkPackage: origin.drinkPackage,
+        snackPackage: origin.snackPackage,
+        refundDeadlineHours: origin.refundDeadlineHours,
+        pricingRulesJson: origin.pricingRulesJson,
+        tagsJson: toJsonString(tags),
+        ageMin: origin.ageMin,
+        ageMax: origin.ageMax,
+        maleAgeMin: origin.maleAgeMin,
+        maleAgeMax: origin.maleAgeMax,
+        femaleAgeMin: origin.femaleAgeMin,
+        femaleAgeMax: origin.femaleAgeMax,
+        genderRatio: origin.genderRatio,
+        requiredVerificationsJson: origin.requiredVerificationsJson,
+        maritalRequirementJson: origin.maritalRequirementJson,
+        childrenPolicy: origin.childrenPolicy,
+        genderRatioTarget: origin.genderRatioTarget,
+        ratioTolerance: origin.ratioTolerance,
+        maleCap: origin.maleCap,
+        femaleCap: origin.femaleCap,
+        minMale: origin.minMale,
+        minFemale: origin.minFemale,
+        autoCancelAt: null,
+        autoCancelReason: null,
+        isInstant: false,
+        quickCode,
+      },
+      include: {
+        venue: true,
+        host: { include: { avatar: true } },
+        _count: { select: { participations: true } },
+      },
+    })
+
+    return {
+      ok: true,
+      id: created.id,
+      quickCode: created.quickCode,
+      invitePath: `/invite/${created.quickCode ?? created.id}`,
+      targetUserIds,
+      party: toParty(created),
+    }
   }
 
-  async sendInvitations(partyId: string, body: any) {
-    void partyId
-    void body
-    return { ok: true }
+  async sendInvitations(
+    hostId: string,
+    partyId: string,
+    body: SendPartyInvitationsDto,
+  ): Promise<SendPartyInvitationsResponseDto> {
+    const party = await this.prisma.party.findUnique({
+      where: { id: partyId },
+      select: { id: true, hostId: true, title: true, quickCode: true },
+    })
+    if (!party)
+      throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
+    if (party.hostId !== hostId)
+      throw new ForbiddenException({
+        code: 'forbidden',
+        message: '본인이 호스트인 파티만 초대를 보낼 수 있어요',
+      })
+
+    const targetUserIds = this.uniqueStringArray(body.targetUserIds).filter((id) => id !== hostId)
+    const invitePath = `/invite/${party.quickCode ?? party.id}`
+    if (targetUserIds.length === 0) {
+      return {
+        ok: true,
+        count: 0,
+        totalTargets: 0,
+        channel: body.channel,
+        roomId: null,
+        queuedSms: 0,
+        skippedNoPhone: 0,
+        invitePath,
+      }
+    }
+
+    const channel = body.channel
+    const rawMessage = body.message
+    const message =
+      rawMessage.trim() ||
+      `${party.title} 파생 모임에 우선 초대됐어요. 초대장에서 일정을 확인해 주세요.`
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: targetUserIds } },
+      select: { id: true, nickname: true, phone: true },
+    })
+    if (users.length === 0) {
+      return {
+        ok: true,
+        count: 0,
+        totalTargets: 0,
+        channel,
+        roomId: null,
+        queuedSms: 0,
+        skippedNoPhone: 0,
+        invitePath,
+      }
+    }
+
+    await this.prisma.notification.createMany({
+      data: users.map((user) => ({
+        userId: user.id,
+        kind: 'party_invite',
+        title: '앵콜 모임 우선 초대',
+        body: message,
+        link: invitePath,
+      })),
+    })
+    for (const user of users) {
+      this.notifEmitter.toUser(user.id, {
+        kind: 'party_invite',
+        title: '앵콜 모임 우선 초대',
+        body: message,
+        link: invitePath,
+      })
+    }
+
+    let roomId: string | null = null
+    if (channel === 'chat' && users.length > 0) {
+      const memberIds = [hostId, ...users.map((u) => u.id)]
+      const room = await this.prisma.chatRoom.create({
+        data: {
+          kind: 'group',
+          partyId,
+          title: `${party.title} 초대방`,
+          memberships: { create: memberIds.map((userId) => ({ userId })) },
+        },
+      })
+      const chatMessage = await this.prisma.chatMessage.create({
+        data: {
+          roomId: room.id,
+          userId: hostId,
+          body: `${message}\n${invitePath}`,
+          kind: 'system',
+          metaJson: JSON.stringify({ kind: 'derived-party-invite', partyId, invitePath }),
+        },
+      })
+      await this.prisma.chatRoom.update({
+        where: { id: room.id },
+        data: { lastMessageAt: chatMessage.createdAt },
+      })
+      roomId = room.id
+    }
+
+    const smsTargets = users.filter((user) => !!user.phone)
+    const count = channel === 'sms' ? smsTargets.length : users.length
+    return {
+      ok: true,
+      count,
+      totalTargets: users.length,
+      channel,
+      roomId,
+      queuedSms: channel === 'sms' ? smsTargets.length : 0,
+      skippedNoPhone: channel === 'sms' ? users.length - smsTargets.length : 0,
+      invitePath,
+    }
+  }
+
+  private uniqueStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) return []
+    return [...new Set(value.filter((item): item is string => typeof item === 'string' && !!item))]
+  }
+
+  private derivedCandidateGender(gender: string | null): DerivedPartyCandidateDto['gender'] {
+    if (gender === 'male' || gender === 'female' || gender === 'other' || gender === 'private') {
+      return gender
+    }
+    return null
+  }
+
+  private async createQuickCode(): Promise<string> {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = randomUUID().replace(/-/g, '').slice(0, 6).toUpperCase()
+      const existing = await this.prisma.party.findUnique({ where: { quickCode: code } })
+      if (!existing) return code
+    }
+    return randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase()
   }
 
   /** config.connectionChannels(있으면) 또는 레거시 connectionMode에서 유도한 채널 배열. */

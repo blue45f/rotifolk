@@ -15,8 +15,10 @@ import type {
   CreateClubDto,
   CreateClubPostDto,
   CreateCommunityCommentDto,
+  CreateDerivedPartyDto,
   CreateCommunityPostDto,
   CreateReportDto,
+  SendPartyInvitationsDto,
   UpdateCommunityCommentDto,
   UpdateCommunityPostDto,
 } from '@rotifolk/shared'
@@ -3695,10 +3697,13 @@ export const handlers = [
         nickname: u.nickname,
         avatarId: u.avatarId || null,
         avatarImage: u.avatarImage ?? null,
+        gender: u.gender ?? null,
         voteCount,
+        inviteScore: voteCount,
         rating: Math.min(5, Math.round(rating * 10) / 10),
         topTags,
-        phone: `010-****-${1000 + i}`,
+        hasPhone: !!u.phone,
+        rank: i + 1,
       }
     })
     return HttpResponse.json(await delay(candidates))
@@ -3706,35 +3711,54 @@ export const handlers = [
 
   http.post(`${API}/parties/:partyId/derive`, async ({ params, request }) => {
     const { partyId } = params
-    const body = (await request.json()) as {
-      title: string
-      category: string
-      maxParticipants?: number
-      targetUserIds: string[]
-    }
+    const body = (await request.json()) as CreateDerivedPartyDto
     const origin = mockParties.find((p) => p.id === partyId) || mockParties[0]
     const newPartyId = `derived_${Date.now()}`
+    const quickCode = Math.random().toString(36).slice(2, 8).toUpperCase()
+    const startAt = body.startAt ?? new Date(Date.now() + 7 * 86400000).toISOString()
+    const endAt = new Date(new Date(startAt).getTime() + 2 * 3600_000).toISOString()
     const newParty = {
       ...origin,
       id: newPartyId,
       title: body.title,
-      category: body.category as PartyCategory,
+      startAt,
+      endAt,
+      maxParticipants: body.maxParticipants ?? origin.maxParticipants,
+      currentParticipants: 0,
+      tags: Array.from(new Set([...origin.tags, '#앵콜', '#인기멤버'])),
+      config: { ...origin.config, category: body.category as PartyCategory },
       status: 'open' as const,
       createdAt: new Date().toISOString(),
-      participations: [],
-      host: mockUsers[0],
+      updatedAt: new Date().toISOString(),
     }
     mockParties.unshift(newParty)
-    return HttpResponse.json(await delay({ id: newPartyId, ok: true }))
+    return HttpResponse.json(
+      await delay({
+        id: newPartyId,
+        quickCode,
+        invitePath: `/invite/${quickCode}`,
+        targetUserIds: body.targetUserIds,
+        ok: true,
+      }),
+    )
   }),
 
   http.post(`${API}/parties/:partyId/invitations`, async ({ request }) => {
-    const body = (await request.json()) as {
-      targetUserIds: string[]
-      channel: string
-      template: string
-    }
-    return HttpResponse.json(await delay({ ok: true, count: body.targetUserIds.length }))
+    const body = (await request.json()) as SendPartyInvitationsDto
+    const targets = mockUsers.filter((u) => body.targetUserIds.includes(u.id))
+    const smsTargets = targets.filter((u) => !!u.phone)
+    return HttpResponse.json(
+      await delay({
+        ok: true,
+        count: body.channel === 'sms' ? smsTargets.length : targets.length,
+        totalTargets: targets.length,
+        channel: body.channel,
+        roomId: body.channel === 'chat' ? `room_${Date.now()}` : null,
+        queuedSms: body.channel === 'sms' ? smsTargets.length : 0,
+        skippedNoPhone: body.channel === 'sms' ? targets.length - smsTargets.length : 0,
+        invitePath: '/invite/mock-derived',
+      }),
+    )
   }),
 ]
 

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { PartyShareCard } from './PartyShareCard'
 import { copyToClipboard, share, shareText } from './useShare'
 import styles from './ShareSheet.module.css'

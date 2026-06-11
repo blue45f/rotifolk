@@ -18,7 +18,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Chip } from '@components/ui/Chip/Chip'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './Sourcing.module.css'
 
 function isoAt(date: string, time: string): string | undefined {

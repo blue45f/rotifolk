@@ -42,8 +42,13 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (isLive) {
-      setCommandOpen(false)
-      return
+      let cancelled = false
+      queueMicrotask(() => {
+        if (!cancelled) setCommandOpen(false)
+      })
+      return () => {
+        cancelled = true
+      }
     }
     const onKeyDown = (e: KeyboardEvent) => {
       const isSlash = e.key === '/'

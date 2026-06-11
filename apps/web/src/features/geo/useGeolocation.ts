@@ -49,7 +49,9 @@ export function useGeolocation(autoRequest = false): GeoState & { request: () =>
   }
 
   useEffect(() => {
-    if (autoRequest && state.status === 'idle') request()
+    if (!autoRequest || state.status !== 'idle') return
+    const timer = window.setTimeout(request, 0)
+    return () => window.clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRequest])
 

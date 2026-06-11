@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { PartyCategory, PartySummary } from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
@@ -10,7 +10,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './Digest.module.css'
 
 /**
@@ -88,6 +88,7 @@ export default function DigestPage() {
   const { data, isLoading } = useParties({ status: 'open', pageSize: 50 })
   const { show: showToast } = useToast()
   const items = useMemo<PartySummary[]>(() => data?.items ?? [], [data])
+  const [nowMs] = useState(() => Date.now())
   const { data: recentReviews } = useQuery({
     queryKey: ['reviews', 'recent'],
     queryFn: () => api.get<RecentReview[]>('reviews/recent'),
@@ -127,16 +128,15 @@ export default function DigestPage() {
 
   // "다음 주 추천" — 지금부터 +7일 이내 시작하는 파티 중 상위 5개.
   const nextWeekPicks = useMemo<PartySummary[]>(() => {
-    const now = Date.now()
-    const weekAhead = now + 7 * 24 * 60 * 60 * 1000
+    const weekAhead = nowMs + 7 * 24 * 60 * 60 * 1000
     return items
       .filter((p) => {
         const t = new Date(p.startAt).getTime()
-        return t >= now && t <= weekAhead
+        return t >= nowMs && t <= weekAhead
       })
       .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
       .slice(0, 5)
-  }, [items])
+  }, [items, nowMs])
 
   const totalParties = items.length
   // 신규 매칭 추정치 — 실제 매칭 endpoint가 없어서 currentParticipants 합으로 표시.

@@ -11,7 +11,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { useCurrentUser } from '@store/authStore'
 import {
   useCommunityPost,
@@ -605,25 +605,33 @@ export default function CommunityPage() {
     logDemoAction('search-submitted', '검색 초기화')
   }
 
-  const applyGuideTemplate = useCallback(
-    (template: (typeof GUIDE_TEMPLATES)[number]) => {
-      const templateMeta: CommunityDemoActionMeta = {
-        templateId: template.id,
-        templateTitle: template.title,
-        category: template.category,
-        area: template.area,
-      }
+  const applyGuideTemplate = (template: (typeof GUIDE_TEMPLATES)[number]) => {
+    const templateMeta: CommunityDemoActionMeta = {
+      templateId: template.id,
+      templateTitle: template.title,
+      category: template.category,
+      area: template.area,
+    }
 
-      syncCategoryFilter(template.category)
-      syncAreaFilter(template.area)
-      setTitle(template.title)
-      setBody(template.body)
-      setTagText(template.tags.join(', '))
-      setGuideTemplateMeta(templateMeta)
-      markTemplateUsed(templateMeta)
-    },
-    [markTemplateUsed, syncAreaFilter, syncCategoryFilter],
-  )
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('category', template.category)
+    nextParams.set('area', template.area)
+    setSearchParams(nextParams, { replace: true })
+    setCategory(template.category)
+    setArea(template.area)
+    setActivePostId(null)
+    logDemoAction('category-filter-changed', '카테고리 필터 변경', {
+      category: template.category,
+    })
+    logDemoAction('area-filter-changed', '지역 필터 변경', {
+      area: template.area,
+    })
+    setTitle(template.title)
+    setBody(template.body)
+    setTagText(template.tags.join(', '))
+    setGuideTemplateMeta(templateMeta)
+    markTemplateUsed(templateMeta)
+  }
 
   useEffect(() => {
     saveDraftState({
@@ -641,11 +649,46 @@ export default function CommunityPage() {
     const template = GUIDE_TEMPLATES.find((entry) => entry.id === requestedTemplate)
     if (!template) return
 
-    applyGuideTemplate(template)
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.delete('template')
-    setSearchParams(nextParams, { replace: true })
-  }, [applyGuideTemplate, isGuideMode, requestedTemplate, searchParams, setSearchParams])
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      const templateMeta: CommunityDemoActionMeta = {
+        templateId: template.id,
+        templateTitle: template.title,
+        category: template.category,
+        area: template.area,
+      }
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.set('category', template.category)
+      nextParams.set('area', template.area)
+      nextParams.delete('template')
+      setSearchParams(nextParams, { replace: true })
+      setCategory(template.category)
+      setArea(template.area)
+      setActivePostId(null)
+      logDemoAction('category-filter-changed', '카테고리 필터 변경', {
+        category: template.category,
+      })
+      logDemoAction('area-filter-changed', '지역 필터 변경', {
+        area: template.area,
+      })
+      setTitle(template.title)
+      setBody(template.body)
+      setTagText(template.tags.join(', '))
+      setGuideTemplateMeta(templateMeta)
+      markTemplateUsed(templateMeta)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [
+    isGuideMode,
+    logDemoAction,
+    markTemplateUsed,
+    requestedTemplate,
+    searchParams,
+    setSearchParams,
+  ])
 
   useEffect(() => {
     const refreshTerms = (next?: TermsConsentState) => {
@@ -706,17 +749,24 @@ export default function CommunityPage() {
     const nextArea = searchParams.get('area') ?? ''
     const nextSearchText = searchParams.get('q') ?? ''
 
-    if (nextCategory !== category) {
-      setCategory(nextCategory)
-    }
-    if (nextArea !== area) {
-      setArea(nextArea)
-    }
-    if (nextSearchText !== searchText) {
-      setSearchText(nextSearchText)
-    }
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      if (nextCategory !== category) {
+        setCategory(nextCategory)
+      }
+      if (nextArea !== area) {
+        setArea(nextArea)
+      }
+      if (nextSearchText !== searchText) {
+        setSearchText(nextSearchText)
+      }
 
-    if (!activePostId && posts.data?.items[0]) setActivePostId(posts.data.items[0].id)
+      if (!activePostId && posts.data?.items[0]) setActivePostId(posts.data.items[0].id)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [activePostId, posts.data?.items, searchParams, category, area, searchText])
 
   useEffect(() => {
@@ -1275,11 +1325,18 @@ function ThreadDetail({
   }
 
   useEffect(() => {
-    setEditingPost(false)
-    setEditTitle(post.title)
-    setEditBody(post.body)
-    setEditTagText(post.tags.join(', '))
-    setEditRemoveImage(false)
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setEditingPost(false)
+      setEditTitle(post.title)
+      setEditBody(post.body)
+      setEditTagText(post.tags.join(', '))
+      setEditRemoveImage(false)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [post.body, post.id, post.tags, post.title])
 
   const submitComment = async (event: FormEvent) => {
@@ -1659,10 +1716,17 @@ function CommentItem({
   const isCommentOwner = currentUserId === comment.author.id
 
   useEffect(() => {
-    setEditingComment(false)
-    setEditBody(comment.body)
-    setEditingReplyId(null)
-    setReplyEditBody('')
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setEditingComment(false)
+      setEditBody(comment.body)
+      setEditingReplyId(null)
+      setReplyEditBody('')
+    })
+    return () => {
+      cancelled = true
+    }
   }, [comment.body, comment.id])
 
   const submitCommentEdit = async (event: FormEvent) => {

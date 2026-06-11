@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { Party } from '../domain/party'
 import { AvatarImageDataSchema } from './avatar.schema'
 import { MaritalStatusEnum, VerificationFieldEnum } from './profile.schema'
 
@@ -178,6 +179,70 @@ export const PartyQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(50).default(20),
 })
 export type PartyQueryDto = z.infer<typeof PartyQuerySchema>
+
+export const DerivedInviteChannelEnum = z.enum(['chat', 'sms', 'push'])
+export type DerivedInviteChannel = z.infer<typeof DerivedInviteChannelEnum>
+
+export const DerivedPartyCandidateGenderEnum = z.enum(['male', 'female', 'other', 'private'])
+export const DerivedPartyCandidateSchema = z.object({
+  id: z.string().min(1),
+  nickname: z.string().min(1),
+  avatarId: z.string().nullable(),
+  avatarImage: AvatarImageDataSchema.nullable().optional(),
+  gender: DerivedPartyCandidateGenderEnum.nullable(),
+  /** 공개 설정상 받은 호감 수 비공개면 null. 내부 추천 점수는 inviteScore를 사용한다. */
+  voteCount: z.number().int().min(0).nullable(),
+  /** 호스트 초대 추천에 쓰는 비공개 운영 점수. 현재는 distinct 받은 호감 수 기준. */
+  inviteScore: z.number().int().min(0),
+  rating: z.number().min(0).max(5).nullable(),
+  topTags: z.array(z.string().min(1).max(40)).max(3),
+  hasPhone: z.boolean(),
+  rank: z.number().int().min(1),
+})
+export type DerivedPartyCandidateDto = z.infer<typeof DerivedPartyCandidateSchema>
+
+export const CreateDerivedPartySchema = z
+  .object({
+    title: z.string().trim().min(4).max(80),
+    category: PartyCategoryEnum,
+    maxParticipants: z.number().int().min(2).max(80),
+    startAt: z.string().datetime(),
+    endAt: z.string().datetime().optional(),
+    description: z.string().trim().min(10).max(1200).optional(),
+    targetUserIds: z.array(z.string().min(1)).max(100).default([]),
+  })
+  .refine((d) => !d.endAt || new Date(d.endAt).getTime() > new Date(d.startAt).getTime(), {
+    message: '종료가 시작보다 빨라요',
+    path: ['endAt'],
+  })
+export type CreateDerivedPartyDto = z.infer<typeof CreateDerivedPartySchema>
+
+export interface CreateDerivedPartyResponseDto {
+  ok: true
+  id: string
+  quickCode: string | null
+  invitePath: string
+  targetUserIds: string[]
+  party: Party
+}
+
+export const SendPartyInvitationsSchema = z.object({
+  targetUserIds: z.array(z.string().min(1)).min(1).max(100),
+  channel: DerivedInviteChannelEnum,
+  message: z.string().trim().min(1).max(1000),
+})
+export type SendPartyInvitationsDto = z.infer<typeof SendPartyInvitationsSchema>
+
+export interface SendPartyInvitationsResponseDto {
+  ok: true
+  count: number
+  totalTargets: number
+  channel: DerivedInviteChannel
+  roomId: string | null
+  queuedSms: number
+  skippedNoPhone: number
+  invitePath: string
+}
 
 export const JoinPartySchema = z.object({
   partyId: z.string(),

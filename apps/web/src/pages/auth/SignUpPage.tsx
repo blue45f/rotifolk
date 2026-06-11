@@ -9,7 +9,7 @@ import { normalizeTutorialStep } from '@features/tutorial/progress'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './AuthPage.module.css'
 
 type StrengthLevel = 'weak' | 'medium' | 'strong'

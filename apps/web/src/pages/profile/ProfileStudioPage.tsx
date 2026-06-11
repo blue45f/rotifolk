@@ -25,7 +25,7 @@ import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/ToastProvider'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { VerifiedBadges } from '@components/profile/VerifiedBadges'
 import { useAuthStore } from '@store/authStore'
 import {
@@ -640,9 +640,16 @@ function AvoidTab() {
   )
 
   useEffect(() => {
-    setAvoidSameCompany(user.avoidSameCompany ?? false)
-    setShowLikesReceived(user.showLikesReceived ?? true)
-    setJoinPopularityRanking(user.joinPopularityRanking ?? true)
+    let cancelled = false
+    queueMicrotask(() => {
+      if (cancelled) return
+      setAvoidSameCompany(user.avoidSameCompany ?? false)
+      setShowLikesReceived(user.showLikesReceived ?? true)
+      setJoinPopularityRanking(user.joinPopularityRanking ?? true)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [user.avoidSameCompany, user.showLikesReceived, user.joinPopularityRanking])
 
   const add = async () => {
