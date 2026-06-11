@@ -16,6 +16,7 @@ interface MatchCardItem {
   partnerUserId: string
   partnerNickname: string
   partnerAvatarId: string | null
+  partnerAvatarImage?: string | null
   partyId: string
   partyTitle: string
   matchedAt: string
@@ -133,6 +134,7 @@ export default function MatchCardsPage() {
                       hue="#7A1F3D"
                       pattern="gradient"
                       emoji={c.partnerNickname[0]}
+                      imageSrc={c.partnerAvatarImage ?? null}
                       ring="gold"
                     />
                     <div className={styles.cardName}>{c.partnerNickname}</div>
@@ -164,6 +166,7 @@ export default function MatchCardsPage() {
                 hue="#7A1F3D"
                 pattern="gradient"
                 emoji={c.partnerNickname[0]}
+                imageSrc={c.partnerAvatarImage ?? null}
                 ring="gold"
               />
               <div className={styles.cardName}>{c.partnerNickname}</div>

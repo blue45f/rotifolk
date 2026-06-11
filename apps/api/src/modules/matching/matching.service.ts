@@ -429,6 +429,7 @@ export class MatchingService {
         id: true,
         nickname: true,
         avatarId: true,
+        avatar: { select: { imageData: true } },
         phone: true,
         shareContact: true,
         kakaoId: true,
@@ -486,6 +487,7 @@ export class MatchingService {
         partnerId: pid,
         nickname: p?.nickname ?? '익명',
         avatarId: p?.avatarId ?? null,
+        avatarImage: p?.avatar?.imageData ?? null,
         result: conn?.result ?? 'mutual',
         phone,
         channels,
@@ -941,6 +943,7 @@ export class MatchingService {
               id: true,
               nickname: true,
               avatarId: true,
+              avatar: { select: { imageData: true } },
               gender: true,
               joinPopularityRanking: true,
               showLikesReceived: true,
@@ -974,6 +977,7 @@ export class MatchingService {
         userId: e.userId,
         nickname: u?.nickname ?? '익명',
         avatarId: u?.avatarId ?? null,
+        avatarImage: u?.avatar?.imageData ?? null,
         // 받은 호감 수 비공개면 카운트를 숨긴다(null)
         likes: u?.showLikesReceived === false ? null : e.likes,
       }

@@ -8,7 +8,13 @@ export interface ChatRoomSummary {
   partyId: string | null
   partyTitle: string | null
   lastMessage: { body: string; kind: string; createdAt: string } | null
-  members: { userId: string; nickname: string; avatarId: string | null }[]
+  members: {
+    userId: string
+    nickname: string
+    avatarId: string | null
+    /** 업로드한 프로필 사진(data URL) — 없으면 프리셋/이니셜 폴백. */
+    avatarImage?: string | null
+  }[]
   lastReadAt: string | null
 }
 

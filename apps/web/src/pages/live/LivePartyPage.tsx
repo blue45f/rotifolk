@@ -241,6 +241,10 @@ export default function LivePartyPage() {
               interests: p!.user?.interests ?? [],
               verified: !!p!.user?.verifiedFields?.includes('identity'),
               isGuest: !!p!.isGuest,
+              // 🎭 아바타 모드 파티는 업로드 사진 대신 프리셋만 노출한다.
+              avatarImage: party.config.enableAvatarOnly
+                ? null
+                : (p!.guestAvatar?.imageData ?? p!.user?.avatarImage ?? null),
             }))}
             seatLabel={state.myPair.seatLabel}
             lastCard={state.lastCard?.prompt}
@@ -644,6 +648,7 @@ function PairPanel({
     interests: string[]
     verified?: boolean
     isGuest?: boolean
+    avatarImage?: string | null
   }[]
   seatLabel: string
   lastCard?: string
@@ -677,7 +682,14 @@ function PairPanel({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.12, duration: 0.5 }}
           >
-            <Avatar size="xl" hue="#FCFAF5" pattern="gradient" emoji={p.nickname[0]} ring="glow" />
+            <Avatar
+              size="xl"
+              hue="#FCFAF5"
+              pattern="gradient"
+              emoji={p.nickname[0]}
+              imageSrc={p.avatarImage ?? null}
+              ring="glow"
+            />
             <h2 className={styles.partnerName}>{p.nickname}</h2>
             <div className={styles.partnerMeta}>
               {p.isGuest && <Badge tone="gold">🎟 게스트</Badge>}

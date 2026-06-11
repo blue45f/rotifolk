@@ -88,6 +88,9 @@ function makePrismaMock(opts: {
     participation: {
       findFirst: vi.fn(async () => opts.existingGuest ?? null),
       findMany: vi.fn(async () => []),
+      update: vi.fn(async ({ data }: { where: { id: string }; data: Record<string, unknown> }) =>
+        makeGuestRow({ ...(opts.existingGuest ?? {}), ...(data as Partial<GuestRow>) }),
+      ),
     },
     notification: { create: vi.fn(async () => ({})) },
     $transaction: vi.fn(async (cb: (t: typeof tx) => unknown) => cb(tx)),
@@ -116,7 +119,11 @@ describe('PartiesService.guestJoin (시나리오 A — 링크 합류)', () => {
     expect(result.participation.isGuest).toBe(true)
     expect(result.participation.userId).toBe('guest:pt_new')
     expect(result.participation.guestName).toBe('하늘')
-    expect(result.participation.guestAvatar).toEqual({ emoji: '🌙', hue: '#7A1F3D' })
+    expect(result.participation.guestAvatar).toEqual({
+      emoji: '🌙',
+      hue: '#7A1F3D',
+      imageData: null,
+    })
     // 호스트에게 실시간 알림
     expect(notifMock.toUser).toHaveBeenCalledWith(
       'u_host',
@@ -134,6 +141,64 @@ describe('PartiesService.guestJoin (시나리오 A — 링크 합류)', () => {
     expect(result.participation.id).toBe('pt_g1')
     expect(result.guestToken).toBe('tok_abcdefgh')
     expect(prisma.$transaction).not.toHaveBeenCalled()
+    expect(prisma.participation.update).not.toHaveBeenCalled()
+  })
+
+  it('업로드 사진(imageData)을 게스트 아바타로 저장하고 응답에 그대로 돌려준다', async () => {
+    const prisma = makePrismaMock({})
+    const service = new PartiesService(prisma as never, notifMock as never)
+
+    const result = await service.guestJoin('p_1', {
+      nickname: '하늘',
+      avatar: { emoji: '🌙', hue: '#7A1F3D', imageData: 'data:image/webp;base64,QUJD' },
+    })
+
+    const createArgs = prisma.__tx.participation.create.mock.calls[0][0]
+    expect(createArgs.data.guestAvatarJson).toContain('data:image/webp;base64,QUJD')
+    expect(result.participation.guestAvatar).toEqual({
+      emoji: '🌙',
+      hue: '#7A1F3D',
+      imageData: 'data:image/webp;base64,QUJD',
+    })
+  })
+
+  it('재방문에서 아바타를 명시하면 새 행 없이 그 자리에서 갱신한다(사진 수정/삭제 경로)', async () => {
+    const existing = makeGuestRow()
+    const prisma = makePrismaMock({ existingGuest: existing })
+    const service = new PartiesService(prisma as never, notifMock as never)
+    const notifCallsBefore = notifMock.toUser.mock.calls.length
+
+    const result = await service.guestJoin('p_1', {
+      nickname: '하늘',
+      token: 'tok_abcdefgh',
+      avatar: { emoji: '✨', hue: '#D4A24C', imageData: 'data:image/jpeg;base64,Tk9X' },
+    })
+
+    // 새 행 생성·정원 검사·호스트 알림 없이 기존 행만 갱신된다.
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+    expect(notifMock.toUser.mock.calls.length).toBe(notifCallsBefore)
+    const updateArgs = prisma.participation.update.mock.calls[0][0]
+    expect(updateArgs.where).toEqual({ id: 'pt_g1' })
+    expect(updateArgs.data.guestAvatarJson).toContain('data:image/jpeg;base64,Tk9X')
+    expect(result.participation.guestAvatar?.imageData).toBe('data:image/jpeg;base64,Tk9X')
+  })
+
+  it('재방문에서 사진 없는 프리셋을 보내면 사진이 제거된다(삭제 폴백)', async () => {
+    const existing = makeGuestRow({
+      guestAvatarJson: '{"emoji":"🌙","hue":"#7A1F3D","imageData":"data:image/webp;base64,QUJD"}',
+    })
+    const prisma = makePrismaMock({ existingGuest: existing })
+    const service = new PartiesService(prisma as never, notifMock as never)
+
+    const result = await service.guestJoin('p_1', {
+      nickname: '하늘',
+      token: 'tok_abcdefgh',
+      avatar: { emoji: '🌙', hue: '#7A1F3D' },
+    })
+
+    const updateArgs = prisma.participation.update.mock.calls[0][0]
+    expect(updateArgs.data.guestAvatarJson).not.toContain('imageData')
+    expect(result.participation.guestAvatar?.imageData).toBeNull()
   })
 
   it('정원이 가득 차면 party_full로 거절한다(게스트는 대기열 없음)', async () => {

@@ -19,6 +19,7 @@ interface HostProfileLite {
     mbti: string | null
     interestsJson: string
     avatarId: string | null
+    avatarImage?: string | null
   }
   stats: { followerCount: number; hostedCount: number; averageRating: number }
 }
@@ -95,7 +96,9 @@ export default function MatchCardPage() {
           hue="#7A1F3D"
           pattern="gradient"
           emoji={data.user.nickname[0]}
+          imageSrc={data.user.avatarImage ?? null}
           ring="gold"
+          label={`${data.user.nickname}님의 프로필 사진`}
         />
         <h1 className={styles.name}>{data.user.nickname}</h1>
         {data.user.mbti && (

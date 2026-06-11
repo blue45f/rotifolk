@@ -87,6 +87,8 @@ export default function ChatListPage() {
                     hue={room.kind === 'pair' ? '#C9627F' : '#7A1F3D'}
                     pattern="gradient"
                     emoji={room.kind === 'pair' ? '💌' : '🍷'}
+                    // 1:1 방은 상대의 업로드 사진을 보여준다 — 단톡방은 파티 글리프 유지.
+                    imageSrc={room.kind === 'pair' ? (counterpart?.avatarImage ?? null) : null}
                     ring={isUnread ? 'glow' : 'soft'}
                   />
                   <div className={styles.rowBody}>

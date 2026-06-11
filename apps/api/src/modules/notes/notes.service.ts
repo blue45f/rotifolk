@@ -10,8 +10,19 @@ import { PrismaService } from '@/prisma/prisma.service'
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
 
 type NoteRow = Prisma.PartyNoteGetPayload<{
-  include: { fromUser: { select: { nickname: true; avatarId: true } } }
+  include: {
+    fromUser: {
+      select: { nickname: true; avatarId: true; avatar: { select: { imageData: true } } }
+    }
+  }
 }>
+
+/** 모든 쪽지 조회가 공유하는 fromUser include — 업로드 사진까지 함께 싣는다. */
+const NOTE_FROM_USER_INCLUDE = {
+  fromUser: {
+    select: { nickname: true, avatarId: true, avatar: { select: { imageData: true } } },
+  },
+} as const
 
 @Injectable()
 export class NotesService {
@@ -80,7 +91,7 @@ export class NotesService {
           shareContact: dto.shareContact,
           deliveredAt,
         },
-        include: { fromUser: { select: { nickname: true, avatarId: true } } },
+        include: NOTE_FROM_USER_INCLUDE,
       })
     })
     return this.toNote(created)
@@ -89,7 +100,7 @@ export class NotesService {
   async inbox(userId: string): Promise<PartyNote[]> {
     const rows = await this.prisma.partyNote.findMany({
       where: { toUserId: userId, deliveredAt: { not: null } },
-      include: { fromUser: { select: { nickname: true, avatarId: true } } },
+      include: NOTE_FROM_USER_INCLUDE,
       orderBy: { deliveredAt: 'desc' },
     })
     return rows.map((r) => this.toNote(r))
@@ -102,12 +113,12 @@ export class NotesService {
     const [received, sent] = await Promise.all([
       this.prisma.partyNote.findMany({
         where: { partyId, toUserId: userId, deliveredAt: { not: null } },
-        include: { fromUser: { select: { nickname: true, avatarId: true } } },
+        include: NOTE_FROM_USER_INCLUDE,
         orderBy: { deliveredAt: 'desc' },
       }),
       this.prisma.partyNote.findMany({
         where: { partyId, fromUserId: userId },
-        include: { fromUser: { select: { nickname: true, avatarId: true } } },
+        include: NOTE_FROM_USER_INCLUDE,
         orderBy: { createdAt: 'desc' },
       }),
     ])
@@ -124,7 +135,7 @@ export class NotesService {
     const updated = await this.prisma.partyNote.update({
       where: { id },
       data: { readAt: row.readAt ?? new Date() },
-      include: { fromUser: { select: { nickname: true, avatarId: true } } },
+      include: NOTE_FROM_USER_INCLUDE,
     })
     return this.toNote(updated)
   }
@@ -184,6 +195,7 @@ export class NotesService {
       fromUserId: row.fromUserId,
       fromNickname: row.fromUser?.nickname,
       fromAvatarId: row.fromUser?.avatarId ?? null,
+      fromAvatarImage: row.fromUser?.avatar?.imageData ?? null,
       toUserId: row.toUserId,
       roundIndex: row.roundIndex,
       body: row.body,

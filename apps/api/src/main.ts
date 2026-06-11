@@ -2,13 +2,21 @@ import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
 import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import type { NestExpressApplication } from '@nestjs/platform-express'
 import compression from 'compression'
 import helmet from 'helmet'
 import { Logger } from 'nestjs-pino'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true })
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+    bodyParser: false,
+  })
+  // 기본 json 한도(100kb)는 아바타 사진 업로드(data URL, 스키마 캡 300K자)에 부족 —
+  // zod 캡이 실효성을 갖도록 본문 한도를 512kb로 상향한다.
+  app.useBodyParser('json', { limit: '512kb' })
+  app.useBodyParser('urlencoded', { extended: true, limit: '512kb' })
   // Structured logging via nestjs-pino (JSON in prod, pino-pretty in dev) +
   // HTTP request autoLogging. Replaces the default unstructured console logger.
   app.useLogger(app.get(Logger))

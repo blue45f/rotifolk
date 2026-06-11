@@ -1,11 +1,12 @@
 import { Module, Controller, Get, Param, Patch, Body, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { z } from 'zod'
+import { AvatarImageDataSchema } from '@rotifolk/shared'
 import { PrismaService } from '@/prisma/prisma.service'
 import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 
-const UpdateAvatarSchema = z.object({
+export const UpdateAvatarSchema = z.object({
   mood: z.enum(['chill', 'sparkling', 'curious', 'witty', 'cozy', 'mystery']).optional(),
   hue: z
     .string()
@@ -14,11 +15,13 @@ const UpdateAvatarSchema = z.object({
   pattern: z.enum(['solid', 'gradient', 'sparkle', 'wave']).optional(),
   emojiBadge: z.string().min(1).max(4).optional(),
   faceSeed: z.string().min(2).max(60).optional(),
+  /** 직접 업로드한 사진(data URL, 캡 검증은 shared 스키마). null이면 삭제 → 프리셋 폴백. */
+  imageData: AvatarImageDataSchema.nullable().optional(),
 })
 
 @Controller('avatars')
 @UseGuards(AuthGuard('jwt'))
-class AvatarsController {
+export class AvatarsController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get('me')
@@ -46,6 +49,7 @@ class AvatarsController {
           pattern: dto.pattern ?? 'gradient',
           emojiBadge: dto.emojiBadge ?? '🍷',
           faceSeed: dto.faceSeed ?? me.nickname,
+          imageData: dto.imageData ?? null,
           user: { connect: { id: me.sub } },
         },
       })

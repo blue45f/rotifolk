@@ -642,6 +642,12 @@ export default function PartyDetailPage() {
                       hue={p.guestAvatar?.hue ?? '#7A1F3D'}
                       pattern="gradient"
                       emoji={p.guestAvatar?.emoji ?? (p.user?.nickname ?? p.guestName ?? '익')[0]}
+                      imageSrc={
+                        // 🎭 아바타 모드 파티는 실물 사진 대신 프리셋만 노출한다.
+                        party.config.enableAvatarOnly
+                          ? null
+                          : (p.guestAvatar?.imageData ?? p.user?.avatarImage ?? null)
+                      }
                       ring="soft"
                     />
                     <div>
@@ -1045,6 +1051,7 @@ export default function PartyDetailPage() {
                 hue="#7A1F3D"
                 pattern="gradient"
                 emoji={party.host?.nickname?.[0]}
+                imageSrc={party.host?.avatarImage ?? null}
                 ring="glow"
               />
               <div>

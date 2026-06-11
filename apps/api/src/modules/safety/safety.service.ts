@@ -62,13 +62,23 @@ export class SafetyService {
   async listMyBlocks(blockerId: string) {
     const rows = await this.prisma.userBlock.findMany({
       where: { blockerId },
-      include: { blocked: { select: { id: true, nickname: true, avatarId: true } } },
+      include: {
+        blocked: {
+          select: {
+            id: true,
+            nickname: true,
+            avatarId: true,
+            avatar: { select: { imageData: true } },
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     })
     return rows.map((row) => ({
       id: row.blocked.id,
       nickname: row.blocked.nickname,
       avatarId: row.blocked.avatarId,
+      avatarImage: row.blocked.avatar?.imageData ?? null,
       reason: row.reason,
       blockedAt: row.createdAt.toISOString(),
     }))

@@ -117,6 +117,7 @@ export class ChatService {
         userId: mem.userId,
         nickname: mem.user.nickname,
         avatarId: mem.user.avatarId,
+        avatarImage: mem.user.avatar?.imageData ?? null,
       })),
       lastReadAt: m.lastReadAt?.toISOString() ?? null,
     }))

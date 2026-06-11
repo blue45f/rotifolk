@@ -123,6 +123,10 @@ model Avatar {
   accessoriesJson String  @default("[]") // 모자/안경/이펙트 등
   vibeWord        String? // 한 단어 무드 (예: "차분", "장난꾸러기")
 
+  // 직접 업로드한 프로필 사진 — 클라이언트 리사이즈(긴 변 256px) data URL, 캡 ~300K자.
+  // null이면 프리셋(emoji+hue)으로 폴백. nullable 추가라 `prisma db push`에 무손실.
+  imageData String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User?

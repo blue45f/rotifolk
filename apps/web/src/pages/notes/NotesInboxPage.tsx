@@ -51,6 +51,7 @@ function NoteCard({ note, onRead }: { note: PartyNote; onRead: (id: string) => v
         <Avatar
           size="md"
           initials={initialsOf(note.fromNickname)}
+          imageSrc={note.fromAvatarImage ?? null}
           ring={unread ? 'gold' : 'soft'}
         />
         <div className={styles.who}>

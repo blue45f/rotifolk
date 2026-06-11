@@ -258,6 +258,7 @@ function PopularBanner({
               hue="#7A1F3D"
               pattern="sparkle"
               emoji={person.nickname[0]}
+              imageSrc={person.avatarImage ?? null}
               ring="gold"
             />
             <span className={styles.popularLabel}>{label}</span>
@@ -312,6 +313,7 @@ function MatchCard({
           hue="#7A1F3D"
           pattern="gradient"
           emoji={match.nickname[0]}
+          imageSrc={match.avatarImage ?? null}
           ring={match.result === 'mutual' ? 'glow' : 'gold'}
         />
         <div className={styles.identity}>

@@ -101,6 +101,19 @@ describe('SafetyService phone blocks', () => {
           id: 'u_blocked',
           nickname: '민우',
           avatarId: 'avatar_3',
+          avatar: { imageData: 'data:image/webp;base64,QUJD' },
+        },
+      },
+      {
+        id: 'block_2',
+        blockedId: 'u_blocked2',
+        reason: null,
+        createdAt,
+        blocked: {
+          id: 'u_blocked2',
+          nickname: '지수',
+          avatarId: 'avatar_4',
+          avatar: null,
         },
       },
     ])
@@ -110,7 +123,18 @@ describe('SafetyService phone blocks', () => {
         id: 'u_blocked',
         nickname: '민우',
         avatarId: 'avatar_3',
+        // 업로드한 프로필 사진은 평탄화해 내려준다 — 차단 목록에서도 사진으로 식별.
+        avatarImage: 'data:image/webp;base64,QUJD',
         reason: '비매너',
+        blockedAt: '2026-06-01T09:00:00.000Z',
+      },
+      {
+        id: 'u_blocked2',
+        nickname: '지수',
+        avatarId: 'avatar_4',
+        // 아바타(또는 사진)가 없으면 null — 프런트가 프리셋으로 폴백.
+        avatarImage: null,
+        reason: null,
         blockedAt: '2026-06-01T09:00:00.000Z',
       },
     ])

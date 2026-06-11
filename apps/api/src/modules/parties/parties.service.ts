@@ -333,7 +333,7 @@ export class PartiesService {
     const partnerIds = matches.map((m) => (m.userAId === userId ? m.userBId : m.userAId))
     const partners = await this.prisma.user.findMany({
       where: { id: { in: partnerIds } },
-      select: { id: true, nickname: true, avatarId: true },
+      select: { id: true, nickname: true, avatarId: true, avatar: { select: { imageData: true } } },
     })
     const map = new Map(partners.map((p) => [p.id, p]))
     return matches.map((m) => {
@@ -344,6 +344,7 @@ export class PartiesService {
         partnerUserId: pid,
         partnerNickname: partner?.nickname ?? '익명',
         partnerAvatarId: partner?.avatarId ?? null,
+        partnerAvatarImage: partner?.avatar?.imageData ?? null,
         partyId: m.partyId,
         partyTitle: m.party?.title ?? '',
         matchedAt: m.matchedAt.toISOString(),
@@ -643,6 +644,19 @@ export class PartiesService {
         where: { partyId, guestToken: dto.token, status: { in: ['confirmed', 'checked-in'] } },
       })
       if (existing) {
+        // 재방문 멱등 — 단, 아바타(또는 바뀐 닉네임)를 명시하면 그 자리에서 갱신한다.
+        // 게스트는 별도 프로필이 없으므로 이 경로가 아바타 사진 수정/삭제 수단이 된다.
+        const wantsUpdate = !!dto.avatar || (!!dto.nickname && dto.nickname !== existing.guestName)
+        if (wantsUpdate) {
+          const updated = await this.prisma.participation.update({
+            where: { id: existing.id },
+            data: {
+              guestName: dto.nickname ?? existing.guestName,
+              ...(dto.avatar ? { guestAvatarJson: toJsonString(dto.avatar) } : {}),
+            },
+          })
+          return { participation: toParticipation(updated), guestToken: dto.token }
+        }
         return { participation: toParticipation(existing), guestToken: dto.token }
       }
     }

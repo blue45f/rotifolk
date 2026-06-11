@@ -101,6 +101,7 @@ export function TimingPanel({ party, participants, settings, onUpdate }: TimingP
                 hue={p.guestAvatar?.hue ?? '#7A1F3D'}
                 pattern="gradient"
                 emoji={p.guestAvatar?.emoji ?? (p.user?.nickname ?? p.guestName ?? '익')[0]}
+                imageSrc={p.guestAvatar?.imageData ?? p.user?.avatarImage ?? null}
               />
               <span className={styles.rosterName}>{p.user?.nickname ?? p.guestName ?? '익명'}</span>
               {p.isGuest && (

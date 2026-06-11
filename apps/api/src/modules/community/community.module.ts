@@ -391,10 +391,23 @@ class CommunityController {
   async myFollowing(@CurrentUser() me: JwtUserPayload) {
     const items = await this.prisma.follow.findMany({
       where: { followerId: me.sub },
-      include: { following: { select: { id: true, nickname: true, avatarId: true, role: true } } },
+      include: {
+        following: {
+          select: {
+            id: true,
+            nickname: true,
+            avatarId: true,
+            role: true,
+            avatar: { select: { imageData: true } },
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     })
-    return items.map((f) => f.following)
+    return items.map(({ following: { avatar, ...rest } }) => ({
+      ...rest,
+      avatarImage: avatar?.imageData ?? null,
+    }))
   }
 
   @Get('follows/me/followers')
@@ -402,21 +415,35 @@ class CommunityController {
   async myFollowers(@CurrentUser() me: JwtUserPayload) {
     const items = await this.prisma.follow.findMany({
       where: { followingId: me.sub },
-      include: { follower: { select: { id: true, nickname: true, avatarId: true, role: true } } },
+      include: {
+        follower: {
+          select: {
+            id: true,
+            nickname: true,
+            avatarId: true,
+            role: true,
+            avatar: { select: { imageData: true } },
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     })
-    return items.map((f) => f.follower)
+    return items.map(({ follower: { avatar, ...rest } }) => ({
+      ...rest,
+      avatarImage: avatar?.imageData ?? null,
+    }))
   }
 
   /** 호스트 프로필 — 공개 정보 + 통계 + 팔로우 여부 */
   @Get('hosts/:id')
   async hostProfile(@Param('id') id: string, @Body() _b: unknown) {
-    const user = await this.prisma.user.findUnique({
+    const userRow = await this.prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
         nickname: true,
         avatarId: true,
+        avatar: { select: { imageData: true } },
         bio: true,
         mbti: true,
         interestsJson: true,
@@ -426,7 +453,10 @@ class CommunityController {
         role: true,
       },
     })
-    if (!user) return null
+    if (!userRow) return null
+    // 업로드한 프로필 사진은 평탄화해 노출 (관계 객체는 응답에서 제외).
+    const { avatar, ...userFields } = userRow
+    const user = { ...userFields, avatarImage: avatar?.imageData ?? null }
 
     const [followerCount, hostedParties, reviews] = await Promise.all([
       this.prisma.follow.count({ where: { followingId: id } }),
