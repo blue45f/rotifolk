@@ -845,6 +845,11 @@
   .section {
     padding: var(--space-12) var(--space-3);
   }
+  /* 좁은 폭에선 배경 이미지의 좌측 가장자리(베이크된 장식 텍스트)가 어중간하게
+     잘려 보이므로, 초점을 중앙으로 옮겨 가장자리 텍스트가 잘린 채 노출되지 않게 한다. */
+  .hero {
+    background-position: center 60%;
+  }
   .heroInner {
     padding-block: var(--space-12) var(--space-8);
     padding-inline: var(--space-3);
@@ -856,13 +861,10 @@
   .heroProof {
     font-size: var(--fs-xs);
   }
-  .bottle {
-    width: 36px;
-  }
-  .bottleNeck {
-    width: 14px;
-    height: 22px;
-    top: -18px;
+  /* 장식용 CSS 와인병(흰 라벨 박스 포함)은 좁은 폭에서 본문 카드와 겹쳐
+     "빈 박스가 잘린" 것처럼 보인다. 순수 장식(aria-hidden)이므로 모바일에선 숨긴다. */
+  .bottles {
+    display: none;
   }
   .pulseBand {
     padding: var(--space-10) 0;

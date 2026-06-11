@@ -28,23 +28,31 @@ export interface HomePulse {
   hotAreas: Array<{ area: string; count: number }>
 }
 
-export function buildHomePulse(input: {
-  openParties: PartySummary[]
-  liveParties: PartySummary[]
-}): HomePulse {
+export function buildHomePulse(
+  input: {
+    openParties: PartySummary[]
+    liveParties: PartySummary[]
+  },
+  now: number = Date.now(),
+): HomePulse {
   const all = [...input.liveParties, ...input.openParties]
   const capacity = all.reduce((sum, party) => sum + Math.max(0, party.maxParticipants), 0)
   const participants = all.reduce((sum, party) => sum + Math.max(0, party.currentParticipants), 0)
   const averageFillRate = capacity > 0 ? Math.round((participants / capacity) * 100) : 0
 
+  // "다음 라운드"는 미래에 시작하는 파티를 우선으로 고른다 — 데이터가 과거로 흘러도
+  // 홈 배너에 지난 날짜가 뜨지 않게(과거만 남으면 그중 가장 이른 것으로 폴백).
+  const byStartAsc = [...input.openParties].sort(
+    (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
+  )
+  const nextParty =
+    byStartAsc.find((p) => new Date(p.startAt).getTime() >= now) ?? byStartAsc[0] ?? null
+
   return {
     liveCount: input.liveParties.length,
     openCount: input.openParties.length,
     averageFillRate,
-    nextParty:
-      [...input.openParties].sort(
-        (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
-      )[0] ?? null,
+    nextParty,
     leadingCategory: leadingCategory(all),
     hotAreas: topAreas(all),
   }

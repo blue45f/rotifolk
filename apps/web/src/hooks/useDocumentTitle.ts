@@ -43,13 +43,18 @@ const SEGMENT_TITLES: Record<string, string> = {
  * 라우트 전환마다 document.title 을 동기화한다(탭 식별·스크린리더 맥락·SEO).
  * 형제 앱(resume/offhours/PromptMarket 등)이 모두 갖춘 표준인데 rotifolk만 누락이었다.
  * RootLayout 에서 한 번 호출한다.
+ *
+ * deps 에 location.key 를 함께 넣는 이유: 로그인 성공 후 `navigate(from, { replace: true })`
+ * 의 from 이 현재 경로와 같으면(예: /login → /login) pathname 이 안 바뀌어 effect 가
+ * 재실행되지 않고 "로그인 · Rotifolk" 가 잔존했다. key 는 같은 경로로의 replace 에도 매번
+ * 바뀌므로, 모든 네비게이션에서 라우트 제목을 다시 맞춰 stale title 을 막는다.
  */
 export function useDocumentTitle(): void {
-  const { pathname } = useLocation()
+  const { pathname, key } = useLocation()
 
   useEffect(() => {
     const segment = pathname.split('/').filter(Boolean)[0]
     const label = segment ? SEGMENT_TITLES[segment] : undefined
     document.title = label ? `${label} · ${BRAND}` : DEFAULT_TITLE
-  }, [pathname])
+  }, [pathname, key])
 }

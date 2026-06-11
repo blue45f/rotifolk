@@ -46,4 +46,23 @@ describe('buildHomePulse', () => {
     expect(pulse.nextParty).toBeNull()
     expect(pulse.leadingCategory).toBeNull()
   })
+
+  it('"다음 라운드"는 과거 파티를 건너뛰고 가장 이른 미래 파티를 고른다', () => {
+    const now = Date.parse('2026-06-12T00:00:00.000Z')
+    const past = { ...base, id: 'past', startAt: '2026-06-06T10:00:00.000Z' }
+    const soon = { ...base, id: 'soon', startAt: '2026-06-13T10:00:00.000Z' }
+    const later = { ...base, id: 'later', startAt: '2026-06-20T10:00:00.000Z' }
+
+    const pulse = buildHomePulse({ openParties: [later, past, soon], liveParties: [] }, now)
+    expect(pulse.nextParty?.id).toBe('soon')
+  })
+
+  it('미래 파티가 없으면 가장 이른 파티로 폴백한다', () => {
+    const now = Date.parse('2026-06-12T00:00:00.000Z')
+    const older = { ...base, id: 'older', startAt: '2026-06-01T10:00:00.000Z' }
+    const newer = { ...base, id: 'newer', startAt: '2026-06-06T10:00:00.000Z' }
+
+    const pulse = buildHomePulse({ openParties: [newer, older], liveParties: [] }, now)
+    expect(pulse.nextParty?.id).toBe('older')
+  })
 })

@@ -665,13 +665,16 @@ export class PartiesService {
     return { area, items: items.map(toPartySummary) }
   }
 
-  /** 지금 진행 중인/곧 시작하는 파티 — 1시간 이내 또는 LIVE */
+  /** 지금 진행 중인/곧 시작하는 파티 — LIVE, 또는 시작 1시간 전~시작 2시간 후 사이의 open */
   async happeningNow() {
     const now = new Date()
     const in1h = new Date(now.getTime() + 60 * 60_000)
+    // 하한이 없으면 시작 시각이 한참 지난 open 파티가 영원히 "진행 중"으로 노출된다.
+    // 한 파티는 라운드+브레이크 합쳐 통상 ~2시간이므로, 2시간 넘게 지난 open은 끝난 것으로 본다.
+    const since2hAgo = new Date(now.getTime() - 2 * 60 * 60_000)
     const items = await this.prisma.party.findMany({
       where: {
-        OR: [{ status: 'live' }, { status: 'open', startAt: { lte: in1h } }],
+        OR: [{ status: 'live' }, { status: 'open', startAt: { gte: since2hAgo, lte: in1h } }],
       },
       include: {
         venue: true,
