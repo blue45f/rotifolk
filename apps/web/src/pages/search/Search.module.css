@@ -72,10 +72,17 @@
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   cursor: pointer;
-  padding: 4px 6px;
+  padding: 8px 8px;
+  border-radius: var(--radius-sm);
+  min-height: 32px;
+  min-width: 50px;
 }
 .suggestClear:hover {
   text-decoration: underline;
+}
+.suggestClear:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 80%, transparent);
+  outline-offset: 2px;
 }
 .suggestItem {
   display: flex;
@@ -101,6 +108,10 @@
   font-size: var(--fs-md);
   min-width: 0;
 }
+.suggestRow:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 80%, transparent);
+  outline-offset: 2px;
+}
 .suggestText {
   flex: 1;
   white-space: nowrap;
@@ -123,12 +134,16 @@
   border: 0;
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   cursor: pointer;
   display: grid;
   place-items: center;
+}
+.suggestForget:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 80%, transparent);
+  outline-offset: 2px;
 }
 .suggestForget:hover {
   background: var(--color-surface-soft);

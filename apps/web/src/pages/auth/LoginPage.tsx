@@ -92,10 +92,10 @@ export default function LoginPage() {
     try {
       fillDemoForm()
       const data = await login.mutateAsync(DEMO_ACCOUNT)
+      setSession(data)
       toast.show('데모 계정으로 입장했어요. ✨', 'success')
       completeDemoStep()
       navigate(from, { replace: true })
-      setSession(data)
     } catch (e) {
       toast.show((e as Error).message, 'error')
     }

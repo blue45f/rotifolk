@@ -1,7 +1,7 @@
 /** Fisher–Yates with optional seed */
 export function shuffle<T>(arr: readonly T[], seed?: number): T[] {
   const out = [...arr]
-  let rng = seed != null ? mulberry32(seed) : Math.random
+  const rng = seed != null ? mulberry32(seed) : Math.random
   for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1))
     ;[out[i], out[j]] = [out[j], out[i]]

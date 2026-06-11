@@ -75,6 +75,17 @@
 .option:hover {
   background: color-mix(in oklab, var(--color-primary) 16%, transparent);
 }
+.option:focus-visible,
+.clear:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 80%, transparent);
+  outline-offset: 2px;
+}
+
+.clear {
+  cursor: pointer;
+  min-height: 32px;
+  min-width: 32px;
+}
 
 .label {
   flex: 1;

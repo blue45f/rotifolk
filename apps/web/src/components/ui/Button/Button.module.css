@@ -33,6 +33,13 @@
 .btn:active:not(:disabled) {
   transform: translateY(1px) scale(0.99);
 }
+.btn:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 80%, transparent);
+  outline-offset: 2px;
+}
+.btn:active:not(:disabled):focus-visible {
+  outline-offset: 1px;
+}
 
 .btn:disabled,
 .btn[aria-busy='true'] {
@@ -49,7 +56,7 @@
 .v_secondary {
   --btn-bg: var(--brand-ink-900);
   --btn-bg-hover: var(--brand-ink-800);
-  --btn-fg: #fff;
+  --btn-fg: var(--color-text-inverse);
   --btn-shadow: var(--shadow-sm);
 }
 .v_soft {
@@ -59,7 +66,7 @@
 }
 .v_ghost {
   --btn-bg: transparent;
-  --btn-bg-hover: rgba(122, 31, 61, 0.08);
+  --btn-bg-hover: color-mix(in oklab, var(--color-primary) 12%, transparent);
   --btn-fg: var(--color-text);
 }
 .v_outline {
@@ -70,14 +77,14 @@
 }
 .v_danger {
   --btn-bg: var(--color-danger);
-  --btn-bg-hover: #a4323e;
-  --btn-fg: #fff;
+  --btn-bg-hover: color-mix(in oklab, var(--color-danger) 82%, var(--brand-ink-900) 18%);
+  --btn-fg: var(--color-text-inverse);
 }
 .v_gold {
   --btn-bg: var(--brand-gold-500);
   --btn-bg-hover: var(--brand-gold-600);
   --btn-fg: var(--color-accent-fg);
-  --btn-shadow: 0 8px 24px rgba(212, 162, 76, 0.35);
+  --btn-shadow: 0 8px 24px color-mix(in oklab, var(--color-accent) 35%, transparent);
 }
 
 /* Sizes */

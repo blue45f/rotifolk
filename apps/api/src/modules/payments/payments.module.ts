@@ -302,13 +302,13 @@ const DEFAULT_MONITORING_POLICY: RevenueHealthAlertThreshold = {
 let monitoringPolicyState: RevenueHealthAlertThreshold = { ...DEFAULT_MONITORING_POLICY }
 let monitoringPolicyUpdatedAt = new Date()
 let monitoringPolicyUpdatedBy: string | null = null
-let monitoringPolicyHistories: MonitoringPolicyChangeHistory[] = []
+const monitoringPolicyHistories: MonitoringPolicyChangeHistory[] = []
 const REVENUE_MONITORING_POLICY_CONFIG_KEY = 'global'
 
 let revenueRuleState: RevenueRules = { ...DEFAULT_REVENUE_RULES }
 let revenueRuleUpdatedAt = new Date()
 let revenueRuleUpdatedBy: string | null = null
-let revenueRuleHistories: RevenueRuleChangeHistory[] = []
+const revenueRuleHistories: RevenueRuleChangeHistory[] = []
 const REVENUE_RULE_CONFIG_KEY = 'global'
 
 @Controller('payments')

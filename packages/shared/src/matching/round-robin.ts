@@ -61,7 +61,7 @@ export function buildTrioRotation(
 
   const seenPairs = new Map<string, number>()
   const result: TrioRoundPairing[] = []
-  let rng = mulberry32(seed)
+  const rng = mulberry32(seed)
 
   for (let r = 0; r < rounds; r++) {
     const sorted = [...userIds].sort((a, b) => {

@@ -29,6 +29,8 @@
   font-weight: var(--fw-medium);
   letter-spacing: -0.01em;
   transition: color var(--dur-fast) var(--ease-out-quart);
+  text-decoration: none;
+  touch-action: manipulation;
 }
 .iconWrap {
   position: relative;
@@ -49,18 +51,24 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 9px;
-  background: var(--brand-burgundy-700, #7a1f3d);
-  color: var(--brand-cream-50, #fcfaf5);
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
   font-size: 10px;
   font-weight: var(--fw-bold);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 6px rgba(122, 31, 61, 0.45);
+  box-shadow: 0 1px 6px color-mix(in oklab, var(--color-danger) 45%, transparent);
   pointer-events: none;
 }
 .item:hover .icon {
   transform: translateY(-1px);
+}
+.item:focus-visible {
+  color: var(--color-primary);
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 75%, transparent);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
 }
 .active {
   color: var(--color-primary);
@@ -84,13 +92,13 @@
   font-size: 16px;
   box-shadow:
     0 6px 16px color-mix(in oklab, var(--brand-gold-700) 35%, transparent),
-    inset 0 1px 0 color-mix(in oklab, white 40%, transparent);
+    inset 0 1px 0 color-mix(in oklab, var(--color-text-inverse) 40%, transparent);
 }
 .emphasize.active .icon {
   box-shadow:
     0 6px 16px color-mix(in oklab, var(--brand-gold-700) 50%, transparent),
     0 0 0 4px color-mix(in oklab, var(--brand-gold-500) 22%, transparent),
-    inset 0 1px 0 color-mix(in oklab, white 40%, transparent);
+    inset 0 1px 0 color-mix(in oklab, var(--color-text-inverse) 40%, transparent);
 }
 
 /* Mobile nav hardening: preserve touch targets and avoid squeezing 6+ tabs into unreadable columns. */
@@ -121,7 +129,7 @@
 }
 
 .active {
-  background: linear-gradient(180deg, oklch(100% 0 80 / 0.92), oklch(94% 0.025 10 / 0.82));
+  background: color-mix(in oklab, var(--color-surface-soft) 86%, var(--color-primary) 14%);
   box-shadow: 0 10px 22px oklch(30% 0.115 10 / 0.12);
 }
 
