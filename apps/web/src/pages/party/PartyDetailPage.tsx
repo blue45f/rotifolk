@@ -726,25 +726,27 @@ export default function PartyDetailPage() {
                 )}
                 {photos && photos.length > 0 ? (
                   <ul className={styles.photoGrid}>
-                    {photos.map((p) => (
-                      <li key={p.id} className={styles.photoItem}>
-                        <a
-                          href={p.url}
-                          target="_blank"
-                          rel="noreferrer noopener"
-                          className={styles.photoLink}
-                          title={p.caption ?? p.uploader?.nickname ?? ''}
-                        >
-                          <img
-                            className={styles.photoImg}
-                            src={p.url}
-                            alt={p.caption ?? `${p.uploader?.nickname ?? '참가자'}의 사진`}
-                            loading="lazy"
-                          />
-                          {p.caption && <span className={styles.photoCaption}>{p.caption}</span>}
-                        </a>
-                      </li>
-                    ))}
+                    {photos
+                      .filter((p) => /^https?:\/\//i.test(p.url))
+                      .map((p) => (
+                        <li key={p.id} className={styles.photoItem}>
+                          <a
+                            href={p.url}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className={styles.photoLink}
+                            title={p.caption ?? p.uploader?.nickname ?? ''}
+                          >
+                            <img
+                              className={styles.photoImg}
+                              src={p.url}
+                              alt={p.caption ?? `${p.uploader?.nickname ?? '참가자'}의 사진`}
+                              loading="lazy"
+                            />
+                            {p.caption && <span className={styles.photoCaption}>{p.caption}</span>}
+                          </a>
+                        </li>
+                      ))}
                   </ul>
                 ) : (
                   <p className={styles.muted}>아직 사진이 없어요. 참가자만 추가할 수 있어요.</p>
