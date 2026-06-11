@@ -24,6 +24,9 @@ const STATIC_ROUTES = [
   { path: '/digest', changefreq: 'weekly' },
   { path: '/help', changefreq: 'monthly' },
   { path: '/policies', changefreq: 'monthly' },
+  { path: '/terms', changefreq: 'monthly' },
+  { path: '/privacy', changefreq: 'monthly' },
+  { path: '/cancel-policy', changefreq: 'monthly' },
 ] as const
 
 // 카테고리는 유한·고정 집합이라 항상 유효한 공개 페이지다(/category/:value).

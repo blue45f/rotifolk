@@ -34,9 +34,6 @@ interface PolicySection {
 
 const tiers = refundSchedule(24)
 const TERMSDESK_BASE = 'https://termsdesk.vercel.app'
-const TERMS_URL = `${TERMSDESK_BASE}/p/rotifolk/terms-of-service`
-const PRIVACY_URL = `${TERMSDESK_BASE}/p/rotifolk/privacy-policy`
-const REFUND_URL = `${TERMSDESK_BASE}/p/rotifolk/refund-policy`
 const SUPPORT_URL = `${TERMSDESK_BASE}/support/rotifolk`
 
 const POLICY_SECTIONS: PolicySection[] = [
@@ -495,18 +492,12 @@ export default function PoliciesPage() {
           누구나 안심하고 동네 로테이션 모임을 열고 참여할 수 있도록 정한 약속이에요. 동의 상태는 이
           페이지에서 바로 관리할 수 있어요.
         </p>
-        <div className={styles.footerLinks} aria-label="TermsDesk 정본 정책">
-          <a href={TERMS_URL} target="_blank" rel="noreferrer">
-            정본 이용약관
-          </a>
+        <div className={styles.footerLinks} aria-label="약관 전문">
+          <Link to="/terms">이용약관 전문</Link>
           <span aria-hidden="true">·</span>
-          <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
-            정본 개인정보처리방침
-          </a>
+          <Link to="/privacy">개인정보처리방침 전문</Link>
           <span aria-hidden="true">·</span>
-          <a href={REFUND_URL} target="_blank" rel="noreferrer">
-            정본 환불 정책
-          </a>
+          <Link to="/cancel-policy">환불 정책 전문</Link>
         </div>
       </header>
 
