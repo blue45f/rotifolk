@@ -41,6 +41,7 @@ type MockBlock = {
   id: string
   nickname: string
   avatarId: string | null
+  avatarImage?: string | null
   blockedAt: string
   reason: string | null
 }
@@ -1273,6 +1274,7 @@ function ensureMockChatRoom(partyId: string): MockChatRoom {
       userId: user.id,
       nickname: user.nickname,
       avatarId: user.avatarId,
+      avatarImage: user.avatarImage ?? null,
     })),
     lastReadAt: null,
   }
@@ -1409,7 +1411,7 @@ let mockGuestSeq = 0
 function makeGuestParticipation(
   partyId: string,
   name: string,
-  avatar: { emoji: string; hue: string } | undefined,
+  avatar: { emoji: string; hue: string; imageData?: string | null } | undefined,
   status: 'confirmed' | 'checked-in',
 ): Participation {
   const id = `pt_guest_${++mockGuestSeq}`
@@ -1619,6 +1621,7 @@ export const handlers = [
           partnerUserId: 'u_w1',
           partnerNickname: '윤슬',
           partnerAvatarId: 'a_w1',
+          partnerAvatarImage: mockUsers[1].avatarImage ?? null,
           partyId: mockParties[0].id,
           partyTitle: mockParties[0].title,
           matchedAt: nowIso(),
@@ -1661,13 +1664,19 @@ export const handlers = [
   http.post(`${API}/parties/:id/guest-join`, async ({ params, request }) => {
     const body = (await request.json()) as {
       nickname?: string
-      avatar?: { emoji: string; hue: string }
+      avatar?: { emoji: string; hue: string; imageData?: string | null }
       token?: string
     }
     const partyId = String(params.id)
     const token = body.token ?? `mock-guest-${Date.now()}`
     const existing = findGuestByToken(partyId, token)
     if (existing) {
+      // 서버와 동일한 의미 — 아바타/닉네임을 명시하면 재방문 시 그 자리에서 갱신.
+      if (body.avatar || (body.nickname && body.nickname !== existing.guestName)) {
+        existing.guestName = body.nickname ?? existing.guestName
+        if (body.avatar) existing.guestAvatar = body.avatar
+        existing.updatedAt = nowIso()
+      }
       return HttpResponse.json(await delay({ participation: existing, guestToken: token }))
     }
     const participation = makeGuestParticipation(
@@ -2137,6 +2146,7 @@ export const handlers = [
         id: user.id,
         nickname: user.nickname,
         avatarId: user.avatarId || null,
+        avatarImage: user.avatarImage ?? null,
         blockedAt: new Date().toISOString(),
         reason: body.reason || '기타 사유',
       })
@@ -2259,6 +2269,7 @@ export const handlers = [
           id: mockUsers[1].id,
           nickname: mockUsers[1].nickname,
           avatarId: mockUsers[1].avatarId,
+          avatarImage: mockUsers[1].avatarImage ?? null,
           bio: mockUsers[1].bio,
           isFollowing: false,
         },
@@ -3038,6 +3049,7 @@ export const handlers = [
             partnerId,
             nickname: '윤슬',
             avatarId: 'a_w1',
+            avatarImage: mockUsers[1].avatarImage ?? null,
             result:
               scope === 'top-n' ? 'top-pick' : scope === 'all-participants' ? 'all' : 'mutual',
             phone: isChatOnly ? null : '010-1234-5678',
@@ -3055,6 +3067,7 @@ export const handlers = [
                   partnerId: 'u_w2',
                   nickname: '안개',
                   avatarId: 'a_w2',
+                  avatarImage: null,
                   result: 'top-pick',
                   phone: isChatOnly ? null : '010-9999-8888',
                   compatibility: {
@@ -3152,8 +3165,20 @@ export const handlers = [
     HttpResponse.json(
       await delay({
         revealPopular: true,
-        popularMale: { userId: 'u_m1', nickname: '도현', avatarId: 'a_m1', likes: 4 },
-        popularFemale: { userId: 'u_w1', nickname: '윤슬', avatarId: 'a_w1', likes: 5 },
+        popularMale: {
+          userId: 'u_m1',
+          nickname: '도현',
+          avatarId: 'a_m1',
+          avatarImage: null,
+          likes: 4,
+        },
+        popularFemale: {
+          userId: 'u_w1',
+          nickname: '윤슬',
+          avatarId: 'a_w1',
+          avatarImage: mockUsers[1].avatarImage ?? null,
+          likes: 5,
+        },
       }),
     ),
   ),
@@ -3286,6 +3311,7 @@ export const handlers = [
         id: u.id,
         nickname: u.nickname,
         avatarId: u.avatarId || null,
+        avatarImage: u.avatarImage ?? null,
         voteCount,
         rating: Math.min(5, Math.round(rating * 10) / 10),
         topTags,

@@ -7,6 +7,8 @@ interface AvatarProps {
   pattern?: 'solid' | 'gradient' | 'sparkle' | 'wave'
   emoji?: string
   initials?: string
+  /** 직접 업로드한 프로필 사진(data URL/URL). 있으면 프리셋(hue/pattern/emoji) 대신 렌더. */
+  imageSrc?: string | null
   ring?: 'none' | 'soft' | 'glow' | 'gold'
   label?: string
 }
@@ -17,6 +19,7 @@ export function Avatar({
   pattern = 'gradient',
   emoji,
   initials,
+  imageSrc,
   ring = 'none',
   label,
 }: AvatarProps) {
@@ -31,14 +34,21 @@ export function Avatar({
       aria-label={label}
       role={label ? 'img' : undefined}
     >
-      <div className={[styles.surface, styles[`p_${pattern}`]].join(' ')} />
-      <div className={styles.face}>
-        {emoji ? (
-          <span className={styles.emoji}>{emoji}</span>
-        ) : initials ? (
-          <span>{initials}</span>
-        ) : null}
-      </div>
+      {imageSrc ? (
+        // 접근성 이름은 컨테이너(aria-label)가 제공 — 내부 img는 장식으로 둔다.
+        <img src={imageSrc} alt="" aria-hidden="true" className={styles.image} draggable={false} />
+      ) : (
+        <>
+          <div className={[styles.surface, styles[`p_${pattern}`]].join(' ')} />
+          <div className={styles.face}>
+            {emoji ? (
+              <span className={styles.emoji}>{emoji}</span>
+            ) : initials ? (
+              <span>{initials}</span>
+            ) : null}
+          </div>
+        </>
+      )}
     </div>
   )
 }

@@ -25,6 +25,8 @@ export function participationIdFromGuestKey(key: string): ID | null {
 export interface GuestAvatar {
   emoji: string
   hue: string
+  /** 직접 업로드한 사진(리사이즈된 data URL). 없으면 emoji+hue 프리셋으로 렌더. */
+  imageData?: string | null
 }
 
 /** 아바타 모듈과 동일한 브랜드 휴 팔레트 (auth 기본 아바타와 같은 소스). */

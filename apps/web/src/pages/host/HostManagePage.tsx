@@ -242,6 +242,7 @@ export default function HostManagePage() {
                   status={p.status}
                   isGuest={!!p.isGuest}
                   avatar={p.guestAvatar ?? null}
+                  imageSrc={p.guestAvatar?.imageData ?? p.user?.avatarImage ?? null}
                   onCheckIn={() => handleCheckIn(p.userId)}
                 />
               ))}
@@ -496,6 +497,8 @@ interface GuestRowProps {
   /** 비로그인 게스트 참가자 — 로스터에 게스트 배지를 단다. */
   isGuest?: boolean
   avatar?: { emoji: string; hue: string } | null
+  /** 업로드된 프로필 사진(있으면 프리셋 대신 표시) — 체크인 시 얼굴 대조용. */
+  imageSrc?: string | null
   onCheckIn: () => void
 }
 
@@ -507,6 +510,7 @@ function GuestRow({
   status,
   isGuest,
   avatar,
+  imageSrc,
   onCheckIn,
 }: GuestRowProps) {
   const storageKey = `rotifolk-guest-memo-${partyId}-${userId}`
@@ -531,6 +535,7 @@ function GuestRow({
         hue={avatar?.hue ?? '#7A1F3D'}
         pattern="gradient"
         emoji={avatar?.emoji ?? nickname[0]}
+        imageSrc={imageSrc ?? null}
         ring={status === 'checked-in' ? 'glow' : 'soft'}
       />
       <div className={styles.partInfo}>

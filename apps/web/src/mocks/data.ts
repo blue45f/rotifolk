@@ -85,6 +85,13 @@ const defaultPartyConfig = {
   | 'enableConversationKit'
 >
 
+/**
+ * 업로드 아바타 사진 데모용 1×1 WebP data URL — dev:mock에서 사진 분기(이미지 렌더·
+ * 프리셋 폴백 대비)를 눈으로 확인할 수 있게 일부 사용자에게만 부여한다.
+ */
+export const MOCK_AVATAR_IMAGE =
+  'data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAQAcJaQAA3AA/v3AgAA='
+
 export const mockUsers: User[] = [
   {
     id: 'u_host',
@@ -118,6 +125,7 @@ export const mockUsers: User[] = [
     nickname: '윤슬',
     role: 'host',
     avatarId: 'a_w1',
+    avatarImage: MOCK_AVATAR_IMAGE,
     bio: null,
     gender: 'female',
     birthYear: 1995,

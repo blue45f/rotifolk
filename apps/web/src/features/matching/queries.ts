@@ -24,6 +24,8 @@ export interface PartyMatch {
   partnerId: string
   nickname: string
   avatarId: string | null
+  /** 상대가 직접 업로드한 프로필 사진(data URL) — 없으면 프리셋 폴백. */
+  avatarImage?: string | null
   result: MatchResult
   /** 이 인연과 이어질 수 있는 채널들 (호스트 정책 ∩ 상호 동의). */
   channels: MatchChannel[]
@@ -52,6 +54,8 @@ export interface PopularPerson {
   userId: string
   nickname: string
   avatarId: string | null
+  /** 직접 업로드한 프로필 사진(data URL) — 없으면 프리셋 폴백. */
+  avatarImage?: string | null
   /** 받은 호감 수. 본인이 호감 수 공개를 끄면 null. */
   likes: number | null
 }

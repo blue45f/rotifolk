@@ -336,5 +336,5 @@ export interface Participation extends Timestamps {
   /** 게스트(비로그인) 참가자 여부 — 가입 없이 초대 링크/현장 등록으로 합류. */
   isGuest?: boolean
   guestName?: string | null
-  guestAvatar?: { emoji: string; hue: string } | null
+  guestAvatar?: { emoji: string; hue: string; imageData?: string | null } | null
 }

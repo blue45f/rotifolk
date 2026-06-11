@@ -18,6 +18,8 @@ export interface Avatar extends Timestamps {
   backdrop: AvatarBackdrop
   accessories: string[] // 'glasses' | 'hat' | 'sparkle-ring' | 'headphones' ...
   vibeWord?: string | null
+  /** 직접 업로드한 프로필 사진 — 클라이언트에서 리사이즈된 data URL. null이면 프리셋으로 폴백. */
+  imageData?: string | null
 }
 
 export const AVATAR_MOODS: { value: AvatarMood; label: string; emoji: string }[] = [

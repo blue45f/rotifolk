@@ -13,6 +13,7 @@ interface FollowedUser {
   id: string
   nickname: string
   avatarId: string | null
+  avatarImage?: string | null
   role?: string
 }
 
@@ -76,7 +77,13 @@ export default function FollowsPage() {
             {currentList.map((u) => (
               <li key={u.id} className={styles.row}>
                 <Link to={`/hosts/${u.id}`} className={styles.rowInner}>
-                  <Avatar size="md" hue="#7A1F3D" pattern="gradient" emoji={u.nickname[0]} />
+                  <Avatar
+                    size="md"
+                    hue="#7A1F3D"
+                    pattern="gradient"
+                    emoji={u.nickname[0]}
+                    imageSrc={u.avatarImage ?? null}
+                  />
                   <div className={styles.body}>
                     <strong>{u.nickname}</strong>
                     {u.role === 'host' && <span>🎙️ 호스트</span>}

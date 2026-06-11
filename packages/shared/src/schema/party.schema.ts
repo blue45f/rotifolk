@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { AvatarImageDataSchema } from './avatar.schema'
 import { MaritalStatusEnum, VerificationFieldEnum } from './profile.schema'
 
 export const PartyCategoryEnum = z.enum([
@@ -195,13 +196,15 @@ export const CheckInSchema = z.object({
 })
 export type CheckInDto = z.infer<typeof CheckInSchema>
 
-/** 게스트(비로그인) 링크 합류 — 닉네임 + 아바타 프리셋만으로 참가. */
+/** 게스트(비로그인) 링크 합류 — 닉네임 + 아바타 프리셋(또는 업로드 사진)만으로 참가. */
 export const GuestJoinSchema = z.object({
   nickname: z.string().trim().min(1).max(16),
   avatar: z
     .object({
       emoji: z.string().min(1).max(8),
       hue: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      /** 직접 업로드한 사진(data URL) — 없으면 emoji+hue 프리셋으로 렌더. */
+      imageData: AvatarImageDataSchema.nullable().optional(),
     })
     .optional(),
   /** 재방문 식별 토큰(localStorage 'rotifolk-guest-token') — 있으면 기존 참가를 돌려준다(멱등). */

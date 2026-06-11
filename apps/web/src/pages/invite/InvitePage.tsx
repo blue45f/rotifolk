@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState, type ChangeEvent } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { GUEST_AVATAR_PRESETS, pickGuestAvatar, type PartyCategory } from '@rotifolk/shared'
 import { api } from '@services/api'
 import { CATEGORY_META } from '@features/categories/meta'
+import { resizeAvatarImage } from '@features/avatar/imageUpload'
 import { useGuestJoin, useGuestSession } from '@features/guest/queries'
 import { GuestConversionBanner } from '@features/guest/GuestConversionBanner'
 import { Button } from '@components/ui/Button/Button'
@@ -50,6 +51,10 @@ export default function InvitePage() {
   const [showGuestForm, setShowGuestForm] = useState(false)
   const [guestName, setGuestName] = useState('')
   const [presetIdx, setPresetIdx] = useState<number | null>(null)
+  // 직접 올린 아바타 사진(data URL) — null이면 프리셋으로 폴백.
+  const [guestImage, setGuestImage] = useState<string | null>(null)
+  const [imageBusy, setImageBusy] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (isLoading) return <Loading label="초대장을 여는 중" />
   if (isError || !data) {
@@ -89,10 +94,14 @@ export default function InvitePage() {
           : `D-${diffDays}`
 
   const guestParticipation = guestJoin.data?.participation ?? guestSession?.participation ?? null
-  const guestAvatarPreview =
+  const guestAvatarBase =
     presetIdx != null
       ? GUEST_AVATAR_PRESETS[presetIdx]
       : pickGuestAvatar(guestName.trim() || 'guest')
+  // 사진을 올렸으면 프리셋 위에 imageData를 얹는다 — 지우면 프리셋으로 자연 폴백.
+  const guestAvatarPreview = guestImage
+    ? { ...guestAvatarBase, imageData: guestImage }
+    : guestAvatarBase
 
   const handleJoin = () => {
     if (!me) {
@@ -103,6 +112,8 @@ export default function InvitePage() {
     navigate(`/parties/${data.id}`)
   }
 
+  const isEditingGuestAvatar = !!guestParticipation
+
   const handleGuestJoin = async () => {
     const nickname = guestName.trim()
     if (!nickname) {
@@ -111,10 +122,40 @@ export default function InvitePage() {
     }
     try {
       await guestJoin.mutateAsync({ nickname, avatar: guestAvatarPreview })
-      toast.show('게스트로 합류했어요 🎟', 'success')
+      toast.show(
+        isEditingGuestAvatar ? '아바타를 업데이트했어요 ✨' : '게스트로 합류했어요 🎟',
+        'success',
+      )
       setShowGuestForm(false)
     } catch (e) {
       toast.show((e as Error).message, 'error')
+    }
+  }
+
+  /** 이미 합류한 게스트의 아바타 변경 — 현재 닉네임/사진/프리셋을 채워 폼을 다시 연다. */
+  const openGuestAvatarEditor = () => {
+    const current = guestParticipation?.guestAvatar
+    setGuestName(guestParticipation?.guestName ?? guestName)
+    setGuestImage(current?.imageData ?? null)
+    // 기존 프리셋을 다시 선택해 두면 사진을 지웠을 때 원래 모습으로 돌아간다.
+    const idx = current
+      ? GUEST_AVATAR_PRESETS.findIndex((p) => p.emoji === current.emoji && p.hue === current.hue)
+      : -1
+    setPresetIdx(idx >= 0 ? idx : null)
+    setShowGuestForm(true)
+  }
+
+  const onPickGuestFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // 같은 파일을 다시 골라도 onChange가 다시 뜨도록 초기화
+    if (!file) return
+    setImageBusy(true)
+    try {
+      setGuestImage(await resizeAvatarImage(file))
+    } catch (err) {
+      toast.show((err as Error).message, 'error')
+    } finally {
+      setImageBusy(false)
     }
   }
 
@@ -198,7 +239,9 @@ export default function InvitePage() {
                   hue={guestParticipation.guestAvatar?.hue ?? '#7A1F3D'}
                   pattern="gradient"
                   emoji={guestParticipation.guestAvatar?.emoji ?? '🎟'}
+                  imageSrc={guestParticipation.guestAvatar?.imageData ?? null}
                   ring="gold"
+                  label={`${guestParticipation.guestName ?? '게스트'}님의 아바타`}
                 />
                 <div className={styles.guestJoinedBody}>
                   <strong>
@@ -208,6 +251,9 @@ export default function InvitePage() {
                     </Badge>
                   </strong>
                   <span>당일 현장에서 호스트에게 닉네임을 알려주면 바로 체크인할 수 있어요.</span>
+                  <Button variant="ghost" size="sm" onClick={openGuestAvatarEditor}>
+                    🖼 아바타 변경
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -249,8 +295,12 @@ export default function InvitePage() {
       <Sheet
         open={showGuestForm}
         onClose={() => setShowGuestForm(false)}
-        title="🎟 게스트로 참여"
-        description="가입 없이 닉네임과 아바타만으로 합류해요"
+        title={isEditingGuestAvatar ? '🖼 아바타 변경' : '🎟 게스트로 참여'}
+        description={
+          isEditingGuestAvatar
+            ? '닉네임과 아바타를 새로 고를 수 있어요'
+            : '가입 없이 닉네임과 아바타만으로 합류해요'
+        }
         footer={
           <>
             <Button variant="ghost" onClick={() => setShowGuestForm(false)}>
@@ -262,7 +312,7 @@ export default function InvitePage() {
               isLoading={guestJoin.isPending}
               disabled={!guestName.trim()}
             >
-              게스트로 합류
+              {isEditingGuestAvatar ? '변경 저장' : '게스트로 합류'}
             </Button>
           </>
         }
@@ -277,6 +327,43 @@ export default function InvitePage() {
             hint="실명이 아니어도 괜찮아요"
             autoFocus
           />
+          <div className={styles.photoField}>
+            <Avatar
+              size="lg"
+              hue={guestAvatarBase.hue}
+              pattern="gradient"
+              emoji={guestAvatarBase.emoji}
+              imageSrc={guestImage}
+              ring="soft"
+              label="아바타 미리보기"
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className={styles.photoInput}
+              aria-label="아바타 사진 파일 선택"
+              onChange={onPickGuestFile}
+            />
+            <div className={styles.photoBtns}>
+              <Button
+                variant="soft"
+                size="sm"
+                isLoading={imageBusy}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                📷 {guestImage ? '사진 변경' : '내 사진 올리기'}
+              </Button>
+              {guestImage && (
+                <Button variant="ghost" size="sm" onClick={() => setGuestImage(null)}>
+                  사진 지우기
+                </Button>
+              )}
+            </div>
+            <p className={styles.photoHint}>
+              최대 5MB · 자동으로 줄여 저장돼요. 사진을 지우면 아래 프리셋으로 돌아가요.
+            </p>
+          </div>
           <fieldset className={styles.presetField}>
             <legend className={styles.presetLegend}>아바타 고르기</legend>
             <div className={styles.presetRow} role="group" aria-label="아바타 프리셋">

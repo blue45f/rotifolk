@@ -18,6 +18,8 @@ export interface User extends Timestamps {
   nickname: string
   role: UserRole
   avatarId?: ID | null
+  /** 직접 업로드한 프로필 사진(리사이즈된 data URL). null이면 프리셋/이니셜로 폴백. */
+  avatarImage?: string | null
   bio?: string | null
   gender?: Gender | null
   birthYear?: number | null
@@ -60,6 +62,7 @@ export type PublicUser = Pick<
   | 'id'
   | 'nickname'
   | 'avatarId'
+  | 'avatarImage'
   | 'bio'
   | 'mbti'
   | 'interests'

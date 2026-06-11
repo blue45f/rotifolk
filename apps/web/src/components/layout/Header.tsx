@@ -222,7 +222,13 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
           )}
           {user ? (
             <Link to="/me" aria-label="내 프로필">
-              <Avatar size="sm" emoji={user.nickname[0]} hue="#7A1F3D" pattern="gradient" />
+              <Avatar
+                size="sm"
+                emoji={user.nickname[0]}
+                hue="#7A1F3D"
+                pattern="gradient"
+                imageSrc={user.avatarImage ?? null}
+              />
             </Link>
           ) : (
             <>

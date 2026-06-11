@@ -7,6 +7,8 @@ export interface PartyNote extends Timestamps {
   fromUserId: ID
   fromNickname?: string
   fromAvatarId?: ID | null
+  /** 보낸 사람이 직접 업로드한 프로필 사진(data URL). 없으면 이니셜 폴백. */
+  fromAvatarImage?: string | null
   toUserId: ID
   roundIndex?: number | null
   body: string

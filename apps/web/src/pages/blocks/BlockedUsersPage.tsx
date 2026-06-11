@@ -15,6 +15,7 @@ interface BlockedUser {
   id: string
   nickname: string
   avatarId: string | null
+  avatarImage?: string | null
   blockedAt?: string
   reason?: string | null
 }
@@ -280,6 +281,7 @@ export default function BlockedUsersPage() {
                       hue="var(--brand-burgundy-700)"
                       pattern="gradient"
                       emoji={u.nickname[0]}
+                      imageSrc={u.avatarImage ?? null}
                       ring="soft"
                     />
                     <div className={styles.body}>

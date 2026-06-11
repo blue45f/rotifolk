@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState, type ChangeEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { AvatarMood, PartySummary, User } from '@rotifolk/shared'
@@ -21,6 +21,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/ToastProvider'
 import { computeAchievements, summarizeAchievements } from '@features/achievements/achievements'
+import { resizeAvatarImage } from '@features/avatar/imageUpload'
 import { usePageMeta } from '@hooks/usePageMeta'
 import { api } from '@services/api'
 import styles from './Profile.module.css'
@@ -72,6 +73,10 @@ export default function ProfilePage() {
   })
   const [draftHue, setDraftHue] = useState(HUES[0])
   const [draftEmoji, setDraftEmoji] = useState(EMOJIS[0])
+  // 직접 업로드한 프로필 사진(data URL) 초안 — null이면 프리셋 폴백(=삭제).
+  const [draftImage, setDraftImage] = useState<string | null>(null)
+  const [imageBusy, setImageBusy] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: savedItems } = useQuery({
     queryKey: ['saved'],
@@ -128,11 +133,33 @@ export default function ProfilePage() {
         hue: draftHue,
         emojiBadge: draftEmoji,
         pattern: 'gradient',
+        // 업로드한 사진을 함께 저장 — null이면 서버에서 사진을 지우고 프리셋으로 폴백.
+        imageData: draftImage,
       })
+      updateLocal({ avatarImage: draftImage })
       toast.show('아바타가 업데이트됐어요 ✨', 'success')
       setShowAvatar(false)
     } catch (e) {
       toast.show((e as Error).message, 'error')
+    }
+  }
+
+  const openAvatarEditor = () => {
+    setDraftImage(user?.avatarImage ?? null)
+    setShowAvatar(true)
+  }
+
+  const onPickAvatarFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // 같은 파일을 다시 골라도 onChange가 다시 뜨도록 초기화
+    if (!file) return
+    setImageBusy(true)
+    try {
+      setDraftImage(await resizeAvatarImage(file))
+    } catch (err) {
+      toast.show((err as Error).message, 'error')
+    } finally {
+      setImageBusy(false)
     }
   }
 
@@ -161,7 +188,15 @@ export default function ProfilePage() {
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
-        <Avatar size="xl" hue={draftHue} pattern="gradient" emoji={user.nickname[0]} ring="glow" />
+        <Avatar
+          size="xl"
+          hue={draftHue}
+          pattern="gradient"
+          emoji={user.nickname[0]}
+          imageSrc={user.avatarImage ?? null}
+          ring="glow"
+          label={`${user.nickname}님의 프로필 사진`}
+        />
         <div className={styles.headBody}>
           <h1 className={styles.name}>
             {user.nickname}
@@ -196,7 +231,7 @@ export default function ProfilePage() {
             >
               ✏️ 프로필 편집
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => setShowAvatar(true)}>
+            <Button variant="ghost" size="sm" onClick={openAvatarEditor}>
               아바타 편집
             </Button>
             {user.role === 'participant' && (
@@ -538,8 +573,44 @@ export default function ProfilePage() {
         }
       >
         <div className={styles.avatarPreview}>
-          <Avatar size="xl" hue={draftHue} pattern="gradient" emoji={draftEmoji} ring="glow" />
+          <Avatar
+            size="xl"
+            hue={draftHue}
+            pattern="gradient"
+            emoji={draftEmoji}
+            imageSrc={draftImage}
+            ring="glow"
+            label="아바타 미리보기"
+          />
         </div>
+
+        <h4 className={styles.lbl}>프로필 사진</h4>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className={styles.avatarFileInput}
+          aria-label="프로필 사진 파일 선택"
+          onChange={onPickAvatarFile}
+        />
+        <div className={styles.avatarPhotoRow}>
+          <Button
+            variant="soft"
+            size="sm"
+            isLoading={imageBusy}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            📷 {draftImage ? '사진 변경' : '사진 올리기'}
+          </Button>
+          {draftImage && (
+            <Button variant="ghost" size="sm" onClick={() => setDraftImage(null)}>
+              사진 삭제
+            </Button>
+          )}
+        </div>
+        <p className={styles.avatarPhotoHint}>
+          최대 5MB · 자동으로 256px로 줄여 저장돼요. 사진을 지우면 아래 무드 아바타로 돌아가요.
+        </p>
 
         <h4 className={styles.lbl}>무드</h4>
         <div className={styles.chipRow}>

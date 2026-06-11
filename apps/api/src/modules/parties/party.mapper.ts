@@ -156,7 +156,11 @@ export function toParticipation(
   // 라운드 memberIds·체크인 경로·로스터 매칭이 회원과 같은 코드로 동작한다.
   const isGuest = !row.userId
   const guestAvatar = row.guestAvatarJson
-    ? (parseJsonObject(row.guestAvatarJson) as { emoji?: string; hue?: string })
+    ? (parseJsonObject(row.guestAvatarJson) as {
+        emoji?: string
+        hue?: string
+        imageData?: string | null
+      })
     : null
   return {
     id: row.id,
@@ -170,7 +174,11 @@ export function toParticipation(
     guestName: row.guestName,
     guestAvatar:
       guestAvatar?.emoji && guestAvatar?.hue
-        ? { emoji: guestAvatar.emoji, hue: guestAvatar.hue }
+        ? {
+            emoji: guestAvatar.emoji,
+            hue: guestAvatar.hue,
+            imageData: guestAvatar.imageData ?? null,
+          }
         : null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

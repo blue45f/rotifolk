@@ -40,6 +40,7 @@ interface HostProfile {
     id: string
     nickname: string
     avatarId: string | null
+    avatarImage?: string | null
     bio: string | null
     mbti: string | null
     interestsJson: string
@@ -101,7 +102,15 @@ export default function HostProfilePage() {
     <div className={styles.page}>
       <header className={styles.head}>
         <div className={styles.identity}>
-          <Avatar size="xl" hue="#7A1F3D" pattern="gradient" emoji={user.nickname[0]} ring="glow" />
+          <Avatar
+            size="xl"
+            hue="#7A1F3D"
+            pattern="gradient"
+            emoji={user.nickname[0]}
+            imageSrc={user.avatarImage ?? null}
+            ring="glow"
+            label={`${user.nickname}님의 프로필 사진`}
+          />
           <div className={styles.identityBody}>
             <div className={styles.nameRow}>
               <h1>{user.nickname}</h1>

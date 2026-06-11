@@ -12,6 +12,7 @@ interface Candidate {
   id: string
   nickname: string
   avatarId: string | null
+  avatarImage?: string | null
   voteCount: number
   rating: number
   topTags: string[]
@@ -175,6 +176,7 @@ export default function DerivedPartyManager({
                 hue="var(--brand-burgundy-700)"
                 pattern="gradient"
                 emoji={c.nickname[0]}
+                imageSrc={c.avatarImage ?? null}
                 ring="soft"
               />
               <span className={styles.name}>{c.nickname}</span>

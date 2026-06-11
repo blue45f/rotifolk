@@ -90,6 +90,8 @@ export default function ChatRoomPage() {
 
   if (isLoading || !room) return <Loading />
   const counterpart = room.kind === 'pair' ? room.members.find((m) => m.userId !== me?.id) : null
+  // 멤버별 업로드 사진 조회용 — 메시지 행 아바타가 프리셋 대신 사진을 보여줄 수 있게.
+  const memberImageById = new Map(room.members.map((m) => [m.userId, m.avatarImage ?? null]))
   const title =
     room.kind === 'pair'
       ? `💌 ${counterpart?.nickname ?? '매칭'}`
@@ -134,7 +136,15 @@ export default function ChatRoomPage() {
           }
           return (
             <div key={m.id} className={`${styles.msgRow} ${mine ? styles.msgMine : ''}`}>
-              {!mine && <Avatar size="sm" hue="#7A1F3D" pattern="gradient" emoji={m.nickname[0]} />}
+              {!mine && (
+                <Avatar
+                  size="sm"
+                  hue="#7A1F3D"
+                  pattern="gradient"
+                  emoji={m.nickname[0]}
+                  imageSrc={memberImageById.get(m.userId) ?? null}
+                />
+              )}
               <div className={styles.msgBubble}>
                 {!mine && <div className={styles.msgName}>{m.nickname}</div>}
                 <MessageBody body={m.body} />
