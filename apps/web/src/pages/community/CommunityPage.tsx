@@ -33,6 +33,8 @@ import {
   toTermsConsentState,
   type TermsConsentState,
 } from '@features/legal/termsConsent'
+import { AvatarImageError, resizePostImage } from '@features/avatar/imageUpload'
+import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
 import {
   COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT,
   COMMUNITY_DEMO_ACTIVITY_KEY,
@@ -352,6 +354,9 @@ export default function CommunityPage() {
   const [title, setTitle] = useState(() => initialDraft.title)
   const [body, setBody] = useState(() => initialDraft.body)
   const [tagText, setTagText] = useState(() => initialDraft.tagText)
+  const [imageData, setImageData] = useState<string | null>(null)
+  const [imageBusy, setImageBusy] = useState(false)
+  const composerFileRef = useRef<HTMLInputElement | null>(null)
   const [missionState, setMissionState] = useState<CommunityMissionState>(() => readMissionState())
   const [demoActivityLog, setDemoActivityLog] = useState<CommunityDemoActivityLogEntry[]>(() =>
     readCommunityDemoActivityLog(),
@@ -768,13 +773,31 @@ export default function CommunityPage() {
       category: category === 'all' ? 'question' : category,
       area: area || null,
       tags,
+      imageData,
     })
     setTitle('')
     setBody('')
     setTagText('')
+    setImageData(null)
     setActivePostId(created.id)
     clearDraftState()
     markPostCreated()
+  }
+
+  const attachComposerImage = async (file: File | undefined) => {
+    if (!file) return
+    setImageBusy(true)
+    try {
+      setImageData(await resizePostImage(file))
+    } catch (error) {
+      toast.show(
+        error instanceof AvatarImageError ? error.message : '사진을 처리하지 못했어요.',
+        'error',
+      )
+    } finally {
+      setImageBusy(false)
+      if (composerFileRef.current) composerFileRef.current.value = ''
+    }
   }
 
   return (
@@ -787,7 +810,8 @@ export default function CommunityPage() {
           <h1>모임 전후의 궁금한 점을 바로 묻고 이어가세요</h1>
           <p>
             준비물, 분위기, 연락처 교환 방식까지. 처음 온 사람도 망설이지 않도록 질문과 답변을
-            한곳에 모았습니다.
+            한곳에 모았습니다. 정기적으로 모이고 싶다면 <Link to="/clubs">클럽</Link>에서
+            이어가세요.
           </p>
         </div>
         <div className={styles.heroPanel} aria-label="커뮤니티 이용 흐름">
@@ -1006,6 +1030,36 @@ export default function CommunityPage() {
                 />
               </label>
             </div>
+            <div className={styles.attachRow}>
+              <input
+                ref={composerFileRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                style={{ display: 'none' }}
+                onChange={(event) => attachComposerImage(event.target.files?.[0])}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                isLoading={imageBusy}
+                disabled={!me || !isTermsReady || createPost.isPending}
+                onClick={() => composerFileRef.current?.click()}
+              >
+                {imageData ? '사진 바꾸기' : '사진 첨부'}
+              </Button>
+              {imageData && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => setImageData(null)}>
+                  사진 제거
+                </Button>
+              )}
+              <span className={styles.attachHint}>2MB 이하, svg 제외</span>
+            </div>
+            {imageData && (
+              <div className={styles.attachPreview}>
+                <img src={imageData} alt="첨부할 이미지 미리보기" />
+              </div>
+            )}
             {createPost.isError && (
               <p className={styles.error} role="alert">
                 글을 저장하지 못했어요. 내용을 확인한 뒤 다시 시도해주세요.
@@ -1199,6 +1253,7 @@ function ThreadDetail({
   const [editTitle, setEditTitle] = useState(post.title)
   const [editBody, setEditBody] = useState(post.body)
   const [editTagText, setEditTagText] = useState(post.tags.join(', '))
+  const [editRemoveImage, setEditRemoveImage] = useState(false)
   const createComment = useCreateCommunityComment(post.id)
   const updatePost = useUpdateCommunityPost(post.id)
   const deletePost = useDeleteCommunityPost(post.id)
@@ -1224,6 +1279,7 @@ function ThreadDetail({
     setEditTitle(post.title)
     setEditBody(post.body)
     setEditTagText(post.tags.join(', '))
+    setEditRemoveImage(false)
   }, [post.body, post.id, post.tags, post.title])
 
   const submitComment = async (event: FormEvent) => {
@@ -1302,7 +1358,12 @@ function ThreadDetail({
       .map((tag) => tag.trim())
       .filter(Boolean)
     try {
-      await updatePost.mutateAsync({ title: editTitle, body: editBody, tags })
+      await updatePost.mutateAsync({
+        title: editTitle,
+        body: editBody,
+        tags,
+        ...(editRemoveImage ? { imageData: null } : {}),
+      })
       setEditingPost(false)
       toast.show('글을 수정했어요.', 'success')
       onPostEdited()
@@ -1379,6 +1440,17 @@ function ThreadDetail({
               disabled={updatePost.isPending}
             />
           </label>
+          {post.imageData && (
+            <label className={styles.attachRemoveToggle}>
+              <input
+                type="checkbox"
+                checked={editRemoveImage}
+                onChange={(event) => setEditRemoveImage(event.target.checked)}
+                disabled={updatePost.isPending}
+              />
+              첨부 이미지 삭제
+            </label>
+          )}
           <div className={styles.manageActions}>
             <Button
               type="button"
@@ -1397,7 +1469,16 @@ function ThreadDetail({
       ) : (
         <>
           <h2>{post.title}</h2>
-          <p className={styles.detailBody}>{post.body}</p>
+          <p className={styles.detailBody}>
+            <LinkifiedText text={post.body} />
+          </p>
+          {post.imageData && (
+            <img
+              className={styles.detailImage}
+              src={post.imageData}
+              alt={`${post.title} 첨부 이미지`}
+            />
+          )}
           {post.tags.length > 0 && (
             <div className={styles.tags}>
               {post.tags.map((tag) => (
@@ -1645,15 +1726,21 @@ function CommentItem({
     }
   }
 
+  const isDeleted = comment.deleted === true
+
   return (
     <div className={styles.comment}>
       <div className={styles.commentBody}>
         <span className={styles.avatarSmall} aria-hidden="true">
-          {initials(comment.author.nickname)}
+          {isDeleted ? '–' : initials(comment.author.nickname)}
         </span>
         <div>
-          <span className={styles.authorLine}>{comment.author.nickname}</span>
-          {editingComment ? (
+          <span className={styles.authorLine}>
+            {isDeleted ? '삭제된 댓글' : comment.author.nickname}
+          </span>
+          {isDeleted ? (
+            <p className={styles.deletedComment}>작성자가 삭제한 댓글이에요. 답글은 남아 있어요.</p>
+          ) : editingComment ? (
             <form className={styles.inlineEditForm} onSubmit={submitCommentEdit}>
               <textarea
                 value={editBody}
@@ -1681,16 +1768,18 @@ function CommentItem({
               </div>
             </form>
           ) : (
-            <p>{comment.body}</p>
+            <p>
+              <LinkifiedText text={comment.body} />
+            </p>
           )}
           <div className={styles.commentMeta}>
-            <span>{formatDate(comment.createdAt)}</span>
-            {!editingComment && (
+            {!isDeleted && <span>{formatDate(comment.createdAt)}</span>}
+            {!editingComment && !isDeleted && (
               <button type="button" onClick={() => onReplyTarget(isReplying ? null : comment.id)}>
                 답글
               </button>
             )}
-            {isCommentOwner && !editingComment && (
+            {isCommentOwner && !editingComment && !isDeleted && (
               <>
                 <button
                   type="button"
@@ -1709,7 +1798,7 @@ function CommentItem({
                 </button>
               </>
             )}
-            {signedIn && !isCommentOwner && (
+            {signedIn && !isCommentOwner && !isDeleted && (
               <ReportAction
                 label="댓글 신고"
                 disabled={reportPending || !isTermsReady}
@@ -1791,7 +1880,9 @@ function CommentItem({
                     </div>
                   </form>
                 ) : (
-                  <p>{reply.body}</p>
+                  <p>
+                    <LinkifiedText text={reply.body} />
+                  </p>
                 )}
                 <div className={styles.replyMeta}>
                   <span className={styles.detailTime}>{formatDate(reply.createdAt)}</span>

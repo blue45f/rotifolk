@@ -8,8 +8,12 @@ import type {
   QuestionCard,
   RevenueHealthAlertThreshold,
   ConnectionChannel,
+  ClubSummary,
   CommunityPost,
   CommunityPostCategory,
+  CreateClubCommentDto,
+  CreateClubDto,
+  CreateClubPostDto,
   CreateCommunityCommentDto,
   CreateCommunityPostDto,
   CreateReportDto,
@@ -27,6 +31,10 @@ import { quoteVenueBooking, recommendVenues, suggestOffHoursSlots } from '@rotif
 import {
   MOCK_TOKEN,
   mockCards,
+  mockClubComments,
+  mockClubMembers,
+  mockClubPosts,
+  mockClubs,
   mockCommunityComments,
   mockCommunityPosts,
   mockMenus,
@@ -35,6 +43,9 @@ import {
   mockVenueBookings,
   mockVenues,
   toSummary,
+  type MockClub,
+  type MockClubComment,
+  type MockClubPost,
 } from './data'
 
 type MockBlock = {
@@ -462,6 +473,53 @@ interface MockHostRevenueSummaryInput {
 
 const nowIso = () => new Date().toISOString()
 const mockPartyById = new Map(mockParties.map((party) => [party.id, party]))
+
+// ── 클럽/모더레이션 mock 헬퍼 ──────────────────────────────────────
+// mock 세션의 행위자(커뮤니티 작성자와 동일 규칙) — mockUsers[1]
+const MOCK_CLUB_ACTOR_INDEX = 1
+// 모더레이션 상태 — CommunityPost 타입에는 status가 없어 별도 맵으로 관리한다.
+const mockCommunityPostStatus = new Map<string, 'open' | 'hidden' | 'removed'>()
+
+function mockClubRole(clubId: string): 'owner' | 'member' | null {
+  const membership = mockClubMembers.find(
+    (member) => member.clubId === clubId && member.userIndex === MOCK_CLUB_ACTOR_INDEX,
+  )
+  return membership?.role ?? null
+}
+
+function shapeMockClub(club: MockClub): ClubSummary {
+  const owner = mockUsers[club.ownerIndex]
+  return {
+    id: club.id,
+    name: club.name,
+    category: club.category,
+    description: club.description,
+    visibility: club.visibility,
+    memberCount: mockClubMembers.filter((member) => member.clubId === club.id).length,
+    postCount: mockClubPosts.filter((post) => post.clubId === club.id && post.status === 'open')
+      .length,
+    owner: {
+      id: owner.id,
+      nickname: owner.nickname,
+      avatarId: owner.avatarId,
+      role: owner.role,
+      isVerified: owner.isVerified,
+    },
+    myRole: mockClubRole(club.id),
+    createdAt: club.createdAt,
+    updatedAt: club.updatedAt,
+  }
+}
+
+/** 비공개 클럽 게시판 가드 — 차단 시 응답을, 통과 시 null을 돌려준다. */
+function mockClubBoardGate(clubId: string) {
+  const club = mockClubs.find((item) => item.id === clubId)
+  if (!club) return HttpResponse.json({ code: 'club_not_found' }, { status: 404 })
+  if (club.visibility === 'private' && !mockClubRole(clubId)) {
+    return HttpResponse.json({ code: 'club_members_only' }, { status: 403 })
+  }
+  return null
+}
 let mockRevenueRules: MockRevenueRuleConfig = {
   platformFeePercent: 8,
   refundRetentionPercent: 0,
@@ -2309,6 +2367,12 @@ export const handlers = [
     if (!post) return HttpResponse.json({ code: 'community_post_not_found' }, { status: 404 })
     const comments = mockCommunityComments
       .filter((comment) => comment.postId === post.id)
+      // 삭제 플레이스홀더는 답글이 남아 있을 때만 자리를 유지한다.
+      .filter(
+        (comment) =>
+          !comment.deleted ||
+          mockCommunityComments.some((item) => item.parentId === comment.id && !item.deleted),
+      )
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     return HttpResponse.json(
       await delay({ ...post, comments: buildCommunityCommentTree(comments) }),
@@ -2325,6 +2389,7 @@ export const handlers = [
       partyId: body.partyId ?? null,
       partyTitle: null,
       tags: body.tags ?? [],
+      imageData: body.imageData ?? null,
       commentCount: 0,
       lastCommentAt: null,
       author: {
@@ -2349,6 +2414,7 @@ export const handlers = [
     if (typeof body.category !== 'undefined') post.category = body.category
     if (typeof body.area !== 'undefined') post.area = body.area
     if (typeof body.tags !== 'undefined') post.tags = body.tags
+    if (typeof body.imageData !== 'undefined') post.imageData = body.imageData
     post.updatedAt = nowIso()
     return HttpResponse.json(await delay(post))
   }),
@@ -2408,24 +2474,341 @@ export const handlers = [
     return HttpResponse.json(await delay(comment))
   }),
   http.delete(`${API}/community/posts/:postId/comments/:commentId`, async ({ params }) => {
-    const removeIds = new Set(
-      mockCommunityComments
-        .filter(
-          (item) =>
-            item.postId === params.postId &&
-            (item.id === params.commentId || item.parentId === params.commentId),
-        )
-        .map((item) => item.id),
+    const index = mockCommunityComments.findIndex(
+      (item) => item.postId === params.postId && item.id === params.commentId && !item.deleted,
     )
-    if (removeIds.size === 0) {
+    if (index === -1) {
       return HttpResponse.json({ code: 'community_comment_not_found' }, { status: 404 })
     }
-    for (let i = mockCommunityComments.length - 1; i >= 0; i -= 1) {
-      if (removeIds.has(mockCommunityComments[i].id)) mockCommunityComments.splice(i, 1)
+    const target = mockCommunityComments[index]
+    const hasReplies = mockCommunityComments.some(
+      (item) => item.parentId === target.id && !item.deleted,
+    )
+    if (hasReplies) {
+      // 답글 보존 — 본문/작성자를 비운 플레이스홀더로 전환한다.
+      target.deleted = true
+      target.body = ''
+      target.author = {
+        id: 'deleted',
+        nickname: '알 수 없음',
+        avatarId: null,
+        role: 'user',
+        isVerified: false,
+      }
+    } else {
+      mockCommunityComments.splice(index, 1)
     }
     const post = mockCommunityPosts.find((item) => item.id === params.postId)
-    if (post) post.commentCount = Math.max(0, post.commentCount - removeIds.size)
+    if (post) post.commentCount = Math.max(0, post.commentCount - 1)
     return HttpResponse.json(await delay({ ok: true }))
+  }),
+
+  // ── 클럽(정기 모임 그룹) ──────────────────────────────────────
+  http.get(`${API}/clubs`, async ({ request }) => {
+    const url = new URL(request.url)
+    const category = url.searchParams.get('category')
+    const q = url.searchParams.get('q')?.toLowerCase()
+    const page = Number(url.searchParams.get('page') ?? 1)
+    const pageSize = Number(url.searchParams.get('pageSize') ?? 12)
+    const filtered = mockClubs.filter((club) => {
+      if (category && club.category !== category) return false
+      if (q && !`${club.name} ${club.description}`.toLowerCase().includes(q)) return false
+      return true
+    })
+    const shaped = filtered.map(shapeMockClub).sort((a, b) => b.memberCount - a.memberCount)
+    const start = (page - 1) * pageSize
+    return HttpResponse.json(
+      await delay({
+        items: shaped.slice(start, start + pageSize),
+        total: shaped.length,
+        page,
+        pageSize,
+        hasNext: start + pageSize < shaped.length,
+      }),
+    )
+  }),
+  http.post(`${API}/clubs`, async ({ request }) => {
+    const body = (await request.json()) as CreateClubDto
+    const club: MockClub = {
+      id: `club_${Date.now()}`,
+      name: body.name,
+      category: body.category,
+      description: body.description,
+      visibility: body.visibility ?? 'public',
+      ownerIndex: MOCK_CLUB_ACTOR_INDEX,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    }
+    mockClubs.unshift(club)
+    mockClubMembers.push({
+      clubId: club.id,
+      userIndex: MOCK_CLUB_ACTOR_INDEX,
+      role: 'owner',
+      joinedAt: nowIso(),
+    })
+    return HttpResponse.json(await delay(shapeMockClub(club)))
+  }),
+  http.get(`${API}/clubs/:clubId`, async ({ params }) => {
+    const club = mockClubs.find((item) => item.id === params.clubId)
+    if (!club) return HttpResponse.json({ code: 'club_not_found' }, { status: 404 })
+    const summary = shapeMockClub(club)
+    const isMember = summary.myRole !== null
+    const canViewBoard = club.visibility === 'public' || isMember
+    const members =
+      club.visibility === 'public' || isMember
+        ? mockClubMembers
+            .filter((member) => member.clubId === club.id)
+            .map((member) => ({
+              userId: mockUsers[member.userIndex].id,
+              nickname: mockUsers[member.userIndex].nickname,
+              avatarId: mockUsers[member.userIndex].avatarId,
+              role: member.role,
+              joinedAt: member.joinedAt,
+            }))
+        : []
+    return HttpResponse.json(await delay({ ...summary, members, canViewBoard }))
+  }),
+  http.post(`${API}/clubs/:clubId/join`, async ({ params }) => {
+    const club = mockClubs.find((item) => item.id === params.clubId)
+    if (!club) return HttpResponse.json({ code: 'club_not_found' }, { status: 404 })
+    const exists = mockClubMembers.some(
+      (member) => member.clubId === club.id && member.userIndex === MOCK_CLUB_ACTOR_INDEX,
+    )
+    if (!exists) {
+      mockClubMembers.push({
+        clubId: club.id,
+        userIndex: MOCK_CLUB_ACTOR_INDEX,
+        role: 'member',
+        joinedAt: nowIso(),
+      })
+    }
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
+  http.delete(`${API}/clubs/:clubId/join`, async ({ params }) => {
+    const index = mockClubMembers.findIndex(
+      (member) => member.clubId === params.clubId && member.userIndex === MOCK_CLUB_ACTOR_INDEX,
+    )
+    if (index === -1) return HttpResponse.json({ code: 'club_not_member' }, { status: 400 })
+    if (mockClubMembers[index].role === 'owner') {
+      return HttpResponse.json({ code: 'club_owner_cannot_leave' }, { status: 403 })
+    }
+    mockClubMembers.splice(index, 1)
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
+  http.get(`${API}/clubs/:clubId/posts`, async ({ params }) => {
+    const gate = mockClubBoardGate(String(params.clubId))
+    if (gate) return gate
+    const items = mockClubPosts
+      .filter((post) => post.clubId === params.clubId && post.status === 'open')
+      .map(({ status: _status, ...rest }) => rest)
+    return HttpResponse.json(
+      await delay({ items, total: items.length, page: 1, pageSize: 12, hasNext: false }),
+    )
+  }),
+  http.post(`${API}/clubs/:clubId/posts`, async ({ params, request }) => {
+    if (!mockClubRole(String(params.clubId))) {
+      return HttpResponse.json({ code: 'club_members_only' }, { status: 403 })
+    }
+    const body = (await request.json()) as CreateClubPostDto
+    const actor = mockUsers[MOCK_CLUB_ACTOR_INDEX]
+    const post: MockClubPost = {
+      id: `clp_${Date.now()}`,
+      clubId: String(params.clubId),
+      title: body.title,
+      body: body.body,
+      imageData: body.imageData ?? null,
+      status: 'open',
+      commentCount: 0,
+      lastCommentAt: null,
+      author: {
+        id: actor.id,
+        nickname: actor.nickname,
+        avatarId: actor.avatarId,
+        role: actor.role,
+        isVerified: actor.isVerified,
+      },
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    }
+    mockClubPosts.unshift(post)
+    const { status: _status, ...rest } = post
+    return HttpResponse.json(await delay(rest))
+  }),
+  http.get(`${API}/clubs/:clubId/posts/:postId`, async ({ params }) => {
+    const gate = mockClubBoardGate(String(params.clubId))
+    if (gate) return gate
+    const post = mockClubPosts.find(
+      (item) =>
+        item.id === params.postId && item.clubId === params.clubId && item.status === 'open',
+    )
+    if (!post) return HttpResponse.json({ code: 'club_post_not_found' }, { status: 404 })
+    const comments = mockClubComments
+      .filter((comment) => comment.postId === post.id)
+      .filter(
+        (comment) =>
+          comment.status === 'visible' ||
+          mockClubComments.some(
+            (item) => item.parentId === comment.id && item.status === 'visible',
+          ),
+      )
+      .map((comment) =>
+        comment.status === 'removed'
+          ? {
+              ...comment,
+              body: '',
+              deleted: true,
+              author: {
+                id: 'deleted',
+                nickname: '알 수 없음',
+                avatarId: null,
+                role: 'user',
+                isVerified: false,
+              },
+            }
+          : comment,
+      )
+      .map(({ status: _status, ...rest }) => rest)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    const { status: _status, ...rest } = post
+    return HttpResponse.json(
+      await delay({ ...rest, comments: buildCommunityCommentTree(comments) }),
+    )
+  }),
+  http.delete(`${API}/clubs/:clubId/posts/:postId`, async ({ params }) => {
+    const post = mockClubPosts.find(
+      (item) =>
+        item.id === params.postId && item.clubId === params.clubId && item.status === 'open',
+    )
+    if (!post) return HttpResponse.json({ code: 'club_post_not_found' }, { status: 404 })
+    post.status = 'removed'
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
+  http.post(`${API}/clubs/:clubId/posts/:postId/comments`, async ({ params, request }) => {
+    if (!mockClubRole(String(params.clubId))) {
+      return HttpResponse.json({ code: 'club_members_only' }, { status: 403 })
+    }
+    const post = mockClubPosts.find(
+      (item) =>
+        item.id === params.postId && item.clubId === params.clubId && item.status === 'open',
+    )
+    if (!post) return HttpResponse.json({ code: 'club_post_not_found' }, { status: 404 })
+    const body = (await request.json()) as CreateClubCommentDto
+    const parent = body.parentId
+      ? mockClubComments.find((item) => item.id === body.parentId && item.status === 'visible')
+      : null
+    if (body.parentId && (!parent || parent.postId !== post.id)) {
+      return HttpResponse.json({ code: 'invalid_parent_comment' }, { status: 400 })
+    }
+    const actor = mockUsers[MOCK_CLUB_ACTOR_INDEX]
+    const created: MockClubComment = {
+      id: `clc_${Date.now()}`,
+      postId: post.id,
+      parentId: parent?.parentId ?? parent?.id ?? null,
+      body: body.body,
+      status: 'visible',
+      author: {
+        id: actor.id,
+        nickname: actor.nickname,
+        avatarId: actor.avatarId,
+        role: actor.role,
+        isVerified: actor.isVerified,
+      },
+      replies: [],
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    }
+    mockClubComments.push(created)
+    post.commentCount += 1
+    post.lastCommentAt = created.createdAt
+    const { status: _status, ...rest } = created
+    return HttpResponse.json(await delay(rest))
+  }),
+  http.delete(`${API}/clubs/:clubId/posts/:postId/comments/:commentId`, async ({ params }) => {
+    const comment = mockClubComments.find(
+      (item) =>
+        item.id === params.commentId && item.postId === params.postId && item.status === 'visible',
+    )
+    if (!comment) return HttpResponse.json({ code: 'club_comment_not_found' }, { status: 404 })
+    comment.status = 'removed'
+    const post = mockClubPosts.find((item) => item.id === params.postId)
+    if (post) post.commentCount = Math.max(0, post.commentCount - 1)
+    return HttpResponse.json(await delay({ ok: true }))
+  }),
+
+  // ── 어드민 콘텐츠 모더레이션 ─────────────────────────────────
+  http.get(`${API}/admin/moderation/posts`, async ({ request }) => {
+    const url = new URL(request.url)
+    const scope = url.searchParams.get('scope') === 'club' ? 'club' : 'community'
+    const status = url.searchParams.get('status')
+    const q = url.searchParams.get('q')?.toLowerCase()
+    const page = Number(url.searchParams.get('page') ?? 1)
+    const pageSize = Number(url.searchParams.get('pageSize') ?? 20)
+
+    const items =
+      scope === 'club'
+        ? mockClubPosts.map((post) => ({
+            id: post.id,
+            scope: 'club' as const,
+            title: post.title,
+            excerpt: post.body.slice(0, 120),
+            status: post.status,
+            hasImage: Boolean(post.imageData),
+            commentCount: post.commentCount,
+            reportCount: 0,
+            authorNickname: post.author.nickname,
+            clubName: mockClubs.find((club) => club.id === post.clubId)?.name ?? null,
+            createdAt: post.createdAt,
+          }))
+        : mockCommunityPosts.map((post) => ({
+            id: post.id,
+            scope: 'community' as const,
+            title: post.title,
+            excerpt: post.body.slice(0, 120),
+            status: mockCommunityPostStatus.get(post.id) ?? 'open',
+            hasImage: Boolean(post.imageData),
+            commentCount: post.commentCount,
+            reportCount: mockReports.filter(
+              (report) => report.communityPost?.id === post.id && report.status === 'open',
+            ).length,
+            authorNickname: post.author.nickname,
+            clubName: null,
+            createdAt: post.createdAt,
+          }))
+
+    const filtered = items.filter((item) => {
+      if (status && item.status !== status) return false
+      if (q && !`${item.title} ${item.excerpt}`.toLowerCase().includes(q)) return false
+      return true
+    })
+    const start = (page - 1) * pageSize
+    return HttpResponse.json(
+      await delay({
+        items: filtered.slice(start, start + pageSize),
+        total: filtered.length,
+        page,
+        pageSize,
+        hasNext: start + pageSize < filtered.length,
+      }),
+    )
+  }),
+  http.patch(`${API}/admin/moderation/posts/:postId`, async ({ params, request }) => {
+    const body = (await request.json()) as { scope: 'community' | 'club'; action: string }
+    const nextStatus =
+      body.action === 'hide' ? 'hidden' : body.action === 'restore' ? 'open' : 'removed'
+    if (body.scope === 'club') {
+      const post = mockClubPosts.find((item) => item.id === params.postId)
+      if (!post) return HttpResponse.json({ code: 'moderation_post_not_found' }, { status: 404 })
+      if (body.action === 'clear-image') post.imageData = null
+      else post.status = nextStatus
+      return HttpResponse.json(await delay({ ok: true, status: post.status }))
+    }
+    const post = mockCommunityPosts.find((item) => item.id === params.postId)
+    if (!post) return HttpResponse.json({ code: 'moderation_post_not_found' }, { status: 404 })
+    if (body.action === 'clear-image') post.imageData = null
+    else mockCommunityPostStatus.set(post.id, nextStatus)
+    return HttpResponse.json(
+      await delay({ ok: true, status: mockCommunityPostStatus.get(post.id) ?? 'open' }),
+    )
   }),
 
   // Saved parties

@@ -26,6 +26,8 @@ export interface CommunityPost extends Timestamps {
   partyId?: ID | null
   partyTitle?: string | null
   tags: string[]
+  /** 첨부 이미지(data URL) — 없으면 null. */
+  imageData?: string | null
   commentCount: number
   lastCommentAt?: ISODateString | null
   author: CommunityAuthor
@@ -38,6 +40,11 @@ export interface CommunityComment extends Timestamps {
   body: string
   author: CommunityAuthor
   replies?: CommunityComment[]
+  /**
+   * 삭제 플레이스홀더 — 답글이 남아 있는 댓글을 지우면 스레드 유지를 위해
+   * 본문을 비운 채 이 플래그만 켜져 내려온다. UI는 안내 문구로 대체 렌더한다.
+   */
+  deleted?: boolean
 }
 
 export interface CommunityPostDetail extends CommunityPost {

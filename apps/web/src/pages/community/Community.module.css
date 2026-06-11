@@ -1008,3 +1008,55 @@
     margin-bottom: var(--space-3);
   }
 }
+
+/* ── 게시글 이미지 첨부 ─────────────────────────────────────────── */
+
+.attachRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.attachHint {
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+}
+
+.attachPreview {
+  width: fit-content;
+}
+
+.attachPreview img {
+  max-width: 220px;
+  max-height: 140px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  display: block;
+}
+
+.attachRemoveToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.attachRemoveToggle input {
+  accent-color: var(--brand-burgundy-700);
+}
+
+.detailImage {
+  margin-top: var(--space-3);
+  max-width: 100%;
+  max-height: 420px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+/* 삭제 플레이스홀더 — 답글이 남은 댓글의 빈 자리 */
+.deletedComment {
+  color: var(--color-text-subtle);
+  font-style: italic;
+}

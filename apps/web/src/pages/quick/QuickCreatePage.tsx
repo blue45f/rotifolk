@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import type { PartyCategory } from '@rotifolk/shared'
 import { api } from '@services/api'
@@ -17,8 +17,16 @@ const TIME_PRESETS = [30, 60, 90, 120, 180] as const
 export default function QuickCreatePage() {
   const navigate = useNavigate()
   const toast = useToast()
+  const [searchParams] = useSearchParams()
+  // 클럽 상세의 "이 클럽으로 파티 열기" CTA가 카테고리와 클럽 이름을 미리 채워 보낸다.
+  const presetCategory = searchParams.get('category')
+  const clubName = searchParams.get('club')
   const { data: venues } = useVenues({ partnered: true })
-  const [category, setCategory] = useState<PartyCategory>('wine')
+  const [category, setCategory] = useState<PartyCategory>(() =>
+    presetCategory && presetCategory !== 'custom' && presetCategory in CATEGORY_META
+      ? (presetCategory as PartyCategory)
+      : 'wine',
+  )
   const [venueId, setVenueId] = useState<string | null>(null)
   const [startInMin, setStartInMin] = useState<number>(60)
   const [maxParticipants, setMax] = useState(8)
@@ -133,7 +141,9 @@ export default function QuickCreatePage() {
           지금, <span className={styles.accent}>한 잔 어때요?</span>
         </h1>
         <p className={styles.lead}>
-          카테고리·시간·장소만 고르면 끝. 친구한테 공유 코드만 던지면 모여요.
+          {clubName
+            ? `${clubName} 멤버와 바로 모입니다. 시간과 장소만 고르면 끝.`
+            : '카테고리·시간·장소만 고르면 끝. 친구한테 공유 코드만 던지면 모여요.'}
         </p>
       </header>
 

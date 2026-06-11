@@ -67,6 +67,17 @@ export const routes: RouteObject[] = [
       { path: 'category/:value', element: lazyPage(() => import('@pages/category/CategoryPage')) },
       { path: 'vibe', element: lazyPage(() => import('@pages/vibe/VibePage')) },
       { path: 'community', element: lazyPage(() => import('@pages/community/CommunityPage')) },
+      { path: 'clubs', element: lazyPage(() => import('@pages/clubs/ClubsPage')) },
+      {
+        path: 'clubs/new',
+        element: <ProtectedRoute />,
+        children: [{ index: true, element: lazyPage(() => import('@pages/clubs/ClubCreatePage')) }],
+      },
+      {
+        path: 'clubs/:clubId',
+        element: lazyPage(() => import('@pages/clubs/ClubDetailPage')),
+      },
+      { path: 'support', element: lazyPage(() => import('@pages/support/SupportPage')) },
       {
         path: 'help/host',
         element: <AliasHelpRedirect topic="host" fromOverride="/help/host" />,
@@ -219,7 +230,13 @@ export const routes: RouteObject[] = [
       {
         path: 'admin',
         element: <ProtectedRoute role="admin" />,
-        children: [{ index: true, element: lazyPage(() => import('@pages/admin/AdminPage')) }],
+        children: [
+          { index: true, element: lazyPage(() => import('@pages/admin/AdminPage')) },
+          {
+            path: 'moderation',
+            element: lazyPage(() => import('@pages/admin/AdminModerationPage')),
+          },
+        ],
       },
       { path: '*', element: lazyPage(() => import('@pages/notfound/NotFoundPage')) },
     ],

@@ -2290,7 +2290,8 @@ export default function AdminPage() {
         <p>
           미처리 신고 {openCount}건, 검토 중 신고 {reviewingCount}건입니다. 우선순위는 ‘미처리 신고
           처리 → 진행 검토 → 조치 완료’이며, 수익 제안은 우측 패널에서 바로 적용해 운영 상태를
-          안정화하세요.
+          안정화하세요. 게시글 숨김·복구·첨부 제거는{' '}
+          <Link to="/admin/moderation">콘텐츠 모더레이션</Link>에서 처리해요.
         </p>
       </header>
 

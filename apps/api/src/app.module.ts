@@ -19,6 +19,8 @@ import { AvatarsModule } from './modules/avatars/avatars.module'
 import { ChatModule } from './modules/chat/chat.module'
 import { SafetyModule } from './modules/safety/safety.module'
 import { CommunityModule } from './modules/community/community.module'
+import { ClubsModule } from './modules/clubs/clubs.module'
+import { ModerationModule } from './modules/moderation/moderation.module'
 import { SavedModule } from './modules/saved/saved.module'
 import { PhotosModule } from './modules/photos/photos.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
@@ -58,6 +60,8 @@ import { SeoModule } from './modules/seo/seo.module'
     ChatModule,
     SafetyModule,
     CommunityModule,
+    ClubsModule,
+    ModerationModule,
     SavedModule,
     PhotosModule,
     NotificationsModule,

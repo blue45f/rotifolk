@@ -14,6 +14,24 @@ const TagSchema = z
   .max(20)
   .transform((value) => value.replace(/^#/, ''))
 
+/**
+ * 게시글 첨부 이미지 캡 — 클라이언트가 긴 변 1600px로 리사이즈한 webp/jpeg면
+ * 보통 100~300KB라 700K 문자(data URL ≈ 512KB 원본)면 충분한 상한이다.
+ * 서버 json 본문 한도(1mb)와 함께 움직인다.
+ */
+export const POST_IMAGE_MAX_LENGTH = 700_000
+
+/**
+ * data URL 형식의 게시글 이미지 — 래스터 포맷 화이트리스트 + 길이 캡.
+ * svg는 스크립트 실행 면이 있어 목록에서 제외한다(XSS 방어).
+ */
+export const PostImageDataSchema = z
+  .string()
+  .regex(/^data:image\/(png|jpe?g|webp|gif|avif);base64,/, {
+    message: 'imageData must be a base64 raster data:image/* URL (svg 제외)',
+  })
+  .max(POST_IMAGE_MAX_LENGTH)
+
 export const CreateCommunityPostSchema = z.object({
   title: z.string().trim().min(6).max(80),
   body: z.string().trim().min(10).max(2000),
@@ -21,6 +39,7 @@ export const CreateCommunityPostSchema = z.object({
   area: z.string().trim().min(1).max(20).optional().nullable(),
   partyId: z.string().min(1).optional().nullable(),
   tags: z.array(TagSchema).max(8).default([]),
+  imageData: PostImageDataSchema.optional().nullable(),
 })
 export type CreateCommunityPostDto = z.infer<typeof CreateCommunityPostSchema>
 
@@ -31,6 +50,8 @@ export const UpdateCommunityPostSchema = z
     category: CommunityPostCategoryEnum.optional(),
     area: z.string().trim().min(1).max(20).optional().nullable(),
     tags: z.array(TagSchema).max(8).optional(),
+    /** null이면 첨부 제거. */
+    imageData: PostImageDataSchema.optional().nullable(),
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: '수정할 내용을 입력해 주세요.',

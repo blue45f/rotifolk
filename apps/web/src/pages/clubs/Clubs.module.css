@@ -1,0 +1,704 @@
+/* 클럽(정기 모임 그룹) — 목록·생성·상세 공용 스타일.
+   기조: 텍스트 + divider가 기본, 원형(로테이션) 모티프는 마크와 멤버 링에만 절제 사용. */
+
+.page {
+  min-height: calc(100dvh - var(--header-h));
+  padding-bottom: calc(var(--bottom-nav-h) + var(--space-12));
+  background: var(--color-bg);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block: var(--space-10) var(--space-6);
+}
+
+.head h1 {
+  font-size: var(--fs-4xl);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
+  color: var(--color-text);
+}
+
+.head p {
+  margin-top: var(--space-2);
+  max-width: var(--max-prose);
+  color: var(--color-text-muted);
+}
+
+.filters {
+  display: grid;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.searchRow {
+  max-width: 360px;
+}
+
+/* ── 목록: divider 행 (카드 그리드 금지) ─────────────────────────── */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rowLink {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-2);
+  color: inherit;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.rowLink:hover {
+  background: color-mix(in oklab, var(--brand-burgundy-700) 4%, transparent);
+}
+
+.rowLink:focus-visible {
+  outline: 2px solid var(--brand-burgundy-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* 카테고리 마크 — 로테이션 모티프: 가는 원형 트랙 위 카테고리 색 점 */
+.mark {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 36%, transparent);
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-lg);
+  background: color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 7%, var(--color-surface));
+}
+
+.mark::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: var(--club-accent, var(--brand-burgundy-700));
+}
+
+.rowBody {
+  min-width: 0;
+}
+
+.rowTitleLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.rowTitleLine strong {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.rowDesc {
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.rowMeta {
+  margin-top: var(--space-1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-xs);
+}
+
+.joined {
+  color: var(--brand-burgundy-700);
+  font-weight: var(--fw-semibold);
+}
+
+.rowAside {
+  color: var(--color-text-subtle);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+
+.pager {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  padding-block: var(--space-6);
+}
+
+.stateBlock {
+  padding-block: var(--space-10);
+}
+
+/* ── 생성 폼 ─────────────────────────────────────────────────────── */
+
+.formNarrow {
+  max-width: 560px;
+  display: grid;
+  gap: var(--space-6);
+  padding-block: var(--space-4) var(--space-10);
+}
+
+.fieldLabel {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.fieldHint {
+  margin-top: var(--space-1);
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+}
+
+.fieldError {
+  margin-top: var(--space-1);
+  font-size: var(--fs-xs);
+  color: var(--color-danger);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.textarea:focus-visible {
+  outline: 2px solid var(--brand-burgundy-400);
+  outline-offset: 2px;
+}
+
+.counter {
+  text-align: right;
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+  margin-top: var(--space-1);
+}
+
+.visibilityGroup {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.visibilityOption {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.visibilityOption:has(input:checked) {
+  border-color: var(--brand-burgundy-700);
+  background: color-mix(in oklab, var(--brand-burgundy-700) 5%, var(--color-surface));
+}
+
+.visibilityOption input {
+  margin-top: 3px;
+  accent-color: var(--brand-burgundy-700);
+}
+
+.visibilityOption strong {
+  display: block;
+  color: var(--color-text);
+}
+
+.visibilityOption span {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.formActions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* ── 상세 ────────────────────────────────────────────────────────── */
+
+.detailHead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: center;
+  padding-block: var(--space-10) var(--space-6);
+}
+
+@media (max-width: 640px) {
+  .detailHead {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 멤버 링 — 원탁(로테이션) 모티프. 초기 멤버 이니셜이 원 둘레에 앉는다. */
+.memberRing {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 38%, transparent);
+  display: grid;
+  place-items: center;
+}
+
+.ringCenter {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-2xl);
+  background: color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 10%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 30%, transparent);
+}
+
+.ringSeat {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-fg);
+  background: var(--brand-burgundy-700);
+  border: 2px solid var(--color-bg);
+  transform: rotate(var(--seat-angle)) translateY(-66px) rotate(calc(-1 * var(--seat-angle)));
+}
+
+.ringSeatMore {
+  background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+}
+
+.detailTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.detailTitleRow h1 {
+  font-size: var(--fs-3xl);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
+}
+
+.detailDesc {
+  margin-top: var(--space-2);
+  max-width: var(--max-prose);
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
+}
+
+.detailMetaLine {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-sm);
+}
+
+.detailActions {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.sectionGap {
+  margin-top: var(--space-6);
+}
+
+/* 게시판 */
+
+.lockedNote {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-6) var(--space-2);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.composer {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+.composerInput {
+  width: 100%;
+  height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.composerInput:focus-visible,
+.replyArea:focus-visible {
+  outline: 2px solid var(--brand-burgundy-400);
+  outline-offset: 2px;
+}
+
+.composerFootRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.attachPreview {
+  position: relative;
+  width: fit-content;
+}
+
+.attachPreview img {
+  max-width: 220px;
+  max-height: 140px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  display: block;
+}
+
+.postList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.postRow {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.postRowBtn {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  text-align: left;
+  padding: var(--space-4) var(--space-2);
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.postRowBtn:hover {
+  background: color-mix(in oklab, var(--brand-burgundy-700) 4%, transparent);
+}
+
+.postRowBtn:focus-visible {
+  outline: 2px solid var(--brand-burgundy-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.postRowBtn strong {
+  display: block;
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+.postRowMeta {
+  margin-top: 2px;
+  color: var(--color-text-subtle);
+  font-size: var(--fs-xs);
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.postRowCount {
+  color: var(--color-text-subtle);
+  font-size: var(--fs-sm);
+  white-space: nowrap;
+}
+
+/* 글 상세 */
+
+.postDetail {
+  margin-top: var(--space-5);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+.postDetailHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.postDetailHead h3 {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-snug);
+}
+
+.postDetailMeta {
+  margin-top: var(--space-1);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-xs);
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.postBody {
+  margin-top: var(--space-4);
+  white-space: pre-wrap;
+  line-height: var(--lh-relaxed);
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.postImage {
+  margin-top: var(--space-4);
+  max-width: 100%;
+  max-height: 420px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+/* 댓글 */
+
+.commentForm {
+  margin-top: var(--space-5);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.replyArea {
+  width: 100%;
+  min-height: 72px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.commentActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+}
+
+.commentList {
+  margin-top: var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.comment {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+
+.commentAuthorLine {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.commentAuthorLine strong {
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+}
+
+.commentAuthorLine time {
+  font-size: var(--fs-xs);
+  color: var(--color-text-subtle);
+}
+
+.commentBody {
+  margin-top: var(--space-1);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+}
+
+.commentDeleted {
+  margin-top: var(--space-1);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-sm);
+  font-style: italic;
+}
+
+.commentMetaRow {
+  margin-top: var(--space-1);
+  display: flex;
+  gap: var(--space-3);
+}
+
+.commentMetaRow button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--color-text-subtle);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+
+.commentMetaRow button:hover {
+  color: var(--brand-burgundy-700);
+  text-decoration: underline;
+}
+
+/* 1단 답글 들여쓰기 — 원형 connector로 로테이션 모티프를 한 번 더 약하게 */
+.replies {
+  margin-top: var(--space-3);
+  margin-left: var(--space-5);
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--color-border);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.replyItem {
+  position: relative;
+}
+
+.replyItem::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-4) - 3.5px);
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--brand-burgundy-700) 45%, var(--color-bg));
+}
+
+.replyForm {
+  margin-top: var(--space-2);
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* 멤버 탭 */
+
+.memberList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.memberRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.memberAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary-fg);
+  background: var(--brand-burgundy-700);
+}
+
+.memberName {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text);
+}
+
+.memberSince {
+  color: var(--color-text-subtle);
+  font-size: var(--fs-xs);
+}
+
+.aboutBlock {
+  max-width: var(--max-prose);
+  display: grid;
+  gap: var(--space-4);
+  color: var(--color-text);
+}
+
+.aboutBlock dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-5);
+  font-size: var(--fs-sm);
+}
+
+.aboutBlock dt {
+  color: var(--color-text-subtle);
+}

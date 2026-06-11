@@ -25,6 +25,8 @@ export function SiteFooter() {
           <Link to={`/policies?from=${encodedCurrentPath}`}>{t('nav.policies')}</Link>
           <Link to={`/help?from=${encodedCurrentPath}`}>{t('nav.help')}</Link>
           <Link to={`/community?from=${encodedCurrentPath}`}>{t('nav.community')}</Link>
+          <Link to="/clubs">{t('nav.clubs')}</Link>
+          <Link to="/support">{t('footer.support')}</Link>
         </nav>
         <p className={styles.copyright}>© {year} rotifolk</p>
       </div>
