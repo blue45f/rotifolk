@@ -94,6 +94,20 @@ class PhotosController {
     if (!url) {
       throw new BadRequestException({ code: 'invalid_url', message: '사진 URL이 필요해요' })
     }
+    // 저장형 XSS 차단 — 다른 참가자 브라우저에서 <a href>로 렌더되므로
+    // http(s) 외 스킴(javascript:, data: 등)은 저장 자체를 거부한다.
+    let parsedUrl: URL
+    try {
+      parsedUrl = new URL(url)
+    } catch {
+      throw new BadRequestException({ code: 'invalid_url', message: '올바른 URL 형식이 아니에요' })
+    }
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      throw new BadRequestException({
+        code: 'invalid_url',
+        message: 'http(s) URL만 등록할 수 있어요',
+      })
+    }
 
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!party) {
