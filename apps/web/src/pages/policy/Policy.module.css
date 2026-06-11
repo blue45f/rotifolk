@@ -1,0 +1,188 @@
+.page {
+  width: 100%;
+  max-width: var(--max-prose);
+  margin-inline: auto;
+  padding-inline: clamp(var(--space-3), 4vw, var(--space-8));
+  padding-block: var(--space-10) var(--space-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.title {
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-tight);
+  text-wrap: balance;
+}
+
+/* —— 로딩 스켈레톤 —— */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.skeletonLine {
+  height: 0.9rem;
+  border-radius: var(--radius-xs);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-soft) 25%,
+    color-mix(in oklab, var(--color-surface-soft) 60%, var(--color-surface)) 50%,
+    var(--color-surface-soft) 75%
+  );
+  background-size: 200% 100%;
+  animation: policy-shimmer 1.4s var(--ease-in-out) infinite;
+}
+
+.skeletonLine:nth-child(1),
+.skeletonLine:nth-child(5) {
+  height: 1.15rem;
+  margin-top: var(--space-3);
+}
+
+@keyframes policy-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* —— 본문 —— */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.bodyHeading {
+  margin-top: var(--space-5);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
+}
+
+.body .bodyHeading:first-child {
+  margin-top: 0;
+}
+
+.bodyParagraph {
+  color: var(--color-text);
+  line-height: var(--lh-relaxed);
+  white-space: pre-line;
+}
+
+.bodyList {
+  list-style: disc;
+  padding-left: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+ol.bodyList {
+  list-style: decimal;
+}
+
+.bodyList li {
+  color: var(--color-text);
+  line-height: var(--lh-normal);
+}
+
+.divider {
+  border: none;
+  border-top: 1px dashed var(--color-border);
+}
+
+/* —— 신뢰 표면(버전·시행일·해시·원문) —— */
+.trust {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-5);
+}
+
+.trustList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  margin: 0;
+}
+
+.trustItem {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+}
+
+.trustItem dt {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-subtle);
+}
+
+.trustItem dd {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.hash {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  padding: 0.1rem 0.4rem;
+}
+
+.sourceNote {
+  margin: 0;
+  font-size: var(--fs-sm);
+}
+
+.errorActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.externalLink {
+  color: var(--color-primary);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+
+.externalLink:hover {
+  text-decoration: underline;
+}
+
+/* —— 문서 간 이동 —— */
+.docNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-5);
+}
+
+.docNavLink {
+  color: var(--color-primary);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+
+.docNavLink:hover {
+  text-decoration: underline;
+}
