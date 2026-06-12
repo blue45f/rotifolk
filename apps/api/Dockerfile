@@ -21,7 +21,7 @@
 # --------------------------------------------------------------------------
 # 1. deps — install the full workspace (native modules need a build toolchain)
 # --------------------------------------------------------------------------
-FROM node:22-alpine AS deps
+FROM node:24-alpine AS deps
 WORKDIR /repo
 RUN corepack enable
 # better-sqlite3 and argon2 may compile from source on alpine/musl.
@@ -61,7 +61,7 @@ RUN GEN_SRC=$(node -e "const p=require.resolve('@prisma/client',{paths:['/repo/a
 # --------------------------------------------------------------------------
 # 3. runtime — minimal prod image
 # --------------------------------------------------------------------------
-FROM node:22-alpine AS runtime
+FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 # libc6-compat: prebuilt native binaries (better-sqlite3/argon2) expect glibc shims.
