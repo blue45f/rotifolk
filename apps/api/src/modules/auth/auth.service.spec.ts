@@ -23,6 +23,7 @@ type MockUserRow = {
   passwordHash: string
   nickname: string
   role: string
+  accountStatus: string
   avatarId: string | null
   // toPublicUser reads many nullable columns + JSON strings + Dates.
   bio: string | null
@@ -64,6 +65,7 @@ function makeUserRow(overrides: Partial<MockUserRow> = {}): MockUserRow {
     passwordHash: 'PLACEHOLDER',
     nickname: 'alice',
     role: 'host',
+    accountStatus: 'active',
     avatarId: 'av_1',
     bio: null,
     gender: null,
@@ -236,6 +238,22 @@ describe('AuthService (critical auth path)', () => {
       // Identical machine-readable code so the response can't be used to enumerate accounts.
       expect((unknownErr.getResponse() as { code: string }).code).toBe('invalid_credentials')
       expect((wrongErr.getResponse() as { code: string }).code).toBe('invalid_credentials')
+    })
+
+    it('rejects withdrawn accounts even when credentials are valid', async () => {
+      const passwordHash = await argon2.hash('correct-horse')
+      const prisma = makePrismaMock({
+        existingByEmail: makeUserRow({ passwordHash, accountStatus: 'withdrawn' }),
+      })
+      const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
+
+      const err = await service
+        .login({ email: 'alice@example.com', password: 'correct-horse' } as never)
+        .catch((e) => e)
+
+      expect(err).toBeInstanceOf(UnauthorizedException)
+      expect((err.getResponse() as { code: string }).code).toBe('account_inactive')
+      expect(jwtMock.sign).not.toHaveBeenCalled()
     })
   })
 })

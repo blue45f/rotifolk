@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import * as argon2 from 'argon2'
 import { PrismaService } from '@/prisma/prisma.service'
+import { inactiveAccountException, isAccountActive } from '@/common/account-status'
 import type { LoginDto, SignUpDto } from '@rotifolk/shared'
 import { toPublicUser } from '../users/user.mapper'
 
@@ -219,6 +220,7 @@ export class AuthService {
         code: 'user_not_found',
         message: '사용자를 찾을 수 없어요',
       })
+    this.assertActiveAccount(user.accountStatus)
     return { user: toPublicUser(user) }
   }
 
@@ -263,7 +265,14 @@ export class AuthService {
     return { claimed }
   }
 
-  private issueSession(user: { id: string; email: string; role: string; nickname: string }) {
+  private issueSession(user: {
+    id: string
+    email: string
+    role: string
+    nickname: string
+    accountStatus: string
+  }) {
+    this.assertActiveAccount(user.accountStatus)
     const token = this.jwt.sign({
       sub: user.id,
       email: user.email,
@@ -271,6 +280,10 @@ export class AuthService {
       nickname: user.nickname,
     })
     return { token, user: toPublicUser(user as never) }
+  }
+
+  private assertActiveAccount(status: string | null | undefined) {
+    if (!isAccountActive(status)) throw inactiveAccountException()
   }
 
   private makeDefaultAvatar(nickname: string) {
