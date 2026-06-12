@@ -6,8 +6,35 @@ import Loading from '@components/feedback/Loading'
 import ProtectedRoute from './ProtectedRoute'
 import { AliasHelpRedirect, AliasPoliciesRedirect } from './AliasRedirects'
 
+const CHUNK_RETRY_KEY = 'rotifolk-chunk-retry'
+
+/**
+ * `lazy()` with one-shot recovery for chunk-load failures (stale deploys).
+ * The first failure marks sessionStorage and reloads to pick up fresh assets;
+ * the marker survives the reload and is cleared only by a successful load, so
+ * a genuinely broken chunk surfaces in the route error boundary instead of
+ * looping reloads.
+ */
+function lazyRetry<T extends ComponentType>(factory: () => Promise<{ default: T }>) {
+  return lazy(async () => {
+    try {
+      const mod = await factory()
+      sessionStorage.removeItem(CHUNK_RETRY_KEY)
+      return mod
+    } catch (error) {
+      if (!sessionStorage.getItem(CHUNK_RETRY_KEY)) {
+        sessionStorage.setItem(CHUNK_RETRY_KEY, '1')
+        window.location.reload()
+        // Stay pending — the reload takes over this document.
+        return new Promise<never>(() => {})
+      }
+      throw error
+    }
+  })
+}
+
 function lazyPage(loader: () => Promise<{ default: ComponentType }>) {
-  const C = lazy(loader)
+  const C = lazyRetry(loader)
   return (
     <Suspense fallback={<Loading />}>
       <C />

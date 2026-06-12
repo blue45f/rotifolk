@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { LoginSchema } from '@rotifolk/shared'
@@ -10,6 +10,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
 import { useToast } from '@components/feedback/Toast/useToast'
+import { usePrompt } from '@components/feedback/Prompt/usePrompt'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
@@ -39,6 +40,7 @@ export default function LoginPage() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const toast = useToast()
+  const prompt = usePrompt()
   const setSession = useAuthStore((s) => s.setSession)
   const authConfig = useAuthConfig()
   const googleLogin = useGoogleLogin()
@@ -74,7 +76,9 @@ export default function LoginPage() {
     setValue,
     formState: { errors },
   } = useForm<LoginDto>({
-    resolver: zodResolver(LoginSchema),
+    resolver: zodResolver(
+      LoginSchema as unknown as Parameters<typeof zodResolver>[0],
+    ) as unknown as Resolver<LoginDto>,
     defaultValues: isDemoMode
       ? {
           email: DEMO_ACCOUNT.email,
@@ -112,9 +116,17 @@ export default function LoginPage() {
 
   const handleKakao = async () => {
     if (kakaoLoading) return
-    const input = window.prompt('닉네임을 입력해주세요')
+    const input = await prompt({
+      title: '카카오로 시작하기',
+      description: '데모 환경이라 실제 카카오 인증 없이 닉네임만 정하면 돼요.',
+      label: '닉네임을 입력해주세요',
+      placeholder: '2~16자, 비우면 랜덤 닉네임',
+      confirmLabel: '입장하기',
+      maxLength: 16,
+    })
+    if (input === null) return
     const nickname =
-      input && input.trim().length >= 2
+      input.trim().length >= 2
         ? input.trim().slice(0, 16)
         : `카카오${Math.floor(Math.random() * 9000 + 1000)}`
     const kakaoId =
