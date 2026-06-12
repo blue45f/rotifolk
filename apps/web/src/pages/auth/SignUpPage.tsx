@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useLocation, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { SignUpSchema } from '@rotifolk/shared'
@@ -53,7 +53,11 @@ export default function SignUpPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignUpDto>({ resolver: zodResolver(SignUpSchema) })
+  } = useForm<SignUpDto>({
+    resolver: zodResolver(
+      SignUpSchema as unknown as Parameters<typeof zodResolver>[0],
+    ) as unknown as Resolver<SignUpDto>,
+  })
 
   return (
     <div className={styles.page}>

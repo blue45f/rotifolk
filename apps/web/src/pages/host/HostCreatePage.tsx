@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useForm, useFieldArray, Controller, useWatch } from 'react-hook-form'
+import { useForm, useFieldArray, Controller, useWatch, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import type {
@@ -231,7 +231,9 @@ export default function HostCreatePage() {
     reset,
     formState: { errors },
   } = useForm<CreatePartyDto>({
-    resolver: zodResolver(CreatePartySchema) as never,
+    resolver: zodResolver(
+      CreatePartySchema as unknown as Parameters<typeof zodResolver>[0],
+    ) as unknown as Resolver<CreatePartyDto>,
     defaultValues: withDraft(draft) as never,
   })
 

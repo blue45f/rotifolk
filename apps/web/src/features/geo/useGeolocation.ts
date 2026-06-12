@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 interface GeoState {
   status: 'idle' | 'pending' | 'granted' | 'denied' | 'unsupported'
@@ -29,7 +29,7 @@ export function useGeolocation(autoRequest = false): GeoState & { request: () =>
     return cached ? { status: 'granted', coords: cached } : { status: 'idle' }
   })
 
-  const request = () => {
+  const request = useCallback(() => {
     if (!('geolocation' in navigator)) {
       setState({ status: 'unsupported' })
       return
@@ -46,14 +46,13 @@ export function useGeolocation(autoRequest = false): GeoState & { request: () =>
       (err) => setState({ status: 'denied', error: err.message }),
       { enableHighAccuracy: false, maximumAge: 60_000 * 30, timeout: 8000 },
     )
-  }
+  }, [])
 
   useEffect(() => {
     if (!autoRequest || state.status !== 'idle') return
     const timer = window.setTimeout(request, 0)
     return () => window.clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoRequest])
+  }, [autoRequest, state.status, request])
 
   return { ...state, request }
 }

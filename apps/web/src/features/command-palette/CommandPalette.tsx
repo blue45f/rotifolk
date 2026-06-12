@@ -562,7 +562,6 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
               className={styles.list}
             >
               {(() => {
-                let index = -1
                 return groupedCommands.flatMap((section) => {
                   const rows = [
                     <li key={`${section.key}-label`} className={styles.groupLabel}>
@@ -576,8 +575,8 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
                   ]
 
                   for (const item of section.items) {
-                    index += 1
-                    const isActive = activeIndex === index
+                    const itemIndex = flat.indexOf(item)
+                    const isActive = activeIndex === itemIndex
                     rows.push(
                       <li key={item.id}>
                         <button
@@ -586,7 +585,7 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
                           id={item.id}
                           aria-selected={isActive}
                           className={`${styles.option} ${isActive ? styles.optionActive : ''}`}
-                          onMouseMove={() => setActiveIndex(index)}
+                          onMouseMove={() => setActiveIndex(itemIndex)}
                           onMouseDown={(e) => e.preventDefault()}
                           onClick={() => go(item)}
                         >

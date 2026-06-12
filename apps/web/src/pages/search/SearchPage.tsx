@@ -33,33 +33,29 @@ export default function SearchPage() {
   const { items: recents, remember, forget, clearAll } = useRecentSearches()
   const blurTimer = useRef<number | null>(null)
 
-  useEffect(() => {
-    if (urlQuery !== input) {
-      let cancelled = false
-      queueMicrotask(() => {
-        if (cancelled) return
-        setInput(urlQuery)
-        setDebounced(urlQuery)
-      })
-      return () => {
-        cancelled = true
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlQuery])
+  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery)
+  if (urlQuery !== prevUrlQuery) {
+    setPrevUrlQuery(urlQuery)
+    setInput(urlQuery)
+    setDebounced(urlQuery)
+  }
 
   useEffect(() => {
     const handle = setTimeout(() => {
       setDebounced(input)
-      const next = new URLSearchParams(params)
-      const trimmed = input.trim()
-      if (trimmed) next.set('q', trimmed)
-      else next.delete('q')
-      setParams(next, { replace: true })
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          const trimmed = input.trim()
+          if (trimmed) next.set('q', trimmed)
+          else next.delete('q')
+          return next
+        },
+        { replace: true },
+      )
     }, 200)
     return () => clearTimeout(handle)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input])
+  }, [input, setParams])
 
   // remember a search 1.2s after it stops changing, so we don't store every keystroke
   useEffect(() => {

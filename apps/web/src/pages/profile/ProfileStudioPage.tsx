@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
+import { useForm, useFieldArray, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CONNECTION_CHANNELS,
@@ -120,7 +120,9 @@ function ProfileTab() {
   const [idealDraft, setIdealDraft] = useState('')
 
   const { control, register, handleSubmit } = useForm<ProfileFormValues>({
-    resolver: zodResolver(PreProfileSchema) as never,
+    resolver: zodResolver(
+      PreProfileSchema as unknown as Parameters<typeof zodResolver>[0],
+    ) as unknown as Resolver<ProfileFormValues>,
     defaultValues: {
       oneLiner: initial.oneLiner ?? '',
       lookingFor: initial.lookingFor ?? '',

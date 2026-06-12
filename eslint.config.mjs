@@ -1,3 +1,4 @@
+import reactCompiler from 'eslint-plugin-react-compiler';
 import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -109,4 +110,14 @@ export default defineConfig([
       'react-refresh/only-export-components': 'off',
     },
   },
-])
+],
+  {
+    files: ['apps/web/**/*.{ts,tsx}'],
+    plugins: {
+      'react-compiler': reactCompiler
+    },
+    rules: {
+      'react-compiler/react-compiler': 'error'
+    }
+  }
+)

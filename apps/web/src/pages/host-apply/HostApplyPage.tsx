@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useForm, Controller, useWatch } from 'react-hook-form'
+import { useForm, Controller, useWatch, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from 'react-router-dom'
@@ -87,7 +87,9 @@ export default function HostApplyPage() {
     reset,
     formState: { errors, isSubmitted },
   } = useForm<HostApplyFormValues>({
-    resolver: zodResolver(HostApplyFormSchema),
+    resolver: zodResolver(
+      HostApplyFormSchema as unknown as Parameters<typeof zodResolver>[0],
+    ) as unknown as Resolver<HostApplyFormValues>,
     defaultValues: HOST_APPLY_DEFAULTS,
     mode: 'onSubmit',
   })
