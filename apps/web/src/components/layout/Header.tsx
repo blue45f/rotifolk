@@ -12,7 +12,6 @@ import styles from './Header.module.css'
 
 interface HeaderProps {
   onOpenCommand?: () => void
-  onOpenOnboarding?: () => void
 }
 
 type ThemeOption = {
@@ -27,7 +26,7 @@ const THEME_OPTIONS: ThemeOption[] = [
   { value: 'system', labelKey: 'theme.system', emoji: '🖥️' },
 ]
 
-export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
+export function Header({ onOpenCommand }: HeaderProps) {
   const user = useAuthStore((s) => s.user)
   const isAdmin = user?.role === 'admin'
   const theme = useThemeStore((s) => s.theme)
@@ -87,44 +86,12 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
           <NavLink to="/discover" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.discover')}
           </NavLink>
-          <NavLink to="/venues" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('nav.venues')}
+          <NavLink to="/quick" className={({ isActive }) => (isActive ? styles.active : '')}>
+            {t('nav.quick')}
           </NavLink>
-          <NavLink
-            to={`/community?from=${encodedCurrentPath}`}
-            className={({ isActive }) => (isActive ? styles.active : '')}
-          >
-            {t('nav.community')}
+          <NavLink to="/host" className={({ isActive }) => (isActive ? styles.active : '')}>
+            {t('nav.hosting')}
           </NavLink>
-          <NavLink to="/clubs" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('nav.clubs')}
-          </NavLink>
-          <NavLink to="/digest" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('nav.digest')}
-          </NavLink>
-          <NavLink
-            to={`/help?from=${encodedCurrentPath}`}
-            className={({ isActive }) => (isActive ? styles.active : '')}
-          >
-            {t('nav.help')}
-          </NavLink>
-          <NavLink
-            to={`/tutorial?from=${encodedCurrentPath}`}
-            className={({ isActive }) => (isActive ? styles.active : '')}
-          >
-            {t('nav.tutorial')}
-          </NavLink>
-          <NavLink
-            to={`/policies?from=${encodedCurrentPath}`}
-            className={({ isActive }) => (isActive ? styles.active : '')}
-          >
-            {t('nav.policies')}
-          </NavLink>
-          {user && (
-            <NavLink to="/host" className={({ isActive }) => (isActive ? styles.active : '')}>
-              {t('nav.host')}
-            </NavLink>
-          )}
           {isAdmin && (
             <NavLink to="/admin" className={({ isActive }) => (isActive ? styles.active : '')}>
               관리자
@@ -133,18 +100,6 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
         </nav>
 
         <div className={styles.actions}>
-          {onOpenCommand && onOpenOnboarding && (
-            <button
-              type="button"
-              className={styles.commandBtn}
-              onClick={() => onOpenOnboarding()}
-              aria-label={t('command.quick.onboarding')}
-              title={t('command.quick.onboarding')}
-            >
-              🧭
-              <span className={styles.commandBtnHint}>튜토리얼</span>
-            </button>
-          )}
           {!user && (
             <Link to={demoLoginHref} className={styles.commandBtn} aria-label="데모 계정 빠른 시작">
               <span aria-hidden="true">🎁</span>
