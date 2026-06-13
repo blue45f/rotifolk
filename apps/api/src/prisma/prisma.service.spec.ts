@@ -7,8 +7,8 @@ const mocks = vi.hoisted(() => ({
   prismaClientConstructor: vi.fn(),
 }))
 
-vi.mock('@prisma/adapter-better-sqlite3', () => ({
-  PrismaBetterSqlite3: class PrismaBetterSqlite3 {
+vi.mock('@prisma/adapter-pg', () => ({
+  PrismaPg: class PrismaPg {
     constructor(options: unknown) {
       mocks.adapterConstructor(options)
     }
@@ -40,13 +40,13 @@ describe('PrismaService', () => {
     }
   })
 
-  it('passes DATABASE_URL to the better-sqlite3 adapter', () => {
-    process.env.DATABASE_URL = 'file:/tmp/rotifolk-test.db'
+  it('passes DATABASE_URL to the pg adapter', () => {
+    process.env.DATABASE_URL = 'postgresql://user:pass@host/db?sslmode=require'
 
     new PrismaService()
 
     expect(mocks.adapterConstructor).toHaveBeenCalledWith({
-      url: 'file:/tmp/rotifolk-test.db',
+      connectionString: 'postgresql://user:pass@host/db?sslmode=require',
     })
     expect(mocks.prismaClientConstructor).toHaveBeenCalledWith({
       adapter: expect.any(Object),
@@ -59,7 +59,7 @@ describe('PrismaService', () => {
     new PrismaService()
 
     expect(mocks.adapterConstructor).toHaveBeenCalledWith({
-      url: 'file:./prisma/dev.db',
+      connectionString: 'postgresql://localhost:5432/rotifolk',
     })
   })
 
