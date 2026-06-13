@@ -13,6 +13,7 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './QuickCreate.module.css'
 
 const TIME_PRESETS = [30, 60, 90, 120, 180] as const
+const PEOPLE_PRESETS = [4, 6, 8, 10, 12] as const
 
 export default function QuickCreatePage() {
   const navigate = useNavigate()
@@ -96,7 +97,7 @@ export default function QuickCreatePage() {
           <div className={styles.successEmoji} aria-hidden="true">
             {cat.emoji}
           </div>
-          <h1 className={styles.successTitle}>🎉 모임이 열렸어요!</h1>
+          <h1 className={styles.successTitle}>모임이 열렸어요!</h1>
           <p className={styles.successLead}>
             아래 초대 코드를 친구에게 공유하면 바로 참여할 수 있어요.
           </p>
@@ -109,20 +110,36 @@ export default function QuickCreatePage() {
           >
             <span className={styles.codeLabel}>초대 코드</span>
             <span className={styles.codeValue}>{createdParty.quickCode}</span>
-            <span className={styles.codeHint}>{copied ? '✓ 복사됨' : '탭하면 복사돼요'}</span>
+            <span className={styles.codeHint}>
+              {copied ? (
+                <>
+                  <Icon name="check" size={0.9} className={styles.codeHintIcon} aria-hidden />
+                  복사됨
+                </>
+              ) : (
+                '탭하면 복사돼요'
+              )}
+            </span>
           </button>
 
           <div className={styles.successActions}>
             <Button
               size="xl"
-              variant="gold"
+              variant="primary"
               fullWidth
               onClick={() => navigate(`/host/parties/${createdParty.id}`)}
+              rightIcon={<Icon name="chevron-right" />}
             >
-              호스트 콘솔로 이동 →
+              호스트 콘솔로 이동
             </Button>
-            <Button variant="ghost" size="md" fullWidth onClick={handleShare}>
-              ↗ 친구에게 공유
+            <Button
+              variant="ghost"
+              size="md"
+              fullWidth
+              onClick={handleShare}
+              leftIcon={<Icon name="mail" />}
+            >
+              친구에게 공유
             </Button>
           </div>
         </div>
@@ -134,8 +151,8 @@ export default function QuickCreatePage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <Badge tone="gold" size="md">
-          <Icon name="bolt" size={0.95} style={{ marginRight: '4px', verticalAlign: 'middle' }} />{' '}
-          1분 만에 즉석 모임
+          <Icon name="bolt" size={0.95} className={styles.badgeIcon} aria-hidden /> 1분 만에 즉석
+          모임
         </Badge>
         <h1 className={styles.title}>
           지금, <span className={styles.accent}>한 잔 어때요?</span>
@@ -148,15 +165,25 @@ export default function QuickCreatePage() {
       </header>
 
       <main className={styles.body}>
-        <motion.div className={styles.preview} style={{ background: cat.bgGradient }} layout>
+        <motion.div
+          className={styles.preview}
+          style={{ background: cat.bgGradient }}
+          layout
+          aria-hidden="true"
+        >
           <div className={styles.previewEmoji}>{cat.emoji}</div>
           <h2>{cat.label}</h2>
           <p>{cat.description}</p>
         </motion.div>
 
         <Card padding="lg" className={styles.config}>
-          <section>
-            <h3 className={styles.h3}>1️⃣ 어떤 잔으로?</h3>
+          <fieldset className={styles.step}>
+            <legend className={styles.legend}>
+              <span className={styles.stepNum} aria-hidden="true">
+                1
+              </span>
+              어떤 잔으로?
+            </legend>
             <div className={styles.catRow}>
               {ALL_CATEGORIES.filter((c) => c.value !== 'custom').map((c) => (
                 <button
@@ -166,15 +193,22 @@ export default function QuickCreatePage() {
                   onClick={() => setCategory(c.value)}
                   aria-pressed={category === c.value}
                 >
-                  <span>{c.emoji}</span>
+                  <span className={styles.catEmoji} aria-hidden="true">
+                    {c.emoji}
+                  </span>
                   <span>{c.shortLabel}</span>
                 </button>
               ))}
             </div>
-          </section>
+          </fieldset>
 
-          <section>
-            <h3 className={styles.h3}>2️⃣ 어디서?</h3>
+          <fieldset className={styles.step}>
+            <legend className={styles.legend}>
+              <span className={styles.stepNum} aria-hidden="true">
+                2
+              </span>
+              어디서?
+            </legend>
             <div className={styles.venueRow}>
               {(venues ?? []).map((v) => (
                 <button
@@ -182,20 +216,24 @@ export default function QuickCreatePage() {
                   key={v.id}
                   className={`${styles.venueChip} ${venueId === v.id ? styles.venueActive : ''}`}
                   onClick={() => setVenueId(v.id)}
+                  aria-pressed={venueId === v.id}
                 >
-                  <Icon
-                    name="pin"
-                    size={0.9}
-                    style={{ marginRight: '4px', verticalAlign: 'middle' }}
-                  />{' '}
-                  {v.area} · <strong>{v.name}</strong>
+                  <Icon name="pin" size={0.9} className={styles.chipIcon} aria-hidden />
+                  <span>
+                    {v.area} · <strong>{v.name}</strong>
+                  </span>
                 </button>
               ))}
             </div>
-          </section>
+          </fieldset>
 
-          <section>
-            <h3 className={styles.h3}>3️⃣ 언제 시작할까요?</h3>
+          <fieldset className={styles.step}>
+            <legend className={styles.legend}>
+              <span className={styles.stepNum} aria-hidden="true">
+                3
+              </span>
+              언제 시작할까요?
+            </legend>
             <div className={styles.timeRow}>
               {TIME_PRESETS.map((m) => (
                 <button
@@ -203,41 +241,56 @@ export default function QuickCreatePage() {
                   key={m}
                   className={`${styles.timeBtn} ${startInMin === m ? styles.timeActive : ''}`}
                   onClick={() => setStartInMin(m)}
+                  aria-pressed={startInMin === m}
                 >
                   <strong>{m < 60 ? `${m}분` : `${m / 60}시간`}</strong>
                   <span>뒤</span>
                 </button>
               ))}
             </div>
-          </section>
+          </fieldset>
 
-          <section>
-            <h3 className={styles.h3}>4️⃣ 정원</h3>
+          <fieldset className={styles.step}>
+            <legend className={styles.legend}>
+              <span className={styles.stepNum} aria-hidden="true">
+                4
+              </span>
+              정원
+            </legend>
             <div className={styles.peopleRow}>
-              {[4, 6, 8, 10, 12].map((n) => (
+              {PEOPLE_PRESETS.map((n) => (
                 <button
                   type="button"
                   key={n}
                   className={`${styles.peopleBtn} ${maxParticipants === n ? styles.peopleActive : ''}`}
                   onClick={() => setMax(n)}
+                  aria-pressed={maxParticipants === n}
                 >
                   {n}명
                 </button>
               ))}
             </div>
-          </section>
+          </fieldset>
 
-          <Button
-            size="xl"
-            variant="gold"
-            fullWidth
-            onClick={handleCreate}
-            isLoading={creating}
-            disabled={!venueId}
-            leftIcon={<Icon name="bolt" />}
-          >
-            지금 모임 열기
-          </Button>
+          <div className={styles.submitRow}>
+            {!venueId && (
+              <p className={styles.submitHint} role="status">
+                <Icon name="pin" size={0.9} className={styles.chipIcon} aria-hidden />
+                장소를 선택하면 모임을 열 수 있어요
+              </p>
+            )}
+            <Button
+              size="xl"
+              variant="primary"
+              fullWidth
+              onClick={handleCreate}
+              isLoading={creating}
+              disabled={!venueId}
+              leftIcon={<Icon name="bolt" />}
+            >
+              지금 모임 열기
+            </Button>
+          </div>
         </Card>
       </main>
     </div>
