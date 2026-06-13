@@ -15,6 +15,7 @@ import {
 } from '@features/inquiry/inquiries'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
+import { Icon } from '@components/ui/Icon/Icon'
 import styles from './Support.module.css'
 
 function formatReceiptDate(value: string) {
@@ -79,34 +80,40 @@ export default function SupportPage() {
     return (
       <main className={styles.page}>
         <div className="container">
-          <header className={styles.head}>
-            <h1>문의가 접수됐어요</h1>
-            <p>
-              남겨주신 내용은 운영팀만 볼 수 있어요. 회신 이메일을 적었다면 그쪽으로 답을 드려요.
-            </p>
-          </header>
-          <section className={styles.receipt} aria-label="접수 영수증">
-            <span className={styles.receiptSeal} aria-hidden="true">
-              ✓
-            </span>
-            <h2>접수 영수증</h2>
-            <dl>
-              <dt>접수 번호</dt>
-              <dd>{receipt.id}</dd>
-              <dt>분류</dt>
-              <dd>{INQUIRY_CATEGORY_COPY[receipt.category]?.label ?? receipt.category}</dd>
-              <dt>상태</dt>
-              <dd>{RECEIPT_STATUS_LABEL[receipt.status] ?? receipt.status}</dd>
-              <dt>접수 시각</dt>
-              <dd>{formatReceiptDate(receipt.createdAt)}</dd>
-            </dl>
-            <div className={styles.actions}>
-              <Button variant="soft" onClick={resetForm}>
-                다른 문의 보내기
-              </Button>
-              <Link to="/">홈으로</Link>
-            </div>
-          </section>
+          <div className={styles.shell}>
+            <header className={styles.head}>
+              <p className={styles.kicker}>고객지원</p>
+              <h1>문의가 접수됐어요</h1>
+              <p className={styles.lede}>
+                남겨주신 내용은 운영팀만 볼 수 있어요. 회신 이메일을 적었다면 그쪽으로 답을 드려요.
+              </p>
+            </header>
+            <section className={styles.receipt} aria-label="접수 영수증">
+              <span className={styles.receiptSeal} aria-hidden="true">
+                <Icon name="check" size={1.4} />
+              </span>
+              <h2>접수 영수증</h2>
+              <dl>
+                <dt>접수 번호</dt>
+                <dd>{receipt.id}</dd>
+                <dt>분류</dt>
+                <dd>{INQUIRY_CATEGORY_COPY[receipt.category]?.label ?? receipt.category}</dd>
+                <dt>상태</dt>
+                <dd>{RECEIPT_STATUS_LABEL[receipt.status] ?? receipt.status}</dd>
+                <dt>접수 시각</dt>
+                <dd>{formatReceiptDate(receipt.createdAt)}</dd>
+              </dl>
+              <div className={styles.actions}>
+                <Button variant="soft" onClick={resetForm} leftIcon={<Icon name="plus" />}>
+                  다른 문의 보내기
+                </Button>
+                <Link className={styles.homeLink} to="/">
+                  <Icon name="home" aria-hidden="true" />
+                  홈으로
+                </Link>
+              </div>
+            </section>
+          </div>
         </div>
       </main>
     )
@@ -115,109 +122,138 @@ export default function SupportPage() {
   return (
     <main className={styles.page}>
       <div className="container">
-        <header className={styles.head}>
-          <h1>문의하기</h1>
-          <p>
-            이용 문의, 제휴 제안, 버그 제보까지 이 폼 하나로 보내면 운영팀에 바로 닿아요. 본문과
-            연락처는 외부에 공개되지 않아요.
-          </p>
-        </header>
+        <div className={styles.shell}>
+          <header className={styles.head}>
+            <p className={styles.kicker}>고객지원</p>
+            <h1>무엇을 도와드릴까요?</h1>
+            <p className={styles.lede}>
+              이용 문의, 제휴 제안, 버그 제보까지 이 폼 하나로 보내면 운영팀에 바로 닿아요. 본문과
+              연락처는 외부에 공개되지 않아요.
+            </p>
+          </header>
 
-        <form className={styles.form} onSubmit={submit} noValidate>
-          <fieldset className={styles.categoryGroup}>
-            <legend className={styles.fieldLabel}>문의 유형</legend>
-            {INQUIRY_CATEGORIES.map((value) => (
-              <label key={value} className={styles.categoryOption}>
-                <input
-                  type="radio"
-                  name="inquiry-category"
-                  value={value}
-                  checked={category === value}
-                  onChange={() => setCategory(value)}
-                />
-                <span>
-                  <strong>{INQUIRY_CATEGORY_COPY[value].label}</strong>
-                  <span>{INQUIRY_CATEGORY_COPY[value].helper}</span>
-                </span>
-              </label>
-            ))}
-          </fieldset>
+          <section className={styles.assurances} aria-label="문의 안내">
+            <p className={styles.assurance}>
+              <Icon name="clock" className={styles.assuranceIcon} />
+              <span>보통 영업일 기준 1~2일 안에 회신드려요.</span>
+            </p>
+            <p className={styles.assurance}>
+              <Icon name="shield" className={styles.assuranceIcon} />
+              <span>본문과 연락처는 운영팀만 볼 수 있는 비공개 접수예요.</span>
+            </p>
+            <p className={styles.assurance}>
+              <Icon name="mail" className={styles.assuranceIcon} />
+              <span>회신 이메일을 남기면 그 주소로 답을 드려요.</span>
+            </p>
+          </section>
 
-          <Input
-            label="제목"
-            placeholder="한 줄로 요약해 주세요"
-            value={title}
-            maxLength={INQUIRY_TITLE_MAX}
-            onChange={(event) => setTitle(event.target.value)}
-            required
-          />
+          <form className={styles.form} onSubmit={submit} noValidate>
+            <fieldset className={styles.categoryGroup}>
+              <legend className={styles.fieldLabel}>어떤 도움이 필요하세요?</legend>
+              <div className={styles.categoryList}>
+                {INQUIRY_CATEGORIES.map((value) => (
+                  <label key={value} className={styles.categoryOption}>
+                    <input
+                      type="radio"
+                      name="inquiry-category"
+                      value={value}
+                      checked={category === value}
+                      onChange={() => setCategory(value)}
+                    />
+                    <span className={styles.categoryBody}>
+                      <strong>{INQUIRY_CATEGORY_COPY[value].label}</strong>
+                      <span>{INQUIRY_CATEGORY_COPY[value].helper}</span>
+                    </span>
+                    <Icon name="check" className={styles.categoryCheck} aria-hidden="true" />
+                  </label>
+                ))}
+              </div>
+            </fieldset>
 
-          <div>
-            <label className={styles.fieldLabel} htmlFor="inquiry-body">
-              내용
-            </label>
-            <textarea
-              id="inquiry-body"
-              className={styles.textarea}
-              placeholder={`어떤 상황이었는지 구체적으로 적어주세요. (${INQUIRY_BODY_MIN}자 이상)`}
-              value={body}
-              maxLength={INQUIRY_BODY_MAX}
-              onChange={(event) => setBody(event.target.value)}
+            <Input
+              label="제목"
+              placeholder="한 줄로 요약해 주세요"
+              value={title}
+              maxLength={INQUIRY_TITLE_MAX}
+              onChange={(event) => setTitle(event.target.value)}
               required
             />
-            <div className={styles.counter}>
-              {body.length}/{INQUIRY_BODY_MAX}
-            </div>
-          </div>
 
-          <Input
-            label="회신 이메일 (선택)"
-            type="email"
-            placeholder="답변 받을 주소가 있다면 적어주세요"
-            value={contactEmail}
-            onChange={(event) => setContactEmail(event.target.value)}
-            hint="비워두면 회신 없이 접수만 됩니다."
-          />
-
-          {/* 허니팟 — 사람 눈에 보이지 않는 필드. 채워지면 서버가 조용히 폐기한다. */}
-          <div className={styles.honeypot} aria-hidden="true">
-            <label>
-              웹사이트 (비워두세요)
-              <input
-                type="text"
-                name="website"
-                tabIndex={-1}
-                autoComplete="off"
-                value={website}
-                onChange={(event) => setWebsite(event.target.value)}
+            <div className={styles.fieldBlock}>
+              <label className={styles.fieldLabel} htmlFor="inquiry-body">
+                내용
+              </label>
+              <textarea
+                id="inquiry-body"
+                className={styles.textarea}
+                placeholder={`어떤 상황이었는지 구체적으로 적어주세요. (${INQUIRY_BODY_MIN}자 이상)`}
+                value={body}
+                maxLength={INQUIRY_BODY_MAX}
+                onChange={(event) => setBody(event.target.value)}
+                required
               />
-            </label>
-          </div>
+              <div className={styles.counter} aria-hidden="true">
+                {body.length}/{INQUIRY_BODY_MAX}
+              </div>
+            </div>
 
-          {errorMessage && (
-            <p className={styles.errorNote} role="alert">
-              {errorMessage} 계속 실패하면{' '}
+            <Input
+              label="회신 이메일 (선택)"
+              type="email"
+              placeholder="답변 받을 주소가 있다면 적어주세요"
+              value={contactEmail}
+              onChange={(event) => setContactEmail(event.target.value)}
+              hint="비워두면 회신 없이 접수만 됩니다."
+            />
+
+            {/* 허니팟 — 사람 눈에 보이지 않는 필드. 채워지면 서버가 조용히 폐기한다. */}
+            <div className={styles.honeypot} aria-hidden="true">
+              <label>
+                웹사이트 (비워두세요)
+                <input
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={website}
+                  onChange={(event) => setWebsite(event.target.value)}
+                />
+              </label>
+            </div>
+
+            {errorMessage && (
+              <p className={styles.errorNote} role="alert">
+                {errorMessage} 계속 실패하면{' '}
+                <a href={INQUIRY_FALLBACK_URL} target="_blank" rel="noopener noreferrer">
+                  외부 지원 보드
+                </a>
+                로 보내주세요.
+              </p>
+            )}
+
+            <div className={styles.actions}>
+              <Button
+                type="submit"
+                isLoading={submitting}
+                disabled={submitting}
+                leftIcon={<Icon name="mail" />}
+              >
+                문의 보내기
+              </Button>
+            </div>
+          </form>
+
+          <p className={styles.fallbackNote}>
+            <Icon name="chat" className={styles.fallbackIcon} aria-hidden="true" />
+            <span>
+              폼이 동작하지 않는 환경이라면 기존{' '}
               <a href={INQUIRY_FALLBACK_URL} target="_blank" rel="noopener noreferrer">
-                외부 지원 보드
+                TermsDesk 지원 보드
               </a>
-              로 보내주세요.
-            </p>
-          )}
-
-          <div className={styles.actions}>
-            <Button type="submit" isLoading={submitting} disabled={submitting}>
-              문의 보내기
-            </Button>
-          </div>
-        </form>
-
-        <p className={styles.fallbackNote}>
-          폼이 동작하지 않는 환경이라면 기존{' '}
-          <a href={INQUIRY_FALLBACK_URL} target="_blank" rel="noopener noreferrer">
-            TermsDesk 지원 보드
-          </a>
-          에서도 같은 문의를 남길 수 있어요.
-        </p>
+              에서도 같은 문의를 남길 수 있어요.
+            </span>
+          </p>
+        </div>
       </div>
     </main>
   )
