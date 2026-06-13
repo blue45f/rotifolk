@@ -11,12 +11,15 @@
   max-width: var(--max-prose);
 }
 .kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-semibold);
   letter-spacing: var(--tracking-uppercase);
   text-transform: uppercase;
-  color: var(--brand-gold-700);
+  color: var(--brand-apricot-700);
 }
 .title {
   font-size: clamp(1.8rem, 4vw, 2.4rem);
@@ -38,116 +41,75 @@
 }
 
 /* ── 목록 ──
-   같은 크기 카드 무한 그리드를 피한다: 모바일은 친밀한 한 줄,
-   넓은 화면은 두 칸이되 첫 쪽지(가장 최근 도착)는 전폭으로 펼쳐 위계를 만든다. */
+   같은 크기 카드 무한 그리드를 피한다: 한 줄짜리 친밀한 쪽지 행을
+   divider로 엮어 위에서 아래로 빠르게 훑게 한다. */
 .list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-}
-@media (min-width: 720px) {
-  .list {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-5);
-    align-items: start;
-  }
-  .list > .card:first-child {
-    grid-column: 1 / -1;
-  }
-}
-
-/* ── 쪽지 카드 (keepsake) ── */
-.card {
-  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--space-1);
+  max-width: var(--max-prose);
+}
+.item {
+  display: block;
+}
+.item + .item {
+  border-top: 1px solid var(--color-border);
+}
+
+/* ── 쪽지 행 ── */
+.row {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
   gap: var(--space-4);
-  padding: var(--space-6);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  padding: var(--space-4);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
   transition:
-    transform var(--dur-base) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out),
-    border-color var(--dur-base) var(--ease-out);
-}
-/* warm paper grain: a faint cream wash from the top edge, like a card pulled from an envelope */
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 96px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--brand-cream-100) 60%, transparent),
-    transparent
-  );
-  pointer-events: none;
-}
-.card > * {
-  position: relative;
-}
-.card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--brand-burgundy-200);
+    background var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
 }
 
-/* Unread = "alive": gold-warmed paper + the sacred glow ring. */
-.cardUnread {
+/* 읽지 않은 쪽지 = "살아있는" 상태: 살구빛으로 데우고 또렷한 강조점을 찍는다. */
+button.row {
   cursor: pointer;
-  background: color-mix(in oklab, var(--brand-gold-500) 7%, var(--color-surface));
-  border-color: color-mix(in oklab, var(--brand-gold-500) 42%, var(--color-border));
-  box-shadow:
-    0 0 0 3px color-mix(in oklab, var(--brand-gold-400) 22%, transparent),
-    var(--shadow-sm);
+  min-height: 44px;
 }
-.cardUnread::before {
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--brand-gold-300) 38%, transparent),
-    transparent
-  );
+.rowUnread {
+  background: color-mix(in oklab, var(--brand-apricot-100) 55%, var(--color-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--brand-apricot-400) 32%, transparent);
 }
-.cardUnread:hover {
-  box-shadow:
-    0 0 0 3px color-mix(in oklab, var(--brand-gold-400) 28%, transparent),
-    var(--shadow-md);
+button.row:hover {
+  background: color-mix(in oklab, var(--brand-apricot-100) 70%, var(--color-surface));
+}
+.rowUnread:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--brand-apricot-500) 40%, transparent);
+}
+button.row:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
-/* wax-seal style tag, tucked into the top-right corner */
-.seal {
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
-  z-index: 1;
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--brand-gold-500);
-  color: var(--color-accent-fg);
-  font-family: var(--font-mono);
-  font-size: var(--fs-3xs);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.06em;
-  box-shadow: var(--shadow-xs);
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: 2px;
 }
 
-.cardHead {
+.metaRow {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-}
-/* only reserve room for the seal on unread cards, so read cards stay tight */
-.cardUnread .cardHead {
-  padding-right: var(--space-12);
-}
-.who {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  flex: 1;
+  gap: var(--space-2);
   min-width: 0;
 }
 .name {
@@ -158,58 +120,45 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* 무드 스티커: 카테고리 emoji는 브랜드 정체성이라 그대로 둔다. */
+.sticker {
+  font-size: var(--fs-lg);
+  line-height: 1;
+  flex-shrink: 0;
+}
 .time {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  flex-shrink: 0;
   font-size: var(--fs-xs);
   color: var(--color-text-subtle);
 }
-/* emoji sticker peels up off the card like a real sticker */
-.sticker {
-  font-size: var(--fs-3xl);
-  line-height: 1;
-  flex-shrink: 0;
-  transform: rotate(6deg);
-  filter: drop-shadow(0 4px 6px color-mix(in oklab, var(--brand-burgundy-900) 18%, transparent));
-  transition: transform var(--dur-base) var(--ease-spring);
-}
-.card:hover .sticker {
-  transform: rotate(-4deg) scale(1.08);
-}
 
-/* the message itself, set like a handwritten quote opened by a burgundy mark */
-.body {
-  position: relative;
+/* 본문 미리보기: 두 줄까지만 보여 한눈에 훑게 한다. */
+.preview {
   margin: 0;
-  padding-top: var(--space-4);
-  color: var(--color-text);
-  font-size: var(--fs-lg);
+  color: var(--color-text-muted);
+  font-size: var(--fs-md);
   line-height: var(--lh-relaxed);
   letter-spacing: var(--tracking-tight);
-  white-space: pre-wrap;
   word-break: break-word;
-  max-width: 60ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.body::before {
-  content: '\201C';
-  position: absolute;
-  top: -0.18em;
-  left: -0.04em;
-  font-size: 2.4em;
-  line-height: 1;
-  font-weight: var(--fw-black);
-  color: color-mix(in oklab, var(--brand-burgundy-400) 50%, transparent);
-  pointer-events: none;
-}
-/* on the featured (first) note, give the message room to breathe */
-@media (min-width: 720px) {
-  .list > .card:first-child .body {
-    font-size: var(--fs-xl);
-  }
+.rowUnread .preview {
+  color: var(--color-text);
 }
 
 .badges {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+  margin-top: var(--space-1);
 }
 .contactBadge {
   display: inline-flex;
@@ -218,77 +167,19 @@
   letter-spacing: var(--tracking-tight);
 }
 
-/* ── 빈 상태 (keepsake) ── */
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: var(--space-16) var(--space-6);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  background:
-    radial-gradient(
-      130% 90% at 50% -10%,
-      color-mix(in oklab, var(--brand-cream-200) 55%, transparent),
-      transparent 70%
-    ),
-    var(--color-surface);
-  box-shadow: var(--shadow-sm);
-}
-.emptyMark {
-  display: grid;
-  place-items: center;
-  width: 96px;
-  height: 96px;
-  margin-bottom: var(--space-5);
+/* 또렷한 강조점 하나로 읽지 않은 쪽지를 한눈에. (액센트 희소 규칙) */
+.unreadDot {
+  flex-shrink: 0;
+  align-self: center;
+  width: 10px;
+  height: 10px;
   border-radius: var(--radius-pill);
-  background: color-mix(in oklab, var(--brand-gold-100) 70%, var(--color-surface));
-  box-shadow:
-    inset 0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 28%, transparent),
-    var(--shadow-xs);
-}
-.emptyEnvelope {
-  display: block;
-  font-size: 2.75rem;
-  line-height: 1;
-  filter: drop-shadow(0 8px 14px color-mix(in oklab, var(--brand-burgundy-900) 16%, transparent));
-  animation: noteFloat 4.5s var(--ease-in-out) infinite;
-}
-.emptyTitle {
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-bold);
-  letter-spacing: var(--tracking-tight);
-  margin-bottom: var(--space-2);
-}
-.emptyDesc {
-  color: var(--color-text-muted);
-  line-height: var(--lh-relaxed);
-  max-width: 42ch;
-}
-
-@keyframes noteFloat {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-2deg);
-  }
-  50% {
-    transform: translateY(-7px) rotate(2deg);
-  }
+  background: var(--color-accent);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand-teal-500) 18%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card,
-  .sticker {
+  .row {
     transition: none;
-  }
-  .card:hover {
-    transform: none;
-  }
-  .card:hover .sticker {
-    transform: rotate(6deg);
-  }
-  .emptyEnvelope {
-    animation: none;
   }
 }
