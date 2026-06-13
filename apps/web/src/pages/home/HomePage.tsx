@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import type { PartySummary } from '@rotifolk/shared'
@@ -15,7 +15,6 @@ import { useAuthStore } from '@store/authStore'
 import { useRecents } from '@features/recents/useRecents'
 import { usePageMeta } from '@hooks/usePageMeta'
 import { api } from '@services/api'
-import { buildHomePulse } from './home-pulse'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
@@ -24,7 +23,6 @@ export default function HomePage() {
     withBrand: false,
     description: '와인·커피·차·위스키 로테이션 모임. 모르는 사람들이 진짜 친해지는 5분 라운드.',
   })
-  const location = useLocation()
   const me = useAuthStore((s) => s.user)
   const { data: parties, isLoading } = useParties({ status: 'open', pageSize: 6 })
   const { data: nowParties } = useQuery({
@@ -32,28 +30,10 @@ export default function HomePage() {
     queryFn: () => api.get<PartySummary[]>('parties/happening-now'),
     refetchInterval: 30_000,
   })
-  const currentPath = `${location.pathname}${location.search}${location.hash}` || '/'
-  const encodedCurrentPath = encodeURIComponent(currentPath)
-  const tutorialHref = `/tutorial?from=${encodedCurrentPath}`
-  const communityHref = `/community?guide=1&from=${encodedCurrentPath}`
   const reduce = useReducedMotion() ?? false
   const recommended = me && parties ? recommendParties(parties.items, userToContext(me), 3) : []
   const { items: recents } = useRecents()
   const recentTop = recents.slice(0, 6)
-  const pulse = buildHomePulse({
-    openParties: parties?.items ?? [],
-    liveParties: nowParties ?? [],
-  })
-  const demoLoginHref = `/login?demo=1&auto=1&from=${encodedCurrentPath}`
-  const activeSeats = Math.min(10, Math.round(pulse.averageFillRate / 10))
-  const nextPartyTime = pulse.nextParty
-    ? new Date(pulse.nextParty.startAt).toLocaleString('ko-KR', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : '새 라운드 준비 중'
 
   return (
     <div>
@@ -83,12 +63,12 @@ export default function HomePage() {
             <div className={styles.heroCta}>
               <Link to="/discover">
                 <Button variant="primary" size="xl">
-                  오늘의 파티
+                  오늘의 파티 찾기
                 </Button>
               </Link>
               <Link to="/quick">
                 <Button variant="outline" size="xl" leftIcon={<Icon name="bolt" />}>
-                  즉석 모임
+                  즉석 모임 열기
                 </Button>
               </Link>
             </div>
@@ -107,127 +87,6 @@ export default function HomePage() {
         </div>
 
         <div className={styles.heroEdge} aria-hidden="true" />
-      </section>
-
-      <section className={`container ${styles.section}`} aria-labelledby="quick-start-title">
-        <header className={styles.sectionHead}>
-          <h2 id="quick-start-title" className={styles.sectionTitle}>
-            지금 바로 시작하기
-          </h2>
-          <p className={styles.sectionSub}>처음 오더라도 오늘 바로 체험해볼 동선을 추천해요.</p>
-        </header>
-        <div className={styles.quickStartGrid}>
-          <Link to={tutorialHref} className={styles.quickStartCard}>
-            <span className={styles.quickStartIcon} aria-hidden="true">
-              🧭
-            </span>
-            <div className={styles.quickStartBody}>
-              <strong>튜토리얼 다시 보기</strong>
-              <small>8단계 가이드로 핵심 흐름과 동선을 다시 확인해요.</small>
-            </div>
-            <span className={styles.quickStartAction} aria-hidden="true">
-              시작 →
-            </span>
-          </Link>
-          <Link to={communityHref} className={styles.quickStartCard}>
-            <span className={styles.quickStartIcon} aria-hidden="true">
-              💬
-            </span>
-            <div className={styles.quickStartBody}>
-              <strong>커뮤니티 첫 질문 가이드</strong>
-              <small>템플릿으로 1분 안에 질문/후기/팁 게시물을 써요.</small>
-            </div>
-            <span className={styles.quickStartAction} aria-hidden="true">
-              시작 →
-            </span>
-          </Link>
-          <Link to={demoLoginHref} className={styles.quickStartCard}>
-            <span className={styles.quickStartIcon} aria-hidden="true">
-              🎁
-            </span>
-            <div className={styles.quickStartBody}>
-              <strong>데모로 즉시 체험</strong>
-              <small>가입 없이 데모 계정으로 핵심 플로우를 먼저 봐요.</small>
-            </div>
-            <span className={styles.quickStartAction} aria-hidden="true">
-              시작 →
-            </span>
-          </Link>
-        </div>
-      </section>
-
-      <section className={styles.pulseBand} aria-labelledby="pulse-title">
-        <div className={`container ${styles.pulseInner}`}>
-          <div className={styles.pulseCopy}>
-            <span className={styles.pulseKicker}>지금 흐르는 라운드</span>
-            <h2 id="pulse-title">오늘의 사람 흐름을 한눈에</h2>
-            <p>
-              모집, 체크인, 라이브 라운드, 매칭 이후 채팅까지 끊기지 않게 이어지는 Rotifolk 운영
-              신호입니다.
-            </p>
-          </div>
-
-          <div className={styles.pulseConsole} aria-label="오늘의 Rotifolk 운영 신호">
-            <div
-              className={styles.orbit}
-              style={{ ['--fill-rate' as never]: `${pulse.averageFillRate}%` } as never}
-              aria-label={`현재 평균 채움률 ${pulse.averageFillRate}%`}
-            >
-              {Array.from({ length: 10 }).map((_, index) => (
-                <span
-                  key={index}
-                  className={`${styles.orbitSeat} ${
-                    index < activeSeats ? styles.orbitSeatActive : ''
-                  }`}
-                  aria-hidden="true"
-                />
-              ))}
-              <div className={styles.orbitCore}>
-                <strong>{pulse.averageFillRate}%</strong>
-                <span>채움률</span>
-              </div>
-            </div>
-
-            <dl className={styles.signalGrid}>
-              <div>
-                <dt>라이브</dt>
-                <dd>{pulse.liveCount}개 진행 중</dd>
-              </div>
-              <div>
-                <dt>모집</dt>
-                <dd>{pulse.openCount}개 열림</dd>
-              </div>
-              <div>
-                <dt>다음 라운드</dt>
-                <dd>{nextPartyTime}</dd>
-              </div>
-              <div>
-                <dt>강한 무드</dt>
-                <dd>
-                  {pulse.leadingCategory
-                    ? `${pulse.leadingCategory.label} ${pulse.leadingCategory.count}개`
-                    : '데이터 대기'}
-                </dd>
-              </div>
-            </dl>
-
-            <div className={styles.areaSignals} aria-label="활성 동네">
-              {pulse.hotAreas.length > 0 ? (
-                pulse.hotAreas.map((area) => (
-                  <span key={area.area}>
-                    {area.area}
-                    <strong>{area.count}</strong>
-                  </span>
-                ))
-              ) : (
-                <span>
-                  첫 동네 신호 대기
-                  <strong>0</strong>
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
       </section>
 
       {nowParties && nowParties.length > 0 && (
@@ -267,6 +126,39 @@ export default function HomePage() {
         </>
       )}
 
+      <section className={`container ${styles.section}`} aria-labelledby="open-title">
+        <header className={styles.sectionHead}>
+          <h2 id="open-title" className={styles.sectionTitle}>
+            지금 모집 중
+          </h2>
+          <Link to="/discover" className={styles.sectionAction}>
+            전체 보기 →
+          </Link>
+        </header>
+        {isLoading ? (
+          <PartyCardSkeletonGrid />
+        ) : !parties || parties.items.length === 0 ? (
+          <EmptyState
+            emoji="🌙"
+            title="아직 모집 중인 모임이 없어요"
+            description="가장 먼저 한 잔을 열어보는 건 어때요?"
+            action={
+              <Link to="/quick">
+                <Button variant="primary" leftIcon={<Icon name="bolt" />}>
+                  즉석 모임 열기
+                </Button>
+              </Link>
+            }
+          />
+        ) : (
+          <div className={styles.partyGrid}>
+            {parties.items.map((p) => (
+              <PartyCard key={p.id} party={p} />
+            ))}
+          </div>
+        )}
+      </section>
+
       <section className={`container ${styles.section}`} aria-labelledby="cats-title">
         <header className={styles.sectionHead}>
           <h2 id="cats-title" className={styles.sectionTitle}>
@@ -293,36 +185,6 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
-      </section>
-
-      <section className={`container ${styles.section}`} aria-labelledby="how-title">
-        <header className={styles.sectionHead}>
-          <h2 id="how-title" className={styles.sectionTitle}>
-            이렇게 흘러갑니다
-          </h2>
-        </header>
-        <ol className={styles.steps}>
-          <li>
-            <span className={styles.stepIndex}>01</span>
-            <h3>체크인 · 아바타</h3>
-            <p>도착하면 좌석 안내. 닉네임과 아바타만으로 충분합니다.</p>
-          </li>
-          <li>
-            <span className={styles.stepIndex}>02</span>
-            <h3>라운드 회전</h3>
-            <p>5분마다 자동으로 다음 자리. 한 잔에 한 사람.</p>
-          </li>
-          <li>
-            <span className={styles.stepIndex}>03</span>
-            <h3>질문 카드 · 라이브 퀴즈</h3>
-            <p>4단계 깊이의 카드가 어색함을 녹입니다.</p>
-          </li>
-          <li>
-            <span className={styles.stepIndex}>04</span>
-            <h3>최종 매칭</h3>
-            <p>서로를 고른 사람만 1:1 채팅이 열립니다.</p>
-          </li>
-        </ol>
       </section>
 
       {recommended.length > 0 && (
@@ -377,37 +239,34 @@ export default function HomePage() {
         </section>
       )}
 
-      <section className={`container ${styles.section}`} aria-labelledby="open-title">
+      <section className={`container ${styles.section}`} aria-labelledby="how-title">
         <header className={styles.sectionHead}>
-          <h2 id="open-title" className={styles.sectionTitle}>
-            지금 모집 중
+          <h2 id="how-title" className={styles.sectionTitle}>
+            이렇게 흘러갑니다
           </h2>
-          <Link to="/discover" className={styles.sectionAction}>
-            전체 보기 →
-          </Link>
         </header>
-        {isLoading ? (
-          <PartyCardSkeletonGrid />
-        ) : !parties || parties.items.length === 0 ? (
-          <EmptyState
-            emoji="🌙"
-            title="아직 모집 중인 모임이 없어요"
-            description="가장 먼저 한 잔을 열어보는 건 어때요?"
-            action={
-              <Link to="/quick">
-                <Button variant="primary" leftIcon={<Icon name="bolt" />}>
-                  즉석 모임
-                </Button>
-              </Link>
-            }
-          />
-        ) : (
-          <div className={styles.partyGrid}>
-            {parties.items.map((p) => (
-              <PartyCard key={p.id} party={p} />
-            ))}
-          </div>
-        )}
+        <ol className={styles.steps}>
+          <li>
+            <span className={styles.stepIndex}>01</span>
+            <h3>체크인 · 아바타</h3>
+            <p>도착하면 좌석 안내. 닉네임과 아바타만으로 충분합니다.</p>
+          </li>
+          <li>
+            <span className={styles.stepIndex}>02</span>
+            <h3>라운드 회전</h3>
+            <p>5분마다 자동으로 다음 자리. 한 잔에 한 사람.</p>
+          </li>
+          <li>
+            <span className={styles.stepIndex}>03</span>
+            <h3>질문 카드 · 라이브 퀴즈</h3>
+            <p>4단계 깊이의 카드가 어색함을 녹입니다.</p>
+          </li>
+          <li>
+            <span className={styles.stepIndex}>04</span>
+            <h3>최종 매칭</h3>
+            <p>서로를 고른 사람만 1:1 채팅이 열립니다.</p>
+          </li>
+        </ol>
       </section>
 
       <section className={`container ${styles.ctaSection}`} aria-labelledby="host-cta">
