@@ -34,6 +34,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './HostCreate.module.css'
 
@@ -309,13 +310,14 @@ export default function HostCreatePage() {
                 type="button"
                 role="tab"
                 aria-selected={isActive}
+                aria-current={isActive ? 'step' : undefined}
                 className={`${styles.stepItem} ${isActive ? styles.stepActive : ''} ${
                   isDone ? styles.stepDone : ''
                 }`}
                 onClick={() => setStep(s)}
               >
                 <span className={styles.stepDot} aria-hidden="true">
-                  {isDone ? '✓' : i + 1}
+                  {isDone ? <Icon name="check" size={0.85} /> : i + 1}
                 </span>
                 <span className={styles.stepLabelText}>{STEP_LABEL[s]}</span>
               </button>
@@ -417,8 +419,12 @@ export default function HostCreatePage() {
                 {...register('title')}
               />
               <div>
-                <label className={styles.fieldLabel}>소개</label>
+                <label className={styles.fieldLabel} htmlFor="party-description">
+                  소개
+                </label>
                 <textarea
+                  id="party-description"
+                  aria-label="소개"
                   className={styles.textarea}
                   rows={4}
                   placeholder="이번 라운드의 컨셉, 어떤 사람들이 오면 좋을지, 분위기를 자유롭게 적어주세요. 20자 이상."
@@ -455,7 +461,9 @@ export default function HostCreatePage() {
                         {v.photos[0] ? (
                           <img src={v.photos[0]} alt="" />
                         ) : (
-                          <div className={styles.venuePh}>🏛️</div>
+                          <div className={styles.venuePh}>
+                            <Icon name="home" size={1.6} />
+                          </div>
                         )}
                       </div>
                       <div className={styles.venueInfo}>
@@ -468,7 +476,8 @@ export default function HostCreatePage() {
                           )}
                         </div>
                         <div className={styles.venueMeta}>
-                          📍 {v.area} · 최대 {v.capacity}명 · 시간당{' '}
+                          <Icon name="pin" size={0.95} className={styles.venueMetaIcon} />
+                          {v.area} · 최대 {v.capacity}명 · 시간당{' '}
                           {v.pricePerHourKRW.toLocaleString()}원
                         </div>
                         <div className={styles.venueAmenities}>
@@ -579,13 +588,11 @@ export default function HostCreatePage() {
               </div>
             </div>
 
-            <div className={styles.section}>
-              <div className={styles.groupHead}>
-                <h3 className={styles.sectionTitle}>라이브 도구</h3>
-                <p className={styles.sectionNote}>
-                  라운드 중·후에 켤 기능이에요. 나중에도 바꿀 수 있어요.
-                </p>
-              </div>
+            <fieldset className={styles.section}>
+              <legend className={styles.sectionTitle}>라이브 도구</legend>
+              <p className={styles.sectionNote}>
+                라운드 중·후에 켤 기능이에요. 나중에도 바꿀 수 있어요.
+              </p>
               <div className={styles.toggleGrid}>
                 <Toggle
                   checked={watched.config?.enableMidMatching}
@@ -624,7 +631,7 @@ export default function HostCreatePage() {
                   desc="실명 X, 닉네임 + 아바타만 노출"
                 />
               </div>
-            </div>
+            </fieldset>
           </Card>
         )}
 
@@ -638,13 +645,11 @@ export default function HostCreatePage() {
             </div>
 
             {/* —— Sub-section A: 만남의 형태 —— */}
-            <div className={styles.section}>
-              <div className={styles.groupHead}>
-                <h3 className={styles.sectionTitle}>
-                  <span className={styles.num}>A</span> 만남의 형태
-                </h3>
-                <p className={styles.sectionNote}>라운드가 어떤 모양으로 굴러갈지 정해요.</p>
-              </div>
+            <fieldset className={styles.section}>
+              <legend className={styles.sectionTitle}>
+                <span className={styles.num}>A</span> 만남의 형태
+              </legend>
+              <p className={styles.sectionNote}>라운드가 어떤 모양으로 굴러갈지 정해요.</p>
 
               <div className={styles.group}>
                 <label className={styles.fieldLabel}>모임 포맷</label>
@@ -701,16 +706,14 @@ export default function HostCreatePage() {
                   </div>
                 )}
               </div>
-            </div>
+            </fieldset>
 
             {/* —— Sub-section B: 매칭과 연결 —— */}
-            <div className={styles.section}>
-              <div className={styles.groupHead}>
-                <h3 className={styles.sectionTitle}>
-                  <span className={styles.num}>B</span> 매칭과 연결
-                </h3>
-                <p className={styles.sectionNote}>누구와, 어떤 통로로 이어질지 정해요.</p>
-              </div>
+            <fieldset className={styles.section}>
+              <legend className={styles.sectionTitle}>
+                <span className={styles.num}>B</span> 매칭과 연결
+              </legend>
+              <p className={styles.sectionNote}>누구와, 어떤 통로로 이어질지 정해요.</p>
 
               <div className={styles.group}>
                 <label className={styles.fieldLabel}>매칭 범위</label>
@@ -912,18 +915,16 @@ export default function HostCreatePage() {
                   </div>
                 </>
               )}
-            </div>
+            </fieldset>
 
             {/* —— Sub-section C: 모집 성비 —— */}
-            <div className={styles.section}>
-              <div className={styles.groupHead}>
-                <h3 className={styles.sectionTitle}>
-                  <span className={styles.num}>C</span> 모집 성비
-                </h3>
-                <p className={styles.sectionNote}>
-                  비워두면 성비 제한 없이 모집해요. 필요할 때만 세밀하게 잡아요.
-                </p>
-              </div>
+            <fieldset className={styles.section}>
+              <legend className={styles.sectionTitle}>
+                <span className={styles.num}>C</span> 모집 성비
+              </legend>
+              <p className={styles.sectionNote}>
+                비워두면 성비 제한 없이 모집해요. 필요할 때만 세밀하게 잡아요.
+              </p>
 
               <div className={styles.group}>
                 <label className={styles.fieldLabel}>목표 성비</label>
@@ -1046,18 +1047,16 @@ export default function HostCreatePage() {
                   </div>
                 )}
               />
-            </div>
+            </fieldset>
 
             {/* —— Sub-section D: 참가 자격 —— */}
-            <div className={styles.section}>
-              <div className={styles.groupHead}>
-                <h3 className={styles.sectionTitle}>
-                  <span className={styles.num}>D</span> 참가 자격 (선택)
-                </h3>
-                <p className={styles.sectionNote}>
-                  나이·혼인상태·아이 유무·인증을 조건으로 걸 수 있어요. 비우면 누구나 참가 가능해요.
-                </p>
-              </div>
+            <fieldset className={styles.section}>
+              <legend className={styles.sectionTitle}>
+                <span className={styles.num}>D</span> 참가 자격 (선택)
+              </legend>
+              <p className={styles.sectionNote}>
+                나이·혼인상태·아이 유무·인증을 조건으로 걸 수 있어요. 비우면 누구나 참가 가능해요.
+              </p>
 
               <div className={styles.group}>
                 <label className={styles.fieldLabel}>성별 나이 제한</label>
@@ -1180,7 +1179,7 @@ export default function HostCreatePage() {
                   }}
                 />
               </div>
-            </div>
+            </fieldset>
           </Card>
         )}
 
@@ -1261,11 +1260,12 @@ export default function HostCreatePage() {
                 variant="soft"
                 size="sm"
                 type="button"
+                leftIcon={<Icon name="plus" size={0.95} />}
                 onClick={() =>
                   priceRules.append({ gender: null, ageMin: null, ageMax: null, priceKRW: 30000 })
                 }
               >
-                + 가격 규칙 추가
+                가격 규칙 추가
               </Button>
             </div>
 
@@ -1357,7 +1357,8 @@ export default function HostCreatePage() {
               <Summary watched={watched} />
             </div>
             <p className={styles.inviteHint}>
-              💌 개설 후 친구 초대 코드가 발급돼요. 카톡 한 번에 보낼 수 있어요.
+              <Icon name="mail" size={1} className={styles.inviteIcon} />
+              개설 후 친구 초대 코드가 발급돼요. 카톡 한 번에 보낼 수 있어요.
             </p>
           </Card>
         )}
@@ -1368,7 +1369,7 @@ export default function HostCreatePage() {
               variant="ghost"
               size="lg"
               type="button"
-              leftIcon="←"
+              leftIcon={<Icon name="chevron-right" size={1} className={styles.backIcon} />}
               onClick={() => setStep(prev[step]!)}
             >
               이전
@@ -1379,7 +1380,7 @@ export default function HostCreatePage() {
               variant="primary"
               size="lg"
               type="button"
-              rightIcon="→"
+              rightIcon={<Icon name="chevron-right" size={1} />}
               onClick={() => setStep(next[step]!)}
             >
               다음
@@ -1390,7 +1391,7 @@ export default function HostCreatePage() {
               size="lg"
               type="submit"
               className={styles.submit}
-              leftIcon="✨"
+              leftIcon={<Icon name="sparkle" size={1} />}
               isLoading={create.isPending}
             >
               파티 열기
