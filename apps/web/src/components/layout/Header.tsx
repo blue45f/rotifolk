@@ -1,6 +1,6 @@
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
@@ -36,9 +36,6 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
   const t = useT()
   const [locale, setLocale] = useLocale()
   const location = useLocation()
-  const [themeMenuOpen, setThemeMenuOpen] = useState(false)
-  const themeMenuRef = useRef<HTMLDivElement>(null)
-  const themeButtonRef = useRef<HTMLButtonElement>(null)
   const { data: unread } = useQuery({
     queryKey: notificationKeys.unread,
     queryFn: () => api.get<{ count: number }>('notifications/unread-count'),
@@ -53,28 +50,6 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
   const currentPath = `${location.pathname}${location.search}${location.hash}`
   const encodedCurrentPath = encodeURIComponent(currentPath || '/')
   const demoLoginHref = `/login?demo=1&auto=1&from=${encodeURIComponent(currentPath || '/')}`
-
-  useEffect(() => {
-    if (!themeMenuOpen) return
-    const onDocDown = (e: MouseEvent) => {
-      const target = e.target as Node
-      if (!themeMenuRef.current?.contains(target) && !themeButtonRef.current?.contains(target)) {
-        setThemeMenuOpen(false)
-      }
-    }
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setThemeMenuOpen(false)
-        themeButtonRef.current?.focus()
-      }
-    }
-    window.addEventListener('mousedown', onDocDown)
-    window.addEventListener('keydown', onKeyDown)
-    return () => {
-      window.removeEventListener('mousedown', onDocDown)
-      window.removeEventListener('keydown', onKeyDown)
-    }
-  }, [themeMenuOpen])
 
   return (
     <header className={styles.header}>
@@ -176,43 +151,42 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
             </button>
           )}
           <div className={styles.themeWrap}>
-            <button
-              ref={themeButtonRef}
-              type="button"
-              className={styles.themeBtn}
-              onClick={() => setThemeMenuOpen((prev) => !prev)}
-              aria-label={t('theme.switchLabel')}
-              aria-expanded={themeMenuOpen}
-              aria-haspopup="menu"
-            >
-              <Icon name={theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'monitor'} />
-            </button>
-            <span className={styles.themeModeText}>{themeModeLabel}</span>
-            {themeMenuOpen && (
-              <div
-                ref={themeMenuRef}
-                className={styles.themeMenu}
-                role="menu"
-                aria-label={t('theme.modeLabel')}
-              >
-                {THEME_OPTIONS.map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={theme === item.value}
-                    className={styles.themeOption}
-                    onClick={() => {
-                      setTheme(item.value)
-                      setThemeMenuOpen(false)
-                    }}
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button
+                  type="button"
+                  className={styles.themeBtn}
+                  aria-label={t('theme.switchLabel')}
+                >
+                  <Icon name={theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'monitor'} />
+                </button>
+              </DropdownMenu.Trigger>
+              <span className={styles.themeModeText}>{themeModeLabel}</span>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  className={styles.themeMenu}
+                  align="end"
+                  sideOffset={8}
+                  aria-label={t('theme.modeLabel')}
+                >
+                  <DropdownMenu.RadioGroup
+                    value={theme}
+                    onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
                   >
-                    <Icon name={item.icon} aria-hidden />
-                    <span>{t(item.labelKey)}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+                    {THEME_OPTIONS.map((item) => (
+                      <DropdownMenu.RadioItem
+                        key={item.value}
+                        value={item.value}
+                        className={styles.themeOption}
+                      >
+                        <Icon name={item.icon} aria-hidden />
+                        <span>{t(item.labelKey)}</span>
+                      </DropdownMenu.RadioItem>
+                    ))}
+                  </DropdownMenu.RadioGroup>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
           </div>
           {user && (
             <Link to="/notifications" className={styles.bell} aria-label="알림">

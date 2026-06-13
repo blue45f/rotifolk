@@ -302,10 +302,8 @@
   border-color: color-mix(in oklab, var(--color-primary) 32%, var(--color-border));
 }
 
+/* Radix DropdownMenu.Content (portaled; Radix sets position). */
 .themeMenu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
   z-index: var(--z-overlay);
   min-width: 158px;
   padding: 6px;
@@ -316,6 +314,23 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+  animation: theme-menu-in var(--dur-fast) var(--ease-out);
+}
+@keyframes theme-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .themeMenu {
+    animation: none;
+  }
 }
 .themeOption {
   width: 100%;
@@ -330,12 +345,15 @@
   cursor: pointer;
   touch-action: manipulation;
 }
-.themeOption[aria-checked='true'] {
+.themeOption[aria-checked='true'],
+.themeOption[data-state='checked'] {
   background: color-mix(in oklab, var(--color-primary) 15%, var(--color-surface));
   font-weight: var(--fw-semibold);
 }
-.themeOption:hover {
+.themeOption:hover,
+.themeOption[data-highlighted] {
   background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
+  outline: none;
 }
 
 .themeBtn:focus-visible,
