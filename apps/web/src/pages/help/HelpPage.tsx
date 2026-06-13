@@ -3,6 +3,8 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
+import { Icon } from '@components/ui/Icon/Icon'
+import type { IconName } from '@components/ui/Icon/Icon'
 import EmptyState from '@components/feedback/EmptyState'
 import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
 import styles from './Help.module.css'
@@ -70,10 +72,20 @@ const HOST: Faq[] = [
   },
 ]
 
-const BASE_STARTING_POINTS = [
+interface StartingPoint {
+  to: string
+  emoji: string
+  icon?: IconName
+  title: string
+  desc: string
+  isDemo: boolean
+}
+
+const BASE_STARTING_POINTS: StartingPoint[] = [
   {
     to: '/tutorial',
     emoji: '🧭',
+    icon: 'compass',
     title: '참가자 첫 단계',
     desc: '참여 과정과 체크인부터 매칭까지 한 번에 봐요.',
     isDemo: false,
@@ -81,6 +93,7 @@ const BASE_STARTING_POINTS = [
   {
     to: '/help?topic=host&open=0',
     emoji: '🎙️',
+    icon: 'shield',
     title: '호스트 입문',
     desc: '호스트 신청·승인·운영 포인트를 빠르게 정리해요.',
     isDemo: false,
@@ -88,6 +101,7 @@ const BASE_STARTING_POINTS = [
   {
     to: '/login',
     emoji: '🎁',
+    icon: 'sparkle',
     title: '데모로 바로 체험',
     desc: '데모 계정으로 가입 없이 흐름을 먼저 확인해 보세요.',
     isDemo: true,
@@ -95,6 +109,7 @@ const BASE_STARTING_POINTS = [
   {
     to: '/community?guide=1',
     emoji: '💬',
+    icon: 'chat',
     title: '커뮤니티 첫 질문 시작',
     desc: '질문 카테고리로 바로 이동해 템플릿 글쓰기를 시작해요.',
     isDemo: false,
@@ -102,6 +117,7 @@ const BASE_STARTING_POINTS = [
   {
     to: '/policies?filter=required',
     emoji: '📜',
+    icon: 'archive',
     title: '필수 정책만 우선 확인',
     desc: '회원 가입 후 필요한 필수 조항만 바로 점검해요.',
     isDemo: false,
@@ -233,97 +249,144 @@ export default function HelpPage() {
           {badgeLabel}
         </Badge>
         <h1 className={styles.title}>{guideTitle}</h1>
-        <p className={styles.muted}>{guideCopy}</p>
+        <p className={styles.lede}>{guideCopy}</p>
       </header>
 
-      <section className={styles.quickStart} aria-label="8단계 빠른 가이드">
-        <h2 className={styles.quickStartTitle}>8단계 빠른 가이드</h2>
-        <ol className={styles.fastGuide}>
+      <section className={styles.section} aria-labelledby="help-flow-heading">
+        <div className={styles.sectionHead}>
+          <h2 id="help-flow-heading" className={styles.sectionTitle}>
+            처음이라면, 이 순서로
+          </h2>
+          <p className={styles.sectionLede}>가입 전 한 번에 이어지는 4단계 흐름이에요.</p>
+        </div>
+        <ol className={styles.flow}>
           {fastStartFlow.map((step) => (
-            <li key={step.icon} className={styles.fastGuideItem}>
-              <strong>{step.icon}</strong>
-              <div>
-                <h3>{step.title}</h3>
-                <p>{step.description}</p>
+            <li key={step.icon} className={styles.flowItem}>
+              <span className={styles.flowNum} aria-hidden="true">
+                {step.icon}
+              </span>
+              <div className={styles.flowBody}>
+                <h3 className={styles.flowTitle}>{step.title}</h3>
+                <p className={styles.flowDesc}>{step.description}</p>
               </div>
-              <Link to={step.to}>바로가기</Link>
+              <Link to={step.to} className={styles.flowLink}>
+                바로가기
+                <Icon name="chevron-right" size={1} aria-hidden="true" />
+              </Link>
             </li>
           ))}
         </ol>
       </section>
 
-      <section className={styles.quickStart} aria-label="시작 가이드">
-        <h2 className={styles.quickStartTitle}>8단계 빠른 시작</h2>
-        <div className={styles.quickStartGrid}>
+      <section className={styles.section} aria-labelledby="help-jump-heading">
+        <div className={styles.sectionHead}>
+          <h2 id="help-jump-heading" className={styles.sectionTitle}>
+            바로 가고 싶은 곳
+          </h2>
+          <p className={styles.sectionLede}>원하는 주제로 곧장 이동하세요.</p>
+        </div>
+        <div className={styles.jumpGrid}>
           {startingPoints.map((item) => (
-            <Link key={item.to} to={item.to} className={styles.quickStartCard}>
-              <span aria-hidden="true">{item.emoji}</span>
-              <strong>{item.title}</strong>
-              <small>{item.desc}</small>
+            <Link key={item.to} to={item.to} className={styles.jumpCard}>
+              <span className={styles.jumpIcon} aria-hidden="true">
+                {item.icon ? <Icon name={item.icon} size={1.2} /> : item.emoji}
+              </span>
+              <strong className={styles.jumpTitle}>{item.title}</strong>
+              <small className={styles.jumpDesc}>{item.desc}</small>
             </Link>
           ))}
         </div>
       </section>
 
-      {!isTutorialMode && (
-        <Tabs
-          tabs={[
-            { value: 'guest', label: `🎟️ 참가자 (${GUEST.length})` },
-            { value: 'host', label: `🎙️ 호스트 (${HOST.length})` },
-          ]}
-          value={tab}
-          onChange={(v) => {
-            setTab(v as 'guest' | 'host')
-            setOpen(0)
-          }}
-        />
-      )}
+      <section className={styles.section} aria-labelledby="help-faq-heading">
+        <div className={styles.sectionHead}>
+          <h2 id="help-faq-heading" className={styles.sectionTitle}>
+            자주 묻는 질문
+          </h2>
+          <p className={styles.sectionLede}>궁금한 주제를 고르거나 키워드로 검색해 보세요.</p>
+        </div>
 
-      <div className={styles.searchRow}>
-        <Input
-          type="search"
-          placeholder="궁금한 키워드로 검색해 보세요"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value)
-            setOpen(null)
-          }}
-          leftIcon={<span aria-hidden="true">🔎</span>}
-          aria-label="FAQ 검색"
-        />
-      </div>
+        {!isTutorialMode && (
+          <Tabs
+            tabs={[
+              { value: 'guest', label: `🎟️ 참가자 (${GUEST.length})` },
+              { value: 'host', label: `🎙️ 호스트 (${HOST.length})` },
+            ]}
+            value={tab}
+            onChange={(v) => {
+              setTab(v as 'guest' | 'host')
+              setOpen(0)
+            }}
+          />
+        )}
 
-      {items.length === 0 ? (
-        <EmptyState
-          emoji="🤔"
-          title={`'${query.trim()}'에 대한 답을 찾지 못했어요`}
-          description="다른 키워드를 시도하거나, 아래 채팅으로 직접 물어봐 주세요."
-        />
-      ) : (
-        <ul className={styles.list}>
-          {items.map((it, i) => {
-            const isOpen = open === i
-            return (
-              <li key={`${tab}-${i}-${it.q}`} className={isOpen ? styles.open : ''}>
-                <button
-                  type="button"
-                  className={styles.q}
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  aria-expanded={isOpen}
-                >
-                  <span>{it.q}</span>
-                  <span className={styles.chev} aria-hidden="true">
-                    {isOpen ? '–' : '+'}
-                  </span>
-                </button>
-                {isOpen && <p className={styles.a}>{it.a}</p>}
-              </li>
-            )
-          })}
-        </ul>
-      )}
+        <div className={styles.searchRow}>
+          <Input
+            type="search"
+            placeholder="궁금한 키워드로 검색해 보세요"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              setOpen(null)
+            }}
+            leftIcon={<Icon name="search" size={1} aria-hidden="true" />}
+            aria-label="FAQ 검색"
+          />
+        </div>
 
-      <footer className={styles.foot}>
+        {items.length === 0 ? (
+          <EmptyState
+            emoji="🤔"
+            title={`'${query.trim()}'에 대한 답을 찾지 못했어요`}
+            description="다른 키워드를 시도하거나, 아래 채팅으로 직접 물어봐 주세요."
+          />
+        ) : (
+          <ul className={styles.list}>
+            {items.map((it, i) => {
+              const isOpen = open === i
+              return (
+                <li key={`${tab}-${i}-${it.q}`} className={styles.listItem}>
+                  <details
+                    className={styles.faq}
+                    open={isOpen}
+                    onToggle={(e) => {
+                      const isNowOpen = (e.currentTarget as HTMLDetailsElement).open
+                      setOpen(isNowOpen ? i : (prev) => (prev === i ? null : prev))
+                    }}
+                  >
+                    <summary className={styles.q}>
+                      <span className={styles.qText}>{it.q}</span>
+                      <span className={styles.chev} aria-hidden="true">
+                        <Icon name="chevron-right" size={1} />
+                      </span>
+                    </summary>
+                    <p className={styles.a}>{it.a}</p>
+                  </details>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </section>
+
+      <footer className={styles.foot} aria-labelledby="help-support-heading">
+        <h2 id="help-support-heading" className={styles.sectionTitle}>
+          아직 안 풀렸나요?
+        </h2>
+        <p className={styles.footLede}>원하는 답을 못 찾았다면 바로 도움을 받을 수 있어요.</p>
+        <div className={styles.footActions}>
+          <Link to="/chats" className={styles.footPrimary}>
+            <Icon name="chat" size={1.1} aria-hidden="true" />
+            채팅으로 물어보기
+          </Link>
+          <Link
+            to={isTutorialMode ? policiesRequiredHref : `/policies?from=${encodedReturnPath}`}
+            className={styles.footGhost}
+          >
+            <Icon name="shield" size={1.1} aria-hidden="true" />
+            정책 확인하기
+          </Link>
+        </div>
         {isTutorialMode && (
           <p className={styles.footLinks}>
             <Link to={communityGuideHref}>커뮤니티 가이드 모드로 가기</Link>
@@ -331,15 +394,6 @@ export default function HelpPage() {
             <Link to={policiesRequiredHref}>필수 약관 확인</Link>
           </p>
         )}
-        <p>
-          더 궁금한 점이 있다면 <Link to="/chats">채팅</Link>으로 알려주세요.
-        </p>
-        <p className={styles.footLinks}>
-          <Link to={isTutorialMode ? policiesRequiredHref : `/policies?from=${encodedReturnPath}`}>
-            정책
-          </Link>
-          도 함께 확인해 주세요.
-        </p>
       </footer>
     </div>
   )
