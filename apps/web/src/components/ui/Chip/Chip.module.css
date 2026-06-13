@@ -42,7 +42,7 @@
 }
 .selected {
   background: var(--brand-burgundy-700);
-  color: #fff;
+  color: var(--color-primary-fg);
   border-color: var(--brand-burgundy-700);
-  box-shadow: 0 4px 14px rgba(122, 31, 61, 0.3);
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--brand-burgundy-900) 24%, transparent);
 }

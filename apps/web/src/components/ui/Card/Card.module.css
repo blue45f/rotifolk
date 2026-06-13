@@ -26,10 +26,10 @@
   border-color: transparent;
 }
 .v_glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: color-mix(in oklab, var(--color-surface) 72%, transparent);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  border-color: rgba(255, 255, 255, 0.6);
+  border-color: color-mix(in oklab, var(--color-surface) 60%, transparent);
 }
 .v_gradient {
   background: var(--grad-cream-rose);
