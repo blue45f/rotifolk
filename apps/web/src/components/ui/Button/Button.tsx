@@ -1,4 +1,5 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
+
 import styles from './Button.module.css'
 
 export type ButtonVariant =
@@ -34,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     'aria-busy': ariaBusy,
     ...props
   },
-  ref,
+  ref
 ) {
   const cls = [
     styles.btn,

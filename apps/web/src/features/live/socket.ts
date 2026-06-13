@@ -1,6 +1,7 @@
-import { io, type Socket } from 'socket.io-client'
-import type { ClientToServerEvents, ServerToClientEvents } from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
+import { io, type Socket } from 'socket.io-client'
+
+import type { ClientToServerEvents, ServerToClientEvents } from '@rotifolk/shared'
 
 let singleton: Socket<ServerToClientEvents, ClientToServerEvents> | null = null
 let socketToken: string | null = null

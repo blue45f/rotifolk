@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+
+import { getSocket } from './socket'
+
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
@@ -6,7 +9,6 @@ import type {
   Order,
   QuestionCard,
 } from '@rotifolk/shared'
-import { getSocket } from './socket'
 
 export interface LivePartyState {
   status: 'open' | 'live' | 'locked' | 'ended'
@@ -155,7 +157,7 @@ export function useLiveParty(partyId: string | undefined, currentUserId: string 
 
   const send = <K extends keyof ClientToServerEvents>(
     type: K,
-    payload: Parameters<ClientToServerEvents[K]>[0],
+    payload: Parameters<ClientToServerEvents[K]>[0]
   ) => {
     if (!socket) return // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(socket as any).emit(type, payload)

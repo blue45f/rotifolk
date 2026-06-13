@@ -8,7 +8,7 @@
   padding-bottom: var(--space-16);
   isolation: isolate;
   color: var(--brand-cream-50);
-  background-image: 
+  background-image:
     linear-gradient(
       to bottom,
       color-mix(in oklab, var(--brand-ink-900) 92%, transparent) 0%,
@@ -124,7 +124,7 @@
   padding: var(--space-7) var(--space-8);
   border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklab, white 8%, transparent);
-  box-shadow: 
+  box-shadow:
     0 24px 48px color-mix(in oklab, var(--brand-ink-900) 40%, transparent),
     inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
 }
@@ -401,7 +401,7 @@
 }
 .catTile:hover {
   transform: translateY(-6px) scale(1.02);
-  box-shadow: 
+  box-shadow:
     0 22px 40px color-mix(in oklab, var(--brand-burgundy-900) 28%, transparent),
     0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 20%, transparent),
     var(--shadow-lg);

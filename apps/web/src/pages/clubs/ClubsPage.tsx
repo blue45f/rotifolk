@@ -1,19 +1,20 @@
-import { useState, type CSSProperties } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { Button } from '@components/ui/Button/Button'
+import { Chip } from '@components/ui/Chip/Chip'
+import { Input } from '@components/ui/Input/Input'
+import { CATEGORY_META } from '@features/categories/meta'
+import { useClubs } from '@features/clubs/queries'
 import {
   CLUB_CATEGORIES,
   CLUB_CATEGORY_LABEL,
   CLUB_VISIBILITY_LABEL,
   type ClubCategory,
 } from '@rotifolk/shared'
-import { CATEGORY_META } from '@features/categories/meta'
-import { useClubs } from '@features/clubs/queries'
 import { useCurrentUser } from '@store/authStore'
-import { Button } from '@components/ui/Button/Button'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Input } from '@components/ui/Input/Input'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
+import { useState, type CSSProperties } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+
 import styles from './Clubs.module.css'
 
 const isClubCategory = (value: string | null): value is ClubCategory =>
@@ -47,7 +48,7 @@ export default function ClubsPage() {
         else params.set('category', next)
         return params
       },
-      { replace: true },
+      { replace: true }
     )
   }
 

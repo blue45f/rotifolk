@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { usePwaInstall } from './usePwaInstall'
 
 const DISMISSED_KEY = 'rotifolk-pwa-dismissed-at'

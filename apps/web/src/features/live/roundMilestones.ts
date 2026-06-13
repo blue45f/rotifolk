@@ -18,7 +18,7 @@ export const ROUND_MILESTONE_MESSAGE: Record<RoundMilestone, string> = {
 export function detectRoundMilestone(
   prevSec: number,
   currentSec: number,
-  durationSec: number,
+  durationSec: number
 ): RoundMilestone | null {
   if (currentSec >= prevSec) return null // 라운드 시작 등 리셋(증가) 구간은 무시
   if (currentSec <= 0) return 'ended'

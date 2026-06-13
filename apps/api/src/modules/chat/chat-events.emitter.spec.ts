@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
 import { USER_ROOM } from '@rotifolk/shared'
+import { describe, expect, it, vi } from 'vitest'
+
 import { ChatEventsEmitter, type RealtimeChatMessage } from './chat-events.emitter'
 
 describe('ChatEventsEmitter', () => {

@@ -17,7 +17,7 @@ async function createUserWithAvatar(
     pattern: string
     emojiBadge: string
     faceSeed: string
-  },
+  }
 ) {
   const user = await prisma.user.create({ data })
   const av = await prisma.avatar.create({
@@ -84,7 +84,7 @@ async function main() {
       pattern: 'gradient',
       emojiBadge: '🛡️',
       faceSeed: 'admin-rotifolk',
-    },
+    }
   )
   const host = await createUserWithAvatar(
     {
@@ -107,7 +107,7 @@ async function main() {
       pattern: 'gradient',
       emojiBadge: '🍷',
       faceSeed: 'host-doi',
-    },
+    }
   )
 
   const femaleSpecs = [
@@ -217,7 +217,7 @@ async function main() {
 
   const buildUser = async (
     s: (typeof femaleSpecs)[number] | (typeof maleSpecs)[number],
-    gender: 'male' | 'female',
+    gender: 'male' | 'female'
   ) =>
     createUserWithAvatar(
       {
@@ -230,7 +230,7 @@ async function main() {
         interestsJson: JSON.stringify(s.interests),
         joinedCount: 3,
       },
-      { mood: s.mood, hue: s.hue, pattern: 'gradient', emojiBadge: s.emoji, faceSeed: s.nickname },
+      { mood: s.mood, hue: s.hue, pattern: 'gradient', emojiBadge: s.emoji, faceSeed: s.nickname }
     )
   const W = await Promise.all(femaleSpecs.map((s) => buildUser(s, 'female')))
   const M = await Promise.all(maleSpecs.map((s) => buildUser(s, 'male')))
@@ -829,7 +829,7 @@ async function main() {
     { depth: 'spicy', prompt: '비밀 하나만 풀자면 어떤 비밀을 풀고 싶어요?' },
   ] as const
   await Promise.all(
-    cards.map((c) => prisma.questionCard.create({ data: { ...c, language: 'ko', partyId: null } })),
+    cards.map((c) => prisma.questionCard.create({ data: { ...c, language: 'ko', partyId: null } }))
   )
 
   await prisma.quizQuestion.create({
@@ -846,7 +846,7 @@ async function main() {
   // ============ 새 기능 데모 데이터 (연결 채널·인기·민감설정·회피) ============
   const byEmail = (p: string) => prisma.user.findUnique({ where: { email: `${p}@rotifolk.dev` } })
   const [w1, w2, w3, m1, m2, m3] = await Promise.all(
-    ['w1', 'w2', 'w3', 'm1', 'm2', 'm3'].map(byEmail),
+    ['w1', 'w2', 'w3', 'm1', 'm2', 'm3'].map(byEmail)
   )
 
   // 연결 채널 핸들 + 공개 동의 (매칭 리빌에서 단계적으로 열림)

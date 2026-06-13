@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { VenueRecommendQuerySchema } from './venue-booking.schema'
 
 describe('VenueRecommendQuerySchema', () => {

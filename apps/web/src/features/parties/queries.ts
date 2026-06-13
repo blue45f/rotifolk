@@ -1,4 +1,6 @@
+import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import type {
   CreatePartyDto,
   Paginated,
@@ -7,7 +9,6 @@ import type {
   PartyQueryDto,
   PartySummary,
 } from '@rotifolk/shared'
-import { api } from '@services/api'
 
 export const partyKeys = {
   all: ['parties'] as const,
@@ -78,7 +79,7 @@ export function useMyParties() {
     queryKey: partyKeys.mine,
     queryFn: () =>
       api.get<Array<{ participation: { id: string; status: string }; party: PartySummary }>>(
-        'parties/mine',
+        'parties/mine'
       ),
   })
 }

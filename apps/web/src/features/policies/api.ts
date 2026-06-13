@@ -23,7 +23,7 @@ interface FetchPolicyOptions {
 
 export async function fetchPolicy(
   slug: PolicySlug,
-  { signal }: FetchPolicyOptions = {},
+  { signal }: FetchPolicyOptions = {}
 ): Promise<PolicyDocument> {
   const response = await fetch(policyApiUrl(slug), {
     signal,

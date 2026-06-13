@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
-import type { MenuItem, Venue, VenueSearchDto } from '@rotifolk/shared'
 import { api } from '@services/api'
+import { useQuery } from '@tanstack/react-query'
+
+import type { MenuItem, Venue, VenueSearchDto } from '@rotifolk/shared'
 
 export const venueKeys = {
   list: (q: Partial<VenueSearchDto>) => ['venues', 'list', q] as const,

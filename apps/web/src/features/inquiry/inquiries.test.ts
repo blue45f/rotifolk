@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+
 import {
   buildInquiryPayload,
   createInquiry,
@@ -19,16 +20,16 @@ describe('validateInquiryInput', () => {
         category: 'bug',
         title: '라이브 라운드 타이머가 멈춰요',
         body: '두 번째 라운드부터 타이머가 0초에서 멈춘 채 진행되지 않았습니다.',
-      }),
+      })
     ).toBeNull()
   })
 
   it('제목/본문 길이 경계를 검증한다 (2..140 / 10..4000)', () => {
     expect(
-      validateInquiryInput({ category: 'contact', title: 'a', body: '열 글자 이상인 본문입니다.' }),
+      validateInquiryInput({ category: 'contact', title: 'a', body: '열 글자 이상인 본문입니다.' })
     ).toMatch(/제목/)
     expect(validateInquiryInput({ category: 'contact', title: '제목 정상', body: '짧음' })).toMatch(
-      /내용/,
+      /내용/
     )
   })
 
@@ -39,7 +40,7 @@ describe('validateInquiryInput', () => {
         title: '플로우 피드백',
         body: '결제 단계 흐름에 대한 피드백입니다.',
         contactEmail: 'not-an-email',
-      }),
+      })
     ).toMatch(/이메일/)
     expect(
       validateInquiryInput({
@@ -47,7 +48,7 @@ describe('validateInquiryInput', () => {
         title: '플로우 피드백',
         body: '결제 단계 흐름에 대한 피드백입니다.',
         contactEmail: '',
-      }),
+      })
     ).toBeNull()
   })
 })
@@ -61,7 +62,7 @@ describe('buildInquiryPayload', () => {
         body: '  한남동 와인바 공동 운영 제안드립니다.  ',
         contactEmail: '  ',
       },
-      'https://rotifolk.example/support',
+      'https://rotifolk.example/support'
     )
     expect(payload.title).toBe('공간 제휴 제안')
     expect(payload.body).toBe('한남동 와인바 공동 운영 제안드립니다.')
@@ -104,14 +105,14 @@ describe('createInquiry', () => {
       INQUIRY_ENDPOINT,
       expect.objectContaining({
         method: 'POST',
-      }),
+      })
     )
   })
 
   it('429는 스로틀 안내 메시지로 변환한다', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response('{}', { status: 429 })),
+      vi.fn(async () => new Response('{}', { status: 429 }))
     )
     await expect(createInquiry(validInput, 'https://x.example')).rejects.toThrow(/너무 잦아요/)
   })
@@ -121,10 +122,10 @@ describe('createInquiry', () => {
       'fetch',
       vi.fn(async () => {
         throw new TypeError('network down')
-      }),
+      })
     )
     await expect(createInquiry(validInput, 'https://x.example')).rejects.toThrow(
-      /연결하지 못했어요/,
+      /연결하지 못했어요/
     )
   })
 })

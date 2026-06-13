@@ -31,7 +31,7 @@ export class AvatarImageError extends Error {
 export function scaleToFit(
   width: number,
   height: number,
-  maxDim: number = AVATAR_RESIZE_MAX_DIM,
+  maxDim: number = AVATAR_RESIZE_MAX_DIM
 ): { width: number; height: number } {
   const longEdge = Math.max(width, height)
   if (longEdge <= 0) return { width: 1, height: 1 }

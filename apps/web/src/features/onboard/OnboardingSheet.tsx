@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Sheet } from '@components/ui/Sheet/Sheet'
-import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { useEffect, useState } from 'react'
+
 import styles from './Onboarding.module.css'
 
 const KEY = 'rotifolk-onboarded-v1'

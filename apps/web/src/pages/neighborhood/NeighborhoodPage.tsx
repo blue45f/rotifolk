@@ -1,18 +1,20 @@
-import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import type { PartySummary } from '@rotifolk/shared'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Chip } from '@components/ui/Chip/Chip'
+import { useGeolocation } from '@features/geo/useGeolocation'
+import { PartyCard } from '@features/parties/PartyCard'
+import { useVenueAreas } from '@features/venues/queries'
 import { SEOUL_AREAS, formatDistanceKm, haversineKm } from '@rotifolk/shared'
 import { api } from '@services/api'
-import { useGeolocation } from '@features/geo/useGeolocation'
-import { useVenueAreas } from '@features/venues/queries'
-import { PartyCard } from '@features/parties/PartyCard'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Badge } from '@components/ui/Badge/Badge'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
+import { useQuery } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Button } from '@components/ui/Button/Button'
+
 import styles from './Neighborhood.module.css'
+
+import type { PartySummary } from '@rotifolk/shared'
 
 const AREA_DESC: Record<string, string> = {
   한남동: '조용한 와인바와 갤러리가 많은 한강변 골목',
@@ -31,7 +33,7 @@ export default function NeighborhoodPage() {
   const { data: venueAreas } = useVenueAreas()
   const areaOptions = useMemo(
     () => (venueAreas?.length ? venueAreas : Object.keys(SEOUL_AREAS)),
-    [venueAreas],
+    [venueAreas]
   )
 
   const distanceMap = useMemo(() => {
@@ -52,7 +54,7 @@ export default function NeighborhoodPage() {
     queryKey: ['neighborhood', area],
     queryFn: () =>
       api.get<{ area: string | null; items: PartySummary[] }>(
-        `parties/neighborhood${area ? `?area=${encodeURIComponent(area)}` : ''}`,
+        `parties/neighborhood${area ? `?area=${encodeURIComponent(area)}` : ''}`
       ),
   })
 

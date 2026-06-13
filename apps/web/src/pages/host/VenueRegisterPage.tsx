@@ -1,12 +1,13 @@
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Button } from '@components/ui/Button/Button'
+import { Card } from '@components/ui/Card/Card'
+import { Chip } from '@components/ui/Chip/Chip'
+import { Input } from '@components/ui/Input/Input'
+import { useCreateVenue } from '@features/venueBooking/queries'
+import { CreateVenueSchema, SEOUL_AREAS, type VenueKind } from '@rotifolk/shared'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CreateVenueSchema, SEOUL_AREAS, type VenueKind } from '@rotifolk/shared'
-import { useCreateVenue } from '@features/venueBooking/queries'
-import { Button } from '@components/ui/Button/Button'
-import { Input } from '@components/ui/Input/Input'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Card } from '@components/ui/Card/Card'
-import { useToast } from '@components/feedback/Toast/useToast'
+
 import styles from './VenueRegister.module.css'
 
 const KINDS: { value: VenueKind; label: string; emoji: string }[] = [
@@ -138,7 +139,7 @@ export default function VenueRegisterPage() {
             onChange={(e) => set('name', e.target.value)}
           />
           <div className={styles.field}>
-            <label className={styles.fl}>종류</label>
+            <span className={styles.fl}>종류</span>
             <div className={styles.chips}>
               {KINDS.map((k) => (
                 <Chip
@@ -153,7 +154,7 @@ export default function VenueRegisterPage() {
             </div>
           </div>
           <div className={styles.field}>
-            <label className={styles.fl}>동네</label>
+            <span className={styles.fl}>동네</span>
             <div className={styles.chips}>
               {AREAS.map((a) => (
                 <Chip key={a} selected={f.area === a} onClick={() => set('area', a)}>
@@ -235,7 +236,7 @@ export default function VenueRegisterPage() {
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.fl}>정기 휴무</label>
+            <span className={styles.fl}>정기 휴무</span>
             <div className={styles.chips}>
               {WEEKDAYS.map((w, i) => (
                 <Chip
@@ -304,8 +305,11 @@ export default function VenueRegisterPage() {
             onChange={(e) => set('photo2', e.target.value)}
           />
           <div className={styles.field}>
-            <label className={styles.fl}>사장님 한마디</label>
+            <label className={styles.fl} htmlFor="venue-host-blurb">
+              사장님 한마디
+            </label>
             <textarea
+              id="venue-host-blurb"
               className={styles.textarea}
               rows={2}
               placeholder="직접 셀렉한 와인으로 라운드를 채워요."

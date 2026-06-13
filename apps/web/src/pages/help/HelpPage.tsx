@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import EmptyState from '@components/feedback/EmptyState'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import EmptyState from '@components/feedback/EmptyState'
 import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
+
 import styles from './Help.module.css'
 
 function norm(s: string): string {
@@ -142,7 +143,7 @@ export default function HelpPage() {
   const isTutorialMode = tutorialStep === 'help'
   const initialTopic = searchParams.get('topic')
   const [tab, setTab] = useState<'guest' | 'host'>(
-    isTutorialMode ? 'guest' : initialTopic === 'host' ? 'host' : 'guest',
+    isTutorialMode ? 'guest' : initialTopic === 'host' ? 'host' : 'guest'
   )
   const [open, setOpen] = useState<number | null>(0)
   const [query, setQuery] = useState('')
@@ -169,7 +170,7 @@ export default function HelpPage() {
         if (step.icon === '3') return { ...step, to: demoReturnHref }
         return { ...step, to: policiesRequiredHref }
       }),
-    [communityGuideHref, demoReturnHref, policiesRequiredHref, tutorialReturnHref],
+    [communityGuideHref, demoReturnHref, policiesRequiredHref, tutorialReturnHref]
   )
   const startingPoints = useMemo(
     () =>
@@ -188,7 +189,7 @@ export default function HelpPage() {
       encodedReturnPath,
       policiesRequiredHref,
       tutorialReturnHref,
-    ],
+    ]
   )
 
   useEffect(() => {

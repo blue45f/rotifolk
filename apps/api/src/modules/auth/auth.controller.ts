@@ -9,10 +9,13 @@ import {
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ClaimGuestSchema, LoginSchema, SignUpSchema } from '@rotifolk/shared'
-import type { ClaimGuestDto, LoginDto, SignUpDto } from '@rotifolk/shared'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
-import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+
 import { AuthService } from './auth.service'
+
+import type { ClaimGuestDto, LoginDto, SignUpDto } from '@rotifolk/shared'
+
+import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 
 @Controller('auth')
 export class AuthController {
@@ -66,7 +69,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   claimGuest(
     @CurrentUser() user: JwtUserPayload,
-    @Body(new ZodValidationPipe(ClaimGuestSchema)) dto: ClaimGuestDto,
+    @Body(new ZodValidationPipe(ClaimGuestSchema)) dto: ClaimGuestDto
   ) {
     return this.authService.claimGuestParticipations(user.sub, dto.guestToken)
   }

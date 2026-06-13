@@ -22,6 +22,9 @@ import {
   SendPartyInvitationsSchema,
   UpdatePartySchema,
 } from '@rotifolk/shared'
+
+import { PartiesService } from './parties.service'
+
 import type {
   CheckInDto,
   CreateDerivedPartyDto,
@@ -33,9 +36,9 @@ import type {
   SendPartyInvitationsDto,
   UpdatePartyDto,
 } from '@rotifolk/shared'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
-import { PartiesService } from './parties.service'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 
 type AfterPartyVoteDto = Readonly<{
   status?: 'go' | 'maybe' | 'no'
@@ -81,7 +84,7 @@ export class PartiesController {
       venueId: string
       startInMinutes: number
       maxParticipants?: number
-    },
+    }
   ) {
     return this.parties.quickCreate(me.sub, body)
   }
@@ -132,7 +135,7 @@ export class PartiesController {
   update(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(UpdatePartySchema)) dto: UpdatePartyDto,
+    @Body(new ZodValidationPipe(UpdatePartySchema)) dto: UpdatePartyDto
   ) {
     return this.parties.update(me.sub, id, dto)
   }
@@ -143,7 +146,7 @@ export class PartiesController {
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
     @Body(new ZodValidationPipe(JoinPartySchema.omit({ partyId: true })))
-    dto: Omit<JoinPartyDto, 'partyId'>,
+    dto: Omit<JoinPartyDto, 'partyId'>
   ) {
     return this.parties.join(me.sub, partyId, dto.note ?? null)
   }
@@ -158,7 +161,7 @@ export class PartiesController {
   @Post(':id/guest-join')
   guestJoin(
     @Param('id') partyId: string,
-    @Body(new ZodValidationPipe(GuestJoinSchema)) dto: GuestJoinDto,
+    @Body(new ZodValidationPipe(GuestJoinSchema)) dto: GuestJoinDto
   ) {
     return this.parties.guestJoin(partyId, dto)
   }
@@ -175,7 +178,7 @@ export class PartiesController {
   addGuest(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
-    @Body(new ZodValidationPipe(HostAddGuestSchema)) dto: HostAddGuestDto,
+    @Body(new ZodValidationPipe(HostAddGuestSchema)) dto: HostAddGuestDto
   ) {
     return this.parties.hostAddGuest(me.sub, partyId, dto)
   }
@@ -186,7 +189,7 @@ export class PartiesController {
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
     @Param('userId') userId: string,
-    @Body(new ZodValidationPipe(CheckInSchema)) body: CheckInDto,
+    @Body(new ZodValidationPipe(CheckInSchema)) body: CheckInDto
   ) {
     return this.parties.checkIn(me.sub, partyId, userId, body.seatNumber)
   }
@@ -222,7 +225,7 @@ export class PartiesController {
   voteAfterParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
-    @Body() dto: AfterPartyVoteDto,
+    @Body() dto: AfterPartyVoteDto
   ) {
     void me
     void partyId
@@ -235,7 +238,7 @@ export class PartiesController {
   voteVenueAfterParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
-    @Body() dto: AfterPartyVenueVoteDto,
+    @Body() dto: AfterPartyVenueVoteDto
   ) {
     void me
     void partyId
@@ -248,7 +251,7 @@ export class PartiesController {
   confirmAfterParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') partyId: string,
-    @Body() dto: AfterPartyConfirmDto,
+    @Body() dto: AfterPartyConfirmDto
   ) {
     void me
     void partyId
@@ -267,7 +270,7 @@ export class PartiesController {
   deriveParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body(new ZodValidationPipe(CreateDerivedPartySchema)) body: CreateDerivedPartyDto,
+    @Body(new ZodValidationPipe(CreateDerivedPartySchema)) body: CreateDerivedPartyDto
   ) {
     return this.parties.createDerivedParty(me.sub, partyId, body)
   }
@@ -277,7 +280,7 @@ export class PartiesController {
   inviteToParty(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body(new ZodValidationPipe(SendPartyInvitationsSchema)) body: SendPartyInvitationsDto,
+    @Body(new ZodValidationPipe(SendPartyInvitationsSchema)) body: SendPartyInvitationsDto
   ) {
     return this.parties.sendInvitations(me.sub, partyId, body)
   }

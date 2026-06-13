@@ -1,17 +1,19 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import type { PartyCategory, PartySummary } from '@rotifolk/shared'
-import { useParties } from '@features/parties/queries'
-import { useQuery } from '@tanstack/react-query'
-import { api } from '@services/api'
-import { PartyCard } from '@features/parties/PartyCard'
-import { CATEGORY_META } from '@features/categories/meta'
-import { Badge } from '@components/ui/Badge/Badge'
-import { Button } from '@components/ui/Button/Button'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { CATEGORY_META } from '@features/categories/meta'
+import { PartyCard } from '@features/parties/PartyCard'
+import { useParties } from '@features/parties/queries'
+import { api } from '@services/api'
+import { useQuery } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './Digest.module.css'
+
+import type { PartyCategory, PartySummary } from '@rotifolk/shared'
 
 /**
  * /digest — 매주 한 번 갱신되는 주간 다이제스트.
@@ -56,7 +58,7 @@ const REVIEW_STUBS: ReviewStub[] = [
 
 function countBy<T>(
   items: readonly T[],
-  pick: (x: T) => string | null | undefined,
+  pick: (x: T) => string | null | undefined
 ): Map<string, number> {
   const map = new Map<string, number>()
   for (const item of items) {
@@ -312,7 +314,7 @@ export default function DigestPage() {
                   const catKey = (review.category ?? 'wine') as PartyCategory
                   const meta = CATEGORY_META[catKey] ?? CATEGORY_META['wine']
                   const stars = '★'.repeat(
-                    Math.min(5, Math.max(1, (review as RecentReview).rating ?? 5)),
+                    Math.min(5, Math.max(1, (review as RecentReview).rating ?? 5))
                   )
                   return (
                     <li
@@ -332,7 +334,7 @@ export default function DigestPage() {
                       </footer>
                     </li>
                   )
-                },
+                }
               )}
             </ul>
           </section>

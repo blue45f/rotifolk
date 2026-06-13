@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import {
   REPORT_AUTO_HIDE_THRESHOLD,
   REPORT_RATE_LIMIT_MAX,
@@ -13,7 +14,7 @@ describe('report policy', () => {
         targetUserId: 'user_1',
         communityPostId: 'post_1',
         communityCommentId: 'comment_1',
-      }),
+      })
     ).toBe('community-comment:comment_1')
 
     expect(buildReportTargetKey({ communityPostId: 'post_1' })).toBe('community-post:post_1')

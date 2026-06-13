@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+
 import AppProviders from '@/app/AppProviders'
 import '@/styles/global.css'
 
@@ -11,7 +12,7 @@ async function bootstrap() {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <AppProviders />
-    </StrictMode>,
+    </StrictMode>
   )
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {})

@@ -48,7 +48,7 @@ export function applyStartDelay(startAtMs: number, delayMin: number): number {
 /** roundIndex 라운드가 끝난 뒤 긴 휴식인지 (예: 3라운드마다 → 3, 6, 9...). */
 export function isLongBreakAfterRound(
   roundIndex: number | null | undefined,
-  rule: BreakRule | null | undefined,
+  rule: BreakRule | null | undefined
 ): boolean {
   if (!roundIndex || roundIndex < 1 || !isActiveRule(rule)) return false
   return roundIndex % rule.everyNRounds === 0
@@ -85,7 +85,7 @@ export function timelineEndMs(input: TimelineInput): number {
 export function totalBreakSec(
   totalRounds: number,
   breakBetweenRoundsSec: number,
-  breakRule?: BreakRule | null,
+  breakRule?: BreakRule | null
 ): number {
   if (totalRounds <= 1) return 0
   const gaps = totalRounds - 1

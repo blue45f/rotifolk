@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { channelsFromLegacyMode, legacyModeFromChannels } from './party'
 
 describe('channelsFromLegacyMode', () => {

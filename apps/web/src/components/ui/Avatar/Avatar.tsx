@@ -1,5 +1,6 @@
-import type { CSSProperties } from 'react'
 import styles from './Avatar.module.css'
+
+import type { CSSProperties } from 'react'
 
 interface AvatarProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'

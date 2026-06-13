@@ -32,7 +32,7 @@ export function scoreParty(p: PartySummary, ctx: RecommendationContext): number 
 export function recommendParties(
   parties: readonly PartySummary[],
   ctx: RecommendationContext,
-  limit = 6,
+  limit = 6
 ): PartySummary[] {
   return [...parties]
     .map((p) => ({ p, s: scoreParty(p, ctx) }))

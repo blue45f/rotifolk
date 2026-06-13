@@ -1,4 +1,5 @@
 import { useCallback, useContext, type Dispatch, type SetStateAction } from 'react'
+
 import { LocaleContext, type Locale, type LocaleContextValue } from './i18nContext'
 
 function useLocaleContext(): LocaleContextValue {
@@ -22,6 +23,6 @@ export function useT() {
       if (hit !== undefined) return hit
       return fallbackDict[key] ?? key
     },
-    [dict, fallbackDict],
+    [dict, fallbackDict]
   )
 }

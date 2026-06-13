@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import { getSocket } from '@features/live/socket'
 import { useAuthStore } from '@store/authStore'
+import { useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
+
 import {
   incrementUnreadCount,
   prependRealtimeNotification,
@@ -23,11 +24,11 @@ export function useNotificationsRealtime() {
     const socket = getSocket()
     const onNotification = (payload: Parameters<typeof prependRealtimeNotification>[1]) => {
       queryClient.setQueryData<NotificationItem[] | undefined>(notificationKeys.list, (current) =>
-        prependRealtimeNotification(current, payload),
+        prependRealtimeNotification(current, payload)
       )
       queryClient.setQueryData<{ count: number } | undefined>(
         notificationKeys.unread,
-        incrementUnreadCount,
+        incrementUnreadCount
       )
       queryClient.invalidateQueries({ queryKey: notificationKeys.list })
       queryClient.invalidateQueries({ queryKey: notificationKeys.unread })

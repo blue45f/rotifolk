@@ -4,6 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import { recommendVenues, suggestOffHoursSlots } from '@rotifolk/shared'
+
+import type { Prisma, Venue as PrismaVenue, MenuItem as PrismaMenuItem } from '@prisma/client'
 import type {
   CreateVenueDto,
   UpdateVenueDto,
@@ -18,10 +21,9 @@ import type {
   MenuItem,
   MenuAvailability,
 } from '@rotifolk/shared'
-import { recommendVenues, suggestOffHoursSlots } from '@rotifolk/shared'
-import type { Prisma, Venue as PrismaVenue, MenuItem as PrismaMenuItem } from '@prisma/client'
-import { PrismaService } from '@/prisma/prisma.service'
+
 import { parseJsonArray, parseJsonObject, toJsonString } from '@/common/json-utils'
+import { PrismaService } from '@/prisma/prisma.service'
 
 export interface OwnedVenue extends Venue {
   upcomingParties: number
@@ -56,7 +58,7 @@ export class VenuesService {
       take: 500,
     })
     return Array.from(new Set(venues.map((venue) => venue.area).filter(Boolean))).sort((a, b) =>
-      a.localeCompare(b, 'ko-KR'),
+      a.localeCompare(b, 'ko-KR')
     )
   }
 
@@ -121,7 +123,7 @@ export class VenuesService {
           upcomingParties,
           pendingRequests,
         }
-      }),
+      })
     )
   }
 

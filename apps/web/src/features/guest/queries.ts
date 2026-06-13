@@ -1,8 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { GuestJoinDto, Participation } from '@rotifolk/shared'
-import { api } from '@services/api'
 import { partyKeys } from '@features/parties/queries'
+import { api } from '@services/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import { clearGuestToken, getGuestToken, setGuestToken } from './guestSession'
+
+import type { GuestJoinDto, Participation } from '@rotifolk/shared'
 
 export const guestKeys = {
   session: (partyId: string, token: string | null) =>
@@ -30,7 +32,7 @@ export function useGuestJoin(partyId: string | undefined) {
     mutationFn: (dto: Omit<GuestJoinDto, 'token'>) =>
       api.post<{ participation: Participation; guestToken: string }>(
         `parties/${partyId}/guest-join`,
-        { ...dto, token: getGuestToken() ?? undefined },
+        { ...dto, token: getGuestToken() ?? undefined }
       ),
     onSuccess: (data) => {
       setGuestToken(data.guestToken)

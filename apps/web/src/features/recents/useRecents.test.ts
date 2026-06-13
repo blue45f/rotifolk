@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { useRecents } from './useRecents'
 
 const STORAGE_KEY = 'rotifolk-recents'
@@ -19,7 +20,7 @@ describe('useRecents', () => {
         { id: 'bad-visited', title: '시간 문자열', category: 'coffee', visitedAt: 'soon' },
         { id: '', title: '빈 id', category: 'tea', visitedAt: 3_000 },
         null,
-      ]),
+      ])
     )
 
     const { result } = renderHook(() => useRecents())
@@ -49,7 +50,7 @@ describe('useRecents', () => {
     })
     expect(result.current.items.filter((item) => item.id === 'party-3')).toHaveLength(1)
     expect(JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '[]')).toEqual(
-      result.current.items,
+      result.current.items
     )
   })
 
@@ -58,7 +59,7 @@ describe('useRecents', () => {
 
     window.localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify([{ id: 'external', title: '다른 탭 모임', category: 'tea', visitedAt: 123 }]),
+      JSON.stringify([{ id: 'external', title: '다른 탭 모임', category: 'tea', visitedAt: 123 }])
     )
     act(() => {
       window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }))

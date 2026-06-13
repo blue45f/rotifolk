@@ -1,6 +1,6 @@
-import ky, { HTTPError, type KyInstance, type Options } from 'ky'
-import { useAuthStore } from '@store/authStore'
 import { disconnectSocket } from '@features/live/socket'
+import { useAuthStore } from '@store/authStore'
+import ky, { HTTPError, type KyInstance, type Options } from 'ky'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
@@ -9,7 +9,7 @@ export class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
-    public details?: unknown,
+    public details?: unknown
   ) {
     super(message)
     this.name = 'ApiError'
@@ -49,7 +49,7 @@ export const apiClient: KyInstance = ky.create({
               error.response.status,
               body.code ?? 'unknown',
               body.message ?? error.message,
-              body.details,
+              body.details
             )
           } catch {
             // JSON parsing failed, return original error

@@ -1,6 +1,8 @@
-import type { PartyCategory } from '@rotifolk/shared'
 import { CATEGORY_META } from '@features/categories/meta'
+
 import styles from './PartyShareCard.module.css'
+
+import type { PartyCategory } from '@rotifolk/shared'
 
 export interface PartyShareCardProps {
   title: string

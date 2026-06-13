@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+
 import { LocaleContext, type Locale, type LocaleContextValue } from './i18nContext'
 
 const STORAGE_KEY = 'rotifolk-locale'
@@ -157,7 +158,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<LocaleContextValue>(
     () => ({ locale, setLocale, dict: DICTS[locale], fallbackDict: KO }),
-    [locale],
+    [locale]
   )
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>

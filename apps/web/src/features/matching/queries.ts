@@ -1,4 +1,6 @@
+import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import type {
   ConnectionChannel,
   ContactExchangeChannelState,
@@ -6,7 +8,6 @@ import type {
   ContactExchangeRequestStatus,
   MatchScope,
 } from '@rotifolk/shared'
-import { api } from '@services/api'
 
 export type MatchResult = 'mutual' | 'top-pick' | 'all'
 
@@ -95,7 +96,7 @@ export function useRequestContactExchange(partyId?: string) {
     mutationFn: ({ partnerId, channel }: { partnerId: string; channel: ConnectionChannel }) =>
       api.post<ContactExchangeRequestResult>(
         `parties/${partyId}/matching/contact-requests/${partnerId}`,
-        { channel },
+        { channel }
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['party-matches', partyId] })
@@ -109,7 +110,7 @@ export function useDecideContactExchangeRequest(partyId?: string) {
     mutationFn: ({ requestId, action }: { requestId: string; action: 'approve' | 'reject' }) =>
       api.post<ContactExchangeRequestResult>(
         `parties/${partyId}/matching/contact-requests/${requestId}/decision`,
-        { action },
+        { action }
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['party-matches', partyId] })

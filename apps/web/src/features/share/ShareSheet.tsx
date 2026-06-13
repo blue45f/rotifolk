@@ -1,9 +1,10 @@
+import { useToast } from '@components/feedback/Toast/useToast'
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { useToast } from '@components/feedback/Toast/useToast'
+
 import { PartyShareCard } from './PartyShareCard'
-import { copyToClipboard, share, shareText } from './useShare'
 import styles from './ShareSheet.module.css'
+import { copyToClipboard, share, shareText } from './useShare'
 
 export interface ShareSheetProps {
   open: boolean
@@ -70,7 +71,7 @@ export function ShareSheet({
 
   const handleTwitter = () => {
     const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      text,
+      text
     )}&url=${encodeURIComponent(inviteUrl)}`
     window.open(intent, '_blank', 'noopener,noreferrer')
   }
@@ -82,7 +83,7 @@ export function ShareSheet({
     const ok = outcome === 'copied' || (await copyToClipboard(inviteUrl))
     toast.show(
       ok ? '링크를 복사했어요. 카카오톡에 붙여넣어 보내세요' : '복사에 실패했어요',
-      ok ? 'success' : 'error',
+      ok ? 'success' : 'error'
     )
   }
 
@@ -167,7 +168,7 @@ export function ShareSheet({
         </div>
       </div>
     </div>,
-    document.body,
+    document.body
   )
 }
 

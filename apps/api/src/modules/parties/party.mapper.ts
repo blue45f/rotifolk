@@ -1,3 +1,7 @@
+import { channelsFromLegacyMode, guestParticipantKey } from '@rotifolk/shared'
+
+import { toPublicSummary } from '../users/user.mapper'
+
 import type {
   Party as PrismaParty,
   User as PrismaUser,
@@ -26,9 +30,8 @@ import type {
   MaritalStatus,
   ChildrenPolicy,
 } from '@rotifolk/shared'
-import { channelsFromLegacyMode, guestParticipantKey } from '@rotifolk/shared'
+
 import { parseJsonArray, parseJsonObject } from '@/common/json-utils'
-import { toPublicSummary } from '../users/user.mapper'
 
 type HostShape = {
   id: string
@@ -150,7 +153,7 @@ export function toPartySummary(row: PartyRow): PartySummary {
 }
 
 export function toParticipation(
-  row: PrismaParticipation & { user?: (PrismaUser & { avatar?: PrismaAvatar | null }) | null },
+  row: PrismaParticipation & { user?: (PrismaUser & { avatar?: PrismaAvatar | null }) | null }
 ): Participation {
   // 게스트(비로그인)는 userId가 없으므로 합성 키를 동일 형태로 노출 —
   // 라운드 memberIds·체크인 경로·로스터 매칭이 회원과 같은 코드로 동작한다.

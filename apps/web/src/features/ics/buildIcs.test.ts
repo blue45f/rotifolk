@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { buildIcs } from './buildIcs'
 
 function physicalLines(value: string): string[] {
@@ -27,7 +28,7 @@ describe('ICS builder', () => {
         title: '잘못된 일정',
         startAt: 'not-a-date',
         endAt: '2026-06-01T12:00:00+09:00',
-      }),
+      })
     ).toThrow(/Invalid date/)
   })
 

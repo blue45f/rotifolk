@@ -1,5 +1,6 @@
-import { useState } from 'react'
 import { Button, type ButtonProps } from '@components/ui/Button/Button'
+import { useState } from 'react'
+
 import { ShareSheet } from './ShareSheet'
 
 export interface ShareButtonProps {

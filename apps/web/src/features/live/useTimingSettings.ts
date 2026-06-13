@@ -42,7 +42,7 @@ function load(partyId: string): TimingSettings {
 
 export function usePartyTimingSettings(partyId: string | undefined) {
   const [settings, setSettings] = useState<TimingSettings>(() =>
-    partyId ? load(partyId) : DEFAULTS,
+    partyId ? load(partyId) : DEFAULTS
   )
 
   const update = useCallback(
@@ -59,7 +59,7 @@ export function usePartyTimingSettings(partyId: string | undefined) {
         return next
       })
     },
-    [partyId],
+    [partyId]
   )
 
   return { settings, update }

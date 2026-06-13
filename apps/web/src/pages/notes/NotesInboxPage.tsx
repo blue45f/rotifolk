@@ -1,10 +1,13 @@
-import { useMemo } from 'react'
-import type { PartyNote } from '@rotifolk/shared'
-import { useMyNotes, useMarkNoteRead } from '@features/notes/queries'
+import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
-import Loading from '@components/feedback/Loading'
+import { useMyNotes, useMarkNoteRead } from '@features/notes/queries'
+import { useMemo } from 'react'
+
 import styles from './Notes.module.css'
+
+import type { PartyNote } from '@rotifolk/shared'
+import type { KeyboardEvent } from 'react'
 
 function initialsOf(nickname?: string): string {
   if (!nickname) return '?'
@@ -36,10 +39,23 @@ function formatArrival(iso?: string | null): string {
 
 function NoteCard({ note, onRead }: { note: PartyNote; onRead: (id: string) => void }) {
   const unread = !note.readAt
+  // 안 읽은 쪽지만 클릭/키보드로 '읽음' 처리할 수 있는 능동 요소가 된다.
+  const markRead = unread ? () => onRead(note.id) : undefined
   return (
     <article
       className={`${styles.card} ${unread ? styles.cardUnread : ''}`}
-      onClick={() => unread && onRead(note.id)}
+      {...(markRead && {
+        role: 'button',
+        tabIndex: 0,
+        'aria-label': `${note.fromNickname ?? '익명'}님의 안 읽은 쪽지 — 눌러서 읽음 표시`,
+        onClick: markRead,
+        onKeyDown: (e: KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            markRead()
+          }
+        },
+      })}
     >
       {unread && (
         <span className={styles.seal} aria-hidden="true">

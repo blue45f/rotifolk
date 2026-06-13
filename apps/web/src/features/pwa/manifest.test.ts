@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import indexHtml from '../../../index.html?raw'
 import manifestSource from '../../../public/manifest.webmanifest?raw'
 
@@ -26,7 +27,7 @@ const manifest = JSON.parse(manifestSource) as {
 // Compile-time glob of the deployable icon assets — a manifest entry pointing at a
 // file missing from public/ fails here instead of as a 404 on someone's home screen.
 const publicAssets = Object.keys(import.meta.glob('../../../public/*.{png,svg}')).map((key) =>
-  key.replace('../../../public', ''),
+  key.replace('../../../public', '')
 )
 
 describe('manifest.webmanifest icons', () => {

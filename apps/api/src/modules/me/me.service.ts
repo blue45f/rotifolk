@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { detectAvoidOverlaps } from '@rotifolk/shared'
+
+import type { Prisma } from '@prisma/client'
 import type {
   AddAvoidContactsDto,
   AddAvoidPersonDto,
@@ -12,10 +14,10 @@ import type {
   VerificationField,
   VerifyFieldDto,
 } from '@rotifolk/shared'
-import type { Prisma } from '@prisma/client'
-import { PrismaService } from '@/prisma/prisma.service'
-import { parseJsonArray, toJsonString } from '@/common/json-utils'
+
 import { hashPhone } from '@/common/contact-hash'
+import { parseJsonArray, toJsonString } from '@/common/json-utils'
+import { PrismaService } from '@/prisma/prisma.service'
 
 export interface AvoidContactDto {
   id: string
@@ -272,7 +274,7 @@ export class MeService {
         phoneHash: p.user.phoneHash,
         avoidHashes: theirAvoidByUser.get(p.user.id) ?? [],
         company: p.user.company,
-      })),
+      }))
     )
 
     const nickById = new Map(parts.map((p) => [p.user.id, p.user.nickname]))

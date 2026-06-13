@@ -1,9 +1,10 @@
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import type { LoginDto, SignUpDto, User } from '@rotifolk/shared'
+import { claimGuestHistory } from '@features/guest/queries'
+import { disconnectSocket } from '@features/live/socket'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
-import { disconnectSocket } from '@features/live/socket'
-import { claimGuestHistory } from '@features/guest/queries'
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
+
+import type { LoginDto, SignUpDto, User } from '@rotifolk/shared'
 
 export const authKeys = {
   me: ['auth', 'me'] as const,

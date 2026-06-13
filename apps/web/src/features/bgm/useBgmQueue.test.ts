@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { getEmbedUrl, useBgmQueue } from './useBgmQueue'
 
 const storageKey = (partyId: string) => `rotifolk-bgm-${partyId}`
@@ -23,7 +24,7 @@ describe('useBgmQueue', () => {
       JSON.stringify({
         tracks: [sampleTrack, { ...sampleTrack, id: 'track-2', title: 'second' }],
         current: 9,
-      }),
+      })
     )
 
     const { result } = renderHook(() => useBgmQueue('party-1'))
@@ -97,16 +98,16 @@ describe('useBgmQueue', () => {
 describe('getEmbedUrl', () => {
   it('converts supported music URLs to embeddable links', () => {
     expect(getEmbedUrl('https://youtu.be/abc123')).toBe(
-      'https://www.youtube.com/embed/abc123?autoplay=0',
+      'https://www.youtube.com/embed/abc123?autoplay=0'
     )
     expect(getEmbedUrl('https://www.youtube.com/watch?v=xyz987')).toBe(
-      'https://www.youtube.com/embed/xyz987?autoplay=0',
+      'https://www.youtube.com/embed/xyz987?autoplay=0'
     )
     expect(getEmbedUrl('https://www.youtube.com/shorts/shorty')).toBe(
-      'https://www.youtube.com/embed/shorty?autoplay=0',
+      'https://www.youtube.com/embed/shorty?autoplay=0'
     )
     expect(getEmbedUrl('https://open.spotify.com/track/track123')).toBe(
-      'https://open.spotify.com/embed/track/track123?utm_source=oembed',
+      'https://open.spotify.com/embed/track/track123?utm_source=oembed'
     )
     expect(getEmbedUrl('https://example.com/raw-track')).toBe('https://example.com/raw-track')
   })

@@ -1,12 +1,13 @@
 // 모임 참가 자격 — 나이(성별별) · 혼인상태(돌싱 등) · 아이 유무 · 필수 인증.
 
-import type { ChildrenPolicy } from '../domain/party'
-import type { MaritalStatus, VerificationField } from '../domain/profile'
 import {
   ageRangeForGender,
   isAgeEligible,
   type AgeLimitSource,
 } from '../pricing/participant-pricing'
+
+import type { ChildrenPolicy } from '../domain/party'
+import type { MaritalStatus, VerificationField } from '../domain/profile'
 
 export type EligibilityReason = 'age' | 'marital' | 'children' | 'verification'
 
@@ -40,7 +41,7 @@ export interface EligibilityResult {
 /** 참가 자격을 종합 판정. 모든 조건을 통과해야 ok=true. */
 export function checkEligibility(
   policy: EligibilityPolicy,
-  applicant: Applicant,
+  applicant: Applicant
 ): EligibilityResult {
   const reasons: EligibilityReason[] = []
 

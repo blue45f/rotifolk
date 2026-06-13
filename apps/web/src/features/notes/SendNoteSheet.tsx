@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { NOTE_EMOJIS } from '@rotifolk/shared'
-import { Sheet } from '@components/ui/Sheet/Sheet'
-import { Button } from '@components/ui/Button/Button'
 import { useToast } from '@components/feedback/Toast/useToast'
+import { Button } from '@components/ui/Button/Button'
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { NOTE_EMOJIS } from '@rotifolk/shared'
+import { useState } from 'react'
+
 import { useSendNote } from './queries'
 import styles from './SendNoteSheet.module.css'
 
@@ -64,7 +65,7 @@ export function SendNoteSheet({
           close()
         },
         onError: () => show('쪽지를 보내지 못했어요. 다시 시도해 주세요', 'error'),
-      },
+      }
     )
   }
 

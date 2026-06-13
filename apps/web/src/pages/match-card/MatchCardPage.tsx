@@ -1,14 +1,15 @@
-import { useParams, Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { motion } from 'motion/react'
-import { api } from '@services/api'
-import { useAuthStore } from '@store/authStore'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
+import { api } from '@services/api'
+import { useAuthStore } from '@store/authStore'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { motion } from 'motion/react'
+import { useParams, Link } from 'react-router-dom'
+
 import styles from './MatchCard.module.css'
 
 interface HostProfileLite {

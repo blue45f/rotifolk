@@ -107,7 +107,7 @@ export function extractBackendRoutes(root = ROOT) {
   const srcDir = path.join(root, 'apps/api/src')
   const files = listFiles(
     srcDir,
-    (file) => /\.(ts)$/.test(file) && !/\.(test|spec)\.ts$/.test(file),
+    (file) => /\.(ts)$/.test(file) && !/\.(test|spec)\.ts$/.test(file)
   )
   const routes = []
 
@@ -193,13 +193,13 @@ function main() {
 
   console.log(`API contract audit`)
   console.log(
-    ` - frontend routes used: ${new Set(frontend.map((r) => routeKey(r.method, r.path))).size}`,
+    ` - frontend routes used: ${new Set(frontend.map((r) => routeKey(r.method, r.path))).size}`
   )
   console.log(
-    ` - backend routes exposed: ${new Set(backend.map((r) => routeKey(r.method, r.path))).size}`,
+    ` - backend routes exposed: ${new Set(backend.map((r) => routeKey(r.method, r.path))).size}`
   )
   console.log(
-    ` - mock routes exposed: ${new Set(mock.map((r) => routeKey(r.method, r.path))).size}`,
+    ` - mock routes exposed: ${new Set(mock.map((r) => routeKey(r.method, r.path))).size}`
   )
 
   if (dynamicFrontend.length > 0) {
@@ -207,9 +207,9 @@ function main() {
       [
         `Dynamic frontend API calls: ${dynamicFrontend.length}`,
         ...dynamicFrontend.map(
-          (route) => ` - ${route.method} ${route.expression} (${route.source})`,
+          (route) => ` - ${route.method} ${route.expression} (${route.source})`
         ),
-      ].join('\n'),
+      ].join('\n')
     )
   } else {
     console.log('Dynamic frontend API calls: none')

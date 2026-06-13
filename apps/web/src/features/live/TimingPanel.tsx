@@ -1,9 +1,9 @@
-import { useId } from 'react'
-import type { Participation, Party } from '@rotifolk/shared'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import { useToast } from '@components/feedback/Toast/useToast'
+import { useId } from 'react'
+
 import {
   buildTimeline,
   endTimeFromHHmm,
@@ -14,8 +14,10 @@ import {
   type BreakRule,
 } from './partyTiming'
 import { ensureNotificationPermission, playRoundChime } from './roundAlarm'
-import type { TimingSettings } from './useTimingSettings'
 import styles from './TimingPanel.module.css'
+
+import type { TimingSettings } from './useTimingSettings'
+import type { Participation, Party } from '@rotifolk/shared'
 
 interface TimingPanelProps {
   party: Party
@@ -82,7 +84,7 @@ export function TimingPanel({ party, participants, settings, onUpdate }: TimingP
     playRoundChime()
     toast.show(
       granted ? '라운드 종료 알람을 켰어요 (차임+알림)' : '알람을 켰어요 — 차임만 울려요',
-      'success',
+      'success'
     )
   }
 

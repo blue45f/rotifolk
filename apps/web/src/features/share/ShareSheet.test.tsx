@@ -1,7 +1,8 @@
+import { ToastProvider } from '@components/feedback/Toast/ToastProvider'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { ToastProvider } from '@components/feedback/Toast/ToastProvider'
+
 import { ShareSheet } from './ShareSheet'
 
 function renderSheet(onClose = vi.fn()) {
@@ -18,7 +19,7 @@ function renderSheet(onClose = vi.fn()) {
         maxParticipants={8}
         inviteUrl="http://localhost:5173/parties/p_wine"
       />
-    </ToastProvider>,
+    </ToastProvider>
   )
   return { onClose }
 }

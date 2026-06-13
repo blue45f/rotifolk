@@ -1,4 +1,6 @@
+import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import type {
   CommunityPost,
   CommunityPostDetail,
@@ -10,7 +12,6 @@ import type {
   UpdateCommunityCommentDto,
   UpdateCommunityPostDto,
 } from '@rotifolk/shared'
-import { api } from '@services/api'
 
 export const communityKeys = {
   all: ['community'] as const,
@@ -79,7 +80,7 @@ export function useUpdateCommunityPost(postId: string | null | undefined) {
       queryClient.invalidateQueries({ queryKey: communityKeys.all })
       queryClient.setQueryData<CommunityPostDetail | undefined>(
         communityKeys.post(postId),
-        (current) => (current ? { ...current, ...post } : current),
+        (current) => (current ? { ...current, ...post } : current)
       )
     },
   })

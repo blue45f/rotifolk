@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import {
-  CLUB_CATEGORY_LABEL,
-  CLUB_VISIBILITY_LABEL,
-  type ClubComment,
-  type ClubDetail,
-  type ClubMemberEntry,
-} from '@rotifolk/shared'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Button } from '@components/ui/Button/Button'
+import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
+import { Tabs } from '@components/ui/Tabs/Tabs'
+import { AvatarImageError, resizePostImage } from '@features/avatar/imageUpload'
 import { CATEGORY_META } from '@features/categories/meta'
 import {
   useClub,
@@ -19,7 +17,6 @@ import {
   useJoinClub,
   useLeaveClub,
 } from '@features/clubs/queries'
-import { AvatarImageError, resizePostImage } from '@features/avatar/imageUpload'
 import {
   hasRequiredTerms,
   readTermsConsentState,
@@ -28,13 +25,17 @@ import {
   toTermsConsentState,
   type TermsConsentState,
 } from '@features/legal/termsConsent'
+import {
+  CLUB_CATEGORY_LABEL,
+  CLUB_VISIBILITY_LABEL,
+  type ClubComment,
+  type ClubDetail,
+  type ClubMemberEntry,
+} from '@rotifolk/shared'
 import { useCurrentUser } from '@store/authStore'
-import { Button } from '@components/ui/Button/Button'
-import { Tabs } from '@components/ui/Tabs/Tabs'
-import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
+import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+
 import styles from './Clubs.module.css'
 
 const TABS = [
@@ -118,7 +119,7 @@ export default function ClubDetailPage() {
   const leaveClub = useLeaveClub(clubId)
 
   const [termsConsentState, setTermsConsentState] = useState<TermsConsentState>(() =>
-    readTermsConsentState(),
+    readTermsConsentState()
   )
   const isTermsReady = hasRequiredTerms(termsConsentState.agreedIds)
 
@@ -149,7 +150,7 @@ export default function ClubDetailPage() {
         params.delete('post')
         return params
       },
-      { replace: true },
+      { replace: true }
     )
   }
 
@@ -160,7 +161,7 @@ export default function ClubDetailPage() {
         else params.delete('post')
         return params
       },
-      { replace: true },
+      { replace: true }
     )
   }
 
@@ -364,7 +365,7 @@ function ClubBoard({
     } catch (error) {
       toast.show(
         error instanceof AvatarImageError ? error.message : '사진을 처리하지 못했어요.',
-        'error',
+        'error'
       )
     } finally {
       setImageBusy(false)

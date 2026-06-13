@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import {
   applyStartDelay,
   buildTimeline,
@@ -70,7 +71,7 @@ describe('buildTimeline (휴식 포함)', () => {
         totalRounds: 0,
         roundDurationSec: 300,
         breakBetweenRoundsSec: 30,
-      }),
+      })
     ).toEqual([])
   })
 })
@@ -93,7 +94,7 @@ describe('solveRoundDurationSec (종료 역산)', () => {
         endAtMs: end,
         totalRounds: 5,
         breakBetweenRoundsSec: 60,
-      }),
+      })
     ).toBe(Math.floor((90 * 60 - 4 * 60) / 5)) // 1032초
 
     expect(
@@ -103,7 +104,7 @@ describe('solveRoundDurationSec (종료 역산)', () => {
         totalRounds: 5,
         breakBetweenRoundsSec: 60,
         breakRule: { everyNRounds: 2, breakMin: 10 },
-      }),
+      })
     ).toBe(Math.floor((90 * 60 - (2 * 60 + 2 * 600)) / 5)) // 816초
   })
 
@@ -133,7 +134,7 @@ describe('solveRoundDurationSec (종료 역산)', () => {
         endAtMs: T0 + 3 * 60_000,
         totalRounds: 5,
         breakBetweenRoundsSec: 30,
-      }),
+      })
     ).toBeNull()
     expect(
       solveRoundDurationSec({
@@ -141,7 +142,7 @@ describe('solveRoundDurationSec (종료 역산)', () => {
         endAtMs: T0 - 1000,
         totalRounds: 2,
         breakBetweenRoundsSec: 0,
-      }),
+      })
     ).toBeNull()
   })
 })

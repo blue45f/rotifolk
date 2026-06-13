@@ -44,7 +44,7 @@ export function useGeolocation(autoRequest = false): GeoState & { request: () =>
         setState({ status: 'granted', coords })
       },
       (err) => setState({ status: 'denied', error: err.message }),
-      { enableHighAccuracy: false, maximumAge: 60_000 * 30, timeout: 8000 },
+      { enableHighAccuracy: false, maximumAge: 60_000 * 30, timeout: 8000 }
     )
   }, [])
 

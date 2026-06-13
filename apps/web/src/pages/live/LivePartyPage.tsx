@@ -1,6 +1,24 @@
-import { useEffect, useRef, useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { AnimatePresence, motion } from 'motion/react'
+import { useConfirm } from '@components/feedback/Confirm/useConfirm'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Avatar } from '@components/ui/Avatar/Avatar'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { Tabs } from '@components/ui/Tabs/Tabs'
+import { useBgmQueue, getEmbedUrl, type BgmTrack } from '@features/bgm/useBgmQueue'
+import { CATEGORY_META } from '@features/categories/meta'
+import { isLongBreakAfterRound } from '@features/live/partyTiming'
+import { notifyRoundEnded, playRoundChime } from '@features/live/roundAlarm'
+import { detectRoundMilestone, ROUND_MILESTONE_MESSAGE } from '@features/live/roundMilestones'
+import { TimingPanel } from '@features/live/TimingPanel'
+import { useLiveParty } from '@features/live/useLiveParty'
+import { usePartyTimingSettings } from '@features/live/useTimingSettings'
+import { usePartyNotes } from '@features/notes/queries'
+import { SendNoteSheet } from '@features/notes/SendNoteSheet'
+import { useParty } from '@features/parties/queries'
+import { useVenueMenu } from '@features/venues/queries'
 import {
   BALANCE_GAMES,
   IDEAL_TYPE_PROMPTS,
@@ -11,28 +29,11 @@ import {
   type CompatInput,
   type PromptKind,
 } from '@rotifolk/shared'
-import { SendNoteSheet } from '@features/notes/SendNoteSheet'
-import { usePartyNotes } from '@features/notes/queries'
-import { useParty } from '@features/parties/queries'
-import { useLiveParty } from '@features/live/useLiveParty'
-import { detectRoundMilestone, ROUND_MILESTONE_MESSAGE } from '@features/live/roundMilestones'
-import { TimingPanel } from '@features/live/TimingPanel'
-import { usePartyTimingSettings } from '@features/live/useTimingSettings'
-import { notifyRoundEnded, playRoundChime } from '@features/live/roundAlarm'
-import { isLongBreakAfterRound } from '@features/live/partyTiming'
-import { CATEGORY_META } from '@features/categories/meta'
 import { useAuthStore } from '@store/authStore'
-import { Button } from '@components/ui/Button/Button'
-import { Avatar } from '@components/ui/Avatar/Avatar'
-import { Badge } from '@components/ui/Badge/Badge'
-import { Sheet } from '@components/ui/Sheet/Sheet'
-import { useToast } from '@components/feedback/Toast/useToast'
-import { useConfirm } from '@components/feedback/Confirm/useConfirm'
-import { useVenueMenu } from '@features/venues/queries'
-import { Tabs } from '@components/ui/Tabs/Tabs'
-import Loading from '@components/feedback/Loading'
-import { Icon } from '@components/ui/Icon/Icon'
-import { useBgmQueue, getEmbedUrl, type BgmTrack } from '@features/bgm/useBgmQueue'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect, useRef, useState } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+
 import styles from './LiveParty.module.css'
 
 export default function LivePartyPage() {
@@ -47,7 +48,7 @@ export default function LivePartyPage() {
   const { data: partyNotes } = usePartyNotes(partyId)
   const remainingNotes = Math.max(
     0,
-    (data?.party?.config?.noteQuota ?? 5) - (partyNotes?.sent?.length ?? 0),
+    (data?.party?.config?.noteQuota ?? 5) - (partyNotes?.sent?.length ?? 0)
   )
 
   const [showOrder, setShowOrder] = useState(false)
@@ -130,7 +131,7 @@ export default function LivePartyPage() {
     const milestone = detectRoundMilestone(
       prevSec,
       state.remainingSec,
-      state.currentRound?.durationSec ?? 0,
+      state.currentRound?.durationSec ?? 0
     )
     if (milestone) setTimerMilestone(ROUND_MILESTONE_MESSAGE[milestone])
     // 라운드 알람 — 호스트가 토글을 켰을 때만 종료 시점에 차임+브라우저 알림
@@ -289,7 +290,7 @@ export default function LivePartyPage() {
                 state.currentRoundIndex,
                 timing.breakEveryN >= 1 && timing.breakMin >= 1
                   ? { everyNRounds: timing.breakEveryN, breakMin: timing.breakMin }
-                  : null,
+                  : null
               )
                 ? timing.breakMin
                 : null

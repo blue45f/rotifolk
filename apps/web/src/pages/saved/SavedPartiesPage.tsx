@@ -1,16 +1,18 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import type { PartySummary } from '@rotifolk/shared'
+import Loading from '@components/feedback/Loading'
+import { Button } from '@components/ui/Button/Button'
+import { Chip } from '@components/ui/Chip/Chip'
+import { PartyCard } from '@features/parties/PartyCard'
+import { useParties } from '@features/parties/queries'
 import { recommendParties, userToContext } from '@rotifolk/shared'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
-import { useParties } from '@features/parties/queries'
-import { PartyCard } from '@features/parties/PartyCard'
-import { Button } from '@components/ui/Button/Button'
-import { Chip } from '@components/ui/Chip/Chip'
-import Loading from '@components/feedback/Loading'
+import { useQuery } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './SavedParties.module.css'
+
+import type { PartySummary } from '@rotifolk/shared'
 
 type SortKey = 'saved' | 'soonest'
 

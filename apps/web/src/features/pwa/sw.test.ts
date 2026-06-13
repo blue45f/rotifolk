@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+
 import swSource from '../../../public/sw.js?raw'
 
 interface SwRequest {
@@ -91,7 +92,7 @@ describe('sw.js', () => {
     const shell = { kind: 'shell' }
     sw.fetchMock.mockRejectedValue(new Error('offline'))
     sw.caches.match.mockImplementation((target: unknown) =>
-      Promise.resolve(target === '/' ? shell : undefined),
+      Promise.resolve(target === '/' ? shell : undefined)
     )
 
     const { responded } = sw.dispatch('fetch', {

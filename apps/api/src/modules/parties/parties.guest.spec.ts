@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
 import { BadRequestException, ForbiddenException } from '@nestjs/common'
-import { PartiesService } from './parties.service'
+import { describe, expect, it, vi } from 'vitest'
+
 import { AuthService } from '../auth/auth.service'
+
+import { PartiesService } from './parties.service'
 
 /**
  * 게스트(비로그인) 합류 핵심 흐름 테스트 — Prisma는 모킹(무DB).
@@ -71,11 +73,11 @@ function makePrismaMock(opts: {
           guestName: data.guestName as string,
           guestAvatarJson: data.guestAvatarJson as string,
           guestToken: (data.guestToken as string | null) ?? null,
-        }),
+        })
       ),
       findUnique: vi.fn(async () => null),
       update: vi.fn(async ({ data }: { data: Record<string, unknown> }) =>
-        makeGuestRow({ ...(data as Partial<GuestRow>) }),
+        makeGuestRow({ ...(data as Partial<GuestRow>) })
       ),
     },
     party: { updateMany: vi.fn(async () => ({ count: 1 })) },
@@ -89,7 +91,7 @@ function makePrismaMock(opts: {
       findFirst: vi.fn(async () => opts.existingGuest ?? null),
       findMany: vi.fn(async () => []),
       update: vi.fn(async ({ data }: { where: { id: string }; data: Record<string, unknown> }) =>
-        makeGuestRow({ ...(opts.existingGuest ?? {}), ...(data as Partial<GuestRow>) }),
+        makeGuestRow({ ...(opts.existingGuest ?? {}), ...(data as Partial<GuestRow>) })
       ),
     },
     notification: { create: vi.fn(async () => ({})) },
@@ -127,7 +129,7 @@ describe('PartiesService.guestJoin (시나리오 A — 링크 합류)', () => {
     // 호스트에게 실시간 알림
     expect(notifMock.toUser).toHaveBeenCalledWith(
       'u_host',
-      expect.objectContaining({ kind: 'party_join' }),
+      expect.objectContaining({ kind: 'party_join' })
     )
   })
 
@@ -238,7 +240,7 @@ describe('PartiesService.hostAddGuest (시나리오 B — 현장 합류)', () =>
     const prisma = makePrismaMock({})
     const service = new PartiesService(prisma as never, notifMock as never)
     await expect(service.hostAddGuest('u_other', 'p_1', { name: '현장님' })).rejects.toBeInstanceOf(
-      ForbiddenException,
+      ForbiddenException
     )
   })
 })
@@ -252,7 +254,7 @@ describe('AuthService.claimGuestParticipations (시나리오 C — 가입 전환
       participation: {
         findUnique: vi.fn(
           async ({ where }: { where: { partyId_userId: { partyId: string; userId: string } } }) =>
-            alreadyJoinedPartyIds.includes(where.partyId_userId.partyId) ? { id: 'pt_mine' } : null,
+            alreadyJoinedPartyIds.includes(where.partyId_userId.partyId) ? { id: 'pt_mine' } : null
         ),
         update: vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ ...data })),
       },
@@ -277,7 +279,7 @@ describe('AuthService.claimGuestParticipations (시나리오 C — 가입 전환
     expect(updateArgs.data.userId).toBe('u_me')
     expect(updateArgs.data.guestToken).toBeNull()
     expect(prisma.__tx.user.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { joinedCount: { increment: 1 } } }),
+      expect.objectContaining({ data: { joinedCount: { increment: 1 } } })
     )
   })
 

@@ -1,23 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import {
-  addTutorialStep,
-  readTutorialProgress,
-  setTutorialProgress,
-  normalizeTutorialStep,
-  type TutorialStepId,
-} from '@features/tutorial/progress'
-import {
-  hasRequiredTerms,
-  TERMS_CONSENT_CHANGED_EVENT,
-  TERMS_CONSENT_STORAGE_KEY,
-  toTermsConsentState,
-  readTermsConsentState,
-  TERMS_REQUIRED_SECTION_IDS,
-  type TermsConsentState,
-} from '@features/legal/termsConsent'
 import {
   COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT,
   COMMUNITY_DEMO_ACTIVITY_KEY,
@@ -29,6 +11,25 @@ import {
   toCommunityDemoActivityEntry,
   type CommunityDemoActivityLogEntry,
 } from '@features/community/demoTracker'
+import {
+  hasRequiredTerms,
+  TERMS_CONSENT_CHANGED_EVENT,
+  TERMS_CONSENT_STORAGE_KEY,
+  toTermsConsentState,
+  readTermsConsentState,
+  TERMS_REQUIRED_SECTION_IDS,
+  type TermsConsentState,
+} from '@features/legal/termsConsent'
+import {
+  addTutorialStep,
+  readTutorialProgress,
+  setTutorialProgress,
+  normalizeTutorialStep,
+  type TutorialStepId,
+} from '@features/tutorial/progress'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
+
 import styles from './Tutorial.module.css'
 
 type TutorialStep = {
@@ -167,27 +168,27 @@ export default function TutorialPage() {
   const focusRaw = searchParams.get('focus')
   const fromTutorial = normalizeTutorialStep(searchParams.get('fromTutorial'))
   const [termsConsentState, setTermsConsentState] = useState<TermsConsentState>(() =>
-    readTermsConsentState(),
+    readTermsConsentState()
   )
   const isTermsReady = hasRequiredTerms(termsConsentState.agreedIds)
   const missingRequiredTerms = TERMS_REQUIRED_SECTION_IDS.filter(
-    (id) => !termsConsentState.agreedIds.includes(id),
+    (id) => !termsConsentState.agreedIds.includes(id)
   )
   const missingRequiredTermNames = missingRequiredTerms.map((id) => TERMS_LABEL_BY_ID[id])
   const [communityDemoLog, setCommunityDemoLog] = useState<CommunityDemoActivityLogEntry[]>(() =>
-    readCommunityDemoActivityLog(),
+    readCommunityDemoActivityLog()
   )
   const communityDemoMission = useMemo(
     () => summarizeCommunityDemoMissionState(communityDemoLog),
-    [communityDemoLog],
+    [communityDemoLog]
   )
   const communityDemoRecent = useMemo(
     () => [...communityDemoLog].reverse().slice(0, 6),
-    [communityDemoLog],
+    [communityDemoLog]
   )
   const blockedDemoActionCount = useMemo(
     () => communityDemoLog.filter((entry) => isCommunityDemoActionBlocked(entry.action)).length,
-    [communityDemoLog],
+    [communityDemoLog]
   )
   const focus =
     focusRaw === 'help' ||
@@ -205,14 +206,14 @@ export default function TutorialPage() {
     ? withReturnAndTutorialParam(
         '/community?guide=1&template=first-question',
         encodedFrom,
-        'community',
+        'community'
       )
     : `/policies?filter=required&from=${encodedFrom}&fromTutorial=policies`
   const quickCommunityLabel = isTermsReady ? '커뮤니티 가이드' : '커뮤니티 진행 전 약관 동의'
   const quickPoliciesHref = withReturnAndTutorialParam(
     '/policies?filter=required',
     encodedFrom,
-    'policies',
+    'policies'
   )
   const [completed, setCompleted] = useState<TutorialStepId[]>(() => {
     return readTutorialProgress()
@@ -237,7 +238,7 @@ export default function TutorialPage() {
   }, [communityDemoMission, doneSet, isTermsReady])
   const completionRate = useMemo(
     () => Math.round((effectiveDoneSet.size / STEPS.length) * 100),
-    [effectiveDoneSet],
+    [effectiveDoneSet]
   )
 
   const stepItems = useMemo(
@@ -254,7 +255,7 @@ export default function TutorialPage() {
           actionLabel: locked ? '약관 동의 후 진행' : step.actionLabel,
         }
       }),
-    [effectiveDoneSet, encodedFrom, isTermsReady],
+    [effectiveDoneSet, encodedFrom, isTermsReady]
   )
   const nextRecommendedStep = useMemo(() => {
     return (

@@ -4,7 +4,7 @@ export type { ChatMessage, ChatRoomSummary }
 
 export function appendRealtimeMessage(
   current: ChatMessage[] | undefined,
-  message: ChatMessage,
+  message: ChatMessage
 ): ChatMessage[] | undefined {
   if (!current) return current
   if (current.some((item) => item.id === message.id)) return current
@@ -13,7 +13,7 @@ export function appendRealtimeMessage(
 
 export function updateRoomPreviewFromMessage(
   current: ChatRoomSummary[] | undefined,
-  message: ChatMessage,
+  message: ChatMessage
 ): ChatRoomSummary[] | undefined {
   if (!current) return current
 

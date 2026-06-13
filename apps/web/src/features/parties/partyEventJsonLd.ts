@@ -30,7 +30,7 @@ function toEventStatus(status: Party['status']): string {
 export function buildPartyEventJsonLd(
   party: Party,
   pageUrl: string,
-  venue?: Pick<Venue, 'name' | 'address'>,
+  venue?: Pick<Venue, 'name' | 'address'>
 ): Record<string, unknown> {
   const soldOut = party.status === 'full' || party.currentParticipants >= party.maxParticipants
   return {

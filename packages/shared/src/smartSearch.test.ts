@@ -153,7 +153,7 @@ describe('hourToTimeOfDay / weekdayToDayPreference', () => {
 describe('describeParse', () => {
   it('파싱 결과를 사람이 읽는 칩으로 변환 (카테고리 라벨 주입)', () => {
     const chips = describeParse(parseSmartQuery('한남 와인 6명 주말 저녁'), (c) =>
-      c === 'wine' ? '와인 로테이션' : c,
+      c === 'wine' ? '와인 로테이션' : c
     )
     expect(chips.find((c) => c.key === 'category')?.label).toBe('와인 로테이션')
     expect(chips.find((c) => c.key === 'area')?.label).toBe('한남동')

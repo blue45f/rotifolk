@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import type { Server } from 'socket.io'
 import { USER_ROOM } from '@rotifolk/shared'
+
 import type { ServerToClientEvents, ClientToServerEvents } from '@rotifolk/shared'
+import type { Server } from 'socket.io'
 
 type IoServer = Server<ClientToServerEvents, ServerToClientEvents>
 

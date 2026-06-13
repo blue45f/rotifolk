@@ -1,9 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+
+import { toPublicUser, toViewerProfile } from './user.mapper'
+
 import type { UpdateProfileDto } from '@rotifolk/shared'
-import { PrismaService } from '@/prisma/prisma.service'
+
 import { WITHDRAWN_ACCOUNT_STATUS } from '@/common/account-status'
 import { toJsonString } from '@/common/json-utils'
-import { toPublicUser, toViewerProfile } from './user.mapper'
+import { PrismaService } from '@/prisma/prisma.service'
 
 @Injectable()
 export class UsersService {

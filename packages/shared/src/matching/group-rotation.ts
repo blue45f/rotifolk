@@ -10,7 +10,7 @@ export function buildGroupRotation(
   userIds: readonly string[],
   groupSize: number,
   rounds: number,
-  seed = 1,
+  seed = 1
 ): GroupRound[] {
   const size = Math.max(2, Math.floor(groupSize))
   if (userIds.length < size) return []
@@ -32,7 +32,7 @@ export function buildHubRotation(
   userIds: readonly string[],
   groupSize: number,
   rounds: number,
-  seed = 1,
+  seed = 1
 ): HubRound[] {
   const n = userIds.length
   if (n < 2) return []
@@ -57,7 +57,7 @@ const pkey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`)
  */
 export function repairForbiddenPairs(
   rounds: readonly { index: number; pairs: string[][] }[],
-  forbidden: readonly (readonly [string, string])[],
+  forbidden: readonly (readonly [string, string])[]
 ): { index: number; pairs: string[][] }[] {
   if (forbidden.length === 0) return rounds.map((r) => ({ index: r.index, pairs: r.pairs }))
   const fset = new Set(forbidden.map(([a, b]) => pkey(a, b)))

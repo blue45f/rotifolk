@@ -19,7 +19,7 @@ export function loadHostDraft(): Partial<CreatePartyDto> | null {
     const broken = new Set(
       result.error.issues
         .filter((issue) => !SALVAGEABLE_CODES.has(issue.code))
-        .map((issue) => String(issue.path[0] ?? '')),
+        .map((issue) => String(issue.path[0] ?? ''))
     )
     const survivors = Object.entries(json).filter(([key]) => !broken.has(key))
     return survivors.length > 0 ? (Object.fromEntries(survivors) as Partial<CreatePartyDto>) : null

@@ -1,6 +1,16 @@
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Button } from '@components/ui/Button/Button'
+import { Chip } from '@components/ui/Chip/Chip'
+import { Input } from '@components/ui/Input/Input'
+import { api } from '@services/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import styles from './AdminModeration.module.css'
+
 import type {
   ModeratePostDto,
   ModerationPostItem,
@@ -8,14 +18,6 @@ import type {
   ModerationScope,
   Paginated,
 } from '@rotifolk/shared'
-import { api } from '@services/api'
-import { Button } from '@components/ui/Button/Button'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Input } from '@components/ui/Input/Input'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
-import styles from './AdminModeration.module.css'
 
 /** AdminPage(통계·정산)와 분리된 콘텐츠 모더레이션 전용 라우트. */
 
@@ -316,7 +318,7 @@ function ContentReportsSection() {
   })
 
   const contentReports = (reportsQuery.data ?? []).filter(
-    (report) => report.communityPost || report.communityComment,
+    (report) => report.communityPost || report.communityComment
   )
 
   const handleResolve = async (report: ContentReport, status: 'resolved' | 'dismissed') => {

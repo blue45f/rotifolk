@@ -1,5 +1,6 @@
-import type { PartyRecruitment } from '../domain/party'
 import { evaluateGenderBalance, type GenderCounts } from './gender-balance'
+
+import type { PartyRecruitment } from '../domain/party'
 
 export type RecruitmentHealth = 'on-track' | 'at-risk' | 'failing'
 

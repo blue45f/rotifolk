@@ -43,7 +43,7 @@ function hashString(value: string) {
 
 const buildSectionHashes = () => {
   const ordered = Object.fromEntries(
-    TERMS_ALL_SECTION_IDS.map((id) => [id, hashString(TERMS_SECTION_CONTENTS[id])]),
+    TERMS_ALL_SECTION_IDS.map((id) => [id, hashString(TERMS_SECTION_CONTENTS[id])])
   ) as Record<TermsSectionId, string>
 
   return ordered
@@ -98,7 +98,7 @@ export const toTermsConsentState = (value: unknown): TermsConsentState | null =>
     agreedIds: candidate.agreedIds.filter(
       (sectionId): sectionId is TermsSectionId =>
         typeof sectionId === 'string' &&
-        (TERMS_ALL_SECTION_IDS as readonly string[]).includes(sectionId),
+        (TERMS_ALL_SECTION_IDS as readonly string[]).includes(sectionId)
     ),
   }
 }
@@ -148,7 +148,7 @@ const normalizeSectionHashes = (value: unknown): Record<TermsSectionId, string> 
 export const buildTermsEvidence = (agreedIds: readonly TermsSectionId[]): TermsConsentEvidence => {
   const sectionHashes = buildSectionHashes()
   const orderedSectionTokens = TERMS_ALL_SECTION_IDS.map((id) => `${id}:${sectionHashes[id]}`).join(
-    '|',
+    '|'
   )
   const selectedSectionTokens = TERMS_ALL_SECTION_IDS.filter((id) => agreedIds.includes(id))
     .map((id) => `${id}:${sectionHashes[id]}`)
@@ -169,7 +169,7 @@ export const readTermsConsentState = (): TermsConsentState => {
   }
 
   const parsed = readJSON<Partial<TermsConsentState>>(
-    localStorage.getItem(TERMS_CONSENT_STORAGE_KEY),
+    localStorage.getItem(TERMS_CONSENT_STORAGE_KEY)
   )
   const agreedIds = Array.isArray(parsed?.agreedIds)
     ? (parsed.agreedIds.filter(isTermsSectionId) as TermsSectionId[])
@@ -190,7 +190,7 @@ export const buildRates = (agreedIds: readonly TermsSectionId[]) => {
   const requiredRate = Math.round(
     (TERMS_REQUIRED_SECTION_IDS.filter((id) => agreedIds.includes(id)).length /
       TERMS_REQUIRED_SECTION_IDS.length) *
-      100,
+      100
   )
   const totalRate = Math.round((agreedIds.length / TERMS_ALL_SECTION_IDS.length) * 100)
 
@@ -239,7 +239,7 @@ export const readTermsConsentHistory = (): TermsHistoryRecord[] => {
       ) {
         return {
           sectionHashes: normalizeSectionHashes(
-            (record.evidence as TermsConsentEvidence).sectionHashes,
+            (record.evidence as TermsConsentEvidence).sectionHashes
           ),
           contentHash: (record.evidence as TermsConsentEvidence).contentHash,
           contentVersion: (record.evidence as TermsConsentEvidence).contentVersion ?? TERMS_VERSION,
@@ -280,7 +280,7 @@ export const readTermsActionLog = (): TermsActionLog[] => {
       typeof (value as TermsActionLog).id === 'string' &&
       typeof (value as TermsActionLog).at === 'number' &&
       typeof (value as TermsActionLog).action === 'string' &&
-      typeof (value as TermsActionLog).label === 'string',
+      typeof (value as TermsActionLog).label === 'string'
     )
 
   return parsed.filter(isValidAction)
@@ -305,8 +305,8 @@ export const saveTermsAgreement = (agreedIds: TermsSectionId[]) => {
   writeJSON(
     TERMS_HISTORY_KEY,
     [...nextHistory, { ...nextState, requiredRate, totalRate, evidence: nextEvidence }].slice(
-      -MAX_HISTORY_ENTRIES,
-    ),
+      -MAX_HISTORY_ENTRIES
+    )
   )
   dispatchConsentUpdated(nextState)
 
@@ -318,7 +318,7 @@ export const saveTermsAction = (action: string, label: string) => {
   writeJSON(
     TERMS_ACTION_LOG_KEY,
     [...nextLog, { id: makeTermsActionId(), at: Date.now(), action, label }].slice(
-      -MAX_ACTION_LOG_ENTRIES,
-    ),
+      -MAX_ACTION_LOG_ENTRIES
+    )
   )
 }

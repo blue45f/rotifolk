@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { checkEligibility } from './eligibility'
 
 describe('checkEligibility', () => {
@@ -31,7 +32,7 @@ describe('checkEligibility', () => {
         childrenPolicy: 'has' as const,
         requiredVerifications: ['identity'] as const,
       },
-      { age: 35, maritalStatus: 'divorced', hasChildren: true, verifiedFields: ['identity'] },
+      { age: 35, maritalStatus: 'divorced', hasChildren: true, verifiedFields: ['identity'] }
     )
     expect(r.ok).toBe(true)
     expect(r.reasons).toEqual([])

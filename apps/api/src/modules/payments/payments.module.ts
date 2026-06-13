@@ -13,12 +13,18 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { ageFromBirthYear, resolveParticipantPrice } from '@rotifolk/shared'
-import { REVENUE_MONITORING_POLICY, computeRevenueHealthScore } from '@rotifolk/shared'
+import {
+  ageFromBirthYear,
+  resolveParticipantPrice,
+  REVENUE_MONITORING_POLICY,
+  computeRevenueHealthScore,
+} from '@rotifolk/shared'
+
 import type { PricingRule, RevenueHealthAlertThreshold } from '@rotifolk/shared'
-import { PrismaService } from '@/prisma/prisma.service'
-import { parseJsonArray } from '@/common/json-utils'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { parseJsonArray } from '@/common/json-utils'
+import { PrismaService } from '@/prisma/prisma.service'
 
 type PaymentMethod = 'card' | 'kakao' | 'toss' | 'mock'
 const ALLOWED_METHODS: PaymentMethod[] = ['card', 'kakao', 'toss', 'mock']
@@ -319,7 +325,7 @@ class PaymentsController {
   @Get('admin/summary')
   async adminSummary(
     @CurrentUser() me: JwtUserPayload,
-    @Query() query: AdminSummaryQuery,
+    @Query() query: AdminSummaryQuery
   ): Promise<AdminRevenueSummary> {
     this.assertAdmin(me)
 
@@ -337,7 +343,7 @@ class PaymentsController {
     const [previousFrom, previousTo] = buildComparisonRangeFilter(
       comparisonMode,
       rangeFrom,
-      rangeTo,
+      rangeTo
     )
     const hasPreviousPeriod = !!(previousFrom && previousTo)
 
@@ -428,7 +434,7 @@ class PaymentsController {
   @Patch('admin/monitoring-policy')
   async updateMonitoringPolicy(
     @CurrentUser() me: JwtUserPayload,
-    @Body() body: MonitoringPolicyUpdateBody,
+    @Body() body: MonitoringPolicyUpdateBody
   ): Promise<MonitoringPolicySnapshot> {
     this.assertAdmin(me)
 
@@ -506,7 +512,7 @@ class PaymentsController {
   @Get('admin/monitoring-policy/history')
   async getMonitoringPolicyHistory(
     @CurrentUser() me: JwtUserPayload,
-    @Query('limit') limit?: string,
+    @Query('limit') limit?: string
   ): Promise<MonitoringPolicyChangeHistory[]> {
     this.assertAdmin(me)
 
@@ -548,7 +554,7 @@ class PaymentsController {
   @Post('admin/monitoring-policy/rollback')
   async rollbackMonitoringPolicy(
     @CurrentUser() me: JwtUserPayload,
-    @Body() body: RollbackMonitoringPolicyBody,
+    @Body() body: RollbackMonitoringPolicyBody
   ): Promise<MonitoringPolicySnapshot> {
     this.assertAdmin(me)
 
@@ -666,7 +672,7 @@ class PaymentsController {
   @Post('admin/revenue-rules/simulate')
   async simulateRevenueRules(
     @CurrentUser() me: JwtUserPayload,
-    @Body() body: RevenueRuleSimulationInput,
+    @Body() body: RevenueRuleSimulationInput
   ): Promise<RevenueRuleSimulationResponse> {
     this.assertAdmin(me)
 
@@ -704,7 +710,7 @@ class PaymentsController {
   @Patch('admin/revenue-rules')
   async updateRevenueRules(
     @CurrentUser() me: JwtUserPayload,
-    @Body() body: UpdateRevenueRulesBody,
+    @Body() body: UpdateRevenueRulesBody
   ) {
     this.assertAdmin(me)
 
@@ -788,7 +794,7 @@ class PaymentsController {
   @Get('admin/revenue-rules/history')
   async getRevenueRuleHistory(
     @CurrentUser() me: JwtUserPayload,
-    @Query('limit') limit?: string,
+    @Query('limit') limit?: string
   ): Promise<RevenueRuleChangeHistory[]> {
     this.assertAdmin(me)
 
@@ -830,7 +836,7 @@ class PaymentsController {
   @Post('admin/revenue-rules/rollback')
   async rollbackRevenueRules(
     @CurrentUser() me: JwtUserPayload,
-    @Body() body: RollbackRevenueRulesBody,
+    @Body() body: RollbackRevenueRulesBody
   ): Promise<RevenueRuleSnapshot> {
     this.assertAdmin(me)
 
@@ -942,7 +948,7 @@ class PaymentsController {
   async pay(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body() body: PayBody,
+    @Body() body: PayBody
   ) {
     const method: PaymentMethod = ALLOWED_METHODS.includes(body?.method as PaymentMethod)
       ? (body.method as PaymentMethod)
@@ -1068,7 +1074,7 @@ class PaymentsController {
     const [previousFrom, previousTo] = buildComparisonRangeFilter(
       comparisonMode,
       rangeFrom,
-      rangeTo,
+      rangeTo
     )
 
     const hostedParties = await this.prisma.party.findMany({
@@ -1211,7 +1217,7 @@ class PaymentsController {
   private summarizeHostRevenue(
     payments: Array<Pick<PaymentRow, 'partyId' | 'amountKRW' | 'status'>>,
     hostedParties: Array<{ id: string; title: string }>,
-    rules: RevenueRules,
+    rules: RevenueRules
   ): {
     totalKRW: number
     paidCount: number
@@ -1456,7 +1462,7 @@ class PaymentsController {
 
   private async buildProjectedRuleHealthScore(
     nextRules: RevenueRules,
-    context: { from?: string; to?: string; partyId?: string; topLimit?: number | string } = {},
+    context: { from?: string; to?: string; partyId?: string; topLimit?: number | string } = {}
   ) {
     const summaryRangeFrom = normalizeDateBoundary(context.from, 'from')
     const summaryRangeTo = normalizeDateBoundary(context.to, 'to', true)
@@ -1537,7 +1543,7 @@ class PaymentsController {
 
   private normalizeMonitoringPolicy(
     current: RevenueHealthAlertThreshold,
-    body: MonitoringPolicyUpdateBody,
+    body: MonitoringPolicyUpdateBody
   ): RevenueHealthAlertThreshold {
     const next: RevenueHealthAlertThreshold = { ...current }
 
@@ -1592,7 +1598,7 @@ class PaymentsController {
   private appendMonitoringPolicyHistory(
     current: RevenueHealthAlertThreshold,
     next: RevenueHealthAlertThreshold,
-    reason: string | null,
+    reason: string | null
   ) {
     monitoringPolicyHistories.unshift({
       id: `mph_${Date.now()}_${Math.random().toString(16).slice(2, 7)}`,
@@ -1612,7 +1618,7 @@ class PaymentsController {
   private appendRevenueRuleHistory(
     current: RevenueRules,
     next: RevenueRules,
-    reason: string | null,
+    reason: string | null
   ) {
     revenueRuleHistories.unshift({
       id: `rrh_${Date.now()}_${Math.random().toString(16).slice(2, 7)}`,
@@ -1652,7 +1658,7 @@ function roundPercent(value: number): number {
 function normalizeDateBoundary(
   value: string | undefined,
   fieldLabel: string,
-  isEndOfDay = false,
+  isEndOfDay = false
 ): Date | null {
   if (!value) return null
   const valueText = value.trim()
@@ -1699,7 +1705,7 @@ function normalizeCompareMode(mode?: string): RevenueComparisonMode {
 function buildComparisonRangeFilter(
   mode: RevenueComparisonMode,
   rangeFrom: Date | null,
-  rangeTo: Date | null,
+  rangeTo: Date | null
 ): [Date | null, Date | null] {
   if (mode === 'none' || !rangeFrom || !rangeTo || rangeFrom > rangeTo) {
     return [null, null]
@@ -1742,7 +1748,7 @@ function shiftDateUnit(date: Date, unit: 'month' | 'year', amount: number): Date
 function calculateRevenueSummary(
   rows: PaymentAdminSummaryRow[],
   rules: RevenueRules,
-  topPartyLimit: number,
+  topPartyLimit: number
 ): RevenueSummaryComputed {
   let totalPaidCount = 0
   let totalRefundedCount = 0
@@ -1836,7 +1842,7 @@ function calculateRevenueSummary(
 
 function buildRevenueHealthAlerts(
   summary: RevenueSummaryComputed,
-  policy: RevenueHealthAlertThreshold,
+  policy: RevenueHealthAlertThreshold
 ): AdminRevenueHealthAlert[] {
   const alerts: AdminRevenueHealthAlert[] = []
   const totalTickets = summary.totalPaidCount + summary.totalRefundedCount

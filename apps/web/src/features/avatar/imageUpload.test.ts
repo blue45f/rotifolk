@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import {
   AVATAR_RESIZE_MAX_DIM,
   AVATAR_UPLOAD_MAX_BYTES,
@@ -34,7 +35,7 @@ beforeEach(() => {
 
   vi.stubGlobal(
     'createImageBitmap',
-    vi.fn(async () => ({ ...bitmapSize, close: closeBitmap })),
+    vi.fn(async () => ({ ...bitmapSize, close: closeBitmap }))
   )
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
     fillStyle: '',
@@ -43,7 +44,7 @@ beforeEach(() => {
   } as unknown as CanvasRenderingContext2D)
   vi.spyOn(HTMLCanvasElement.prototype, 'toDataURL').mockImplementation(function (
     this: HTMLCanvasElement,
-    type?: string,
+    type?: string
   ) {
     canvasCalls.push({ width: this.width, height: this.height, type: type ?? 'image/png' })
     if (type === 'image/webp' && !webpSupported) return 'data:image/png;base64,UNSUPPORTED'
@@ -117,7 +118,7 @@ describe('resizeAvatarImage', () => {
       'createImageBitmap',
       vi.fn(async () => {
         throw new Error('broken image')
-      }),
+      })
     )
     const err = await resizeAvatarImage(makeImageFile()).catch((e) => e)
     expect(err).toBeInstanceOf(AvatarImageError)
@@ -140,7 +141,7 @@ describe('resizePostImage', () => {
 
   it('2MB를 넘는 원본은 too_large로 거부한다', async () => {
     const err = await resizePostImage(makeImageFile(POST_IMAGE_UPLOAD_MAX_BYTES + 1)).catch(
-      (e) => e,
+      (e) => e
     )
     expect(err).toBeInstanceOf(AvatarImageError)
     expect((err as AvatarImageError).code).toBe('too_large')

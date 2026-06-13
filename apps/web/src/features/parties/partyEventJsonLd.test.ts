@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import type { Party } from '@rotifolk/shared'
+
 import { buildPartyEventJsonLd } from './partyEventJsonLd'
+
+import type { Party } from '@rotifolk/shared'
 
 const PAGE_URL = 'https://rotifolk.vercel.app/parties/p1'
 
@@ -125,7 +127,7 @@ describe('buildPartyEventJsonLd', () => {
 
     const cover = buildPartyEventJsonLd(
       { ...baseParty, coverImageUrl: 'https://images.example.com/cover.jpg' },
-      PAGE_URL,
+      PAGE_URL
     )
     expect(cover.image).toBe('https://images.example.com/cover.jpg')
   })

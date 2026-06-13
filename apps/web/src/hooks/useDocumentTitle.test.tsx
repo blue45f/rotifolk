@@ -1,10 +1,11 @@
 import { render, renderHook, act } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import { MemoryRouter, Routes, Route, Outlet, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
-import type { ReactNode } from 'react'
+import { MemoryRouter, Routes, Route, Outlet, useNavigate } from 'react-router-dom'
+import { describe, expect, it } from 'vitest'
 
 import { useDocumentTitle } from './useDocumentTitle'
+
+import type { ReactNode } from 'react'
 
 function wrapperAt(path: string) {
   return ({ children }: { children: ReactNode }) => (
@@ -55,7 +56,7 @@ describe('useDocumentTitle', () => {
             <Route path="login" element={<RedirectTo to="/discover" />} />
           </Route>
         </Routes>
-      </MemoryRouter>,
+      </MemoryRouter>
     )
     expect(document.title).toBe('로그인 · Rotifolk')
     await act(async () => {
@@ -89,7 +90,7 @@ describe('useDocumentTitle', () => {
             <Route path="login" element={<ReplaceSelfThenDiscover />} />
           </Route>
         </Routes>
-      </MemoryRouter>,
+      </MemoryRouter>
     )
     await act(async () => {
       await Promise.resolve()

@@ -125,7 +125,7 @@
   background: var(--color-primary);
   color: var(--brand-cream-50);
   border-color: var(--color-primary);
-  box-shadow: 
+  box-shadow:
     0 8px 20px color-mix(in oklab, var(--brand-burgundy-900) 20%, transparent),
     var(--shadow-sm);
 }
@@ -182,7 +182,7 @@
   border: 1px solid color-mix(in oklab, var(--brand-gold-500) 45%, transparent);
   border-radius: var(--radius-xl);
   cursor: pointer;
-  transition: 
+  transition:
     transform var(--dur-fast) var(--ease-spring),
     box-shadow var(--dur-fast) var(--ease-out-quart),
     background var(--dur-fast) var(--ease-out-quart);
@@ -191,7 +191,7 @@
 }
 .codeBlock:hover {
   transform: translateY(-3px);
-  box-shadow: 
+  box-shadow:
     0 14px 28px color-mix(in oklab, var(--brand-burgundy-900) 10%, transparent),
     var(--shadow-glow);
   background: color-mix(in oklab, var(--brand-gold-100) 30%, var(--color-surface));
@@ -242,7 +242,7 @@
   .config {
     padding: var(--space-4);
   }
-  
+
   /* Flex wrap items fill row responsively on mobile */
   .catBtn {
     flex: 1 1 calc(50% - var(--space-2));
@@ -268,7 +268,7 @@
     justify-content: center;
     padding: 8px 12px;
   }
-  
+
   .codeBlock {
     min-width: 100%;
     padding: var(--space-4) var(--space-6);

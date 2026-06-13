@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import {
   GUEST_AVATAR_PRESETS,
   guestParticipantKey,

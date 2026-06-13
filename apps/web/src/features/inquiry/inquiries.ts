@@ -110,7 +110,7 @@ export function extractInquiryErrorMessage(payload: unknown, fallback: string): 
 export async function createInquiry(
   input: InquiryFormInput,
   originUrl: string,
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ): Promise<InquiryReceipt> {
   const payload = buildInquiryPayload(input, originUrl)
   let response: Response
@@ -141,7 +141,7 @@ export async function createInquiry(
       throw new Error('요청이 너무 잦아요. 잠시 후 다시 시도해 주세요.')
     }
     throw new Error(
-      extractInquiryErrorMessage(body, `문의 접수에 실패했어요. (HTTP ${response.status})`),
+      extractInquiryErrorMessage(body, `문의 접수에 실패했어요. (HTTP ${response.status})`)
     )
   }
 

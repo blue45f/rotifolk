@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
 import { getSocket } from '@features/live/socket'
 import { useAuthStore } from '@store/authStore'
+import { useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
+
 import { chatKeys, type ChatMessage, type ChatRoomSummary } from './queries'
 import { appendRealtimeMessage, updateRoomPreviewFromMessage } from './realtime-cache'
 
@@ -16,10 +17,10 @@ export function useChatRealtime() {
     const onMessage = ({ message }: { message: ChatMessage }) => {
       queryClient.setQueryData<ChatMessage[] | undefined>(
         chatKeys.messages(message.roomId),
-        (current) => appendRealtimeMessage(current, message),
+        (current) => appendRealtimeMessage(current, message)
       )
       queryClient.setQueryData<ChatRoomSummary[] | undefined>(chatKeys.rooms, (current) =>
-        updateRoomPreviewFromMessage(current, message),
+        updateRoomPreviewFromMessage(current, message)
       )
       queryClient.invalidateQueries({ queryKey: chatKeys.rooms })
       queryClient.invalidateQueries({ queryKey: chatKeys.unread })

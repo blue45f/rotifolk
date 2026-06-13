@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom'
 import { Button } from '@components/ui/Button/Button'
+import { Link } from 'react-router-dom'
+
 import styles from './GuestConversionBanner.module.css'
 
 /**

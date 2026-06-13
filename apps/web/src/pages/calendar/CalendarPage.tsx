@@ -1,13 +1,15 @@
-import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import type { PartySummary } from '@rotifolk/shared'
-import { useMyParties } from '@features/parties/queries'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { Button } from '@components/ui/Button/Button'
 import { CATEGORY_META } from '@features/categories/meta'
 import { downloadIcs } from '@features/ics/buildIcs'
-import { Button } from '@components/ui/Button/Button'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
+import { useMyParties } from '@features/parties/queries'
+import { useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+
 import styles from './Calendar.module.css'
+
+import type { PartySummary } from '@rotifolk/shared'
 
 const DEFAULT_DURATION_MS = 2 * 60 * 60 * 1000 // 종료 시각 정보가 없을 때 기본 2시간
 
@@ -107,7 +109,7 @@ export default function CalendarPage() {
 
   const cells = useMemo(
     () => buildMonthGrid(cursor.getFullYear(), cursor.getMonth(), parties),
-    [cursor, parties],
+    [cursor, parties]
   )
 
   const monthLabel = cursor.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })

@@ -1,7 +1,8 @@
+import { I18nProvider } from '@features/i18n/i18n'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
-import { I18nProvider } from '@features/i18n/i18n'
+
 import { SiteFooter } from './SiteFooter'
 
 function renderFooter(initialPath = '/venues') {
@@ -12,7 +13,7 @@ function renderFooter(initialPath = '/venues') {
       <MemoryRouter initialEntries={[initialPath]}>
         <SiteFooter />
       </MemoryRouter>
-    </I18nProvider>,
+    </I18nProvider>
   )
 }
 
@@ -31,11 +32,11 @@ describe('SiteFooter', () => {
     expect(within(nav).getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms')
     expect(within(nav).getByRole('link', { name: '개인정보처리방침' })).toHaveAttribute(
       'href',
-      '/privacy',
+      '/privacy'
     )
     expect(within(nav).getByRole('link', { name: '환불 정책' })).toHaveAttribute(
       'href',
-      '/cancel-policy',
+      '/cancel-policy'
     )
   })
 
@@ -44,15 +45,15 @@ describe('SiteFooter', () => {
 
     expect(screen.getByRole('link', { name: '정책' })).toHaveAttribute(
       'href',
-      '/policies?from=%2Fvenues',
+      '/policies?from=%2Fvenues'
     )
     expect(screen.getByRole('link', { name: '도움말' })).toHaveAttribute(
       'href',
-      '/help?from=%2Fvenues',
+      '/help?from=%2Fvenues'
     )
     expect(screen.getByRole('link', { name: '커뮤니티' })).toHaveAttribute(
       'href',
-      '/community?from=%2Fvenues',
+      '/community?from=%2Fvenues'
     )
     expect(screen.getByText(`© ${new Date().getFullYear()} rotifolk`)).toBeInTheDocument()
   })

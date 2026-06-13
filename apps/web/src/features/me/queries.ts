@@ -1,4 +1,7 @@
+import { api } from '@services/api'
+import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
 import type {
   AddAvoidContactsDto,
   AddAvoidPersonDto,
@@ -11,8 +14,6 @@ import type {
   VerificationField,
   VerifyFieldDto,
 } from '@rotifolk/shared'
-import { api } from '@services/api'
-import { useAuthStore } from '@store/authStore'
 
 /** 회피 연락처 (해시만 저장 — 원본 번호는 서버가 반환하지 않음) */
 export interface AvoidContact {

@@ -1,7 +1,30 @@
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Card } from '@components/ui/Card/Card'
+import { Input } from '@components/ui/Input/Input'
+import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
+import { clearHostDraft, loadHostDraft, saveHostDraft } from '@features/parties/hostDraft'
+import { useCreateParty } from '@features/parties/queries'
+import { useVenues } from '@features/venues/queries'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  CreatePartySchema,
+  CONNECTION_CHANNELS,
+  CONNECTION_CHANNEL_ORDER,
+  CHILDREN_POLICY_LABEL,
+  MARITAL_STATUS_LABEL,
+  VERIFICATION_FIELD_LABEL,
+  CONTACT_EXCHANGE_POLICY_LABEL,
+  PARTY_FORMAT_LABEL,
+  ROTATION_FORMAT_LABEL,
+} from '@rotifolk/shared'
 import { useEffect, useState } from 'react'
 import { useForm, useFieldArray, Controller, useWatch, type Resolver } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
+
+import styles from './HostCreate.module.css'
+
 import type {
   CreatePartyDto,
   PartyFormat,
@@ -15,27 +38,6 @@ import type {
   ChildrenPolicy,
   NoteDelivery,
 } from '@rotifolk/shared'
-import {
-  CreatePartySchema,
-  CONNECTION_CHANNELS,
-  CONNECTION_CHANNEL_ORDER,
-  CHILDREN_POLICY_LABEL,
-  MARITAL_STATUS_LABEL,
-  VERIFICATION_FIELD_LABEL,
-  CONTACT_EXCHANGE_POLICY_LABEL,
-  PARTY_FORMAT_LABEL,
-  ROTATION_FORMAT_LABEL,
-} from '@rotifolk/shared'
-import { useCreateParty } from '@features/parties/queries'
-import { clearHostDraft, loadHostDraft, saveHostDraft } from '@features/parties/hostDraft'
-import { useVenues } from '@features/venues/queries'
-import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
-import { Button } from '@components/ui/Button/Button'
-import { Input } from '@components/ui/Input/Input'
-import { Card } from '@components/ui/Card/Card'
-import { Badge } from '@components/ui/Badge/Badge'
-import { useToast } from '@components/feedback/Toast/useToast'
-import styles from './HostCreate.module.css'
 
 const DEFAULTS: Partial<CreatePartyDto> = {
   config: {
@@ -208,7 +210,7 @@ function toLocalInput(iso?: string | null): string {
   if (Number.isNaN(d.getTime())) return ''
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
-    d.getMinutes(),
+    d.getMinutes()
   )}`
 }
 
@@ -232,7 +234,7 @@ export default function HostCreatePage() {
     formState: { errors },
   } = useForm<CreatePartyDto>({
     resolver: zodResolver(
-      CreatePartySchema as unknown as Parameters<typeof zodResolver>[0],
+      CreatePartySchema as unknown as Parameters<typeof zodResolver>[0]
     ) as unknown as Resolver<CreatePartyDto>,
     defaultValues: withDraft(draft) as never,
   })
@@ -379,7 +381,7 @@ export default function HostCreatePage() {
             </div>
 
             <div className={styles.group}>
-              <label className={styles.fieldLabel}>카테고리</label>
+              <div className={styles.fieldLabel}>카테고리</div>
               <Controller
                 control={control}
                 name="config.category"
@@ -417,8 +419,11 @@ export default function HostCreatePage() {
                 {...register('title')}
               />
               <div>
-                <label className={styles.fieldLabel}>소개</label>
+                <label className={styles.fieldLabel} htmlFor="host-description">
+                  소개
+                </label>
                 <textarea
+                  id="host-description"
                   className={styles.textarea}
                   rows={4}
                   placeholder="이번 라운드의 컨셉, 어떤 사람들이 오면 좋을지, 분위기를 자유롭게 적어주세요. 20자 이상."
@@ -487,7 +492,7 @@ export default function HostCreatePage() {
 
             <div className={styles.group}>
               <div className={styles.groupHead}>
-                <label className={styles.fieldLabel}>언제 열려요?</label>
+                <div className={styles.fieldLabel}>언제 열려요?</div>
                 <p className={styles.fieldHelp}>참가자에게 보여줄 시작과 종료 시각이에요.</p>
               </div>
               <div className={styles.dateRow}>
@@ -522,7 +527,7 @@ export default function HostCreatePage() {
             </div>
 
             <div className={styles.group}>
-              <label className={styles.fieldLabel}>매칭 방식</label>
+              <div className={styles.fieldLabel}>매칭 방식</div>
               <Controller
                 control={control}
                 name="config.rotationMode"
@@ -546,7 +551,7 @@ export default function HostCreatePage() {
 
             <div className={styles.group}>
               <div className={styles.groupHead}>
-                <label className={styles.fieldLabel}>시간과 인원</label>
+                <div className={styles.fieldLabel}>시간과 인원</div>
                 <p className={styles.fieldHelp}>라운드 길이·휴식과 모집 정원을 정해요.</p>
               </div>
               <div className={styles.fieldGroup}>
@@ -647,7 +652,7 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>모임 포맷</label>
+                <div className={styles.fieldLabel}>모임 포맷</div>
                 <Controller
                   control={control}
                   name="config.format"
@@ -670,7 +675,7 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>대화 구조</label>
+                <div className={styles.fieldLabel}>대화 구조</div>
                 <Controller
                   control={control}
                   name="config.rotationFormat"
@@ -713,7 +718,7 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>매칭 범위</label>
+                <div className={styles.fieldLabel}>매칭 범위</div>
                 <Controller
                   control={control}
                   name="config.matchScope"
@@ -747,7 +752,7 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>연락처 공개 방식</label>
+                <div className={styles.fieldLabel}>연락처 공개 방식</div>
                 <Controller
                   control={control}
                   name="config.contactExchangePolicy"
@@ -780,7 +785,7 @@ export default function HostCreatePage() {
 
               <div className={styles.group}>
                 <div className={styles.groupHead}>
-                  <label className={styles.fieldLabel}>연결 매체</label>
+                  <div className={styles.fieldLabel}>연결 매체</div>
                   <p className={styles.fieldHelp}>
                     {watched.config?.contactExchangePolicy === 'chat-only'
                       ? '현재 정책상 채팅만 공개됩니다. 외부 채널은 잠긴 상태입니다.'
@@ -805,7 +810,7 @@ export default function HostCreatePage() {
                       if (!next.includes('chat')) next.push('chat')
                       next.sort(
                         (a, b) =>
-                          CONNECTION_CHANNEL_ORDER.indexOf(a) - CONNECTION_CHANNEL_ORDER.indexOf(b),
+                          CONNECTION_CHANNEL_ORDER.indexOf(a) - CONNECTION_CHANNEL_ORDER.indexOf(b)
                       )
                       field.onChange(next)
                       const mode: ConnectionMode = next.includes('phone')
@@ -847,7 +852,7 @@ export default function HostCreatePage() {
 
               <div className={styles.group}>
                 <div className={styles.groupHead}>
-                  <label className={styles.fieldLabel}>대화 옵션</label>
+                  <div className={styles.fieldLabel}>대화 옵션</div>
                   <p className={styles.fieldHelp}>대화를 데워줄 보조 도구예요.</p>
                 </div>
                 <div className={styles.toggleGrid}>
@@ -881,7 +886,7 @@ export default function HostCreatePage() {
               {watched.config?.enableNotes && (
                 <>
                   <div className={styles.group}>
-                    <label className={styles.fieldLabel}>쪽지 도착</label>
+                    <div className={styles.fieldLabel}>쪽지 도착</div>
                     <Controller
                       control={control}
                       name="config.noteDelivery"
@@ -926,7 +931,7 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>목표 성비</label>
+                <div className={styles.fieldLabel}>목표 성비</div>
                 <Controller
                   control={control}
                   name="recruitment.genderRatioTarget"
@@ -958,7 +963,7 @@ export default function HostCreatePage() {
 
               <div className={styles.group}>
                 <div className={styles.groupHead}>
-                  <label className={styles.fieldLabel}>정원과 최소 인원 (선택)</label>
+                  <div className={styles.fieldLabel}>정원과 최소 인원 (선택)</div>
                   <p className={styles.fieldHelp}>성별 상한·하한을 따로 두고 싶을 때만 채워요.</p>
                 </div>
                 <div className={styles.fieldGroup}>
@@ -1036,7 +1041,7 @@ export default function HostCreatePage() {
                       value={toLocalInput(field.value)}
                       onChange={(e) =>
                         field.onChange(
-                          e.target.value === '' ? null : new Date(e.target.value).toISOString(),
+                          e.target.value === '' ? null : new Date(e.target.value).toISOString()
                         )
                       }
                     />
@@ -1060,7 +1065,7 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>성별 나이 제한</label>
+                <div className={styles.fieldLabel}>성별 나이 제한</div>
                 <div className={styles.fieldGroup}>
                   <Input
                     type="number"
@@ -1092,7 +1097,7 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>혼인 상태 (복수 선택 · 비우면 무관)</label>
+                <div className={styles.fieldLabel}>혼인 상태 (복수 선택 · 비우면 무관)</div>
                 <p className={styles.fieldHelp}>돌싱(이혼·사별)만 받는 모임 등에 사용해요.</p>
                 <Controller
                   control={control}
@@ -1124,7 +1129,7 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>아이 유무</label>
+                <div className={styles.fieldLabel}>아이 유무</div>
                 <Controller
                   control={control}
                   name="childrenPolicy"
@@ -1147,7 +1152,7 @@ export default function HostCreatePage() {
               </div>
 
               <div className={styles.group}>
-                <label className={styles.fieldLabel}>필수 인증 (복수 선택)</label>
+                <div className={styles.fieldLabel}>필수 인증 (복수 선택)</div>
                 <p className={styles.fieldHelp}>
                   본인·직업·재직·소득·미혼·학력 인증 중 선택한 항목을 검증한 사람만 참가할 수
                   있어요.
@@ -1194,7 +1199,7 @@ export default function HostCreatePage() {
             </div>
 
             <div className={styles.group}>
-              <label className={styles.fieldLabel}>참가비와 환불</label>
+              <div className={styles.fieldLabel}>참가비와 환불</div>
               <div className={styles.fieldGroup}>
                 <Input
                   type="number"
@@ -1212,7 +1217,7 @@ export default function HostCreatePage() {
 
             <div className={styles.group}>
               <div className={styles.groupHead}>
-                <label className={styles.fieldLabel}>성별·연령별 참가비 (선택)</label>
+                <div className={styles.fieldLabel}>성별·연령별 참가비 (선택)</div>
                 <p className={styles.fieldHelp}>
                   예: 여성 30,000 · 남성 50,000, 또는 20~29세 30,000. 먼저 맞는 규칙이 적용돼요.
                 </p>
@@ -1270,7 +1275,7 @@ export default function HostCreatePage() {
             </div>
 
             <div className={styles.group}>
-              <label className={styles.fieldLabel}>음료 제공 방식</label>
+              <div className={styles.fieldLabel}>음료 제공 방식</div>
               <Controller
                 control={control}
                 name="pricing.drinkPackage"
@@ -1312,7 +1317,7 @@ export default function HostCreatePage() {
             </div>
 
             <div className={styles.group}>
-              <label className={styles.fieldLabel}>안주/디저트 제공 방식</label>
+              <div className={styles.fieldLabel}>안주/디저트 제공 방식</div>
               <Controller
                 control={control}
                 name="pricing.snackPackage"

@@ -1,9 +1,10 @@
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { useT } from '@features/i18n/useI18n'
+import { useRecentSearches } from '@features/search/useRecentSearches'
+import { useAuthStore } from '@store/authStore'
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Sheet } from '@components/ui/Sheet/Sheet'
-import { useAuthStore } from '@store/authStore'
-import { useRecentSearches } from '@features/search/useRecentSearches'
-import { useT } from '@features/i18n/useI18n'
+
 import styles from './CommandPalette.module.css'
 
 type UserRole = 'admin' | 'host' | 'participant' | null
@@ -347,7 +348,7 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
     const q = query.trim().toLowerCase()
 
     const navItems: CommandNavigationItem[] = COMMAND_SEEDS.filter(
-      (seed): seed is NavigationSeed => seed.kind === 'navigation' && visibleSeed(seed, role),
+      (seed): seed is NavigationSeed => seed.kind === 'navigation' && visibleSeed(seed, role)
     )
       .map(
         (seed): CommandNavigationItem => ({
@@ -358,14 +359,14 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
           label: t(seed.labelKey) ?? seed.labelFallback,
           hint: t(seed.groupKey),
           groupKey: seed.groupKey,
-        }),
+        })
       )
       .filter((item) => {
         return !q || item.label.toLowerCase().includes(q) || item.path.toLowerCase().includes(q)
       })
 
     const actionItems: CommandActionItem[] = COMMAND_SEEDS.filter(
-      (seed): seed is ActionSeed => seed.kind === 'action' && visibleSeed(seed, role),
+      (seed): seed is ActionSeed => seed.kind === 'action' && visibleSeed(seed, role)
     )
       .map(
         (seed): CommandActionItem => ({
@@ -376,7 +377,7 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
           label: t(seed.labelKey) ?? seed.labelFallback,
           hint: t(seed.groupKey),
           groupKey: seed.groupKey,
-        }),
+        })
       )
       .filter((item) => !q || item.label.toLowerCase().includes(q))
 
@@ -393,7 +394,7 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
           label: term,
           hint: t('command.group.recent'),
           groupKey: 'command.group.recent',
-        }),
+        })
       )
 
     const queryItems: CommandNavigationItem[] = q
@@ -456,7 +457,7 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
 
     if (action === 'open-community-guide') {
       navigate(
-        `/community?guide=1&category=question&template=first-question&fromTutorial=community&from=${fromQuery}`,
+        `/community?guide=1&category=question&template=first-question&fromTutorial=community&from=${fromQuery}`
       )
       return
     }
@@ -593,7 +594,7 @@ export default function CommandPalette({ onClose, onRestartOnboarding }: Command
                           <span className={styles.label}>{item.label}</span>
                           <span className={styles.hint}>{item.hint}</span>
                         </button>
-                      </li>,
+                      </li>
                     )
                   }
 

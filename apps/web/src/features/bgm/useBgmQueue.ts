@@ -124,7 +124,7 @@ export interface UseBgmQueueResult {
 
 export function useBgmQueue(
   partyId: string | undefined,
-  currentNickname?: string,
+  currentNickname?: string
 ): UseBgmQueueResult {
   const [tracks, setTracks] = useState<BgmTrack[]>(() => readCache(partyId).tracks)
   const [current, setCurrent] = useState<number>(() => readCache(partyId).current)
@@ -148,7 +148,7 @@ export function useBgmQueue(
     try {
       localStorage.setItem(
         storageKey(partyId),
-        JSON.stringify({ tracks, current } satisfies PersistedState),
+        JSON.stringify({ tracks, current } satisfies PersistedState)
       )
     } catch {}
   }, [partyId, tracks, current])
@@ -173,7 +173,7 @@ export function useBgmQueue(
         return next
       })
     },
-    [currentNickname],
+    [currentNickname]
   )
 
   const removeTrack = useCallback((id: string) => {

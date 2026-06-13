@@ -4,16 +4,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import { quoteVenueBooking } from '@rotifolk/shared'
+
+import type { Prisma } from '@prisma/client'
 import type {
   CreateVenueBookingDto,
   PartyCategory,
   VenueBooking,
   VenueBookingStatus,
 } from '@rotifolk/shared'
-import { quoteVenueBooking } from '@rotifolk/shared'
-import type { Prisma } from '@prisma/client'
-import { PrismaService } from '@/prisma/prisma.service'
+
 import { parseJsonArray, parseJsonObject } from '@/common/json-utils'
+import { PrismaService } from '@/prisma/prisma.service'
 
 type BookingRow = Prisma.VenueBookingGetPayload<{
   include: { venue: true; requester: true }
@@ -92,7 +94,7 @@ export class VenueBookingsService {
       await this.notify(
         venue.ownerId,
         '새 섭외 요청이 도착했어요',
-        `${venue.name} · ${quote.hours}시간`,
+        `${venue.name} · ${quote.hours}시간`
       )
     }
     return this.toBooking(created)
@@ -122,7 +124,7 @@ export class VenueBookingsService {
     ownerId: string,
     id: string,
     status: 'confirmed' | 'declined',
-    message?: string,
+    message?: string
   ): Promise<VenueBooking> {
     const row = await this.prisma.venueBooking.findUnique({
       where: { id },
@@ -159,7 +161,7 @@ export class VenueBookingsService {
     await this.notify(
       row.requesterId,
       status === 'confirmed' ? '섭외가 확정됐어요 🎉' : '섭외 요청이 거절됐어요',
-      `${row.venue.name}${message ? ` · ${message}` : ''}`,
+      `${row.venue.name}${message ? ` · ${message}` : ''}`
     )
     return this.toBooking(updated)
   }

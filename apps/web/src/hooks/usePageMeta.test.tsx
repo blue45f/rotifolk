@@ -94,7 +94,7 @@ describe('usePageMeta', () => {
 
   it('언마운트 시 주입한 JSON-LD script를 제거한다', () => {
     const { unmount } = renderHook(() =>
-      usePageMeta({ jsonLd: { '@type': 'Event', name: '제거 대상' } }),
+      usePageMeta({ jsonLd: { '@type': 'Event', name: '제거 대상' } })
     )
     expect(injectedJsonLd()).not.toBeNull()
 

@@ -1,13 +1,15 @@
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Card } from '@components/ui/Card/Card'
+import { Chip } from '@components/ui/Chip/Chip'
+import { useVenueAreas, useVenues } from '@features/venues/queries'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import type { VenueKind } from '@rotifolk/shared'
-import { useVenueAreas, useVenues } from '@features/venues/queries'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Card } from '@components/ui/Card/Card'
-import { Badge } from '@components/ui/Badge/Badge'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
+
 import styles from './Venues.module.css'
+
+import type { VenueKind } from '@rotifolk/shared'
 
 const KIND_META: Record<VenueKind, { emoji: string; label: string }> = {
   'wine-bar': { emoji: '🍷', label: '와인바' },

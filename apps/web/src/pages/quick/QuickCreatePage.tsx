@@ -1,16 +1,18 @@
-import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'motion/react'
-import type { PartyCategory } from '@rotifolk/shared'
-import { api } from '@services/api'
-import { useVenues } from '@features/venues/queries'
-import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
-import { Badge } from '@components/ui/Badge/Badge'
 import { Icon } from '@components/ui/Icon/Icon'
-import { useToast } from '@components/feedback/Toast/useToast'
+import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
+import { useVenues } from '@features/venues/queries'
+import { api } from '@services/api'
+import { motion } from 'motion/react'
+import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+
 import styles from './QuickCreate.module.css'
+
+import type { PartyCategory } from '@rotifolk/shared'
 
 const TIME_PRESETS = [30, 60, 90, 120, 180] as const
 
@@ -25,7 +27,7 @@ export default function QuickCreatePage() {
   const [category, setCategory] = useState<PartyCategory>(() =>
     presetCategory && presetCategory !== 'custom' && presetCategory in CATEGORY_META
       ? (presetCategory as PartyCategory)
-      : 'wine',
+      : 'wine'
   )
   const [venueId, setVenueId] = useState<string | null>(null)
   const [startInMin, setStartInMin] = useState<number>(60)

@@ -13,8 +13,9 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { PrismaService } from '@/prisma/prisma.service'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { PrismaService } from '@/prisma/prisma.service'
 
 interface CreateBody {
   introduction: string
@@ -90,7 +91,7 @@ class HostApplicationsController {
   @UseGuards(AuthGuard('jwt'))
   async adminList(
     @CurrentUser() me: JwtUserPayload,
-    @Query('status') status?: 'pending' | 'approved' | 'rejected',
+    @Query('status') status?: 'pending' | 'approved' | 'rejected'
   ) {
     if (me.role !== 'admin') {
       throw new ForbiddenException({ code: 'admin_only', message: '관리자 전용' })
@@ -114,7 +115,7 @@ class HostApplicationsController {
   async review(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') id: string,
-    @Body() body: ReviewBody,
+    @Body() body: ReviewBody
   ) {
     if (me.role !== 'admin') {
       throw new ForbiddenException({ code: 'admin_only', message: '관리자 전용' })

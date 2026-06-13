@@ -1,6 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { CreateNoteDto, PartyNote } from '@rotifolk/shared'
 import { api } from '@services/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+
+import type { CreateNoteDto, PartyNote } from '@rotifolk/shared'
 
 export const noteKeys = {
   all: ['notes'] as const,

@@ -12,10 +12,12 @@ import {
   type CreateReportDto,
   type UpdateReportStatusDto,
 } from '@rotifolk/shared'
-import { PrismaService } from '@/prisma/prisma.service'
+
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
+
 import { hashPhone, normalizeContactPhone } from '@/common/contact-hash'
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
-import { NotificationsEmitter } from '../notifications/notifications.emitter'
+import { PrismaService } from '@/prisma/prisma.service'
 
 interface AvoidContactRow {
   id: string
@@ -35,7 +37,7 @@ function toAvoidContactDto(row: AvoidContactRow) {
 export class SafetyService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly notifEmitter: NotificationsEmitter,
+    private readonly notifEmitter: NotificationsEmitter
   ) {}
 
   /** 차단 (양방향 회피 — 같은 모임에 함께 못 들어감) */
@@ -280,7 +282,7 @@ export class SafetyService {
   async report(
     input: {
       reporterId: string
-    } & CreateReportDto,
+    } & CreateReportDto
   ) {
     const createdAfter = new Date(Date.now() - REPORT_RATE_LIMIT_WINDOW_MS)
     const recentReportCount = await this.prisma.report.count({

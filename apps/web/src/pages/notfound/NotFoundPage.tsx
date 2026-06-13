@@ -1,7 +1,8 @@
-import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@components/ui/Button/Button'
-import { useRecents } from '@features/recents/useRecents'
 import { CATEGORY_META } from '@features/categories/meta'
+import { useRecents } from '@features/recents/useRecents'
+import { Link, useLocation } from 'react-router-dom'
+
 import styles from './NotFound.module.css'
 
 interface Suggestion {
@@ -73,7 +74,7 @@ export default function NotFoundPage() {
           ? { ...suggestion, to: `/policies?from=${currentPathEncoded}` }
           : suggestion.to === '/terms'
             ? { ...suggestion, to: `/terms?from=${currentPathEncoded}` }
-            : suggestion,
+            : suggestion
   )
 
   return (

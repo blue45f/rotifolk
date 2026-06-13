@@ -1,8 +1,26 @@
-import { useEffect, useState } from 'react'
-import { Link, useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Avatar } from '@components/ui/Avatar/Avatar'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Card } from '@components/ui/Card/Card'
+import { Chip } from '@components/ui/Chip/Chip'
+import { Input } from '@components/ui/Input/Input'
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { CATEGORY_META } from '@features/categories/meta'
+import { useEnsurePartyRoom } from '@features/chat/queries'
+import { GuestConversionBanner } from '@features/guest/GuestConversionBanner'
+import { useGuestSession, useHostAddGuest } from '@features/guest/queries'
+import { downloadIcs } from '@features/ics/buildIcs'
+import { AfterPartyManager } from '@features/parties/AfterPartyManager'
+import { buildPartyEventJsonLd } from '@features/parties/partyEventJsonLd'
+import { useParty, useJoinParty, useCancelJoin, useMyParties } from '@features/parties/queries'
+import { useRecents } from '@features/recents/useRecents'
+import { ShareButton } from '@features/share/ShareButton'
 import { normalizeTutorialStep } from '@features/tutorial/progress'
-import { motion } from 'motion/react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useVenue } from '@features/venues/queries'
+import { SITE_ORIGIN, usePageMeta } from '@hooks/usePageMeta'
 import {
   AVOID_REASON_LABEL,
   CHILDREN_POLICY_LABEL,
@@ -23,31 +41,13 @@ import {
   type ConnectionChannel,
   type Party,
 } from '@rotifolk/shared'
-import { ShareButton } from '@features/share/ShareButton'
-import { useGuestSession, useHostAddGuest } from '@features/guest/queries'
-import { GuestConversionBanner } from '@features/guest/GuestConversionBanner'
-import { useParty, useJoinParty, useCancelJoin } from '@features/parties/queries'
-import { buildPartyEventJsonLd } from '@features/parties/partyEventJsonLd'
-import { useVenue } from '@features/venues/queries'
-import { useEnsurePartyRoom } from '@features/chat/queries'
-import { CATEGORY_META } from '@features/categories/meta'
-import { Button } from '@components/ui/Button/Button'
-import { Badge } from '@components/ui/Badge/Badge'
-import { Avatar } from '@components/ui/Avatar/Avatar'
-import { Card } from '@components/ui/Card/Card'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Input } from '@components/ui/Input/Input'
-import { Sheet } from '@components/ui/Sheet/Sheet'
-import { AfterPartyManager } from '@features/parties/AfterPartyManager'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
-import { useAuthStore } from '@store/authStore'
-import { useMyParties } from '@features/parties/queries'
-import { useRecents } from '@features/recents/useRecents'
-import { downloadIcs } from '@features/ics/buildIcs'
-import { SITE_ORIGIN, usePageMeta } from '@hooks/usePageMeta'
 import { api } from '@services/api'
+import { useAuthStore } from '@store/authStore'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { motion } from 'motion/react'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom'
+
 import styles from './PartyDetailPage.module.css'
 
 interface PartyReview {
@@ -127,7 +127,7 @@ export default function PartyDetailPage() {
           metaParty,
           // canonical(usePageMeta)과 같은 프로덕션 정식 URL — dev 출처가 구조화 데이터에 새지 않게.
           `${SITE_ORIGIN}/parties/${metaParty.id}`,
-          metaVenue?.venue,
+          metaVenue?.venue
         )
       : undefined,
   })
@@ -153,7 +153,7 @@ export default function PartyDetailPage() {
     queryKey: ['avoid-check', partyId],
     queryFn: () =>
       api.get<Array<{ userId: string; nickname?: string; reasons: AvoidReason[] }>>(
-        `me/avoid-check?partyId=${partyId}`,
+        `me/avoid-check?partyId=${partyId}`
       ),
     enabled: !!me && !!partyId,
   })
@@ -310,7 +310,7 @@ export default function PartyDetailPage() {
         endAt: p.endAt,
         url: window.location.href,
       },
-      safe,
+      safe
     )
     toast.show('캘린더 파일을 받았어요', 'success')
   }
@@ -330,7 +330,7 @@ export default function PartyDetailPage() {
           .filter(
             (m) =>
               m.party.id !== party.id &&
-              ['confirmed', 'checked-in', 'waitlist'].includes(m.participation.status),
+              ['confirmed', 'checked-in', 'waitlist'].includes(m.participation.status)
           )
           .find((m) => {
             const s = new Date(m.party.startAt).getTime()
@@ -570,7 +570,7 @@ export default function PartyDetailPage() {
                   )
                     .map(
                       (c: ConnectionChannel) =>
-                        `${CONNECTION_CHANNELS[c].icon} ${CONNECTION_CHANNELS[c].short}`,
+                        `${CONNECTION_CHANNELS[c].icon} ${CONNECTION_CHANNELS[c].short}`
                     )
                     .join(' · ')}
                   {!((party.config.connectionChannels?.length || 0) > 0) && '채널 정보 없음'}
@@ -803,7 +803,7 @@ export default function PartyDetailPage() {
                             className={`${styles.feedbackTagChip} ${active ? styles.feedbackTagChipActive : ''}`}
                             onClick={() =>
                               setSelectedTags((prev) =>
-                                prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+                                prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
                               )
                             }
                           >
@@ -1077,7 +1077,7 @@ export default function PartyDetailPage() {
                   }
                   return acc
                 },
-                {},
+                {}
               )
 
               const sortedHostFeedbacks = Object.entries(hostFeedbackCounts)
@@ -1243,7 +1243,7 @@ function EligibilityPriceCard({ party }: { party: Party }) {
             maritalStatus: me.maritalStatus,
             hasChildren: me.hasChildren,
             verifiedFields: me.verifiedFields,
-          },
+          }
         )
       : null
 

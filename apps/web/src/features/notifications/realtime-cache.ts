@@ -14,7 +14,7 @@ export type NotificationPayload = Parameters<ServerToClientEvents['notification:
 
 export function prependRealtimeNotification(
   current: NotificationItem[] | undefined,
-  payload: NotificationPayload,
+  payload: NotificationPayload
 ): NotificationItem[] | undefined {
   if (!current) return current
   const createdAt = new Date().toISOString()

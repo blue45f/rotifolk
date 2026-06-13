@@ -4,9 +4,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { PrismaService } from '@/prisma/prisma.service'
-import { parseJsonArray, toJsonString } from '@/common/json-utils'
+
 import type { CreateQuizDto, SubmitQuizAnswerDto } from '@rotifolk/shared'
+
+import { parseJsonArray, toJsonString } from '@/common/json-utils'
+import { PrismaService } from '@/prisma/prisma.service'
 
 @Injectable()
 export class QuizService {

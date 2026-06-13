@@ -18,8 +18,8 @@ export const useThemeStore = create<ThemeState>()(
       theme: 'light',
       setTheme: (theme) => set({ theme }),
     }),
-    { name: THEME_STORAGE_KEY, storage: createJSONStorage(() => localStorage) },
-  ),
+    { name: THEME_STORAGE_KEY, storage: createJSONStorage(() => localStorage) }
+  )
 )
 
 /**

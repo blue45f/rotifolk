@@ -1,6 +1,7 @@
-import { useRef, type ReactNode } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { useRef, type ReactNode } from 'react'
+
 import styles from './Sheet.module.css'
 
 interface SheetProps {

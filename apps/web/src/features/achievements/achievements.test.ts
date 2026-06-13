@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { computeAchievements, summarizeAchievements } from './achievements'
 
 describe('computeAchievements', () => {

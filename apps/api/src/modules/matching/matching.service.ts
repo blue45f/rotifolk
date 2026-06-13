@@ -4,8 +4,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { PrismaService } from '@/prisma/prisma.service'
-import { parseJsonArray, toJsonString } from '@/common/json-utils'
 import {
   buildGroupRotation,
   buildHeteroRotation,
@@ -25,6 +23,9 @@ import {
   resolveChannelsByPolicy,
   shuffle,
 } from '@rotifolk/shared'
+
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
+
 import type {
   ConnectionChannel,
   ConnectionMode,
@@ -36,13 +37,15 @@ import type {
   RevealedChannel,
   UserContact,
 } from '@rotifolk/shared'
-import { NotificationsEmitter } from '../notifications/notifications.emitter'
+
+import { parseJsonArray, toJsonString } from '@/common/json-utils'
+import { PrismaService } from '@/prisma/prisma.service'
 
 @Injectable()
 export class MatchingService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly notifEmitter: NotificationsEmitter,
+    private readonly notifEmitter: NotificationsEmitter
   ) {}
 
   /** 호스트가 처음 라운드를 생성. 기존 라운드 있으면 폐기. */
@@ -76,7 +79,7 @@ export class MatchingService {
     const heteroPool: HeteroParticipant[] = participants.flatMap((p) =>
       p.userId && (p.user?.gender === 'male' || p.user?.gender === 'female')
         ? [{ userId: p.userId, gender: p.user.gender as 'male' | 'female' }]
-        : [],
+        : []
     )
 
     const created: { index: number; pairs: string[][] }[] = []
@@ -94,7 +97,7 @@ export class MatchingService {
         created.push({
           index: r.roundIndex,
           pairs: r.pairs.map((pair) => pair as unknown as string[]),
-        }),
+        })
       )
     } else if (party.rotationMode === 'round-robin-pair') {
       const rounds = buildRoundRobin(ids).slice(0, party.totalRounds)
@@ -102,7 +105,7 @@ export class MatchingService {
         created.push({
           index: r.roundIndex,
           pairs: r.pairs.map((pair) => pair as unknown as string[]),
-        }),
+        })
       )
     } else if (party.rotationMode === 'round-robin-trio') {
       const rounds = buildTrioRotation(ids, party.totalRounds)
@@ -113,7 +116,7 @@ export class MatchingService {
         created.push({
           index: r.roundIndex,
           pairs: r.pairs.map((pair) => pair as unknown as string[]),
-        }),
+        })
       )
     } else if (party.rotationFormat === 'many-to-many') {
       const rounds = buildGroupRotation(ids, party.groupSize, party.totalRounds)
@@ -124,7 +127,7 @@ export class MatchingService {
         created.push({
           index: r.roundIndex,
           pairs: [[r.hubId, ...r.groupIds]],
-        }),
+        })
       )
     } else if (party.rotationMode === 'random-shuffle') {
       for (let i = 1; i <= party.totalRounds; i++) {
@@ -295,7 +298,7 @@ export class MatchingService {
         allUserIds: participants.flatMap((p) => (p.userId ? [p.userId] : [])),
         maxPerPerson: party.maxMatchesPerPerson,
       }),
-      forbiddenPairs,
+      forbiddenPairs
     )
 
     // 기존 매칭 삭제 + 새 매칭 생성을 한 트랜잭션으로 — 중간 실패 시 매칭이 유실되지 않게.
@@ -310,8 +313,8 @@ export class MatchingService {
               userBId: m.userBId,
               result: 'mutual',
             },
-          }),
-        ),
+          })
+        )
       )
     })
     await this.prisma.notification.createMany({
@@ -400,7 +403,7 @@ export class MatchingService {
         allUserIds: participants.flatMap((p) => (p.userId ? [p.userId] : [])),
         maxPerPerson: party.maxMatchesPerPerson,
       }),
-      forbiddenPairs,
+      forbiddenPairs
     )
     const mine = connections.filter((c) => c.userAId === userId || c.userBId === userId)
     const partnerIds = [
@@ -454,8 +457,8 @@ export class MatchingService {
           participants.flatMap((p) =>
             p.userId
               ? [{ userId: p.userId, gender: (p.user?.gender ?? null) as Gender | null }]
-              : [],
-          ),
+              : []
+          )
         )
       : { popularMale: null, popularFemale: null }
 
@@ -481,7 +484,7 @@ export class MatchingService {
           interests: parseJsonArray<string>(p?.interestsJson ?? '[]'),
           birthYear: p?.birthYear ?? null,
         },
-        `${userId}-${pid}`,
+        `${userId}-${pid}`
       )
       return {
         partnerId: pid,
@@ -517,7 +520,7 @@ export class MatchingService {
     requesterId: string,
     partyId: string,
     partnerId: string,
-    channel: ConnectionChannel,
+    channel: ConnectionChannel
   ) {
     if (requesterId === partnerId) {
       throw new BadRequestException({ code: 'self_request', message: '본인은 요청할 수 없어요' })
@@ -549,7 +552,7 @@ export class MatchingService {
     }
 
     const offeredChannels = parseJsonArray<ConnectionChannel>(party.connectionChannelsJson).filter(
-      Boolean,
+      Boolean
     )
     if (offeredChannels.length === 0) {
       const fallback = channelsFromLegacyMode((party.connectionMode ?? 'chat') as ConnectionMode)
@@ -647,7 +650,7 @@ export class MatchingService {
     deciderId: string,
     partyId: string,
     requestId: string,
-    action: 'approve' | 'reject',
+    action: 'approve' | 'reject'
   ) {
     const request = await this.prisma.contactExchangeRequest.findUnique({
       where: { id: requestId },
@@ -730,7 +733,7 @@ export class MatchingService {
         (r) =>
           r.channel === channel &&
           ((r.requesterId === input.requesterId && r.receiverId === input.partnerId) ||
-            (r.requesterId === input.partnerId && r.receiverId === input.requesterId)),
+            (r.requesterId === input.partnerId && r.receiverId === input.requesterId))
       )
       const approved = pairRequests.find((r) => r.status === 'approved')
       if (approved) {
@@ -749,7 +752,7 @@ export class MatchingService {
         (r) =>
           r.status === 'pending' &&
           r.requesterId === input.partnerId &&
-          r.receiverId === input.requesterId,
+          r.receiverId === input.requesterId
       )
       if (incomingPending) {
         out.push({
@@ -767,7 +770,7 @@ export class MatchingService {
         (r) =>
           r.status === 'pending' &&
           r.requesterId === input.requesterId &&
-          r.receiverId === input.partnerId,
+          r.receiverId === input.partnerId
       )
       if (outgoingPending) {
         out.push({
@@ -825,12 +828,12 @@ export class MatchingService {
         allUserIds: participants.flatMap((p) => (p.userId ? [p.userId] : [])),
         maxPerPerson: party.maxMatchesPerPerson,
       }),
-      forbiddenPairs,
+      forbiddenPairs
     )
     const isMatched = connections.some(
       (c) =>
         (c.userAId === userAId && c.userBId === userBId) ||
-        (c.userAId === userBId && c.userBId === userAId),
+        (c.userAId === userBId && c.userBId === userAId)
     )
     if (!isMatched) {
       throw new BadRequestException({
@@ -842,7 +845,7 @@ export class MatchingService {
 
   private hasContactHandle(
     user: UserContact | null | undefined,
-    channel: ConnectionChannel,
+    channel: ConnectionChannel
   ): boolean {
     if (channel === 'chat') return true
     if (!user) return false
@@ -854,7 +857,7 @@ export class MatchingService {
 
   private contactHandleFor(
     user: UserContact | null | undefined,
-    channel: ConnectionChannel,
+    channel: ConnectionChannel
   ): string | null {
     if (!this.hasContactHandle(user, channel)) return null
     if (channel === 'instagram') return user?.instagram ?? null

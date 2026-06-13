@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { groupByN, shuffle } from './shuffle'
 
 const sorted = (a: number[]) => [...a].sort((x, y) => x - y)

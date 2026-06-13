@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import {
   canAcceptGender,
   evaluateGenderBalance,
@@ -41,7 +42,7 @@ describe('canAcceptGender — 비례 한도로 대기열 판단', () => {
   })
   it('성별 상한(cap)을 넘으면 거부', () => {
     expect(canAcceptGender('female', { male: 4, female: 4 }, '1:1', { caps: { female: 4 } })).toBe(
-      false,
+      false
     )
   })
 })

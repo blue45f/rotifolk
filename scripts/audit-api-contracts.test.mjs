@@ -13,13 +13,13 @@ import {
 test('normalizes API route paths across frontend templates and Nest routes', () => {
   assert.equal(
     normalizeRoutePath('parties/${partyId}/matching/my-matches'),
-    'parties/:param/matching/my-matches',
+    'parties/:param/matching/my-matches'
   )
   assert.equal(normalizeRoutePath('payments/me?partyId=${partyId}'), 'payments/me')
   assert.equal(normalizeRoutePath('/api/venues/:id/menu'), 'venues/:param/menu')
   assert.equal(
     normalizeRoutePath('${API}/chat/rooms/:roomId/messages'),
-    'chat/rooms/:param/messages',
+    'chat/rooms/:param/messages'
   )
 })
 
@@ -55,7 +55,7 @@ test('reports frontend API calls whose route cannot be statically audited', () =
       export function load() {
         return api.get(path)
       }
-    `,
+    `
   )
 
   assert.deepEqual(extractFrontendDynamicApiCalls(root), [

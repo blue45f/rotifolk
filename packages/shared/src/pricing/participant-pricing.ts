@@ -15,7 +15,7 @@ export interface ParticipantWho {
 export function resolveParticipantPrice(
   basePriceKRW: number,
   rules: readonly PricingRule[],
-  who: ParticipantWho,
+  who: ParticipantWho
 ): number {
   for (const r of rules) {
     if (r.gender && (!who.gender || who.gender !== r.gender)) continue
@@ -38,7 +38,7 @@ export interface AgeLimitSource {
 /** 성별에 적용되는 나이 범위 — 성별 전용값이 있으면 우선, 없으면 공통값. */
 export function ageRangeForGender(
   src: AgeLimitSource,
-  gender?: string | null,
+  gender?: string | null
 ): { min: number | null; max: number | null } {
   if (gender === 'male' && (src.maleAgeMin != null || src.maleAgeMax != null)) {
     return { min: src.maleAgeMin ?? null, max: src.maleAgeMax ?? null }
@@ -53,7 +53,7 @@ export function ageRangeForGender(
 export function isAgeEligible(
   src: AgeLimitSource,
   gender: string | null | undefined,
-  age: number | null | undefined,
+  age: number | null | undefined
 ): boolean {
   const { min, max } = ageRangeForGender(src, gender)
   if (age == null) return true
@@ -65,7 +65,7 @@ export function isAgeEligible(
 /** 출생연도 → 만 나이 근사. currentYear는 외부에서 주입(테스트 가능·결정적). */
 export function ageFromBirthYear(
   birthYear: number | null | undefined,
-  currentYear: number,
+  currentYear: number
 ): number | null {
   if (!birthYear || birthYear < 1900) return null
   return Math.max(0, currentYear - birthYear)

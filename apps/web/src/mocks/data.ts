@@ -575,7 +575,7 @@ export const mockMenus: Record<string, MenuItem[]> = {
 }
 
 function partyFrom(
-  overrides: Partial<Party> & Pick<Party, 'id' | 'title' | 'venueId' | 'config' | 'pricing'>,
+  overrides: Partial<Party> & Pick<Party, 'id' | 'title' | 'venueId' | 'config' | 'pricing'>
 ): Party {
   return {
     description: '',

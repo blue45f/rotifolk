@@ -103,7 +103,7 @@ const isCommunityDemoAction = (value: unknown): value is CommunityDemoAction =>
   typeof value === 'string' && VALID_ACTIONS.has(value as CommunityDemoAction)
 
 const isCommunityDemoActivityLogEntry = (
-  value: unknown,
+  value: unknown
 ): value is CommunityDemoActivityLogEntry => {
   if (!value || typeof value !== 'object') return false
 
@@ -138,14 +138,14 @@ const dispatchActivityChanged = (entry: CommunityDemoActivityLogEntry) => {
     COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT,
     {
       detail: entry,
-    },
+    }
   )
 
   window.dispatchEvent(event)
 }
 
 export const toCommunityDemoActivityEntry = (
-  value: unknown,
+  value: unknown
 ): CommunityDemoActivityLogEntry | null => {
   if (!isCommunityDemoActivityLogEntry(value)) return null
 
@@ -166,7 +166,7 @@ export const readCommunityDemoActivityLog = (): CommunityDemoActivityLogEntry[] 
 export const logCommunityDemoActivity = (
   action: CommunityDemoAction,
   label: string,
-  meta?: CommunityDemoActionMeta,
+  meta?: CommunityDemoActionMeta
 ): CommunityDemoActivityLogEntry => {
   const entry: CommunityDemoActivityLogEntry = {
     id: makeCommunityDemoEventId(),
@@ -177,7 +177,7 @@ export const logCommunityDemoActivity = (
   }
 
   const nextEntries = [...readCommunityDemoActivityLog(), entry].slice(
-    -MAX_COMMUNITY_DEMO_ACTIVITY_ENTRIES,
+    -MAX_COMMUNITY_DEMO_ACTIVITY_ENTRIES
   )
 
   writeEntries(nextEntries)
@@ -196,7 +196,7 @@ export const clearCommunityDemoActivityLog = () => {
 }
 
 export const summarizeCommunityDemoMissionState = (
-  entries: CommunityDemoActivityLogEntry[],
+  entries: CommunityDemoActivityLogEntry[]
 ): CommunityDemoMissionState => {
   const actionSet = new Set(entries.map((entry) => entry.action))
 

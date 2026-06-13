@@ -1,19 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useLocation } from 'react-router-dom'
-import { Card } from '@components/ui/Card/Card'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { Card } from '@components/ui/Card/Card'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
-import { api } from '@services/api'
 import {
   REVENUE_MONITORING_POLICY,
   computeRevenueHealthScore,
   type RevenueHealthAlertThreshold,
 } from '@rotifolk/shared'
+import { api } from '@services/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+
 import styles from './Admin.module.css'
 
 interface AdminReport {
@@ -449,7 +450,7 @@ function clampPercentToRange(value: number): number {
 function monitoringLevel(
   refundRatePercent: number,
   warning: number,
-  danger: number,
+  danger: number
 ): 'good' | 'warning' | 'critical' {
   if (refundRatePercent >= danger) return 'critical'
   if (refundRatePercent >= warning) return 'warning'
@@ -494,7 +495,7 @@ function buildMonitoringThresholdSimulation(args: {
   const refundTone = monitoringLevel(
     args.refundRatePercent,
     args.simulatedMonitoringThresholds.warningRefundRatePercent,
-    args.simulatedMonitoringThresholds.dangerRefundRatePercent,
+    args.simulatedMonitoringThresholds.dangerRefundRatePercent
   )
   const concentrationTone =
     args.topPartyConcentrationPercent >=
@@ -559,7 +560,7 @@ function createPlannerProjection(args: {
   const projectedGrossRefundedKRW = roundMoney((projectedGrossPaidKRW * safeRefundRate) / 100)
   const platformFeeKRW = roundMoney((projectedGrossPaidKRW * args.platformFeePercent) / 100)
   const refundRetentionKRW = roundMoney(
-    (projectedGrossRefundedKRW * args.refundRetentionPercent) / 100,
+    (projectedGrossRefundedKRW * args.refundRetentionPercent) / 100
   )
   const platformRevenueKRW = platformFeeKRW + refundRetentionKRW
   const hostPayoutKRW = Math.max(projectedGrossPaidKRW - platformFeeKRW, 0)
@@ -580,7 +581,7 @@ function createPlannerProjection(args: {
     platformRevenueKRW,
     hostPayoutKRW,
     platformShareRate: roundPercentWithOneDecimal(
-      (platformRevenueKRW / projectedGrossPaidKRW) * 100,
+      (platformRevenueKRW / projectedGrossPaidKRW) * 100
     ),
     hostShareRate: roundPercentWithOneDecimal((hostPayoutKRW / projectedGrossPaidKRW) * 100),
     platformDeltaKRW: platformRevenueKRW - args.basePlatformRevenue,
@@ -643,7 +644,7 @@ export default function AdminPage() {
   const [isAutoApplyingInsights, setIsAutoApplyingInsights] = useState(false)
   const [isAutoApplyStopRequested, setIsAutoApplyStopRequested] = useState(false)
   const [autoApplyTimeline, setAutoApplyTimeline] = useState<RevenueInsightExecutionTimelineStep[]>(
-    [],
+    []
   )
   const [autoApplySummary, setAutoApplySummary] = useState('')
   const [plannerTransactionCount, setPlannerTransactionCount] = useState('')
@@ -657,7 +658,7 @@ export default function AdminPage() {
   const queryClient = useQueryClient()
   const toast = useToast()
   const adminFrom = encodeURIComponent(
-    `${location.pathname}${location.search}${location.hash}` || '/',
+    `${location.pathname}${location.search}${location.hash}` || '/'
   )
 
   const { data: openData, isError: isOpenReportsError } = useQuery({
@@ -802,7 +803,7 @@ export default function AdminPage() {
       if (cancelled) return
       if (plannerTransactionCount === '') {
         setPlannerTransactionCount(
-          String(revenueSummary.totalPaidCount + revenueSummary.totalRefundedCount),
+          String(revenueSummary.totalPaidCount + revenueSummary.totalRefundedCount)
         )
       }
       if (plannerAvgTicket === '') {
@@ -883,8 +884,8 @@ export default function AdminPage() {
         preset.minimumHostPayoutPercent ??
           parsedMinimumHostPayoutPercent ??
           revenueRules?.minimumHostPayoutPercent ??
-          0,
-      ),
+          0
+      )
     )
     setRuleChangeReason('')
     saveRule.mutate({
@@ -918,7 +919,7 @@ export default function AdminPage() {
   })
 
   const buildMonitoringPolicyPayload = (
-    input?: Partial<MonitoringPolicyUpdatePayload>,
+    input?: Partial<MonitoringPolicyUpdatePayload>
   ): MonitoringPolicyUpdatePayload => {
     const warning =
       input?.warningRefundRatePercent ??
@@ -965,7 +966,7 @@ export default function AdminPage() {
     setMonitoringDangerRate(String(payload.dangerRefundRatePercent))
     setMonitoringTopPartyRate(String(payload.topPartyConcentrationPercent))
     setMonitoringPolicyReason(
-      payload.reason || `수익 운영 제안 적용 (${new Date().toLocaleString('ko-KR')})`,
+      payload.reason || `수익 운영 제안 적용 (${new Date().toLocaleString('ko-KR')})`
     )
 
     saveMonitoringPolicy.mutate(payload)
@@ -973,7 +974,7 @@ export default function AdminPage() {
   }
 
   const buildRevenueRulePayload = (
-    input?: Partial<RevenueRuleUpdatePayload>,
+    input?: Partial<RevenueRuleUpdatePayload>
   ): RevenueRuleUpdatePayload | null => {
     const platformFee =
       input?.platformFeePercent ?? parsedPlatformFee ?? revenueRules?.platformFeePercent
@@ -1024,7 +1025,7 @@ export default function AdminPage() {
   const applyRevenueRuleSuggestion = (
     input: Partial<RevenueRuleUpdatePayload>,
     fallbackReason: string,
-    focusOn: 'platformFee' | 'minimumHostPayout' = 'platformFee',
+    focusOn: 'platformFee' | 'minimumHostPayout' = 'platformFee'
   ) => {
     const payload = buildRevenueRulePayload({
       ...input,
@@ -1040,7 +1041,7 @@ export default function AdminPage() {
   }
 
   const buildRevenueInsightMonitoringPayload = (
-    actionId: RevenueInsightActionId,
+    actionId: RevenueInsightActionId
   ): MonitoringPolicyUpdatePayload | null => {
     if (!revenueSummary || isMonitoringPolicyLoading || !monitoringThresholds) return null
 
@@ -1056,7 +1057,7 @@ export default function AdminPage() {
 
     if (actionId === 'concentration-cap-relax') {
       const nextTopPartyLimit = roundPercentWithOneDecimal(
-        Math.min(100, topPartyConcentrationPercent + 6),
+        Math.min(100, topPartyConcentrationPercent + 6)
       )
 
       return buildMonitoringPolicyPayload({
@@ -1069,7 +1070,7 @@ export default function AdminPage() {
   }
 
   const buildRevenueInsightRulePayload = (
-    actionId: RevenueInsightActionId,
+    actionId: RevenueInsightActionId
   ): RevenueRuleUpdatePayload | null => {
     if (!revenueSummary || isRevenueRuleLoading || !revenueRules) return null
 
@@ -1122,17 +1123,17 @@ export default function AdminPage() {
     applyRevenueRuleSuggestion(
       rulePayload,
       rulePayload.reason ?? '수익 운영 제안 적용',
-      actionId === 'minimum-host-payout-lower' ? 'minimumHostPayout' : 'platformFee',
+      actionId === 'minimum-host-payout-lower' ? 'minimumHostPayout' : 'platformFee'
     )
   }
 
   const buildRevenueInsightExecutionPlan = (
-    insights: RevenueInsight[],
+    insights: RevenueInsight[]
   ): RevenueInsightExecutionPlanWithQueue | null => {
     const executableInsights = insights
       .filter(
         (insight): insight is RevenueInsight & { actionId: RevenueInsightActionId } =>
-          !!insight.actionId,
+          !!insight.actionId
       )
       .sort((a, b) => b.priority - a.priority)
 
@@ -1177,7 +1178,7 @@ export default function AdminPage() {
   const buildExecutionTimelineStep = (
     step: RevenueInsightExecutionQueueStep,
     status: RevenueInsightExecutionStatus,
-    message: string,
+    message: string
   ): RevenueInsightExecutionTimelineStep => {
     if (step.type === 'monitoring') {
       return {
@@ -1246,7 +1247,7 @@ export default function AdminPage() {
     setAutoApplySummary('')
 
     let timeline: RevenueInsightExecutionTimelineStep[] = plan.queue.map((step) =>
-      buildExecutionTimelineStep(step, 'pending', '대기'),
+      buildExecutionTimelineStep(step, 'pending', '대기')
     )
     setAutoApplyTimeline(timeline)
 
@@ -1339,11 +1340,11 @@ export default function AdminPage() {
       const finishedCount = successCount + failedCount + skippedCount
       if (wasStopped) {
         setAutoApplySummary(
-          `중단됨 · 진행 ${finishedCount}/${timeline.length}건 (성공 ${successCount}건 · 실패 ${failedCount}건 · 미실행 ${timeline.length - finishedCount}건)`,
+          `중단됨 · 진행 ${finishedCount}/${timeline.length}건 (성공 ${successCount}건 · 실패 ${failedCount}건 · 미실행 ${timeline.length - finishedCount}건)`
         )
       } else {
         setAutoApplySummary(
-          `실행 결과: 성공 ${successCount}건 · 실패 ${failedCount}건 · 제외 ${skippedCount}건`,
+          `실행 결과: 성공 ${successCount}건 · 실패 ${failedCount}건 · 제외 ${skippedCount}건`
         )
         if (failedCount > 0) {
           toast.show(`일부 항목 실행 실패 (${failedCount}건)`, 'error')
@@ -1699,7 +1700,7 @@ export default function AdminPage() {
       ? null
       : planningProjection.requiredFeeReachable
         ? `목표 플랫폼 수익을 맞추려면 수수료율을 ${clampPercentToRange(
-            planningProjection.requiredPlatformFeePercent,
+            planningProjection.requiredPlatformFeePercent
           ).toFixed(1)}%로 조정해야 해요.`
         : '목표값이 현재 시나리오에서는 수수료율만으로는 어렵습니다. 목표 수익/환불률/거래 가정을 조정해 주세요.'
 
@@ -1742,7 +1743,7 @@ export default function AdminPage() {
       key: string,
       label: string,
       overrides: Partial<{ transactionCount: number; avgTicket: number; refundRate: number }>,
-      note?: string,
+      note?: string
     ): PlannerSensitivityScenario => {
       const transactionCount = overrides.transactionCount ?? parsedPlannerTransactionCount
       const avgTicket = overrides.avgTicket ?? parsedPlannerAvgTicket
@@ -1802,37 +1803,37 @@ export default function AdminPage() {
         'tx-up',
         '거래건 +20%',
         { transactionCount: Math.max(0, Math.round(parsedPlannerTransactionCount * 1.2)) },
-        '유입이 20% 늘었을 때',
+        '유입이 20% 늘었을 때'
       ),
       buildSensitivity(
         'tx-down',
         '거래건 -20%',
         { transactionCount: Math.max(0, Math.round(parsedPlannerTransactionCount * 0.8)) },
-        '유입이 20% 줄었을 때',
+        '유입이 20% 줄었을 때'
       ),
       buildSensitivity(
         'ticket-up',
         '평균결제 +20%',
         { avgTicket: roundMoney(parsedPlannerAvgTicket * 1.2) },
-        '평균 결제액이 20% 늘었을 때',
+        '평균 결제액이 20% 늘었을 때'
       ),
       buildSensitivity(
         'ticket-down',
         '평균결제 -20%',
         { avgTicket: roundMoney(parsedPlannerAvgTicket * 0.8) },
-        '평균 결제액이 20% 줄었을 때',
+        '평균 결제액이 20% 줄었을 때'
       ),
       buildSensitivity(
         'refund-down',
         '환불률 -3pp',
         { refundRate: parsedPlannerRefundRate - 3 },
-        '환불률이 3%p 개선되었을 때',
+        '환불률이 3%p 개선되었을 때'
       ),
       buildSensitivity(
         'refund-up',
         '환불률 +3pp',
         { refundRate: parsedPlannerRefundRate + 3 },
-        '환불률이 3%p 악화되었을 때',
+        '환불률이 3%p 악화되었을 때'
       ),
     ]
   })()
@@ -1999,7 +2000,7 @@ export default function AdminPage() {
           actionId: 'refund-monitoring-relax',
           actionLabel: '임계치 일시 완화 적용',
         },
-        100,
+        100
       )
     } else if (refundRatePercent >= monitoringThresholds.warningRefundRatePercent) {
       pushInsight(
@@ -2011,7 +2012,7 @@ export default function AdminPage() {
           actionId: 'refund-monitoring-relax',
           actionLabel: '임계치 미세 조정 적용',
         },
-        90,
+        90
       )
     }
 
@@ -2025,7 +2026,7 @@ export default function AdminPage() {
           actionId: 'concentration-cap-relax',
           actionLabel: '임계치 완화 후 임시 운영',
         },
-        88,
+        88
       )
     } else if (concentrationGap >= -3) {
       pushInsight(
@@ -2037,7 +2038,7 @@ export default function AdminPage() {
           actionId: 'concentration-cap-relax',
           actionLabel: '임계치 완화 적용',
         },
-        80,
+        80
       )
     }
 
@@ -2051,7 +2052,7 @@ export default function AdminPage() {
           actionId: 'minimum-host-payout-lower',
           actionLabel: '최소 정산율 완화 적용',
         },
-        92,
+        92
       )
     } else if (hostShareRate >= activeMinimumHostPayoutPercent + 8) {
       pushInsight(
@@ -2061,7 +2062,7 @@ export default function AdminPage() {
           description: `호스트 정산율 ${hostShareRate}%로 최소값 ${activeMinimumHostPayoutPercent}%를 충족해요.`,
           action: '수익 확장 시 플랫폼 수수료 인상 여지를 검토할 수 있어요',
         },
-        30,
+        30
       )
     }
 
@@ -2074,7 +2075,7 @@ export default function AdminPage() {
             description: `총 결제액이 직전 대비 ${formatDeltaPercent(grossPaidChangePercent)} 증가했어요.`,
             action: '성공 신호를 유지하려면 Top 파티 집중도와 환불률을 지속 모니터링하세요',
           },
-          22,
+          22
         )
       } else if (grossPaidChangePercent <= -15) {
         pushInsight(
@@ -2084,7 +2085,7 @@ export default function AdminPage() {
             description: `총 결제액이 직전 대비 ${formatDeltaPercent(grossPaidChangePercent)} 감소했어요.`,
             action: '수수료 변경보다 유입 개선 정책(쿠폰/노출/쿼레이션)부터 선 적용하세요',
           },
-          55,
+          55
         )
       }
     }
@@ -2099,7 +2100,7 @@ export default function AdminPage() {
           actionId: 'preset-defensive',
           actionLabel: '보수형 프리셋 즉시 적용',
         },
-        60,
+        60
       )
     }
 
@@ -2117,16 +2118,16 @@ export default function AdminPage() {
     isProjectedHealthCritical && projected !== null && !ruleChangeReason.trim()
   const autoApplyDisplayQueue = isAutoApplyingInsights ? autoApplyTimeline : pendingAutoApplyQueue
   const autoApplyCompletedCount = autoApplyDisplayQueue.filter(
-    (step) => step.status === 'success' || step.status === 'skipped' || step.status === 'failed',
+    (step) => step.status === 'success' || step.status === 'skipped' || step.status === 'failed'
   ).length
   const autoApplyProgressPercent = autoApplyDisplayQueue.length
     ? Math.round((autoApplyCompletedCount / autoApplyDisplayQueue.length) * 100)
     : 0
   const autoApplyFailedCount = autoApplyDisplayQueue.filter(
-    (step) => step.status === 'failed',
+    (step) => step.status === 'failed'
   ).length
   const autoApplyFailureHistoryCount = autoApplyTimeline.filter(
-    (step) => step.status === 'failed',
+    (step) => step.status === 'failed'
   ).length
   const hasAutoApplyCandidates = pendingAutoApplyQueue.length > 0
   const hasAutoApplyFailedHistory = autoApplyFailureHistoryCount > 0
@@ -2416,16 +2417,16 @@ export default function AdminPage() {
                     {monitoringThresholdSimulation.refundSignal.tone === 'good'
                       ? `안전 여유 ${Math.max(
                           monitoringThresholdSimulation.refundSignal.remainingToWarning,
-                          monitoringThresholdSimulation.refundSignal.remainingToDanger,
+                          monitoringThresholdSimulation.refundSignal.remainingToDanger
                         ).toFixed(1)}pp`
                       : monitoringThresholdSimulation.refundSignal.tone === 'warning'
                         ? `위험선까지 ${Math.max(
                             monitoringThresholdSimulation.refundSignal.remainingToDanger,
-                            0,
+                            0
                           ).toFixed(1)}pp`
                         : `위험 임계 초과 ${Math.max(
                             0,
-                            -monitoringThresholdSimulation.refundSignal.remainingToDanger,
+                            -monitoringThresholdSimulation.refundSignal.remainingToDanger
                           ).toFixed(1)}pp`}
                   </span>
                 </div>
@@ -2445,10 +2446,10 @@ export default function AdminPage() {
                     {monitoringThresholdSimulation.concentrationSignal.tone === 'good'
                       ? ` · 여유 ${Math.max(
                           monitoringThresholdSimulation.concentrationSignal.remainingToLimit,
-                          0,
+                          0
                         ).toFixed(1)}pp`
                       : ` · 초과 ${Math.abs(
-                          monitoringThresholdSimulation.concentrationSignal.remainingToLimit,
+                          monitoringThresholdSimulation.concentrationSignal.remainingToLimit
                         ).toFixed(1)}pp`}
                   </span>
                 </div>
@@ -2771,7 +2772,7 @@ export default function AdminPage() {
                           {saveRule.isPending ? '적용 중...' : '즉시 적용'}
                         </Button>
                       </article>
-                    ),
+                    )
                   )}
                 </div>
               ) : (

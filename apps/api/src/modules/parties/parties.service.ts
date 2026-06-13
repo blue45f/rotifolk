@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+
 import {
   BadRequestException,
   ForbiddenException,
@@ -15,6 +16,12 @@ import {
   pickGuestAvatar,
   quoteRefund,
 } from '@rotifolk/shared'
+
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
+
+import { toParticipation, toParty, toPartySummary } from './party.mapper'
+
+import type { Party, Prisma } from '@prisma/client'
 import type {
   ChildrenPolicy,
   ConnectionChannel,
@@ -33,11 +40,9 @@ import type {
   UpdatePartyDto,
   VerificationField,
 } from '@rotifolk/shared'
-import type { Party, Prisma } from '@prisma/client'
-import { PrismaService } from '@/prisma/prisma.service'
+
 import { parseJsonArray, toJsonString } from '@/common/json-utils'
-import { toParticipation, toParty, toPartySummary } from './party.mapper'
-import { NotificationsEmitter } from '../notifications/notifications.emitter'
+import { PrismaService } from '@/prisma/prisma.service'
 
 const CATEGORY_LABEL: Record<PartyCategory, string> = {
   wine: '와인',
@@ -58,12 +63,12 @@ const ACTIVE_PARTICIPATION_STATUSES = ['confirmed', 'checked-in'] as const
 export class PartiesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly notifEmitter: NotificationsEmitter,
+    private readonly notifEmitter: NotificationsEmitter
   ) {}
 
   async listDerivedCandidates(
     hostId: string,
-    partyId: string,
+    partyId: string
   ): Promise<DerivedPartyCandidateDto[]> {
     const party = await this.prisma.party.findUnique({
       where: { id: partyId },
@@ -176,7 +181,7 @@ export class PartiesService {
         (a, b) =>
           b.inviteScore - a.inviteScore ||
           (b.rating ?? 0) - (a.rating ?? 0) ||
-          a.nickname.localeCompare(b.nickname, 'ko-KR'),
+          a.nickname.localeCompare(b.nickname, 'ko-KR')
       )
 
     return rows.map((row, index) => ({ ...row, rank: index + 1 }))
@@ -185,7 +190,7 @@ export class PartiesService {
   async createDerivedParty(
     hostId: string,
     partyId: string,
-    body: CreateDerivedPartyDto,
+    body: CreateDerivedPartyDto
   ): Promise<CreateDerivedPartyResponseDto> {
     const origin = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!origin)
@@ -212,7 +217,7 @@ export class PartiesService {
     }
 
     const tags = Array.from(
-      new Set([...parseJsonArray<string>(origin.tagsJson), '#앵콜', '#인기멤버']),
+      new Set([...parseJsonArray<string>(origin.tagsJson), '#앵콜', '#인기멤버'])
     )
     const quickCode = await this.createQuickCode()
     const minParticipants = Math.min(Math.max(2, origin.minParticipants), maxParticipants)
@@ -305,7 +310,7 @@ export class PartiesService {
   async sendInvitations(
     hostId: string,
     partyId: string,
-    body: SendPartyInvitationsDto,
+    body: SendPartyInvitationsDto
   ): Promise<SendPartyInvitationsResponseDto> {
     const party = await this.prisma.party.findUnique({
       where: { id: partyId },
@@ -598,7 +603,7 @@ export class PartiesService {
       venueId: string
       startInMinutes: number
       maxParticipants?: number
-    },
+    }
   ) {
     const now = new Date()
     const startAt = new Date(now.getTime() + Math.max(15, input.startInMinutes) * 60_000)
@@ -849,7 +854,7 @@ export class PartiesService {
       maritalRequirementJson: string
       childrenPolicy: string
     },
-    userId: string,
+    userId: string
   ) {
     const u = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -879,7 +884,7 @@ export class PartiesService {
         maritalStatus: (u?.maritalStatus ?? null) as MaritalStatus | null,
         hasChildren: u?.hasChildren ?? null,
         verifiedFields: parseJsonArray<VerificationField>(u?.verifiedFieldsJson ?? '[]'),
-      },
+      }
     )
     if (!eligibility.ok) {
       throw new BadRequestException({
@@ -920,7 +925,7 @@ export class PartiesService {
           const { status: decided, confirmedCount } = await this.evaluateAdmission(
             tx,
             party,
-            gender,
+            gender
           )
           const row = await tx.participation.update({
             where: { id: existing.id },
@@ -1133,7 +1138,7 @@ export class PartiesService {
   private async evaluateAdmission(
     tx: Prisma.TransactionClient,
     party: Party,
-    gender: string | null | undefined,
+    gender: string | null | undefined
   ): Promise<{ status: 'confirmed' | 'waitlist'; confirmedCount: number }> {
     const counts = await this.genderCounts(party.id, tx)
     const confirmedCount = await tx.participation.count({
@@ -1152,7 +1157,7 @@ export class PartiesService {
   /** 확정/체크인 참가자의 남녀 수 (트랜잭션 클라이언트도 주입 가능) */
   private async genderCounts(
     partyId: string,
-    client: Prisma.TransactionClient = this.prisma,
+    client: Prisma.TransactionClient = this.prisma
   ): Promise<{ male: number; female: number }> {
     const parts = await client.participation.findMany({
       where: { partyId, status: { in: ['confirmed', 'checked-in'] } },

@@ -1,4 +1,35 @@
+import {
+  REVENUE_MONITORING_POLICY,
+  buildCommunityCommentTree,
+  computeRevenueHealthScore,
+  guestParticipantKey,
+  pickGuestAvatar,
+  quoteVenueBooking,
+  recommendVenues,
+  suggestOffHoursSlots,
+} from '@rotifolk/shared'
 import { http, HttpResponse } from 'msw'
+
+import {
+  MOCK_TOKEN,
+  mockCards,
+  mockClubComments,
+  mockClubMembers,
+  mockClubPosts,
+  mockClubs,
+  mockCommunityComments,
+  mockCommunityPosts,
+  mockMenus,
+  mockParties,
+  mockUsers,
+  mockVenueBookings,
+  mockVenues,
+  toSummary,
+  type MockClub,
+  type MockClubComment,
+  type MockClubPost,
+} from './data'
+
 import type {
   Paginated,
   Participation,
@@ -22,33 +53,6 @@ import type {
   UpdateCommunityCommentDto,
   UpdateCommunityPostDto,
 } from '@rotifolk/shared'
-import {
-  REVENUE_MONITORING_POLICY,
-  buildCommunityCommentTree,
-  computeRevenueHealthScore,
-  guestParticipantKey,
-  pickGuestAvatar,
-} from '@rotifolk/shared'
-import { quoteVenueBooking, recommendVenues, suggestOffHoursSlots } from '@rotifolk/shared'
-import {
-  MOCK_TOKEN,
-  mockCards,
-  mockClubComments,
-  mockClubMembers,
-  mockClubPosts,
-  mockClubs,
-  mockCommunityComments,
-  mockCommunityPosts,
-  mockMenus,
-  mockParties,
-  mockUsers,
-  mockVenueBookings,
-  mockVenues,
-  toSummary,
-  type MockClub,
-  type MockClubComment,
-  type MockClubPost,
-} from './data'
 
 type MockBlock = {
   id: string
@@ -484,7 +488,7 @@ const mockCommunityPostStatus = new Map<string, 'open' | 'hidden' | 'removed'>()
 
 function mockClubRole(clubId: string): 'owner' | 'member' | null {
   const membership = mockClubMembers.find(
-    (member) => member.clubId === clubId && member.userIndex === MOCK_CLUB_ACTOR_INDEX,
+    (member) => member.clubId === clubId && member.userIndex === MOCK_CLUB_ACTOR_INDEX
   )
   return membership?.role ?? null
 }
@@ -546,7 +550,7 @@ function appendRevenueRuleHistory(
     MockRevenueRuleConfig,
     'platformFeePercent' | 'refundRetentionPercent' | 'minimumHostPayoutPercent'
   >,
-  reason?: string,
+  reason?: string
 ) {
   mockRevenueRuleHistories.unshift({
     id: `rrh_${Date.now()}_${Math.random().toString(16).slice(2, 7)}`,
@@ -572,7 +576,7 @@ function appendMonitoringPolicyHistory(
     RevenueHealthAlertThreshold,
     'warningRefundRatePercent' | 'dangerRefundRatePercent' | 'topPartyConcentrationPercent'
   >,
-  reason?: string,
+  reason?: string
 ) {
   mockMonitoringPolicyHistories.unshift({
     id: `mph_${Date.now()}_${Math.random().toString(16).slice(2, 7)}`,
@@ -610,7 +614,7 @@ function buildMockProjectedRevenueHealthScore(
     to?: string | null
     partyId?: string | null
     topLimit?: string | number
-  },
+  }
 ) {
   const previousRules = { ...mockRevenueRules }
   try {
@@ -686,7 +690,7 @@ function getMockAdminRevenueSummary({
   const normalizedCompareMode = normalizeMockComparisonMode(compareMode)
   const [comparisonFrom, comparisonTo] = buildMockComparisonRange(
     normalizeSummaryRange,
-    normalizedCompareMode,
+    normalizedCompareMode
   )
 
   const summarize = (rows: MockPayment[]): MockAdminRevenueSummary => {
@@ -738,7 +742,7 @@ function getMockAdminRevenueSummary({
 
     const platformFeeKRW = roundMoney((grossPaidKRW * mockRevenueRules.platformFeePercent) / 100)
     const refundRetentionKRW = roundMoney(
-      (grossRefundedKRW * mockRevenueRules.refundRetentionPercent) / 100,
+      (grossRefundedKRW * mockRevenueRules.refundRetentionPercent) / 100
     )
     const hostPayoutKRW = grossPaidKRW - platformFeeKRW
     const avgTicketKRW = totalPaidCount > 0 ? roundMoney(grossPaidKRW / totalPaidCount) : 0
@@ -749,7 +753,7 @@ function getMockAdminRevenueSummary({
     const topParties = Array.from(byParty.values())
       .map((entry) => {
         const partyPlatformFeeKRW = roundMoney(
-          (entry.paidGrossKRW * mockRevenueRules.platformFeePercent) / 100,
+          (entry.paidGrossKRW * mockRevenueRules.platformFeePercent) / 100
         )
         const partyGrossTicketCount = entry.paidCount + entry.refundedCount
         const partyRefundRatePercent =
@@ -834,7 +838,7 @@ function getMockAdminRevenueSummary({
 
 function filterDateRange(
   fromTs: number | null,
-  toTs: number | null,
+  toTs: number | null
 ): [number | null, number | null] {
   const parsedFrom = fromTs === null ? null : fromTs
   const parsedTo = toTs === null ? null : toTs
@@ -859,7 +863,7 @@ function normalizeMockComparisonMode(mode: string | undefined): AdminSummaryComp
 
 function buildMockComparisonRange(
   dateRange: [number | null, number | null],
-  compareMode: AdminSummaryComparisonMode,
+  compareMode: AdminSummaryComparisonMode
 ): [number | null, number | null] {
   const [fromTs, toTs] = dateRange
   if (compareMode === 'none' || fromTs === null || toTs === null || fromTs > toTs) {
@@ -903,7 +907,7 @@ function shiftMockDateRangeUnit(timestamp: number, unit: 'month' | 'year', amoun
 
 function summarizeMockPreviousPeriod(
   dateRange: [number | null, number | null],
-  partyId?: string | null,
+  partyId?: string | null
 ): MockAdminRevenueTrend | null {
   const [fromTs, toTs] = dateRange
   if (fromTs === null || toTs === null || fromTs > toTs) return null
@@ -933,7 +937,7 @@ function summarizeMockPreviousPeriod(
 
   const platformFeeKRW = roundMoney((grossPaidKRW * mockRevenueRules.platformFeePercent) / 100)
   const refundRetentionKRW = roundMoney(
-    (grossRefundedKRW * mockRevenueRules.refundRetentionPercent) / 100,
+    (grossRefundedKRW * mockRevenueRules.refundRetentionPercent) / 100
   )
   const hostPayoutKRW = grossPaidKRW - platformFeeKRW
   const netSalesKRW = grossPaidKRW - grossRefundedKRW
@@ -1051,7 +1055,7 @@ function getMockHostRevenueSummary({
   const normalizedCompareMode = normalizeMockComparisonMode(compareMode)
   const [comparisonFrom, comparisonTo] = buildMockComparisonRange(
     [summaryFrom, summaryTo],
-    normalizedCompareMode,
+    normalizedCompareMode
   )
   const includeParties = targetPartyId ? new Set([targetPartyId]) : new Set(hostedIds)
   const isAuthorizedParty = !targetPartyId || includeParties.has(targetPartyId)
@@ -1063,7 +1067,7 @@ function getMockHostRevenueSummary({
   }
 
   const summarizeHostRows = (
-    rows: MockPayment[],
+    rows: MockPayment[]
   ): {
     totalKRW: number
     paidCount: number
@@ -1124,7 +1128,7 @@ function getMockHostRevenueSummary({
 
     const platformFeeKRW = roundMoney((totalKRW * mockRevenueRules.platformFeePercent) / 100)
     const refundRetentionKRW = roundMoney(
-      (refundedKRW * mockRevenueRules.refundRetentionPercent) / 100,
+      (refundedKRW * mockRevenueRules.refundRetentionPercent) / 100
     )
     const hostPayoutKRW = totalKRW - platformFeeKRW
     const avgTicketKRW = paidCount > 0 ? roundMoney(totalKRW / paidCount) : 0
@@ -1140,7 +1144,7 @@ function getMockHostRevenueSummary({
         refundedKRW: 0,
       }
       const partyPlatformFeeKRW = roundMoney(
-        (entry.totalKRW * mockRevenueRules.platformFeePercent) / 100,
+        (entry.totalKRW * mockRevenueRules.platformFeePercent) / 100
       )
       const grossTicketCount = entry.paidCount + entry.refundedCount
       return {
@@ -1211,7 +1215,7 @@ function getMockHostRevenueSummary({
   }
 
   const currentSummary = summarizeHostRows(
-    mockPayments.filter(filterByPeriodAndParty(summaryFrom, summaryTo)),
+    mockPayments.filter(filterByPeriodAndParty(summaryFrom, summaryTo))
   )
   const previousSummary =
     comparisonFrom !== null && comparisonTo !== null
@@ -1376,7 +1380,7 @@ function buildMockRequestApprovalChannels(
   partyId: string,
   userId: string,
   partnerId: string,
-  offeredChannels: ConnectionChannel[],
+  offeredChannels: ConnectionChannel[]
 ) {
   return offeredChannels.map((channel) => {
     if (channel === 'chat') {
@@ -1387,7 +1391,7 @@ function buildMockRequestApprovalChannels(
         request.partyId === partyId &&
         request.channel === channel &&
         ((request.requesterId === userId && request.receiverId === partnerId) ||
-          (request.requesterId === partnerId && request.receiverId === userId)),
+          (request.requesterId === partnerId && request.receiverId === userId))
     )
     const approved = pairRequests.find((request) => request.status === 'approved')
     if (approved) {
@@ -1404,7 +1408,7 @@ function buildMockRequestApprovalChannels(
       (request) =>
         request.status === 'pending' &&
         request.requesterId === partnerId &&
-        request.receiverId === userId,
+        request.receiverId === userId
     )
     if (incoming) {
       return {
@@ -1420,7 +1424,7 @@ function buildMockRequestApprovalChannels(
       (request) =>
         request.status === 'pending' &&
         request.requesterId === userId &&
-        request.receiverId === partnerId,
+        request.receiverId === partnerId
     )
     if (outgoing) {
       return {
@@ -1472,7 +1476,7 @@ function makeGuestParticipation(
   partyId: string,
   name: string,
   avatar: { emoji: string; hue: string; imageData?: string | null } | undefined,
-  status: 'confirmed' | 'checked-in',
+  status: 'confirmed' | 'checked-in'
 ): Participation {
   const id = `pt_guest_${++mockGuestSeq}`
   return {
@@ -1493,7 +1497,7 @@ function makeGuestParticipation(
 function findGuestByToken(partyId: string, token: string): Participation | undefined {
   if (!token) return undefined
   return mockGuestParticipants.find(
-    (g) => g.partyId === partyId && g.status !== 'cancelled' && mockGuestTokens.get(g.id) === token,
+    (g) => g.partyId === partyId && g.status !== 'cancelled' && mockGuestTokens.get(g.id) === token
   )
 }
 
@@ -1512,7 +1516,7 @@ function updateBookingStatus(id: string, status: string, ownerMessage?: string |
 
 export const handlers = [
   http.get(`${API}/health`, () =>
-    HttpResponse.json({ ok: true, app: 'rotifolk-mock', ts: new Date().toISOString() }),
+    HttpResponse.json({ ok: true, app: 'rotifolk-mock', ts: new Date().toISOString() })
   ),
 
   // Auth
@@ -1568,17 +1572,17 @@ export const handlers = [
   http.get(`${API}/parties/mine`, async () =>
     HttpResponse.json(
       await delay(
-        [] as Array<{ participation: { id: string; status: string }; party: PartySummary }>,
-      ),
-    ),
+        [] as Array<{ participation: { id: string; status: string }; party: PartySummary }>
+      )
+    )
   ),
   http.get(`${API}/parties/hosted`, async () =>
-    HttpResponse.json(await delay([mockParties[0]].map(toSummary))),
+    HttpResponse.json(await delay([mockParties[0]].map(toSummary)))
   ),
   http.get(`${API}/parties/happening-now`, async () =>
     HttpResponse.json(
-      await delay(mockParties.filter((party) => party.status === 'live').map(toSummary)),
-    ),
+      await delay(mockParties.filter((party) => party.status === 'live').map(toSummary))
+    )
   ),
   http.get(`${API}/parties/by-code/:code`, async ({ params }) => {
     const party = mockParties[0]
@@ -1591,7 +1595,7 @@ export const handlers = [
         venueArea: venue?.area ?? '',
         category: party.config.category,
         quickCode: String(params.code ?? 'MOCK-2026').toUpperCase(),
-      }),
+      })
     )
   }),
   http.post(`${API}/parties/quick`, async ({ request }) => {
@@ -1686,8 +1690,8 @@ export const handlers = [
           partyTitle: mockParties[0].title,
           matchedAt: nowIso(),
         },
-      ]),
-    ),
+      ])
+    )
   ),
   http.get(`${API}/parties/neighborhood`, async ({ request }) => {
     const url = new URL(request.url)
@@ -1716,7 +1720,7 @@ export const handlers = [
       updatedAt: u.updatedAt,
     }))
     const guests = mockGuestParticipants.filter(
-      (g) => g.partyId === party.id && g.status !== 'cancelled',
+      (g) => g.partyId === party.id && g.status !== 'cancelled'
     )
     return HttpResponse.json(await delay({ party, participants: [...participants, ...guests] }))
   }),
@@ -1743,7 +1747,7 @@ export const handlers = [
       partyId,
       body.nickname ?? '게스트',
       body.avatar,
-      'confirmed',
+      'confirmed'
     )
     mockGuestTokens.set(participation.id, token)
     mockGuestParticipants.push(participation)
@@ -1763,7 +1767,7 @@ export const handlers = [
       String(params.id),
       body.name ?? '게스트',
       undefined,
-      'checked-in',
+      'checked-in'
     )
     mockGuestParticipants.push(participation)
     return HttpResponse.json(await delay(participation))
@@ -1779,8 +1783,8 @@ export const handlers = [
         checkedInAt: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }),
-    ),
+      })
+    )
   ),
   http.delete(`${API}/parties/:id/join`, async () => HttpResponse.json(await delay({ ok: true }))),
   http.post(`${API}/parties/:id/lock`, async ({ params }) => {
@@ -1816,8 +1820,8 @@ export const handlers = [
           { id: 'round_2', order: 2, startsAt: nowIso(), durationSec: 300 },
         ],
         pairs: [{ roundId: 'round_1', userAId: mockUsers[0].id, userBId: mockUsers[1].id }],
-      }),
-    ),
+      })
+    )
   ),
   http.post(`${API}/parties/:id/check-in/:userId`, async ({ params, request }) => {
     const body = (await request.json().catch(() => ({}))) as { seatNumber?: number }
@@ -1831,7 +1835,7 @@ export const handlers = [
         checkedInAt: nowIso(),
         createdAt: nowIso(),
         updatedAt: nowIso(),
-      }),
+      })
     )
   }),
   http.get(`${API}/parties/:partyId/reviews`, async ({ params }) => {
@@ -1856,8 +1860,8 @@ export const handlers = [
             avatarId: mockUsers[0].avatarId,
           },
         },
-      ]),
-    ),
+      ])
+    )
   ),
   http.post(`${API}/parties/:partyId/photos`, async ({ params, request }) => {
     const body = (await request.json()) as { url?: string; caption?: string }
@@ -1874,7 +1878,7 @@ export const handlers = [
           nickname: mockUsers[0].nickname,
           avatarId: mockUsers[0].avatarId,
         },
-      }),
+      })
     )
   }),
   http.post(`${API}/parties`, async ({ request }) => {
@@ -1928,20 +1932,20 @@ export const handlers = [
             isMine: true,
             upcomingParties: mockParties.filter((p) => p.venueId === v.id).length,
             pendingRequests: mockVenueBookings.filter(
-              (b) => b.venueId === v.id && b.status === 'requested',
+              (b) => b.venueId === v.id && b.status === 'requested'
             ).length,
-          })),
-      ),
-    ),
+          }))
+      )
+    )
   ),
   http.get(`${API}/venues/areas`, async () =>
     HttpResponse.json(
       await delay(
         Array.from(
-          new Set(mockVenues.filter((venue) => venue.partnered).map((venue) => venue.area)),
-        ).sort((a, b) => a.localeCompare(b, 'ko-KR')),
-      ),
-    ),
+          new Set(mockVenues.filter((venue) => venue.partnered).map((venue) => venue.area))
+        ).sort((a, b) => a.localeCompare(b, 'ko-KR'))
+      )
+    )
   ),
   http.get(`${API}/venues`, async () => HttpResponse.json(await delay(mockVenues))),
   http.get(`${API}/venues/:id/availability`, async ({ params }) => {
@@ -1951,7 +1955,7 @@ export const handlers = [
     return HttpResponse.json(await delay({ venueId: v.id, busy: [], offHours }))
   }),
   http.get(`${API}/venues/:id/menu`, async ({ params }) =>
-    HttpResponse.json(await delay(mockMenus[params.id as string] ?? [])),
+    HttpResponse.json(await delay(mockMenus[params.id as string] ?? []))
   ),
   http.get(`${API}/venues/:id`, async ({ params }) => {
     const v = mockVenues.find((vv) => vv.id === params.id)
@@ -1970,7 +1974,7 @@ export const handlers = [
         ownerId: 'u_host',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }),
+      })
     )
   }),
   http.patch(`${API}/venues/:id`, async ({ params, request }) => {
@@ -2029,29 +2033,29 @@ export const handlers = [
         arrivalGuide: status === 'confirmed' ? (v?.arrivalGuide ?? null) : null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }),
+      })
     )
   }),
   http.patch(`${API}/venue-bookings/:id/confirm`, async ({ params, request }) => {
     const body = (await request.json().catch(() => ({}))) as { message?: string }
     return HttpResponse.json(
-      await delay(updateBookingStatus(String(params.id), 'confirmed', body.message ?? null)),
+      await delay(updateBookingStatus(String(params.id), 'confirmed', body.message ?? null))
     )
   }),
   http.patch(`${API}/venue-bookings/:id/decline`, async ({ params, request }) => {
     const body = (await request.json().catch(() => ({}))) as { message?: string }
     return HttpResponse.json(
-      await delay(updateBookingStatus(String(params.id), 'declined', body.message ?? null)),
+      await delay(updateBookingStatus(String(params.id), 'declined', body.message ?? null))
     )
   }),
   http.patch(`${API}/venue-bookings/:id/cancel`, async ({ params }) =>
-    HttpResponse.json(await delay(updateBookingStatus(String(params.id), 'cancelled'))),
+    HttpResponse.json(await delay(updateBookingStatus(String(params.id), 'cancelled')))
   ),
 
   // Question cards
   http.get(`${API}/question-cards`, async () => HttpResponse.json(await delay(mockCards))),
   http.get(`${API}/question-cards/draw`, async () =>
-    HttpResponse.json(await delay(mockCards[Math.floor(Math.random() * mockCards.length)])),
+    HttpResponse.json(await delay(mockCards[Math.floor(Math.random() * mockCards.length)]))
   ),
   http.post(`${API}/question-cards`, async ({ request }) => {
     const body = (await request.json()) as Partial<QuestionCard>
@@ -2073,7 +2077,7 @@ export const handlers = [
   // Chat
   http.get(`${API}/chat/rooms`, async () => HttpResponse.json(await delay(mockChatRooms))),
   http.get(`${API}/chat/rooms/:id/messages`, async ({ params }) =>
-    HttpResponse.json(await delay(mockChatMessages[String(params.id)] ?? [])),
+    HttpResponse.json(await delay(mockChatMessages[String(params.id)] ?? []))
   ),
   http.post(`${API}/chat/rooms/:id/messages`, async ({ params, request }) => {
     const body = (await request.json()) as {
@@ -2105,7 +2109,7 @@ export const handlers = [
     return HttpResponse.json(await delay({ ok: true }))
   }),
   http.post(`${API}/chat/parties/:partyId/ensure`, async ({ params }) =>
-    HttpResponse.json(await delay(ensureMockChatRoom(String(params.partyId)))),
+    HttpResponse.json(await delay(ensureMockChatRoom(String(params.partyId))))
   ),
   http.get(`${API}/chat/unread-count`, async () => {
     const unreadRooms = mockChatRooms.filter((room) => {
@@ -2113,7 +2117,7 @@ export const handlers = [
       return messages.some(
         (message) =>
           message.userId !== mockUsers[0].id &&
-          (!room.lastReadAt || message.createdAt > room.lastReadAt),
+          (!room.lastReadAt || message.createdAt > room.lastReadAt)
       )
     })
     const count = unreadRooms.reduce(
@@ -2122,9 +2126,9 @@ export const handlers = [
         (mockChatMessages[room.id] ?? []).filter(
           (message) =>
             message.userId !== mockUsers[0].id &&
-            (!room.lastReadAt || message.createdAt > room.lastReadAt),
+            (!room.lastReadAt || message.createdAt > room.lastReadAt)
         ).length,
-      0,
+      0
     )
     return HttpResponse.json(await delay({ count, rooms: unreadRooms.length }))
   }),
@@ -2142,7 +2146,7 @@ export const handlers = [
     const body = (await request.json().catch(() => ({}))) as { method?: PaymentMethod }
     const party = mockParties.find((p) => p.id === params.partyId)
     const existing = mockPayments.find(
-      (payment) => payment.partyId === params.partyId && payment.status === 'paid',
+      (payment) => payment.partyId === params.partyId && payment.status === 'paid'
     )
     if (existing) return HttpResponse.json(await delay(shapePayment(existing)))
 
@@ -2179,9 +2183,9 @@ export const handlers = [
             paidAt: nowIso(),
             refundedAt: nowIso(),
             createdAt: nowIso(),
-          },
-        ),
-      ),
+          }
+        )
+      )
     )
   }),
 
@@ -2192,7 +2196,7 @@ export const handlers = [
   http.get(`${API}/blocks/candidates`, async () => {
     const blockedIds = mockBlocks.map((b) => b.id)
     const candidates = mockUsers.filter(
-      (u) => u.id !== mockUsers[0].id && !blockedIds.includes(u.id),
+      (u) => u.id !== mockUsers[0].id && !blockedIds.includes(u.id)
     )
     return HttpResponse.json(await delay(candidates))
   }),
@@ -2264,12 +2268,12 @@ export const handlers = [
             item.communityPost?.id,
             item.party?.id,
             item.target?.id,
-          ].includes(targetKey),
+          ].includes(targetKey)
       )
     ) {
       return HttpResponse.json(
         { code: 'duplicate_active_report', message: '이미 접수된 신고를 운영팀이 확인 중이에요.' },
-        { status: 400 },
+        { status: 400 }
       )
     }
     const report: MockAdminReport = {
@@ -2312,7 +2316,7 @@ export const handlers = [
         headcount: 8,
         perPersonKRW: 23_000,
         breakdown: [],
-      }),
+      })
     )
   }),
 
@@ -2333,8 +2337,8 @@ export const handlers = [
           bio: mockUsers[1].bio,
           isFollowing: false,
         },
-      ]),
-    ),
+      ])
+    )
   ),
   http.post(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
   http.delete(`${API}/follows/:userId`, async () => HttpResponse.json(await delay({ ok: true }))),
@@ -2361,7 +2365,7 @@ export const handlers = [
         page,
         pageSize,
         hasNext: start + pageSize < filtered.length,
-      }),
+      })
     )
   }),
   http.get(`${API}/community/posts/:postId`, async ({ params }) => {
@@ -2373,11 +2377,11 @@ export const handlers = [
       .filter(
         (comment) =>
           !comment.deleted ||
-          mockCommunityComments.some((item) => item.parentId === comment.id && !item.deleted),
+          mockCommunityComments.some((item) => item.parentId === comment.id && !item.deleted)
       )
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     return HttpResponse.json(
-      await delay({ ...post, comments: buildCommunityCommentTree(comments) }),
+      await delay({ ...post, comments: buildCommunityCommentTree(comments) })
     )
   }),
   http.post(`${API}/community/posts`, async ({ request }) => {
@@ -2465,7 +2469,7 @@ export const handlers = [
   }),
   http.patch(`${API}/community/posts/:postId/comments/:commentId`, async ({ params, request }) => {
     const comment = mockCommunityComments.find(
-      (item) => item.id === params.commentId && item.postId === params.postId,
+      (item) => item.id === params.commentId && item.postId === params.postId
     )
     if (!comment) {
       return HttpResponse.json({ code: 'community_comment_not_found' }, { status: 404 })
@@ -2477,14 +2481,14 @@ export const handlers = [
   }),
   http.delete(`${API}/community/posts/:postId/comments/:commentId`, async ({ params }) => {
     const index = mockCommunityComments.findIndex(
-      (item) => item.postId === params.postId && item.id === params.commentId && !item.deleted,
+      (item) => item.postId === params.postId && item.id === params.commentId && !item.deleted
     )
     if (index === -1) {
       return HttpResponse.json({ code: 'community_comment_not_found' }, { status: 404 })
     }
     const target = mockCommunityComments[index]
     const hasReplies = mockCommunityComments.some(
-      (item) => item.parentId === target.id && !item.deleted,
+      (item) => item.parentId === target.id && !item.deleted
     )
     if (hasReplies) {
       // 답글 보존 — 본문/작성자를 비운 플레이스홀더로 전환한다.
@@ -2526,7 +2530,7 @@ export const handlers = [
         page,
         pageSize,
         hasNext: start + pageSize < shaped.length,
-      }),
+      })
     )
   }),
   http.post(`${API}/clubs`, async ({ request }) => {
@@ -2574,7 +2578,7 @@ export const handlers = [
     const club = mockClubs.find((item) => item.id === params.clubId)
     if (!club) return HttpResponse.json({ code: 'club_not_found' }, { status: 404 })
     const exists = mockClubMembers.some(
-      (member) => member.clubId === club.id && member.userIndex === MOCK_CLUB_ACTOR_INDEX,
+      (member) => member.clubId === club.id && member.userIndex === MOCK_CLUB_ACTOR_INDEX
     )
     if (!exists) {
       mockClubMembers.push({
@@ -2588,7 +2592,7 @@ export const handlers = [
   }),
   http.delete(`${API}/clubs/:clubId/join`, async ({ params }) => {
     const index = mockClubMembers.findIndex(
-      (member) => member.clubId === params.clubId && member.userIndex === MOCK_CLUB_ACTOR_INDEX,
+      (member) => member.clubId === params.clubId && member.userIndex === MOCK_CLUB_ACTOR_INDEX
     )
     if (index === -1) return HttpResponse.json({ code: 'club_not_member' }, { status: 400 })
     if (mockClubMembers[index].role === 'owner') {
@@ -2604,7 +2608,7 @@ export const handlers = [
       .filter((post) => post.clubId === params.clubId && post.status === 'open')
       .map(({ status: _status, ...rest }) => rest)
     return HttpResponse.json(
-      await delay({ items, total: items.length, page: 1, pageSize: 12, hasNext: false }),
+      await delay({ items, total: items.length, page: 1, pageSize: 12, hasNext: false })
     )
   }),
   http.post(`${API}/clubs/:clubId/posts`, async ({ params, request }) => {
@@ -2640,8 +2644,7 @@ export const handlers = [
     const gate = mockClubBoardGate(String(params.clubId))
     if (gate) return gate
     const post = mockClubPosts.find(
-      (item) =>
-        item.id === params.postId && item.clubId === params.clubId && item.status === 'open',
+      (item) => item.id === params.postId && item.clubId === params.clubId && item.status === 'open'
     )
     if (!post) return HttpResponse.json({ code: 'club_post_not_found' }, { status: 404 })
     const comments = mockClubComments
@@ -2649,9 +2652,7 @@ export const handlers = [
       .filter(
         (comment) =>
           comment.status === 'visible' ||
-          mockClubComments.some(
-            (item) => item.parentId === comment.id && item.status === 'visible',
-          ),
+          mockClubComments.some((item) => item.parentId === comment.id && item.status === 'visible')
       )
       .map((comment) =>
         comment.status === 'removed'
@@ -2667,19 +2668,18 @@ export const handlers = [
                 isVerified: false,
               },
             }
-          : comment,
+          : comment
       )
       .map(({ status: _status, ...rest }) => rest)
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
     const { status: _status, ...rest } = post
     return HttpResponse.json(
-      await delay({ ...rest, comments: buildCommunityCommentTree(comments) }),
+      await delay({ ...rest, comments: buildCommunityCommentTree(comments) })
     )
   }),
   http.delete(`${API}/clubs/:clubId/posts/:postId`, async ({ params }) => {
     const post = mockClubPosts.find(
-      (item) =>
-        item.id === params.postId && item.clubId === params.clubId && item.status === 'open',
+      (item) => item.id === params.postId && item.clubId === params.clubId && item.status === 'open'
     )
     if (!post) return HttpResponse.json({ code: 'club_post_not_found' }, { status: 404 })
     post.status = 'removed'
@@ -2690,8 +2690,7 @@ export const handlers = [
       return HttpResponse.json({ code: 'club_members_only' }, { status: 403 })
     }
     const post = mockClubPosts.find(
-      (item) =>
-        item.id === params.postId && item.clubId === params.clubId && item.status === 'open',
+      (item) => item.id === params.postId && item.clubId === params.clubId && item.status === 'open'
     )
     if (!post) return HttpResponse.json({ code: 'club_post_not_found' }, { status: 404 })
     const body = (await request.json()) as CreateClubCommentDto
@@ -2728,7 +2727,7 @@ export const handlers = [
   http.delete(`${API}/clubs/:clubId/posts/:postId/comments/:commentId`, async ({ params }) => {
     const comment = mockClubComments.find(
       (item) =>
-        item.id === params.commentId && item.postId === params.postId && item.status === 'visible',
+        item.id === params.commentId && item.postId === params.postId && item.status === 'visible'
     )
     if (!comment) return HttpResponse.json({ code: 'club_comment_not_found' }, { status: 404 })
     comment.status = 'removed'
@@ -2770,7 +2769,7 @@ export const handlers = [
             hasImage: Boolean(post.imageData),
             commentCount: post.commentCount,
             reportCount: mockReports.filter(
-              (report) => report.communityPost?.id === post.id && report.status === 'open',
+              (report) => report.communityPost?.id === post.id && report.status === 'open'
             ).length,
             authorNickname: post.author.nickname,
             clubName: null,
@@ -2790,7 +2789,7 @@ export const handlers = [
         page,
         pageSize,
         hasNext: start + pageSize < filtered.length,
-      }),
+      })
     )
   }),
   http.patch(`${API}/admin/moderation/posts/:postId`, async ({ params, request }) => {
@@ -2809,7 +2808,7 @@ export const handlers = [
     if (body.action === 'clear-image') post.imageData = null
     else mockCommunityPostStatus.set(post.id, nextStatus)
     return HttpResponse.json(
-      await delay({ ok: true, status: mockCommunityPostStatus.get(post.id) ?? 'open' }),
+      await delay({ ok: true, status: mockCommunityPostStatus.get(post.id) ?? 'open' })
     )
   }),
 
@@ -2821,8 +2820,8 @@ export const handlers = [
   // Notifications
   http.get(`${API}/notifications/unread-count`, async () =>
     HttpResponse.json(
-      await delay({ count: mockNotifications.filter((item) => !item.isRead).length }),
-    ),
+      await delay({ count: mockNotifications.filter((item) => !item.isRead).length })
+    )
   ),
   http.get(`${API}/notifications`, async () => HttpResponse.json(await delay(mockNotifications))),
   http.post(`${API}/notifications/read-all`, async () => {
@@ -2854,8 +2853,8 @@ export const handlers = [
         stats: { followerCount: 12, hostedCount: 3, averageRating: 4.7, reviewCount: 5 },
         reviews: [],
         recentParties: [mockParties[0]].map(toSummary),
-      }),
-    ),
+      })
+    )
   ),
 
   // Host revenue summary
@@ -2869,13 +2868,13 @@ export const handlers = [
           to: url.searchParams.get('to'),
           partyId: url.searchParams.get('partyId'),
           compareMode: url.searchParams.get('compareMode') ?? undefined,
-        }),
-      ),
+        })
+      )
     )
   }),
 
   http.get(`${API}/payments/admin/monitoring-policy`, async () =>
-    HttpResponse.json(await delay(monitoringPolicySnapshot())),
+    HttpResponse.json(await delay(monitoringPolicySnapshot()))
   ),
   http.patch(`${API}/payments/admin/monitoring-policy`, async ({ request }) => {
     const body = (await request.json().catch(() => ({}))) as MonitoringPolicyUpdateBody
@@ -2908,7 +2907,7 @@ export const handlers = [
       if (!Number.isFinite(value) || value < 0 || value > 100) {
         return HttpResponse.json(
           { code: 'invalid_top_party_concentration_threshold' },
-          { status: 400 },
+          { status: 400 }
         )
       }
       mockMonitoringPolicy.topPartyConcentrationPercent = safePercent(value)
@@ -2984,7 +2983,7 @@ export const handlers = [
   }),
 
   http.get(`${API}/payments/admin/revenue-rules`, async () =>
-    HttpResponse.json(await delay(revenueRuleSnapshot())),
+    HttpResponse.json(await delay(revenueRuleSnapshot()))
   ),
   http.post(`${API}/payments/admin/revenue-rules/simulate`, async ({ request }) => {
     const body = (await request.json().catch(() => ({}))) as MockRevenueRuleSimulationRequest
@@ -3086,7 +3085,7 @@ export const handlers = [
         currentHealthScore,
         simulatedHealthScore,
         scoreDelta: simulatedHealthScore.score - currentHealthScore.score,
-      } as MockRevenueRuleSimulationResponse),
+      } as MockRevenueRuleSimulationResponse)
     )
   }),
   http.patch(`${API}/payments/admin/revenue-rules`, async ({ request }) => {
@@ -3145,7 +3144,7 @@ export const handlers = [
           code: 'invalid_revenue_rules_reason_required',
           message: '수익 건전성이 위험 구간입니다. 변경 사유를 반드시 입력해 주세요.',
         },
-        { status: 400 },
+        { status: 400 }
       )
     }
 
@@ -3223,8 +3222,8 @@ export const handlers = [
           partyId: url.searchParams.get('partyId'),
           topLimit: url.searchParams.get('topLimit') ?? undefined,
           compareMode: url.searchParams.get('compareMode') ?? undefined,
-        }),
-      ),
+        })
+      )
     )
   }),
 
@@ -3234,8 +3233,8 @@ export const handlers = [
       await delay({
         matches: mockParties.slice(0, 3).map(toSummary),
         explanation: '입력하신 분위기와 가장 잘 맞는 모임을 골라봤어요.',
-      }),
-    ),
+      })
+    )
   ),
 
   // Host applications
@@ -3254,8 +3253,8 @@ export const handlers = [
         reviewedNote: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }),
-    ),
+      })
+    )
   ),
 
   // Admin
@@ -3335,7 +3334,7 @@ export const handlers = [
         id: params.id,
         hostReply: body.body ?? '',
         hostRepliedAt: nowIso(),
-      }),
+      })
     )
   }),
   http.get(`${API}/users/:id/reviews`, async () =>
@@ -3352,15 +3351,15 @@ export const handlers = [
             author: { nickname: '참가자', avatarId: null },
           },
         ],
-      }),
-    ),
+      })
+    )
   ),
 
   // Account / profile
   http.get(`${API}/users/me/referral`, async () =>
     HttpResponse.json(
-      await delay({ referralCode: 'ROTI-2026', pointsKRW: 12_000, referredCount: 3 }),
-    ),
+      await delay({ referralCode: 'ROTI-2026', pointsKRW: 12_000, referredCount: 3 })
+    )
   ),
   http.patch(`${API}/avatars/me`, async ({ request }) =>
     HttpResponse.json(
@@ -3375,8 +3374,8 @@ export const handlers = [
         ...((await request.json()) as Record<string, unknown>),
         createdAt: nowIso(),
         updatedAt: nowIso(),
-      }),
-    ),
+      })
+    )
   ),
   http.patch(`${API}/users/me`, async ({ request }) => {
     const body = (await request.json()) as Partial<(typeof mockUsers)[number]>
@@ -3397,7 +3396,7 @@ export const handlers = [
       await delay({
         token: MOCK_TOKEN,
         user: { ...mockUsers[0], nickname: body.nickname },
-      }),
+      })
     )
   }),
 
@@ -3471,7 +3470,7 @@ export const handlers = [
               ]
             : []),
         ],
-      }),
+      })
     )
   }),
 
@@ -3487,7 +3486,7 @@ export const handlers = [
           item.partyId === partyId &&
           item.requesterId === userId &&
           item.receiverId === partnerId &&
-          item.channel === body.channel,
+          item.channel === body.channel
       )
       if (existing) {
         existing.status = 'pending'
@@ -3498,7 +3497,7 @@ export const handlers = [
             requestId: existing.id,
             status: existing.status,
             channel: existing.channel,
-          }),
+          })
         )
       }
 
@@ -3515,9 +3514,9 @@ export const handlers = [
       }
       mockContactExchangeRequests.push(record)
       return HttpResponse.json(
-        await delay({ requestId: record.id, status: record.status, channel: record.channel }),
+        await delay({ requestId: record.id, status: record.status, channel: record.channel })
       )
-    },
+    }
   ),
 
   http.post(
@@ -3528,7 +3527,7 @@ export const handlers = [
       if (!record) {
         return HttpResponse.json(
           { code: 'contact_request_not_found', message: '요청을 찾을 수 없어요' },
-          { status: 404 },
+          { status: 404 }
         )
       }
       record.status = body.action === 'approve' ? 'approved' : 'rejected'
@@ -3540,9 +3539,9 @@ export const handlers = [
           status: record.status,
           channel: record.channel,
           decidedById: record.decidedById,
-        }),
+        })
       )
-    },
+    }
   ),
 
   // Match reveal — 오늘의 인기남/인기녀 (성별별 최다 호감 1인)
@@ -3564,24 +3563,24 @@ export const handlers = [
           avatarImage: mockUsers[1].avatarImage ?? null,
           likes: 5,
         },
-      }),
-    ),
+      })
+    )
   ),
 
   // Notes (쪽지)
   http.get(`${API}/notes/mine`, async () => HttpResponse.json(await delay([]))),
   http.get(`${API}/notes/party/:partyId`, async () =>
-    HttpResponse.json(await delay({ received: [], sent: [] })),
+    HttpResponse.json(await delay({ received: [], sent: [] }))
   ),
   http.post(`${API}/notes`, async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>
     return HttpResponse.json(
-      await delay({ id: `note_${Date.now()}`, ...body, deliveredAt: null, readAt: null }),
+      await delay({ id: `note_${Date.now()}`, ...body, deliveredAt: null, readAt: null })
     )
   }),
   http.patch(`${API}/notes/:id/read`, async () => HttpResponse.json(await delay({ ok: true }))),
   http.post(`${API}/notes/party/:partyId/deliver`, async () =>
-    HttpResponse.json(await delay({ delivered: 0 })),
+    HttpResponse.json(await delay({ delivered: 0 }))
   ),
 
   // Me (사전 프로필 · 신상 인증 · 지인 회피)
@@ -3595,7 +3594,7 @@ export const handlers = [
   http.get(`${API}/me/avoid-contacts`, async () => HttpResponse.json(await delay([]))),
   http.post(`${API}/me/avoid-contacts`, async () => HttpResponse.json(await delay({ count: 1 }))),
   http.delete(`${API}/me/avoid-contacts/:id`, async () =>
-    HttpResponse.json(await delay({ ok: true })),
+    HttpResponse.json(await delay({ ok: true }))
   ),
   http.get(`${API}/me/avoid-people`, async () => HttpResponse.json(await delay(mockAvoidPeople))),
   http.post(`${API}/me/avoid-people`, async ({ request }) => {
@@ -3615,10 +3614,10 @@ export const handlers = [
   }),
   http.get(`${API}/me/avoid-check`, async () => HttpResponse.json(await delay([]))),
   http.patch(`${API}/me/avoid-prefs`, async ({ request }) =>
-    HttpResponse.json(await delay((await request.json()) as Record<string, unknown>)),
+    HttpResponse.json(await delay((await request.json()) as Record<string, unknown>))
   ),
   http.patch(`${API}/me/privacy`, async ({ request }) =>
-    HttpResponse.json(await delay((await request.json()) as Record<string, unknown>)),
+    HttpResponse.json(await delay((await request.json()) as Record<string, unknown>))
   ),
 
   // ============ After Party (2차 모임) 모의 핸들러 ============
@@ -3739,7 +3738,7 @@ export const handlers = [
         invitePath: `/invite/${quickCode}`,
         targetUserIds: body.targetUserIds,
         ok: true,
-      }),
+      })
     )
   }),
 
@@ -3757,7 +3756,7 @@ export const handlers = [
         queuedSms: body.channel === 'sms' ? smsTargets.length : 0,
         skippedNoPhone: body.channel === 'sms' ? targets.length - smsTargets.length : 0,
         invitePath: '/invite/mock-derived',
-      }),
+      })
     )
   }),
 ]

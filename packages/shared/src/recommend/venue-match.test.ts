@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import type { Venue } from '../domain/venue'
+
 import { recommendVenues } from './venue-match'
+
+import type { Venue } from '../domain/venue'
 import type { VenueBrief } from '../domain/venue-booking'
 
 const baseVenue: Venue = {
@@ -58,7 +60,7 @@ describe('recommendVenues', () => {
       brief,
       {
         availabilityByVenue: { 'v-available': true },
-      },
+      }
     )
 
     expect(recs).toHaveLength(2)
@@ -92,7 +94,7 @@ describe('recommendVenues', () => {
         partySize: 4,
         lat: 37.001,
         lng: 127.001,
-      },
+      }
     )
 
     expect(near.venue.id).toBe('near')

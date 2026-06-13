@@ -1,16 +1,17 @@
-import { Outlet, useLocation } from 'react-router-dom'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Header } from './Header'
-import { BottomNav } from './BottomNav'
-import { SiteFooter } from './SiteFooter'
-import { useApplyTheme } from '@store/themeStore'
 import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
-import OnboardingSheet from '@features/onboard/OnboardingSheet'
-import CommandPalette from '@features/command-palette/CommandPalette'
 import { useChatRealtime } from '@features/chat/useChatRealtime'
+import CommandPalette from '@features/command-palette/CommandPalette'
 import { useNotificationsRealtime } from '@features/notifications/useNotificationsRealtime'
+import OnboardingSheet from '@features/onboard/OnboardingSheet'
 import { useDocumentTitle } from '@hooks/useDocumentTitle'
+import { useApplyTheme } from '@store/themeStore'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
+
+import { BottomNav } from './BottomNav'
+import { Header } from './Header'
 import styles from './RootLayout.module.css'
+import { SiteFooter } from './SiteFooter'
 
 export default function RootLayout() {
   useApplyTheme()

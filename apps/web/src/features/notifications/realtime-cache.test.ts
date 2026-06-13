@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import {
   prependRealtimeNotification,
   incrementUnreadCount,
@@ -25,7 +26,7 @@ describe('notification realtime cache helpers', () => {
         title: '새 메시지',
         body: '안녕하세요',
         link: '/chats/room_1',
-      }),
+      })
     ).toEqual([
       expect.objectContaining({
         kind: 'message',
@@ -40,7 +41,7 @@ describe('notification realtime cache helpers', () => {
 
   it('keeps an unloaded notification list unloaded', () => {
     expect(prependRealtimeNotification(undefined, { kind: 'message', title: '새 메시지' })).toBe(
-      undefined,
+      undefined
     )
   })
 

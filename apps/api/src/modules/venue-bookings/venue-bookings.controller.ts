@@ -5,10 +5,13 @@ import {
   LinkBookingPartySchema,
   OwnerDecisionSchema,
 } from '@rotifolk/shared'
-import type { CreateVenueBookingDto, LinkBookingPartyDto, OwnerDecisionDto } from '@rotifolk/shared'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
-import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+
 import { VenueBookingsService } from './venue-bookings.service'
+
+import type { CreateVenueBookingDto, LinkBookingPartyDto, OwnerDecisionDto } from '@rotifolk/shared'
+
+import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 
 @Controller('venue-bookings')
 @UseGuards(AuthGuard('jwt'))
@@ -18,7 +21,7 @@ export class VenueBookingsController {
   @Post()
   create(
     @CurrentUser() me: JwtUserPayload,
-    @Body(new ZodValidationPipe(CreateVenueBookingSchema)) dto: CreateVenueBookingDto,
+    @Body(new ZodValidationPipe(CreateVenueBookingSchema)) dto: CreateVenueBookingDto
   ) {
     return this.bookings.create(me.sub, dto)
   }
@@ -37,7 +40,7 @@ export class VenueBookingsController {
   confirm(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(OwnerDecisionSchema)) dto: OwnerDecisionDto,
+    @Body(new ZodValidationPipe(OwnerDecisionSchema)) dto: OwnerDecisionDto
   ) {
     return this.bookings.decide(me.sub, id, 'confirmed', dto.message)
   }
@@ -46,7 +49,7 @@ export class VenueBookingsController {
   decline(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(OwnerDecisionSchema)) dto: OwnerDecisionDto,
+    @Body(new ZodValidationPipe(OwnerDecisionSchema)) dto: OwnerDecisionDto
   ) {
     return this.bookings.decide(me.sub, id, 'declined', dto.message)
   }
@@ -60,7 +63,7 @@ export class VenueBookingsController {
   link(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(LinkBookingPartySchema)) dto: LinkBookingPartyDto,
+    @Body(new ZodValidationPipe(LinkBookingPartySchema)) dto: LinkBookingPartyDto
   ) {
     return this.bookings.link(me.sub, id, dto.partyId)
   }

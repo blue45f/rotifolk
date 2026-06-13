@@ -1,4 +1,5 @@
 import { type ReactNode, useId } from 'react'
+
 import styles from './Tabs.module.css'
 
 interface Tab {

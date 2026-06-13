@@ -67,7 +67,7 @@ export function computeCompatibility(a: CompatInput, b: CompatInput, seed = ''):
   if (shared.length > 0) {
     score += Math.min(15, shared.length * 6)
     factors.push(
-      `공통 관심사 ${shared.length}개${shared.length ? ` (${shared.slice(0, 3).join(', ')})` : ''}`,
+      `공통 관심사 ${shared.length}개${shared.length ? ` (${shared.slice(0, 3).join(', ')})` : ''}`
     )
   }
 

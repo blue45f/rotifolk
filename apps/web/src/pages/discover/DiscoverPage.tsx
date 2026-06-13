@@ -1,18 +1,20 @@
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import type { PartyCategory } from '@rotifolk/shared'
-import { SEOUL_AREAS, haversineKm } from '@rotifolk/shared'
-import { useParties } from '@features/parties/queries'
-import { PartyCard } from '@features/parties/PartyCard'
-import { ALL_CATEGORIES } from '@features/categories/meta'
-import { useGeolocation } from '@features/geo/useGeolocation'
+import EmptyState from '@components/feedback/EmptyState'
+import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
-import EmptyState from '@components/feedback/EmptyState'
-import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
+import { ALL_CATEGORIES } from '@features/categories/meta'
+import { useGeolocation } from '@features/geo/useGeolocation'
+import { PartyCard } from '@features/parties/PartyCard'
+import { useParties } from '@features/parties/queries'
 import { usePageMeta } from '@hooks/usePageMeta'
+import { SEOUL_AREAS, haversineKm } from '@rotifolk/shared'
+import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
 import styles from './DiscoverPage.module.css'
+
+import type { PartyCategory } from '@rotifolk/shared'
 
 const PAGE_INCREMENT = 20
 const MAX_PAGE_SIZE = 50
@@ -92,7 +94,7 @@ export default function DiscoverPage() {
       status,
       pageSize,
     }),
-    [category, area, dateIso, tag, status, pageSize],
+    [category, area, dateIso, tag, status, pageSize]
   )
   const { data, isLoading, isFetching } = useParties(query)
   const geo = useGeolocation()
