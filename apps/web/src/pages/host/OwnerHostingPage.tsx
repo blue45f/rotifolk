@@ -11,6 +11,7 @@ import {
 } from '@features/venueBooking/queries'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -23,8 +24,11 @@ export default function OwnerHostingPage() {
 
   if (isLoading) return <Loading />
 
+  const venueCount = venues?.length ?? 0
+  const upcoming = (venues ?? []).reduce((n, v) => n + v.upcomingParties, 0)
+
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
       <header className={`container ${styles.head}`}>
         <div className={styles.headText}>
           <span className={styles.kicker}>OWNER HOSTING</span>
@@ -32,29 +36,49 @@ export default function OwnerHostingPage() {
           <p className={styles.lead}>
             비어 있던 시간을, 사람으로 채우세요. 메뉴·가격은 가게 정보 그대로.
           </p>
+          {venueCount > 0 && (
+            <p className={styles.editorial}>
+              <Icon name="home" aria-hidden />
+              공간 <strong>{venueCount}곳</strong>
+              <span className={styles.dot}>·</span>
+              <Icon name="clock" aria-hidden />
+              예정 파티 <strong>{upcoming}건</strong>
+              {pending.length > 0 && (
+                <>
+                  <span className={styles.dot}>·</span>
+                  <Icon name="bell" aria-hidden />
+                  대기 요청 <strong>{pending.length}건</strong>
+                </>
+              )}
+            </p>
+          )}
         </div>
         <Link to="/host/venues/new" className={styles.headCta}>
-          <Button variant="gold" size="lg">
-            + 공간 등록
+          <Button variant="gold" size="lg" leftIcon={<Icon name="plus" aria-hidden />}>
+            공간 등록
           </Button>
         </Link>
       </header>
 
       {pending.length > 0 && (
-        <section className={`container ${styles.section}`}>
-          <h2 className={styles.h2}>
+        <section className={`container ${styles.section}`} aria-labelledby="reqHeading">
+          <h2 id="reqHeading" className={styles.h2}>
             섭외 요청 <span className={styles.count}>{pending.length}건 대기</span>
           </h2>
-          <div className={styles.inbox}>
+          <ul className={styles.inbox}>
             {pending.map((b) => (
-              <RequestRow key={b.id} booking={b} />
+              <li key={b.id}>
+                <RequestRow booking={b} />
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
 
-      <section className={`container ${styles.section}`}>
-        <h2 className={styles.h2}>내 공간</h2>
+      <section className={`container ${styles.section}`} aria-labelledby="venuesHeading">
+        <h2 id="venuesHeading" className={styles.h2}>
+          내 공간
+        </h2>
         {!venues || venues.length === 0 ? (
           <EmptyState
             emoji="🏠"
@@ -62,21 +86,23 @@ export default function OwnerHostingPage() {
             description="카페·와인바·루프탑을 등록하면, 비는 시간에 직접 모임을 열거나 다른 호스트의 섭외를 받을 수 있어요."
             action={
               <Link to="/host/venues/new">
-                <Button variant="primary" size="lg">
+                <Button variant="primary" size="lg" leftIcon={<Icon name="plus" aria-hidden />}>
                   공간 등록하기
                 </Button>
               </Link>
             }
           />
         ) : (
-          <div className={styles.venues}>
+          <ul className={styles.venues}>
             {venues.map((v) => (
-              <OwnedVenueCard key={v.id} venue={v} />
+              <li key={v.id}>
+                <OwnedVenueCard venue={v} />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </section>
-    </div>
+    </main>
   )
 }
 
@@ -111,7 +137,11 @@ function RequestRow({ booking }: { booking: VenueBooking }) {
           <span className={styles.dot}>·</span>
           <span className={styles.price}>{formatKRW(booking.totalKRW)}</span>
         </p>
-        {booking.noteToOwner && <p className={styles.reqNote}>💬 {booking.noteToOwner}</p>}
+        {booking.noteToOwner && (
+          <p className={styles.reqNote}>
+            <Icon name="chat" aria-hidden /> {booking.noteToOwner}
+          </p>
+        )}
       </div>
       <div className={styles.reqActions}>
         <Button
@@ -119,6 +149,7 @@ function RequestRow({ booking }: { booking: VenueBooking }) {
           variant="primary"
           isLoading={decide.isPending}
           onClick={() => act('confirm')}
+          leftIcon={<Icon name="check" aria-hidden />}
         >
           확정
         </Button>
@@ -132,57 +163,72 @@ function RequestRow({ booking }: { booking: VenueBooking }) {
 
 function OwnedVenueCard({ venue }: { venue: OwnedVenue }) {
   const [open, setOpen] = useState(false)
+  const panelId = `offhours-${venue.id}`
   return (
     <article className={styles.vCard}>
       <div className={styles.vMain}>
         <div className={styles.vThumb}>
-          {venue.photos[0] ? <img src={venue.photos[0]} alt="" loading="lazy" /> : '🏛️'}
+          {venue.photos[0] ? (
+            <img src={venue.photos[0]} alt="" loading="lazy" />
+          ) : (
+            <Icon name="home" aria-hidden />
+          )}
         </div>
         <div className={styles.vBody}>
           <div className={styles.vHead}>
             <strong>{venue.name}</strong>
             {venue.instantBook && (
-              <Badge tone="gold" size="sm">
-                즉시예약
+              <Badge tone="primary" size="sm">
+                <Icon name="bolt" aria-hidden /> 즉시예약
               </Badge>
             )}
           </div>
           <p className={styles.vMeta}>
             {venue.area} · 최대 {venue.capacity}명 · 시간당 {formatKRW(venue.pricePerHourKRW)}
           </p>
-          <div className={styles.vStats}>
-            <div className={styles.stat}>
-              <span className={styles.statLabel}>예정 파티</span>
-              <span className={styles.statValue}>{venue.upcomingParties}</span>
-            </div>
-            <div className={`${styles.stat} ${venue.pendingRequests > 0 ? styles.statHot : ''}`}>
-              <span className={styles.statLabel}>대기 요청</span>
-              <span className={styles.statValue}>{venue.pendingRequests}</span>
-            </div>
-          </div>
+          <p className={styles.vStats}>
+            <span className={styles.stat}>
+              예정 파티 <strong>{venue.upcomingParties}</strong>
+            </span>
+            <span className={styles.dot}>·</span>
+            <span className={`${styles.stat} ${venue.pendingRequests > 0 ? styles.statHot : ''}`}>
+              대기 요청 <strong>{venue.pendingRequests}</strong>
+            </span>
+          </p>
         </div>
       </div>
       <div className={styles.vActions}>
-        <Button size="sm" variant={open ? 'primary' : 'soft'} onClick={() => setOpen((o) => !o)}>
+        <Button
+          size="sm"
+          variant={open ? 'primary' : 'soft'}
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          aria-controls={panelId}
+          leftIcon={<Icon name={open ? 'close' : 'sparkle'} aria-hidden />}
+        >
           {open ? '닫기' : '유휴 시간 → 파티'}
         </Button>
         <span className={styles.vSpacer} />
         <Link to={`/host/venues/new?edit=${venue.id}`}>
-          <Button size="sm" variant="ghost">
+          <Button size="sm" variant="ghost" leftIcon={<Icon name="settings" aria-hidden />}>
             수정
           </Button>
         </Link>
       </div>
-      {open && <OffHoursList venueId={venue.id} venueName={venue.name} cap={venue.capacity} />}
+      {open && (
+        <OffHoursList id={panelId} venueId={venue.id} venueName={venue.name} cap={venue.capacity} />
+      )}
     </article>
   )
 }
 
 function OffHoursList({
+  id,
   venueId,
   venueName,
   cap,
 }: {
+  id: string
   venueId: string
   venueName: string
   cap: number
@@ -192,9 +238,10 @@ function OffHoursList({
   const slots = data?.offHours ?? []
   if (slots.length === 0) return <p className={styles.loadingMini}>제안할 유휴 시간이 없어요.</p>
   return (
-    <div className={styles.offHours}>
+    <div id={id} className={styles.offHours}>
       <p className={styles.offHint}>
-        ✨ 비는 시간을 원탭으로 파티로. 카테고리·정원·메뉴가 자동 채워져요.
+        <Icon name="sparkle" aria-hidden />
+        비는 시간을 원탭으로 파티로. 카테고리·정원·메뉴가 자동 채워져요.
       </p>
       {slots.slice(0, 4).map((s) => (
         <OffHoursRow key={s.startAt} slot={s} venueId={venueId} venueName={venueName} cap={cap} />
@@ -227,7 +274,7 @@ function OffHoursRow({
         </span>
       </div>
       <Link to={href}>
-        <Button size="sm" variant="gold">
+        <Button size="sm" variant="gold" rightIcon={<Icon name="chevron-right" aria-hidden />}>
           파티 열기
         </Button>
       </Link>

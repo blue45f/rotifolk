@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { Button } from '@components/ui/Button/Button'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { refundSchedule } from '@rotifolk/shared'
 import {
@@ -25,7 +26,10 @@ type FilterMode = 'all' | 'required' | 'optional'
 
 interface PolicySection {
   id: TermsSectionId
+  /** Emoji fallback shown when no line-glyph maps to the section. */
   icon: string
+  /** Line-glyph icon name; preferred over the emoji when set. */
+  iconName?: IconName
   title: string
   required: boolean
   searchText: string
@@ -99,6 +103,7 @@ const POLICY_SECTIONS: PolicySection[] = [
   {
     id: 'privacy',
     icon: '🔐',
+    iconName: 'shield',
     title: '개인정보 · 민감정보',
     required: true,
     searchText:
@@ -126,6 +131,7 @@ const POLICY_SECTIONS: PolicySection[] = [
   {
     id: 'safety',
     icon: '🛟',
+    iconName: 'shield',
     title: '안전 · 지인 회피',
     required: true,
     searchText: '안전 차단 블록 불쾌 신고 운영팀 검토 피하고 싶은 사람 회피 필터링',
@@ -255,6 +261,7 @@ export default function PoliciesPage() {
     () => [
       {
         label: '필수 조항 동의',
+        icon: 'shield' as IconName,
         done: isReady,
         detail: isReady
           ? '필수 동의 항목이 모두 동의되어 있어요.'
@@ -262,6 +269,7 @@ export default function PoliciesPage() {
       },
       {
         label: '동의 최신성 유지',
+        icon: 'clock' as IconName,
         done: !isOutdated && !isContentOutdated,
         detail:
           !isOutdated && !isContentOutdated
@@ -270,6 +278,7 @@ export default function PoliciesPage() {
       },
       {
         label: '동의 이력 남기기',
+        icon: 'archive' as IconName,
         done: history.length > 0,
         detail:
           history.length > 0
@@ -278,6 +287,7 @@ export default function PoliciesPage() {
       },
       {
         label: '조항 탐색하기',
+        icon: 'compass' as IconName,
         done: searchActionUsed || filterActionUsed || sectionLinkVisited,
         detail:
           searchActionUsed || filterActionUsed || sectionLinkVisited
@@ -484,9 +494,12 @@ export default function PoliciesPage() {
   ])
 
   return (
-    <div className={`container ${styles.page}`}>
+    <div className={`container ${styles.page}`} id="policies-top">
       <header className={styles.head}>
-        <span className={styles.kicker}>ROTIFOLK POLICIES</span>
+        <span className={styles.kicker}>
+          <Icon name="shield" size={1} aria-hidden="true" />
+          ROTIFOLK POLICIES
+        </span>
         <h1 className={styles.title}>이용 · 환불 · 개인정보 정책</h1>
         <p className={styles.sub}>
           누구나 안심하고 동네 로테이션 모임을 열고 참여할 수 있도록 정한 약속이에요. 동의 상태는 이
@@ -510,6 +523,7 @@ export default function PoliciesPage() {
           <span
             className={`${styles.statusChip} ${isOutdated ? styles.statusChipWarn : styles.statusChipOk}`}
           >
+            <Icon name={isOutdated ? 'bell' : 'check'} size={0.9} aria-hidden="true" />
             {isOutdated ? '버전 갱신 필요' : '최신 버전 반영 완료'}
           </span>
         </div>
@@ -558,23 +572,29 @@ export default function PoliciesPage() {
 
         {!isReady && (
           <p className={styles.statusWarn} role="note">
+            <Icon name="bell" size={0.9} aria-hidden="true" />
             필수 동의가 필요해요: {missingRequired.join(', ')}
           </p>
         )}
         {isContentOutdated ? (
           <p className={styles.statusWarn} role="note">
+            <Icon name="bell" size={0.9} aria-hidden="true" />
             정책 본문 해시가 최신 기준과 다릅니다. 문구 변경이 있을 수 있으니 동의 상태를 동기화해
             주세요.
           </p>
         ) : (
           <p className={styles.statusOk}>
+            <Icon name="check" size={0.9} aria-hidden="true" />
             정책 본문 무결성: {formatHash(latestEvidence.contentHash)}
           </p>
         )}
       </section>
 
       <section className={styles.readinessPanel} aria-label="약관 진입 체크리스트">
-        <h2 className={styles.readinessTitle}>커뮤니티 진입 준비 체크</h2>
+        <h2 className={styles.readinessTitle}>
+          <Icon name="check" size={1} aria-hidden="true" />
+          커뮤니티 진입 준비 체크
+        </h2>
         <p className={styles.readinessLead}>
           커뮤니티/튜토리얼 동작을 원활하게 진행하려면 동의 상태, 최신성, 탐색 로그가 필요해요.
         </p>
@@ -584,6 +604,9 @@ export default function PoliciesPage() {
               key={check.label}
               className={`${styles.readinessItem} ${check.done ? styles.readinessDone : styles.readinessPending}`}
             >
+              <span className={styles.readinessIcon}>
+                <Icon name={check.done ? 'check' : check.icon} size={1} aria-hidden="true" />
+              </span>
               <span>{check.label}</span>
               <small>{check.detail}</small>
             </li>
@@ -638,6 +661,7 @@ export default function PoliciesPage() {
 
       {visibleSections.length > 0 ? (
         <nav className={styles.toc} aria-label="조항 목차">
+          <span className={styles.tocLabel}>조항 바로가기</span>
           {visibleSections.map((section) => (
             <Link
               key={`${section.id}-toc`}
@@ -645,6 +669,11 @@ export default function PoliciesPage() {
               className={styles.tocLink}
               onClick={() => trackSectionJump(section.id)}
             >
+              {section.iconName ? (
+                <Icon name={section.iconName} size={0.9} aria-hidden="true" />
+              ) : (
+                <span aria-hidden="true">{section.icon}</span>
+              )}
               {section.title}
             </Link>
           ))}
@@ -666,10 +695,17 @@ export default function PoliciesPage() {
                   <input
                     id={`${section.id}-agree`}
                     type="checkbox"
+                    className={styles.sectionCheck}
                     checked={agreedIds.includes(section.id)}
                     onChange={(event) => toggleSection(section.id, event.currentTarget.checked)}
                   />
-                  <span aria-hidden="true">{section.icon}</span>
+                  {section.iconName ? (
+                    <Icon name={section.iconName} aria-hidden="true" />
+                  ) : (
+                    <span className={styles.sectionEmoji} aria-hidden="true">
+                      {section.icon}
+                    </span>
+                  )}
                   <h2 className={styles.sectionTitle}>{section.title}</h2>
                 </div>
                 <span
@@ -682,6 +718,7 @@ export default function PoliciesPage() {
               </label>
               <div className={styles.sectionBody}>{section.body}</div>
               <p className={styles.sectionBack}>
+                <Icon name="chevron-right" size={0.9} aria-hidden="true" />
                 <Link
                   to={`${sectionLink(section.id)}#${section.id}`}
                   onClick={() => trackSectionJump(section.id)}
@@ -696,7 +733,10 @@ export default function PoliciesPage() {
 
       <section className={styles.metaCards}>
         <div>
-          <h3>동의 이력</h3>
+          <h3>
+            <Icon name="archive" size={1} aria-hidden="true" />
+            동의 이력
+          </h3>
           <ul>
             {history.length === 0 ? (
               <li>아직 기록이 없어요.</li>
@@ -714,7 +754,10 @@ export default function PoliciesPage() {
           </ul>
         </div>
         <div>
-          <h3>약관 증빙</h3>
+          <h3>
+            <Icon name="shield" size={1} aria-hidden="true" />
+            약관 증빙
+          </h3>
           <ul>
             <li>콘텐츠 해시: {formatHash(latestEvidence.contentHash)}</li>
             <li>
@@ -725,7 +768,10 @@ export default function PoliciesPage() {
           </ul>
         </div>
         <div>
-          <h3>최근 활동</h3>
+          <h3>
+            <Icon name="clock" size={1} aria-hidden="true" />
+            최근 활동
+          </h3>
           <ul>
             {actionLogs.length === 0 ? (
               <li>아직 활동 로그가 없어요.</li>
