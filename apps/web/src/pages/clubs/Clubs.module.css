@@ -1,4 +1,5 @@
 /* 클럽(정기 모임 그룹) — 목록·생성·상세 공용 스타일.
+   Aperitivo · Sunset Social: warm paper canvas + apricot 강조, teal/amber는 희소.
    기조: 텍스트 + divider가 기본, 원형(로테이션) 모티프는 마크와 멤버 링에만 절제 사용. */
 
 .page {
@@ -6,6 +7,8 @@
   padding-bottom: calc(var(--bottom-nav-h) + var(--space-12));
   background: var(--color-bg);
 }
+
+/* ── 페이지 인트로 (목록·생성 공용) ──────────────────────────────── */
 
 .head {
   display: flex;
@@ -16,24 +19,68 @@
   padding-block: var(--space-10) var(--space-6);
 }
 
+.headText {
+  min-width: 0;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
 .head h1 {
+  margin-top: var(--space-3);
   font-size: var(--fs-4xl);
+  font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
   line-height: var(--lh-tight);
   color: var(--color-text);
 }
 
 .head p {
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
   max-width: var(--max-prose);
   color: var(--color-text-muted);
+  line-height: var(--lh-normal);
 }
+
+.headActions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ── 필터 ────────────────────────────────────────────────────────── */
 
 .filters {
   display: grid;
-  gap: var(--space-3);
-  padding-bottom: var(--space-4);
+  gap: var(--space-4);
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-2);
   border-bottom: 1px solid var(--color-border);
+}
+
+.filterGroup {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.filterLabel {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
 }
 
 .chipRow {
@@ -47,6 +94,12 @@
 }
 
 /* ── 목록: divider 행 (카드 그리드 금지) ─────────────────────────── */
+
+.resultMeta {
+  padding-block: var(--space-4) var(--space-1);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-sm);
+}
 
 .list {
   list-style: none;
@@ -63,20 +116,21 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-4);
+  min-height: 44px;
   padding: var(--space-5) var(--space-2);
   color: inherit;
   text-decoration: none;
+  border-radius: var(--radius-md);
   transition: background var(--dur-fast) var(--ease-out);
 }
 
 .rowLink:hover {
-  background: color-mix(in oklab, var(--brand-burgundy-700) 4%, transparent);
+  background: color-mix(in oklab, var(--club-accent, var(--color-primary)) 6%, transparent);
 }
 
 .rowLink:focus-visible {
-  outline: 2px solid var(--brand-burgundy-400);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: var(--radius-sm);
 }
 
 /* 카테고리 마크 — 로테이션 모티프: 가는 원형 트랙 위 카테고리 색 점 */
@@ -85,11 +139,11 @@
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  border: 1px solid color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 36%, transparent);
+  border: 1px solid color-mix(in oklab, var(--club-accent, var(--color-primary)) 36%, transparent);
   display: grid;
   place-items: center;
   font-size: var(--fs-lg);
-  background: color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 7%, var(--color-surface));
+  background: color-mix(in oklab, var(--club-accent, var(--color-primary)) 8%, var(--color-surface));
 }
 
 .mark::after {
@@ -101,7 +155,7 @@
   height: 7px;
   border-radius: 50%;
   transform: translateX(-50%);
-  background: var(--club-accent, var(--brand-burgundy-700));
+  background: var(--club-accent, var(--color-primary));
 }
 
 .rowBody {
@@ -141,11 +195,21 @@
 }
 
 .joined {
-  color: var(--brand-burgundy-700);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
 }
 
 .rowAside {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   color: var(--color-text-subtle);
   font-size: var(--fs-sm);
   white-space: nowrap;
@@ -162,13 +226,48 @@
   padding-block: var(--space-10);
 }
 
+.loginNote {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.loginNote a {
+  color: var(--color-primary);
+  font-weight: var(--fw-semibold);
+}
+
 /* ── 생성 폼 ─────────────────────────────────────────────────────── */
 
 .formNarrow {
   max-width: 560px;
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-8);
   padding-block: var(--space-4) var(--space-10);
+}
+
+.fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.legend {
+  padding: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.legendHint {
+  margin-top: var(--space-1);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+  color: var(--color-text-muted);
 }
 
 .fieldLabel {
@@ -204,7 +303,7 @@
 }
 
 .textarea:focus-visible {
-  outline: 2px solid var(--brand-burgundy-400);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -225,21 +324,32 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-3);
   align-items: start;
+  min-height: 44px;
   padding: var(--space-4);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
 }
 
 .visibilityOption:has(input:checked) {
-  border-color: var(--brand-burgundy-700);
-  background: color-mix(in oklab, var(--brand-burgundy-700) 5%, var(--color-surface));
+  border-color: var(--color-primary);
+  background: color-mix(in oklab, var(--color-primary) 6%, var(--color-surface));
+}
+
+.visibilityOption:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .visibilityOption input {
   margin-top: 3px;
-  accent-color: var(--brand-burgundy-700);
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
 }
 
 .visibilityOption strong {
@@ -256,21 +366,64 @@
   display: flex;
   gap: var(--space-3);
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.formActions a {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.submitRow {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.submitRow a {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
 }
 
 /* ── 상세 ────────────────────────────────────────────────────────── */
+
+.breadcrumb {
+  margin-top: 0;
+  padding-top: var(--space-6);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-sm);
+}
+
+.breadcrumb a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
 
 .detailHead {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: var(--space-6);
   align-items: center;
-  padding-block: var(--space-10) var(--space-6);
+  padding-block: var(--space-8) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
 }
 
 @media (max-width: 640px) {
   .detailHead {
     grid-template-columns: 1fr;
+    justify-items: start;
   }
 }
 
@@ -280,9 +433,10 @@
   width: 132px;
   height: 132px;
   border-radius: 50%;
-  border: 1px dashed color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 38%, transparent);
+  border: 1px dashed color-mix(in oklab, var(--club-accent, var(--color-primary)) 40%, transparent);
   display: grid;
   place-items: center;
+  flex-shrink: 0;
 }
 
 .ringCenter {
@@ -292,8 +446,8 @@
   display: grid;
   place-items: center;
   font-size: var(--fs-2xl);
-  background: color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 10%, var(--color-surface));
-  border: 1px solid color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 30%, transparent);
+  background: color-mix(in oklab, var(--club-accent, var(--color-primary)) 12%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--club-accent, var(--color-primary)) 30%, transparent);
 }
 
 .ringSeat {
@@ -309,7 +463,7 @@
   font-size: var(--fs-3xs);
   font-weight: var(--fw-semibold);
   color: var(--color-primary-fg);
-  background: var(--brand-burgundy-700);
+  background: var(--club-accent, var(--color-primary));
   border: 2px solid var(--color-bg);
   transform: rotate(var(--seat-angle)) translateY(-66px) rotate(calc(-1 * var(--seat-angle)));
 }
@@ -317,6 +471,10 @@
 .ringSeatMore {
   background: var(--color-surface-soft);
   color: var(--color-text-muted);
+}
+
+.detailIdentity {
+  min-width: 0;
 }
 
 .detailTitleRow {
@@ -328,19 +486,22 @@
 
 .detailTitleRow h1 {
   font-size: var(--fs-3xl);
+  font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
   line-height: var(--lh-tight);
+  color: var(--color-text);
 }
 
 .detailDesc {
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
   max-width: var(--max-prose);
   color: var(--color-text-muted);
+  line-height: var(--lh-normal);
   white-space: pre-wrap;
 }
 
 .detailMetaLine {
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-3);
@@ -348,12 +509,22 @@
   font-size: var(--fs-sm);
 }
 
+.detailMetaLine .metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 .detailActions {
-  margin-top: var(--space-4);
+  margin-top: var(--space-5);
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
   align-items: center;
+}
+
+.tabsWrap {
+  margin-top: var(--space-6);
 }
 
 .sectionGap {
@@ -366,8 +537,10 @@
   display: grid;
   gap: var(--space-3);
   justify-items: start;
-  padding: var(--space-6) var(--space-2);
-  border-top: 1px solid var(--color-border);
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-soft);
   color: var(--color-text-muted);
 }
 
@@ -393,7 +566,7 @@
 
 .composerInput:focus-visible,
 .replyArea:focus-visible {
-  outline: 2px solid var(--brand-burgundy-400);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -435,23 +608,24 @@
   gap: var(--space-3);
   align-items: center;
   text-align: left;
+  min-height: 44px;
   padding: var(--space-4) var(--space-2);
   background: none;
   border: 0;
   color: inherit;
   font: inherit;
   cursor: pointer;
+  border-radius: var(--radius-md);
   transition: background var(--dur-fast) var(--ease-out);
 }
 
 .postRowBtn:hover {
-  background: color-mix(in oklab, var(--brand-burgundy-700) 4%, transparent);
+  background: color-mix(in oklab, var(--color-primary) 5%, transparent);
 }
 
 .postRowBtn:focus-visible {
-  outline: 2px solid var(--brand-burgundy-400);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-  border-radius: var(--radius-sm);
 }
 
 .postRowBtn strong {
@@ -470,6 +644,9 @@
 }
 
 .postRowCount {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   color: var(--color-text-subtle);
   font-size: var(--fs-sm);
   white-space: nowrap;
@@ -483,6 +660,7 @@
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-xl);
   background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .postDetailHead {
@@ -494,7 +672,9 @@
 
 .postDetailHead h3 {
   font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
   line-height: var(--lh-snug);
+  color: var(--color-text);
 }
 
 .postDetailMeta {
@@ -611,8 +791,14 @@
 }
 
 .commentMetaRow button:hover {
-  color: var(--brand-burgundy-700);
+  color: var(--color-primary);
   text-decoration: underline;
+}
+
+.commentMetaRow button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
 }
 
 /* 1단 답글 들여쓰기 — 원형 connector로 로테이션 모티프를 한 번 더 약하게 */
@@ -637,7 +823,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: color-mix(in oklab, var(--brand-burgundy-700) 45%, var(--color-bg));
+  background: color-mix(in oklab, var(--color-primary) 45%, var(--color-bg));
 }
 
 .replyForm {
@@ -658,6 +844,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: 44px;
   padding: var(--space-3) var(--space-2);
   border-bottom: 1px solid var(--color-border);
 }
@@ -671,7 +858,7 @@
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   color: var(--color-primary-fg);
-  background: var(--brand-burgundy-700);
+  background: var(--club-accent, var(--color-primary));
 }
 
 .memberName {
@@ -701,4 +888,12 @@
 
 .aboutBlock dt {
   color: var(--color-text-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowLink,
+  .postRowBtn,
+  .visibilityOption {
+    transition: none;
+  }
 }

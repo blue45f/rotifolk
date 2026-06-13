@@ -30,6 +30,7 @@ import {
 } from '@features/legal/termsConsent'
 import { useCurrentUser } from '@store/authStore'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
 import Loading from '@components/feedback/Loading'
@@ -227,41 +228,58 @@ export default function ClubDetailPage() {
   return (
     <main className={styles.page} style={accentStyle}>
       <div className="container">
-        <nav
-          aria-label="이동 경로"
-          className={styles.detailMetaLine}
-          style={{ paddingTop: 'var(--space-6)' }}
-        >
+        <nav aria-label="이동 경로" className={styles.breadcrumb}>
           <Link to="/clubs">클럽</Link>
-          <span aria-hidden="true">/</span>
-          <span>{club.name}</span>
+          <Icon name="chevron-right" aria-hidden="true" />
+          <span aria-current="page">{club.name}</span>
         </nav>
 
         <header className={styles.detailHead}>
           <MemberRing club={club} />
-          <div>
+          <div className={styles.detailIdentity}>
             <div className={styles.detailTitleRow}>
               <h1>{club.name}</h1>
               {club.myRole && (
-                <span className={styles.joined}>{isOwner ? '내가 운영' : '가입함'}</span>
+                <span className={styles.joined}>
+                  <Icon name="check" aria-hidden="true" />
+                  {isOwner ? '내가 운영' : '가입함'}
+                </span>
               )}
             </div>
             <p className={styles.detailDesc}>{club.description}</p>
             <div className={styles.detailMetaLine}>
-              <span>{CLUB_CATEGORY_LABEL[club.category]}</span>
-              <span>{CLUB_VISIBILITY_LABEL[club.visibility]} 클럽</span>
-              <span>멤버 {club.memberCount}명</span>
-              <span>글 {club.postCount}개</span>
-              <span>운영 {club.owner.nickname}</span>
+              <span className={styles.metaItem}>{CLUB_CATEGORY_LABEL[club.category]}</span>
+              <span className={styles.metaItem}>
+                <Icon name="shield" aria-hidden="true" />
+                {CLUB_VISIBILITY_LABEL[club.visibility]} 클럽
+              </span>
+              <span className={styles.metaItem}>
+                <Icon name="user" aria-hidden="true" />
+                멤버 {club.memberCount}명
+              </span>
+              <span className={styles.metaItem}>
+                <Icon name="chat" aria-hidden="true" />글 {club.postCount}개
+              </span>
+              <span className={styles.metaItem}>운영 {club.owner.nickname}</span>
             </div>
             <div className={styles.detailActions}>
               {!isMember ? (
-                <Button onClick={handleJoin} isLoading={joinClub.isPending}>
+                <Button
+                  size="lg"
+                  leftIcon={<Icon name="plus" aria-hidden="true" />}
+                  onClick={handleJoin}
+                  isLoading={joinClub.isPending}
+                >
                   클럽 가입하기
                 </Button>
               ) : (
                 <>
-                  <Button variant="gold" onClick={() => navigate(partyHref)}>
+                  <Button
+                    variant="gold"
+                    size="lg"
+                    leftIcon={<Icon name="bolt" aria-hidden="true" />}
+                    onClick={() => navigate(partyHref)}
+                  >
                     이 클럽으로 파티 열기
                   </Button>
                   {!isOwner && (
@@ -275,7 +293,9 @@ export default function ClubDetailPage() {
           </div>
         </header>
 
-        <Tabs tabs={TABS} value={tab} onChange={selectTab} variant="underline" />
+        <div className={styles.tabsWrap}>
+          <Tabs tabs={TABS} value={tab} onChange={selectTab} variant="underline" />
+        </div>
 
         {tab === 'board' && (
           <ClubBoard

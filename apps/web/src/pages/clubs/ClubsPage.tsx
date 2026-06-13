@@ -12,6 +12,7 @@ import { useCurrentUser } from '@store/authStore'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Clubs.module.css'
@@ -55,37 +56,57 @@ export default function ClubsPage() {
     <main className={styles.page}>
       <div className="container">
         <header className={styles.head}>
-          <div>
+          <div className={styles.headText}>
+            <span className={styles.kicker}>
+              <Icon name="sparkle" aria-hidden="true" /> 정기 모임
+            </span>
             <h1>클럽</h1>
             <p>
               하룻밤 파티가 끝나도 잔은 다시 돕니다. 같은 취향이 정기적으로 모이는 자리, 마음 맞는
               클럽에 앉아보세요.
             </p>
           </div>
-          <Button onClick={() => navigate('/clubs/new')}>클럽 만들기</Button>
+          <div className={styles.headActions}>
+            <Button
+              leftIcon={<Icon name="plus" aria-hidden="true" />}
+              onClick={() => navigate('/clubs/new')}
+            >
+              클럽 만들기
+            </Button>
+          </div>
         </header>
 
-        <div className={styles.filters}>
-          <div className={styles.chipRow} role="group" aria-label="카테고리 필터">
-            <Chip selected={category === 'all'} onClick={() => selectCategory('all')}>
-              전체
-            </Chip>
-            {CLUB_CATEGORIES.map((value) => (
+        <section className={styles.filters} aria-label="클럽 찾기">
+          <div className={styles.filterGroup}>
+            <span className={styles.filterLabel} id="clubs-category-label">
+              카테고리
+            </span>
+            <div className={styles.chipRow} role="group" aria-labelledby="clubs-category-label">
               <Chip
-                key={value}
-                selected={category === value}
-                leadingEmoji={CATEGORY_META[value].emoji}
-                onClick={() => selectCategory(value)}
+                selected={category === 'all'}
+                leadingIcon={<Icon name="sparkle" aria-hidden="true" />}
+                onClick={() => selectCategory('all')}
               >
-                {CLUB_CATEGORY_LABEL[value]}
+                전체
               </Chip>
-            ))}
+              {CLUB_CATEGORIES.map((value) => (
+                <Chip
+                  key={value}
+                  selected={category === value}
+                  leadingEmoji={CATEGORY_META[value].emoji}
+                  onClick={() => selectCategory(value)}
+                >
+                  {CLUB_CATEGORY_LABEL[value]}
+                </Chip>
+              ))}
+            </div>
           </div>
           <div className={styles.searchRow}>
             <Input
               type="search"
               label="클럽 검색"
               placeholder="이름이나 소개로 검색"
+              leftIcon={<Icon name="search" aria-hidden="true" />}
               value={searchText}
               onChange={(event) => {
                 setPage(1)
@@ -93,7 +114,7 @@ export default function ClubsPage() {
               }}
             />
           </div>
-        </div>
+        </section>
 
         {isLoading ? (
           <div className={styles.stateBlock}>
@@ -121,6 +142,10 @@ export default function ClubsPage() {
           </div>
         ) : (
           <>
+            <p className={styles.resultMeta} aria-live="polite">
+              {category === 'all' ? '전체' : CLUB_CATEGORY_LABEL[category]} 클럽 {data.items.length}
+              곳
+            </p>
             <ul className={styles.list}>
               {data.items.map((club) => (
                 <li key={club.id} className={styles.row}>
@@ -137,6 +162,7 @@ export default function ClubsPage() {
                         <strong>{club.name}</strong>
                         {club.myRole && (
                           <span className={styles.joined}>
+                            <Icon name="check" aria-hidden="true" />
                             {club.myRole === 'owner' ? '내가 운영' : '가입함'}
                           </span>
                         )}
@@ -149,7 +175,10 @@ export default function ClubsPage() {
                       </span>
                     </span>
                     <span className={styles.rowAside}>
-                      멤버 {club.memberCount} · 글 {club.postCount}
+                      <Icon name="user" aria-hidden="true" />
+                      {club.memberCount}
+                      <Icon name="chat" aria-hidden="true" />
+                      {club.postCount}
                     </span>
                   </Link>
                 </li>
@@ -179,7 +208,7 @@ export default function ClubsPage() {
         )}
 
         {!me && (
-          <p className={styles.fieldHint}>
+          <p className={styles.loginNote}>
             클럽 가입과 게시판 참여에는 <Link to="/login?from=%2Fclubs">로그인</Link>이 필요해요.
           </p>
         )}

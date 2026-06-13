@@ -16,6 +16,7 @@ import {
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -79,41 +80,48 @@ export default function SourcingPage() {
         <div className={styles.headVeil} aria-hidden="true" />
         <span className={styles.kicker}>
           <span className={styles.kickerTick} aria-hidden="true" />
-          VENUE SOURCING STUDIO
+          VENUE SOURCING
         </span>
-        <h1 className={styles.title}>
-          동네에서 3탭,
-          <br />딱 맞는 공간을 섭외하세요
-        </h1>
+        <h1 className={styles.title}>모임 공간 섭외</h1>
         <p className={styles.lead}>
-          카테고리·인원·시간만 정하면, 위치까지 따져 가장 잘 맞는 공간을 점수로 추천해요.
+          카테고리·인원·시간만 정하면 위치까지 따져 잘 맞는 공간을 점수로 추천해요. 마음에 들면 바로
+          섭외를 요청하고, 진행 상황은 한자리에서 추적하세요.
         </p>
-        <div className={styles.tabs} role="tablist">
+        <div className={styles.tabs} role="tablist" aria-label="섭외 보기 전환">
           <button
+            type="button"
             role="tab"
+            id="tab-find"
             aria-selected={tab === 'find'}
+            aria-controls="panel-find"
             className={`${styles.tab} ${tab === 'find' ? styles.tabOn : ''}`}
             onClick={() => setTab('find')}
           >
+            <Icon name="search" size={1} aria-hidden />
             공간 찾기
           </button>
           <button
+            type="button"
             role="tab"
+            id="tab-mine"
             aria-selected={tab === 'mine'}
+            aria-controls="panel-mine"
             className={`${styles.tab} ${tab === 'mine' ? styles.tabOn : ''}`}
             onClick={() => setTab('mine')}
           >
-            내 섭외
+            <Icon name="bookmark" size={1} aria-hidden />내 섭외
           </button>
         </div>
       </header>
 
       {tab === 'find' ? (
-        <>
-          <section className={`container ${styles.brief}`} aria-label="섭외 브리프">
+        <div id="panel-find" role="tabpanel" aria-labelledby="tab-find">
+          <section className={`container ${styles.brief}`} aria-label="섭외 조건">
             <div className={styles.briefRow}>
-              <span className={styles.briefLabel}>무엇으로</span>
-              <div className={styles.chipRow}>
+              <span className={styles.briefLabel} id="brief-cat">
+                무엇으로
+              </span>
+              <div className={styles.chipRow} role="group" aria-labelledby="brief-cat">
                 {ALL_CATEGORIES.filter((c) => c.value !== 'custom').map((c) => (
                   <Chip
                     key={c.value}
@@ -128,8 +136,10 @@ export default function SourcingPage() {
             </div>
 
             <div className={styles.briefRow}>
-              <span className={styles.briefLabel}>어디서</span>
-              <div className={styles.chipRow}>
+              <span className={styles.briefLabel} id="brief-area">
+                어디서
+              </span>
+              <div className={styles.chipRow} role="group" aria-labelledby="brief-area">
                 {areaOptions.map((a) => (
                   <Chip key={a} selected={area === a} onClick={() => setArea(a)}>
                     {a}
@@ -142,7 +152,7 @@ export default function SourcingPage() {
                   aria-pressed={geo.status === 'granted'}
                 >
                   <span className={styles.geoPin} aria-hidden="true">
-                    📍
+                    <Icon name="pin" size={1} />
                   </span>
                   {geo.status === 'granted' ? '내 주변 정렬됨' : '내 주변'}
                 </button>
@@ -150,18 +160,26 @@ export default function SourcingPage() {
             </div>
 
             <div className={styles.briefGrid}>
-              <label className={styles.field}>
-                <span>인원</span>
-                <div className={styles.stepper}>
-                  <button type="button" onClick={() => setPartySize((n) => Math.max(2, n - 2))}>
-                    −
+              <div className={styles.field}>
+                <span id="field-size">인원</span>
+                <div className={styles.stepper} role="group" aria-labelledby="field-size">
+                  <button
+                    type="button"
+                    aria-label="인원 줄이기"
+                    onClick={() => setPartySize((n) => Math.max(2, n - 2))}
+                  >
+                    <Icon name="close" size={0.7} aria-hidden />
                   </button>
-                  <strong>{partySize}명</strong>
-                  <button type="button" onClick={() => setPartySize((n) => Math.min(40, n + 2))}>
-                    ＋
+                  <strong aria-live="polite">{partySize}명</strong>
+                  <button
+                    type="button"
+                    aria-label="인원 늘리기"
+                    onClick={() => setPartySize((n) => Math.min(40, n + 2))}
+                  >
+                    <Icon name="plus" size={0.8} aria-hidden />
                   </button>
                 </div>
-              </label>
+              </div>
               <label className={styles.field}>
                 <span>날짜</span>
                 <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
@@ -190,13 +208,17 @@ export default function SourcingPage() {
             </div>
 
             {!hasValidTimeRange && (
-              <p className={styles.validationError}>
+              <p className={styles.validationError} role="alert">
                 종료 시간이 시작 시간보다 빠르거나 같아요. 시간 설정을 수정해 주세요.
               </p>
             )}
           </section>
 
-          <section className={`container ${styles.results}`}>
+          <section
+            className={`container ${styles.results}`}
+            aria-label="추천 공간"
+            aria-busy={isLoading}
+          >
             {isLoading ? (
               <Loading />
             ) : !recs || recs.length === 0 ? (
@@ -206,23 +228,28 @@ export default function SourcingPage() {
                 description="인원이나 동네를 바꿔보세요."
               />
             ) : (
-              <div className={styles.recList}>
-                {recs.map((r, i) => (
-                  <VenueRecCard
-                    key={r.venue.id}
-                    rec={r}
-                    index={i}
-                    reduce={reduce}
-                    hasTime={!!startAt && !!endAt}
-                    onPick={() => setSelected(r)}
-                  />
-                ))}
-              </div>
+              <>
+                <p className={styles.resultsCount}>{recs.length}곳을 적합도 순으로 추천했어요</p>
+                <div className={styles.recList}>
+                  {recs.map((r, i) => (
+                    <VenueRecCard
+                      key={r.venue.id}
+                      rec={r}
+                      index={i}
+                      reduce={reduce}
+                      hasTime={!!startAt && !!endAt}
+                      onPick={() => setSelected(r)}
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </section>
-        </>
+        </div>
       ) : (
-        <BookingTracker />
+        <div id="panel-mine" role="tabpanel" aria-labelledby="tab-mine">
+          <BookingTracker />
+        </div>
       )}
 
       {selected && (
@@ -254,6 +281,8 @@ function FitRing({ score, grade }: { score: number; grade: VenueRecommendation['
     <div
       className={`${styles.ring} ${styles[`ring_${grade}`]}`}
       style={{ ['--deg' as never]: `${deg}deg` }}
+      role="img"
+      aria-label={`적합도 ${score}점, ${gradeLabel(grade)}`}
     >
       <div className={styles.ringInner}>
         <strong>{score}</strong>
@@ -295,9 +324,7 @@ function VenueRecCard({
     >
       {isBest && (
         <div className={styles.bestRibbon}>
-          <span className={styles.bestStar} aria-hidden="true">
-            ★
-          </span>
+          <Icon name="sparkle" size={0.85} aria-hidden />
           {bestMatchLabel(fit.grade)}
         </div>
       )}
@@ -305,13 +332,15 @@ function VenueRecCard({
         {venue.photos[0] ? (
           <img src={venue.photos[0]} alt="" loading="lazy" />
         ) : (
-          <div className={styles.recCoverPh}>🏛️</div>
+          <div className={styles.recCoverPh} aria-hidden="true">
+            <Icon name="home" size={2} />
+          </div>
         )}
         <div className={styles.recCoverScrim} aria-hidden="true" />
         <div className={styles.recCoverTop}>
           {venue.instantBook && (
             <Badge tone="gold" size="sm">
-              ⚡ 즉시확정
+              <Icon name="bolt" size={0.85} aria-hidden /> 즉시확정
             </Badge>
           )}
           {available === false && (
@@ -334,7 +363,7 @@ function VenueRecCard({
           {venue.area}
           {distanceKm != null && (
             <span className={styles.dist}>
-              ·{' '}
+              {' · '}
               {distanceKm < 1 ? `${Math.round(distanceKm * 1000)}m` : `${distanceKm.toFixed(1)}km`}
             </span>
           )}
@@ -418,12 +447,18 @@ function BookingConfirm({
   }
 
   return (
-    <div className={styles.sheetWrap} role="dialog" aria-modal="true">
+    <div className={styles.sheetWrap} role="dialog" aria-modal="true" aria-labelledby="sheet-title">
       <button className={styles.sheetScrim} aria-label="닫기" onClick={onClose} />
       <div className={styles.sheet}>
-        <div className={styles.sheetHandle} />
-        {venue.instantBook && <span className={styles.sheetKicker}>⚡ INSTANT BOOK</span>}
-        <h2 className={styles.sheetTitle}>{venue.name} 섭외</h2>
+        <div className={styles.sheetHandle} aria-hidden="true" />
+        {venue.instantBook && (
+          <span className={styles.sheetKicker}>
+            <Icon name="bolt" size={0.85} aria-hidden /> INSTANT BOOK
+          </span>
+        )}
+        <h2 className={styles.sheetTitle} id="sheet-title">
+          {venue.name} 섭외
+        </h2>
         <p className={styles.sheetMeta}>
           {venue.area} · {partySize}명 · {CATEGORY_META[category]?.label}
         </p>
@@ -447,7 +482,10 @@ function BookingConfirm({
             )}
             {quote.discountKRW > 0 && (
               <div className={`${styles.qRow} ${styles.qDiscount}`}>
-                <span>⚡ 막판 할인 {Math.round(quote.lastMinuteRate * 100)}%</span>
+                <span className={styles.qDiscountLabel}>
+                  <Icon name="bolt" size={0.85} aria-hidden /> 막판 할인{' '}
+                  {Math.round(quote.lastMinuteRate * 100)}%
+                </span>
                 <span>−{formatKRW(quote.discountKRW)}</span>
               </div>
             )}
@@ -464,17 +502,20 @@ function BookingConfirm({
           </div>
         )}
 
-        <textarea
-          className={styles.noteInput}
-          rows={2}
-          placeholder="사장님께 한마디 (예: 루프탑 자리 우선 부탁드려요)"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
+        <label className={styles.noteLabel}>
+          <span>사장님께 한마디</span>
+          <textarea
+            className={styles.noteInput}
+            rows={2}
+            placeholder="예: 루프탑 자리 우선 부탁드려요"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </label>
 
         <p className={styles.sheetHint}>
           {venue.instantBook
-            ? '⚡ 즉시 확정되는 공간이에요. 누르면 바로 잡혀요.'
+            ? '즉시 확정되는 공간이에요. 누르면 바로 잡혀요.'
             : '사장님이 확인 후 확정하면 알림으로 알려드려요.'}
         </p>
 
@@ -510,7 +551,7 @@ function BookingTracker() {
     )
 
   return (
-    <section className={`container ${styles.tracker}`}>
+    <section className={`container ${styles.tracker}`} aria-label="내 섭외 목록">
       {data.map((b) => (
         <BookingRow
           key={b.id}
@@ -542,8 +583,12 @@ function BookingRow({ booking, onCancel }: { booking: VenueBooking; onCancel: ()
   const when = `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
   return (
     <article className={styles.bRow}>
-      <div className={styles.bThumb}>
-        {booking.venuePhoto ? <img src={booking.venuePhoto} alt="" loading="lazy" /> : '🏛️'}
+      <div className={styles.bThumb} aria-hidden="true">
+        {booking.venuePhoto ? (
+          <img src={booking.venuePhoto} alt="" loading="lazy" />
+        ) : (
+          <Icon name="home" size={1.4} />
+        )}
       </div>
       <div className={styles.bMain}>
         <div className={styles.bTop}>
@@ -555,10 +600,16 @@ function BookingRow({ booking, onCancel }: { booking: VenueBooking; onCancel: ()
         <p className={styles.bMeta}>
           {booking.venueArea} · {when} · {booking.partySize}명 · {formatKRW(booking.totalKRW)}
         </p>
-        {booking.ownerMessage && <p className={styles.bMsg}>💬 {booking.ownerMessage}</p>}
+        {booking.ownerMessage && (
+          <p className={styles.bMsg}>
+            <Icon name="chat" size={0.95} aria-hidden /> {booking.ownerMessage}
+          </p>
+        )}
         {booking.status === 'confirmed' && booking.arrivalGuide && (
           <div className={styles.arrival}>
-            <strong>🗝️ 도착 가이드</strong>
+            <strong>
+              <Icon name="pin" size={0.95} aria-hidden /> 도착 가이드
+            </strong>
             {booking.arrivalGuide.parkingNote && <span>🅿️ {booking.arrivalGuide.parkingNote}</span>}
             {booking.arrivalGuide.entryInfo && <span>🚪 {booking.arrivalGuide.entryInfo}</span>}
             {booking.arrivalGuide.wifiSsid && (
