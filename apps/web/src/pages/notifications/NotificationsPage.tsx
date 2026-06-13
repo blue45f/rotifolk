@@ -7,17 +7,18 @@ import type { NotificationItem } from '@features/notifications/realtime-cache'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Tabs } from '@components/ui/Tabs/Tabs'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Notifications.module.css'
 
-const KIND_EMOJI: Record<string, string> = {
-  party_join: '🎟️',
-  party_starting: '⏰',
-  match_made: '💌',
-  host_review: '⭐',
-  message: '💬',
-  new_follower: '👤',
+const KIND_ICON: Record<string, IconName> = {
+  party_join: 'clock',
+  party_starting: 'clock',
+  match_made: 'mail',
+  host_review: 'sparkle',
+  message: 'chat',
+  new_follower: 'user',
 }
 
 type FilterKey = 'all' | 'party' | 'match' | 'message' | 'review' | 'follow'
@@ -94,12 +95,22 @@ export default function NotificationsPage() {
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
-        <div>
+        <div className={styles.headText}>
           <h1>알림</h1>
-          {unread > 0 && <p className={styles.muted}>읽지 않은 {unread}개</p>}
+          {unread > 0 ? (
+            <p className={styles.muted}>읽지 않은 {unread}개</p>
+          ) : (
+            <p className={styles.muted}>모두 확인했어요</p>
+          )}
         </div>
         {unread > 0 && (
-          <Button variant="ghost" onClick={() => markAllRead.mutate()}>
+          <Button
+            variant="soft"
+            size="sm"
+            onClick={() => markAllRead.mutate()}
+            isLoading={markAllRead.isPending}
+            leftIcon={<Icon name="check" />}
+          >
             모두 읽음
           </Button>
         )}
@@ -124,7 +135,7 @@ export default function NotificationsPage() {
 
       {filtered.length === 0 ? (
         <EmptyState
-          emoji="🔕"
+          emoji="🔔"
           title={all.length === 0 ? '아직 알림이 없어요' : '이 필터에 해당하는 알림이 없어요'}
           description={
             all.length === 0
@@ -135,8 +146,8 @@ export default function NotificationsPage() {
       ) : (
         <div className={styles.groups}>
           {grouped.map((group) => (
-            <section key={group.label} className={styles.group}>
-              <h3 className={styles.groupLabel}>{group.label}</h3>
+            <section key={group.label} className={styles.group} aria-label={group.label}>
+              <h2 className={styles.groupLabel}>{group.label}</h2>
               <ul className={styles.list}>
                 {group.items.map((n) => {
                   const handleClick = () => !n.isRead && markOne.mutate(n.id)
@@ -148,12 +159,12 @@ export default function NotificationsPage() {
                   const inner = (
                     <>
                       <span className={styles.kindIcon} aria-hidden="true">
-                        {KIND_EMOJI[n.kind] ?? '🔔'}
+                        <Icon name={KIND_ICON[n.kind] ?? 'bell'} />
                       </span>
                       <div className={styles.body}>
                         <strong>{n.title}</strong>
                         {n.body && <p>{n.body}</p>}
-                        <time>
+                        <time dateTime={n.createdAt}>
                           {new Date(n.createdAt).toLocaleString('ko-KR', {
                             month: 'numeric',
                             day: 'numeric',
@@ -165,8 +176,12 @@ export default function NotificationsPage() {
                     </>
                   )
                   return (
-                    <li key={n.id} className={n.isRead ? '' : styles.unread}>
+                    <li
+                      key={n.id}
+                      className={n.isRead ? styles.item : `${styles.item} ${styles.unread}`}
+                    >
                       <div className={styles.row}>
+                        {!n.isRead && <span className={styles.dot} aria-hidden="true" />}
                         {n.link ? (
                           <Link to={n.link} className={styles.rowMain} onClick={handleClick}>
                             {inner}
@@ -184,7 +199,7 @@ export default function NotificationsPage() {
                             aria-label="읽음으로 표시"
                             title="읽음으로 표시"
                           >
-                            ✕
+                            <Icon name="check" />
                           </button>
                         )}
                       </div>
@@ -198,9 +213,15 @@ export default function NotificationsPage() {
       )}
 
       <Card padding="md" variant="soft" className={styles.permission}>
-        <p>브라우저 알림을 켜면 모임 시작 30분 전과 매칭 성사 알림을 받을 수 있어요.</p>
+        <div className={styles.permissionText}>
+          <span className={styles.permissionIcon} aria-hidden="true">
+            <Icon name="bell" />
+          </span>
+          <p>브라우저 알림을 켜면 모임 시작 30분 전과 매칭 성사 알림을 받을 수 있어요.</p>
+        </div>
         <Button
           variant="soft"
+          size="sm"
           onClick={async () => {
             if ('Notification' in window) {
               await Notification.requestPermission()

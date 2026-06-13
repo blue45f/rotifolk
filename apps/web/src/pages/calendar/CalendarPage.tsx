@@ -5,6 +5,7 @@ import { useMyParties } from '@features/parties/queries'
 import { CATEGORY_META } from '@features/categories/meta'
 import { downloadIcs } from '@features/ics/buildIcs'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Calendar.module.css'
@@ -79,10 +80,23 @@ function isSameDay(a: Date, b: Date): boolean {
   )
 }
 
+function buildIcsRequest(party: PartySummary) {
+  const start = new Date(party.startAt)
+  const end = new Date(start.getTime() + DEFAULT_DURATION_MS)
+  return {
+    uid: `${party.id}@rotifolk.app`,
+    title: party.title,
+    location: [party.venueName, party.venueArea].filter(Boolean).join(', '),
+    startAt: start,
+    endAt: end,
+  }
+}
+
 export default function CalendarPage() {
   const today = useMemo(() => new Date(), [])
   const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1))
   const [view, setView] = useState<'grid' | 'list'>('grid')
+  const [selectedKey, setSelectedKey] = useState<string>(() => dateKey(today))
   const navigate = useNavigate()
   const { data, isLoading } = useMyParties()
 
@@ -110,13 +124,130 @@ export default function CalendarPage() {
     [cursor, parties],
   )
 
+  // The day currently revealed in the detail panel below the grid.
+  const selectedCell = useMemo(
+    () => cells.find((c) => c.key === selectedKey) ?? null,
+    [cells, selectedKey],
+  )
+
   const monthLabel = cursor.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
 
   const goPrev = () => setCursor((c) => new Date(c.getFullYear(), c.getMonth() - 1, 1))
   const goNext = () => setCursor((c) => new Date(c.getFullYear(), c.getMonth() + 1, 1))
-  const goToday = () => setCursor(new Date(today.getFullYear(), today.getMonth(), 1))
+  const goToday = () => {
+    setCursor(new Date(today.getFullYear(), today.getMonth(), 1))
+    setSelectedKey(dateKey(today))
+  }
+
+  // Keyboard date navigation within the month grid (arrow keys / home / end).
+  const moveSelection = (current: Date, days: number) => {
+    const next = new Date(current.getFullYear(), current.getMonth(), current.getDate() + days)
+    setSelectedKey(dateKey(next))
+    // Follow the selection into an adjacent month if it crosses the boundary.
+    if (next.getMonth() !== cursor.getMonth() || next.getFullYear() !== cursor.getFullYear()) {
+      setCursor(new Date(next.getFullYear(), next.getMonth(), 1))
+    }
+  }
+
+  const onCellKeyDown = (e: React.KeyboardEvent, date: Date) => {
+    switch (e.key) {
+      case 'ArrowLeft':
+        e.preventDefault()
+        moveSelection(date, -1)
+        break
+      case 'ArrowRight':
+        e.preventDefault()
+        moveSelection(date, 1)
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        moveSelection(date, -7)
+        break
+      case 'ArrowDown':
+        e.preventDefault()
+        moveSelection(date, 7)
+        break
+      case 'Home':
+        e.preventDefault()
+        moveSelection(date, -date.getDay())
+        break
+      case 'End':
+        e.preventDefault()
+        moveSelection(date, 6 - date.getDay())
+        break
+      default:
+        break
+    }
+  }
 
   if (isLoading) return <Loading />
+
+  const renderEventRow = (party: PartySummary) => {
+    const meta = CATEGORY_META[party.category]
+    const start = new Date(party.startAt)
+    const timeLabel = start.toLocaleTimeString('ko-KR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+
+    return (
+      <li
+        key={party.id}
+        className={styles.eventRow}
+        style={{ '--cat-accent': meta.accentHex } as React.CSSProperties}
+      >
+        <button
+          type="button"
+          className={styles.eventRowMain}
+          onClick={() => navigate(`/parties/${party.id}`)}
+          aria-label={`${meta.shortLabel} · ${party.title} · ${timeLabel}`}
+        >
+          <span className={styles.eventRowEmoji} aria-hidden="true">
+            {meta.emoji}
+          </span>
+          <span className={styles.eventRowBody}>
+            <span className={styles.eventRowTitle}>{party.title}</span>
+            <span className={styles.eventRowMeta}>
+              <Icon name="clock" size={0.95} aria-hidden="true" />
+              <span className={styles.eventRowTime}>{timeLabel}</span>
+              {party.venueName && (
+                <>
+                  <span className={styles.eventRowDot} aria-hidden="true" />
+                  <Icon name="pin" size={0.95} aria-hidden="true" />
+                  <span className={styles.eventRowVenue}>{party.venueName}</span>
+                </>
+              )}
+            </span>
+          </span>
+          <Icon
+            name="chevron-right"
+            size={1}
+            className={styles.eventRowChevron}
+            aria-hidden="true"
+          />
+        </button>
+        <button
+          type="button"
+          className={styles.icsBtn}
+          onClick={() => downloadIcs(buildIcsRequest(party))}
+          aria-label={`${party.title} 캘린더에 저장 (ICS 다운로드)`}
+          title="캘린더에 저장 (.ics)"
+        >
+          <Icon name="bookmark" size={1} aria-hidden="true" />
+        </button>
+      </li>
+    )
+  }
+
+  const selectedDateLabel = selectedCell
+    ? selectedCell.date.toLocaleDateString('ko-KR', {
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long',
+      })
+    : ''
+  const selectedIsToday = selectedCell ? isSameDay(selectedCell.date, today) : false
 
   return (
     <div className={`container ${styles.page}`}>
@@ -126,24 +257,42 @@ export default function CalendarPage() {
           <h1 className={styles.monthTitle}>{monthLabel}</h1>
         </div>
         <div className={styles.headControls}>
-          <button type="button" className={styles.navBtn} onClick={goPrev} aria-label="이전 달">
-            ‹
-          </button>
-          <Button variant="soft" size="sm" onClick={goToday}>
-            오늘
-          </Button>
-          {view === 'grid' ? (
-            <Button variant="soft" size="sm" onClick={() => setView('list')}>
-              📋 목록
+          <div className={styles.monthNav} role="group" aria-label="월 이동">
+            <button type="button" className={styles.navBtn} onClick={goPrev} aria-label="이전 달">
+              <Icon
+                name="chevron-right"
+                size={1.15}
+                className={styles.navIconPrev}
+                aria-hidden="true"
+              />
+            </button>
+            <Button variant="soft" size="sm" onClick={goToday}>
+              오늘
             </Button>
-          ) : (
-            <Button variant="soft" size="sm" onClick={() => setView('grid')}>
-              📅 그리드
-            </Button>
-          )}
-          <button type="button" className={styles.navBtn} onClick={goNext} aria-label="다음 달">
-            ›
-          </button>
+            <button type="button" className={styles.navBtn} onClick={goNext} aria-label="다음 달">
+              <Icon name="chevron-right" size={1.15} aria-hidden="true" />
+            </button>
+          </div>
+          <div className={styles.viewToggle} role="group" aria-label="보기 전환">
+            <button
+              type="button"
+              className={styles.viewBtn}
+              data-active={view === 'grid'}
+              aria-pressed={view === 'grid'}
+              onClick={() => setView('grid')}
+            >
+              월
+            </button>
+            <button
+              type="button"
+              className={styles.viewBtn}
+              data-active={view === 'list'}
+              aria-pressed={view === 'list'}
+              onClick={() => setView('list')}
+            >
+              일정
+            </button>
+          </div>
         </div>
       </header>
 
@@ -179,174 +328,126 @@ export default function CalendarPage() {
                 day: 'numeric',
                 weekday: 'short',
               })
+              const isTodayGroup = isSameDay(groupDate, today)
 
               return (
-                <div key={key} className={styles.agendaGroup}>
-                  <p className={styles.agendaDateLabel}>{dateLabel}</p>
-                  <div className={styles.agendaEvents}>
-                    {list.map((party) => {
-                      const meta = CATEGORY_META[party.category]
-                      const start = new Date(party.startAt)
-                      const timeLabel = start.toLocaleTimeString('ko-KR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false,
-                      })
-
-                      const handleDownload = () => {
-                        const end = new Date(start.getTime() + DEFAULT_DURATION_MS)
-                        downloadIcs({
-                          uid: `${party.id}@rotifolk.app`,
-                          title: party.title,
-                          location: [party.venueName, party.venueArea].filter(Boolean).join(', '),
-                          startAt: start,
-                          endAt: end,
-                        })
-                      }
-
-                      return (
-                        <button
-                          key={party.id}
-                          type="button"
-                          className={styles.agendaEvent}
-                          onClick={() => navigate(`/parties/${party.id}`)}
-                          aria-label={`${meta.shortLabel} · ${party.title}`}
-                        >
-                          <span className={styles.agendaEventEmoji} aria-hidden="true">
-                            {meta.emoji}
-                          </span>
-                          <span className={styles.agendaEventBody}>
-                            <span className={styles.agendaEventTitle}>{party.title}</span>
-                            <span className={styles.agendaEventMeta}>{party.venueName}</span>
-                          </span>
-                          <span className={styles.agendaEventTime}>
-                            {timeLabel}
-                            <button
-                              type="button"
-                              className={styles.icsBtn}
-                              style={{ position: 'static', opacity: 1, marginLeft: '6px' }}
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDownload()
-                              }}
-                              aria-label={`${party.title} 캘린더에 저장 (ICS 다운로드)`}
-                              title="캘린더에 저장 (.ics)"
-                            >
-                              <span aria-hidden="true">⤓</span>
-                            </button>
-                          </span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
+                <section key={key} className={styles.agendaGroup} aria-label={dateLabel}>
+                  <p className={styles.agendaDateLabel}>
+                    <span>{dateLabel}</span>
+                    {isTodayGroup && <span className={styles.todayPill}>오늘</span>}
+                  </p>
+                  <ul className={styles.eventRows}>{list.map(renderEventRow)}</ul>
+                </section>
               )
             })
           )}
         </div>
       ) : (
-        <>
-          <div className={styles.weekHeader} role="presentation">
-            {WEEKDAY_LABELS.map((label, idx) => (
-              <span
-                key={label}
-                className={`${styles.weekLabel} ${idx === 0 ? styles.weekSun : ''} ${idx === 6 ? styles.weekSat : ''}`}
-              >
-                {label}
-              </span>
-            ))}
-          </div>
-
-          <div className={styles.grid} role="grid" aria-label={`${monthLabel} 캘린더`}>
-            {cells.map((cell) => {
-              const weekday = cell.date.getDay()
-              const isToday = isSameDay(cell.date, today)
-              const visible = cell.parties.slice(0, MAX_VISIBLE_PER_DAY)
-              const overflow = cell.parties.length - visible.length
-              const firstParty = cell.parties[0]
-
-              const handleDownload = (party: PartySummary) => {
-                const start = new Date(party.startAt)
-                const end = new Date(start.getTime() + DEFAULT_DURATION_MS)
-                downloadIcs({
-                  uid: `${party.id}@rotifolk.app`,
-                  title: party.title,
-                  location: [party.venueName, party.venueArea].filter(Boolean).join(', '),
-                  startAt: start,
-                  endAt: end,
-                })
-              }
-
-              return (
-                <div
-                  key={cell.key}
-                  role="gridcell"
-                  className={[
-                    styles.cell,
-                    cell.inMonth ? '' : styles.cellMuted,
-                    isToday ? styles.cellToday : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
+        <div className={styles.monthLayout}>
+          <div>
+            <div className={styles.weekHeader} role="presentation">
+              {WEEKDAY_LABELS.map((label, idx) => (
+                <span
+                  key={label}
+                  className={`${styles.weekLabel} ${idx === 0 ? styles.weekSun : ''} ${idx === 6 ? styles.weekSat : ''}`}
                 >
-                  <span
+                  {label}
+                </span>
+              ))}
+            </div>
+
+            <div className={styles.grid} role="grid" aria-label={`${monthLabel} 캘린더`}>
+              {cells.map((cell) => {
+                const weekday = cell.date.getDay()
+                const isToday = isSameDay(cell.date, today)
+                const isSelected = cell.key === selectedKey
+                const visible = cell.parties.slice(0, MAX_VISIBLE_PER_DAY)
+                const overflow = cell.parties.length - visible.length
+                const hasEvents = cell.parties.length > 0
+
+                return (
+                  <button
+                    type="button"
+                    key={cell.key}
+                    role="gridcell"
+                    tabIndex={isSelected ? 0 : -1}
+                    aria-selected={isSelected}
+                    aria-current={isToday ? 'date' : undefined}
+                    aria-label={`${cell.date.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}${hasEvents ? `, 파티 ${cell.parties.length}건` : ', 일정 없음'}`}
                     className={[
-                      styles.dayNum,
-                      weekday === 0 ? styles.daySun : '',
-                      weekday === 6 ? styles.daySat : '',
-                      isToday ? styles.dayNumToday : '',
+                      styles.cell,
+                      cell.inMonth ? '' : styles.cellMuted,
+                      isToday ? styles.cellToday : '',
+                      isSelected ? styles.cellSelected : '',
                     ]
                       .filter(Boolean)
                       .join(' ')}
+                    onClick={() => setSelectedKey(cell.key)}
+                    onKeyDown={(e) => onCellKeyDown(e, cell.date)}
                   >
-                    {cell.date.getDate()}
-                  </span>
-
-                  {firstParty && (
-                    <button
-                      type="button"
-                      className={styles.icsBtn}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDownload(firstParty)
-                      }}
-                      aria-label={`${firstParty.title} 캘린더에 저장 (ICS 다운로드)`}
-                      title="캘린더에 저장 (.ics)"
+                    <span
+                      className={[
+                        styles.dayNum,
+                        weekday === 0 ? styles.daySun : '',
+                        weekday === 6 ? styles.daySat : '',
+                        isToday ? styles.dayNumToday : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' ')}
                     >
-                      <span aria-hidden="true">⤓</span>
-                    </button>
-                  )}
+                      {cell.date.getDate()}
+                    </span>
 
-                  <div className={styles.events}>
-                    {visible.map((party) => {
-                      const meta = CATEGORY_META[party.category]
-                      return (
-                        <button
-                          key={party.id}
-                          type="button"
-                          className={styles.event}
-                          onClick={() => navigate(`/parties/${party.id}`)}
-                          aria-label={`${meta.shortLabel} · ${party.title}`}
-                          title={party.title}
-                        >
-                          <span className={styles.eventEmoji} aria-hidden="true">
-                            {meta.emoji}
+                    <span className={styles.events} aria-hidden="true">
+                      {visible.map((party) => {
+                        const meta = CATEGORY_META[party.category]
+                        return (
+                          <span
+                            key={party.id}
+                            className={styles.event}
+                            style={{ '--cat-accent': meta.accentHex } as React.CSSProperties}
+                            title={party.title}
+                          >
+                            <span className={styles.eventEmoji}>{meta.emoji}</span>
+                            <span className={styles.eventTitle}>{truncate(party.title, 14)}</span>
                           </span>
-                          <span className={styles.eventTitle}>{truncate(party.title, 14)}</span>
-                        </button>
-                      )
-                    })}
-                    {overflow > 0 && (
-                      <span className={styles.more} aria-label={`외 ${overflow}건 더`}>
-                        +{overflow}
+                        )
+                      })}
+                      {overflow > 0 && <span className={styles.more}>+{overflow}</span>}
+                    </span>
+                    {hasEvents && (
+                      <span className={styles.cellDot} aria-hidden="true">
+                        <span className={styles.cellDotInner} />
                       </span>
                     )}
-                  </div>
-                </div>
-              )
-            })}
+                  </button>
+                )
+              })}
+            </div>
           </div>
-        </>
+
+          <section className={styles.dayPanel} aria-label={`${selectedDateLabel} 일정`}>
+            <header className={styles.dayPanelHead}>
+              <h2 className={styles.dayPanelTitle}>{selectedDateLabel}</h2>
+              {selectedIsToday && <span className={styles.todayPill}>오늘</span>}
+            </header>
+            {selectedCell && selectedCell.parties.length > 0 ? (
+              <ul className={styles.eventRows}>{selectedCell.parties.map(renderEventRow)}</ul>
+            ) : (
+              <div className={styles.dayPanelEmpty}>
+                <span className={styles.dayPanelEmptyEmoji} aria-hidden="true">
+                  🌿
+                </span>
+                <p className={styles.dayPanelEmptyText}>이 날에는 예정된 파티가 없어요.</p>
+                <Link to="/discover" className={styles.dayPanelEmptyLink}>
+                  <Button variant="soft" size="sm">
+                    파티 둘러보기
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </section>
+        </div>
       )}
     </div>
   )

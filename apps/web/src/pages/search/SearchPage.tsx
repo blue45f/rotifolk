@@ -12,6 +12,7 @@ import { PartyCard } from '@features/parties/PartyCard'
 import { CATEGORY_META } from '@features/categories/meta'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
+import { Icon } from '@components/ui/Icon/Icon'
 import { RecognizedConditions } from '@components/ui/RecognizedConditions/RecognizedConditions'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
@@ -175,11 +176,17 @@ export default function SearchPage() {
   const showSuggest =
     focused && (titleSuggestions.length > 0 || (input.trim().length === 0 && recents.length > 0))
 
+  const suggestedChips = SUGGESTED_TAGS.map((tag) => (
+    <Chip key={tag} leadingEmoji="#" onClick={() => setInput(tag)}>
+      {tag}
+    </Chip>
+  ))
+
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
         <h1 className={styles.title}>파티 검색</h1>
-        <div className={styles.searchBlock}>
+        <div className={styles.searchBlock} role="search">
           <Input
             type="search"
             autoFocus
@@ -189,7 +196,7 @@ export default function SearchPage() {
             onChange={(e) => setInput(e.target.value)}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            leftIcon={<span aria-hidden="true">🔎</span>}
+            leftIcon={<Icon name="search" />}
             aria-label="파티 검색"
             className={styles.searchField}
           />
@@ -214,7 +221,7 @@ export default function SearchPage() {
                             choose(r)
                           }}
                         >
-                          <span aria-hidden="true">🕒</span>
+                          <Icon name="clock" className={styles.suggestIcon} />
                           <span className={styles.suggestText}>{r}</span>
                         </button>
                         <button
@@ -226,7 +233,7 @@ export default function SearchPage() {
                             forget(r)
                           }}
                         >
-                          ✕
+                          <Icon name="close" />
                         </button>
                       </li>
                     ))}
@@ -249,9 +256,13 @@ export default function SearchPage() {
                             choose(s.label)
                           }}
                         >
-                          <span aria-hidden="true">
-                            {s.kind === 'title' ? '🍷' : s.kind === 'area' ? '📍' : '#'}
-                          </span>
+                          {s.kind === 'area' ? (
+                            <Icon name="pin" className={styles.suggestIcon} />
+                          ) : (
+                            <span className={styles.suggestMark} aria-hidden="true">
+                              {s.kind === 'title' ? '🍷' : '#'}
+                            </span>
+                          )}
                           <span className={styles.suggestText}>{s.label}</span>
                           <span className={styles.suggestKind}>
                             {s.kind === 'title' ? '모임' : s.kind === 'area' ? '지역' : '태그'}
@@ -271,21 +282,15 @@ export default function SearchPage() {
         {!hasQuery ? (
           <div className={styles.suggest}>
             <p className={styles.suggestLabel}>이런 키워드는 어때요?</p>
-            <div className={styles.chipRow}>
-              {SUGGESTED_TAGS.map((tag) => (
-                <Chip key={tag} leadingEmoji="#" onClick={() => setInput(tag)}>
-                  {tag}
-                </Chip>
-              ))}
-            </div>
+            <div className={styles.chipRow}>{suggestedChips}</div>
           </div>
         ) : isLoading ? (
           <Loading />
         ) : results.length === 0 ? (
           <EmptyState
-            emoji="🔎"
             title={`'${trimmed}'에 맞는 파티가 없어요`}
             description="다른 키워드를 시도하거나, 추천 태그를 눌러보세요."
+            action={<div className={styles.chipRow}>{suggestedChips}</div>}
           />
         ) : (
           <>
@@ -295,11 +300,13 @@ export default function SearchPage() {
             <p className={styles.count} role="status" aria-live="polite" aria-atomic="true">
               <strong>{results.length}</strong>개의 결과
             </p>
-            <div className={styles.grid}>
+            <ul className={styles.grid}>
               {results.map((p) => (
-                <PartyCard key={p.id} party={p} />
+                <li key={p.id} className={styles.gridItem}>
+                  <PartyCard party={p} />
+                </li>
               ))}
-            </div>
+            </ul>
           </>
         )}
       </section>

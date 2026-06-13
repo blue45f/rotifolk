@@ -2,6 +2,7 @@
   padding-block: var(--space-8) var(--space-16);
 }
 
+/* —— Header —— */
 .head {
   display: flex;
   align-items: flex-end;
@@ -37,6 +38,13 @@
 .headControls {
   display: flex;
   align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
   gap: var(--space-2);
 }
 
@@ -44,31 +52,91 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
-  font-size: 20px;
   line-height: 1;
   cursor: pointer;
   transition:
     background var(--dur-fast) var(--ease-out-quart),
-    border-color var(--dur-fast) var(--ease-out-quart);
+    border-color var(--dur-fast) var(--ease-out-quart),
+    color var(--dur-fast) var(--ease-out-quart);
 }
 
 .navBtn:hover {
-  background: var(--brand-burgundy-100);
-  border-color: var(--brand-burgundy-200);
-  color: var(--brand-burgundy-800);
+  background: var(--brand-apricot-100);
+  border-color: var(--brand-apricot-300);
+  color: var(--brand-apricot-700);
 }
 
 .navBtn:focus-visible {
-  outline: 2px solid var(--brand-burgundy-400);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
+.navIconPrev {
+  transform: rotate(180deg);
+}
+
+/* —— View toggle (월 / 일정) —— */
+.viewToggle {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
+}
+
+.viewBtn {
+  min-height: 38px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    color var(--dur-fast) var(--ease-out-quart);
+}
+
+.viewBtn:hover {
+  color: var(--color-text);
+}
+
+.viewBtn[data-active='true'] {
+  background: var(--color-primary);
+  color: var(--color-primary-fg);
+  box-shadow: var(--shadow-xs);
+}
+
+.viewBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* —— Month layout: grid + selected-day panel —— */
+.monthLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .monthLayout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+}
+
+/* —— Weekday header —— */
 .weekHeader {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -87,53 +155,85 @@
 }
 
 .weekSun {
-  color: var(--brand-burgundy-600);
+  color: var(--brand-apricot-600);
 }
 .weekSat {
   color: var(--color-text-subtle);
 }
 
+/* —— Month grid —— */
 .grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 6px;
+  border-radius: var(--radius-xl);
+  padding: var(--space-3);
   box-shadow: var(--shadow-sm);
 }
 
 .cell {
   position: relative;
+  appearance: none;
+  width: 100%;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-height: clamp(82px, 13vw, 120px);
   padding: 6px;
   border-radius: var(--radius-md);
-  background: var(--brand-cream-50);
+  background: var(--brand-paper-100);
   border: 1px solid transparent;
   overflow: hidden;
+  cursor: pointer;
   container-type: inline-size;
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart);
+}
+
+.cell:hover {
+  background: var(--brand-apricot-50);
+  border-color: var(--brand-apricot-200);
 }
 
 .cellMuted {
-  background: color-mix(in oklab, var(--brand-burgundy-100) 35%, var(--brand-cream-50));
-  opacity: 0.55;
+  background: color-mix(in oklab, var(--color-surface-soft) 60%, var(--brand-paper-100));
+  opacity: 0.6;
+}
+
+.cellMuted:hover {
+  opacity: 0.85;
 }
 
 .cellToday {
-  border-color: var(--brand-burgundy-400);
-  background: color-mix(in oklab, var(--brand-burgundy-100) 60%, var(--brand-cream-50));
+  background: color-mix(in oklab, var(--brand-apricot-100) 70%, var(--brand-paper-100));
+}
+
+.cellSelected {
+  border-color: var(--color-primary);
+  background: var(--brand-apricot-100);
+  box-shadow: var(--shadow-sm);
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  z-index: var(--z-base);
 }
 
 .dayNum {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   color: var(--color-text);
@@ -141,17 +241,18 @@
 }
 
 .daySun {
-  color: var(--brand-burgundy-700);
+  color: var(--brand-apricot-600);
 }
 .daySat {
   color: var(--color-text-subtle);
 }
 
 .dayNumToday {
-  background: var(--brand-burgundy-700);
+  background: var(--color-primary);
   color: var(--color-primary-fg);
 }
 
+/* —— Event pills inside a day cell (decorative summary) —— */
 .events {
   display: flex;
   flex-direction: column;
@@ -166,30 +267,13 @@
   width: 100%;
   padding: 3px 6px;
   border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in oklab, var(--brand-burgundy-300) 50%, transparent);
-  background: var(--color-surface);
+  border-left: 3px solid var(--cat-accent, var(--color-primary));
+  background: color-mix(in oklab, var(--cat-accent, var(--color-primary)) 12%, var(--color-surface));
   color: var(--color-text);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-medium);
   line-height: 1.2;
-  cursor: pointer;
   text-align: left;
-  transition:
-    background var(--dur-fast) var(--ease-out-quart),
-    transform var(--dur-fast) var(--ease-out-quart);
-}
-
-.event:hover {
-  background: var(--brand-burgundy-100);
-}
-
-.event:active {
-  transform: translateY(1px);
-}
-
-.event:focus-visible {
-  outline: 2px solid var(--brand-burgundy-400);
-  outline-offset: 1px;
 }
 
 .eventEmoji {
@@ -209,70 +293,26 @@
   align-self: flex-start;
   padding: 1px 6px;
   border-radius: var(--radius-pill);
-  background: var(--brand-burgundy-100);
-  color: var(--brand-burgundy-800);
+  background: var(--brand-apricot-100);
+  color: var(--brand-apricot-700);
   font-size: var(--fs-3xs);
   font-weight: var(--fw-semibold);
 }
 
-.icsBtn {
+/* A compact event indicator for very narrow cells. */
+.cellDot {
+  display: none;
   position: absolute;
-  top: 4px;
-  right: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in oklab, var(--brand-burgundy-300) 40%, transparent);
-  background: color-mix(in oklab, var(--color-surface) 80%, transparent);
-  color: var(--brand-burgundy-700);
-  font-size: 11px;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity var(--dur-fast) var(--ease-out-quart),
-    background var(--dur-fast) var(--ease-out-quart),
-    transform var(--dur-fast) var(--ease-out-quart);
+  bottom: 6px;
+  right: 6px;
 }
 
-.cell:hover .icsBtn,
-.cell:focus-within .icsBtn,
-.icsBtn:focus-visible {
-  opacity: 1;
-}
-
-.icsBtn:hover {
-  background: var(--brand-burgundy-100);
-  transform: translateY(-1px);
-}
-
-.icsBtn:active {
-  transform: translateY(0);
-}
-
-.icsBtn:focus-visible {
-  outline: 2px solid var(--brand-burgundy-400);
-  outline-offset: 1px;
-}
-
-@media (hover: none) {
-  /* 터치 디바이스에서는 hover가 없으니 항상 보이게 한다. */
-  .icsBtn {
-    opacity: 0.85;
-  }
-}
-
-@media (max-width: 640px) {
-  .icsBtn {
-    width: 16px;
-    height: 16px;
-    font-size: 10px;
-    opacity: 0.7;
-  }
+.cellDotInner {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
 }
 
 @container (max-width: 86px) {
@@ -288,107 +328,268 @@
   }
 }
 
-@media (max-width: 640px) {
-  .cell {
-    min-height: clamp(70px, 16vw, 100px);
-    padding: 4px;
-  }
-  .events {
-    gap: 2px;
-  }
-  .event {
-    padding: 2px 5px;
-    font-size: 10px;
-  }
-  .eventEmoji {
-    font-size: 10px;
-  }
-  .dayNum {
-    width: 20px;
-    height: 20px;
-    font-size: 11px;
-  }
-  .grid {
-    gap: 4px;
-    padding: 4px;
+/* —— Selected-day detail panel —— */
+.dayPanel {
+  position: sticky;
+  top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 860px) {
+  .dayPanel {
+    position: static;
   }
 }
 
-@media (max-width: 420px) {
-  .eventTitle {
-    display: none;
-  }
-  .event {
-    justify-content: center;
-    padding: 2px;
-  }
+.dayPanelHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
-/* Agenda / list view */
+.dayPanelTitle {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
+}
+
+.todayPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-wide);
+}
+
+.dayPanelEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+}
+
+.dayPanelEmptyEmoji {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.dayPanelEmptyText {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.dayPanelEmptyLink {
+  text-decoration: none;
+}
+
+/* —— Agenda (list) view —— */
 .agendaList {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
 }
+
 .agendaGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
+
 .agendaDateLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  margin-bottom: var(--space-2);
   padding-left: var(--space-1);
 }
-.agendaEvents {
+
+/* —— Shared event rows (day panel + agenda) —— */
+.eventRows {
+  list-style: none;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  margin: 0;
+  padding: 0;
 }
-.agendaEvent {
+
+.eventRow {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--cat-accent, var(--color-primary));
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+  transition:
+    box-shadow var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart);
+}
+
+.eventRow:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.eventRowMain {
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-left: 3px solid var(--brand-burgundy-400);
-  border-radius: var(--radius-md);
-  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+  min-height: 56px;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
   text-align: left;
-  width: 100%;
-  transition: background var(--dur-fast) var(--ease-out-quart);
+  cursor: pointer;
 }
-.agendaEvent:hover {
-  background: var(--brand-burgundy-50);
+
+.eventRowMain:hover {
+  background: color-mix(in oklab, var(--cat-accent, var(--color-primary)) 8%, transparent);
 }
-.agendaEventEmoji {
+
+.eventRowMain:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.eventRowEmoji {
   font-size: 1.5rem;
   line-height: 1;
 }
-.agendaEventBody {
+
+.eventRowBody {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
-.agendaEventTitle {
+
+.eventRowTitle {
   font-weight: var(--fw-semibold);
   font-size: var(--fs-md);
+  color: var(--color-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.agendaEventMeta {
+
+.eventRowMeta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
 }
-.agendaEventTime {
+
+.eventRowTime {
   font-family: var(--font-mono);
-  font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
-  color: var(--brand-burgundy-700);
+  color: var(--brand-apricot-700);
+}
+
+.eventRowVenue {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.eventRowDot {
+  flex-shrink: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-subtle);
+}
+
+.eventRowChevron {
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+/* —— ICS save button —— */
+.icsBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-left: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    color var(--dur-fast) var(--ease-out-quart);
+}
+
+.icsBtn:hover {
+  background: var(--brand-apricot-100);
+  color: var(--brand-apricot-700);
+}
+
+.icsBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* —— Responsive —— */
+@media (max-width: 640px) {
+  .cell {
+    min-height: clamp(58px, 15vw, 92px);
+    padding: 4px;
+  }
+  .events {
+    display: none;
+  }
+  .cellDot {
+    display: block;
+  }
+  .dayNum {
+    width: 28px;
+    height: 28px;
+    font-size: var(--fs-sm);
+  }
+  .grid {
+    gap: 4px;
+    padding: var(--space-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navBtn,
+  .viewBtn,
+  .cell,
+  .eventRow,
+  .eventRowMain,
+  .icsBtn {
+    transition: none;
+  }
 }
