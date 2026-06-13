@@ -6,6 +6,7 @@ import { useAuthStore } from '@store/authStore'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -81,81 +82,116 @@ export default function MatchCardPage() {
     } catch {}
   }
 
+  const canConnect = !!me && me.id !== userId
+  const rating = data.stats.averageRating || null
+
   return (
-    <div className={styles.page}>
-      <div className={styles.veil} aria-hidden="true" />
-      <motion.div
+    <main className={styles.page}>
+      <motion.article
         className={styles.card}
-        initial={{ opacity: 0, y: 24, rotate: -2 }}
-        animate={{ opacity: 1, y: 0, rotate: 0 }}
-        transition={{ duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
+        aria-labelledby="match-name"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
-        <div className={styles.stamp}>R O T I F O L K</div>
-        <Avatar
-          size="xl"
-          hue="var(--color-primary)"
-          pattern="gradient"
-          emoji={data.user.nickname[0]}
-          imageSrc={data.user.avatarImage ?? null}
-          ring="gold"
-          label={`${data.user.nickname}님의 프로필 사진`}
-        />
-        <h1 className={styles.name}>{data.user.nickname}</h1>
-        {data.user.mbti && (
-          <Badge tone="gold" size="md">
-            {data.user.mbti}
-          </Badge>
-        )}
-        {data.user.bio && <p className={styles.bio}>{data.user.bio}</p>}
+        <p className={styles.kicker}>오늘 라운드에서 만난 사람</p>
+
+        <header className={styles.identity}>
+          <Avatar
+            size="xl"
+            hue="var(--color-primary)"
+            pattern="gradient"
+            emoji={data.user.nickname[0]}
+            imageSrc={data.user.avatarImage ?? null}
+            ring="gold"
+            label={`${data.user.nickname}님의 프로필 사진`}
+          />
+          <h1 id="match-name" className={styles.name}>
+            {data.user.nickname}
+          </h1>
+          {data.user.mbti && (
+            <Badge tone="gold" size="md">
+              {data.user.mbti}
+            </Badge>
+          )}
+          {data.user.bio && <p className={styles.bio}>{data.user.bio}</p>}
+        </header>
 
         {interests.length > 0 && (
-          <ul className={styles.tags}>
-            {interests.slice(0, 6).map((t) => (
-              <li key={t}>#{t}</li>
-            ))}
-          </ul>
+          <section className={styles.section} aria-labelledby="match-interests">
+            <h2 id="match-interests" className={styles.sectionTitle}>
+              관심사
+            </h2>
+            <ul className={styles.tags}>
+              {interests.slice(0, 6).map((t) => (
+                <li key={t} className={styles.tag}>
+                  #{t}
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
-        <div className={styles.stats}>
-          <div>
+        <section className={styles.stats} aria-label="활동 요약">
+          <div className={styles.stat}>
             <strong>{data.stats.hostedCount}</strong>
             <span>호스팅</span>
           </div>
-          <div>
+          <div className={styles.stat}>
             <strong>{data.stats.followerCount}</strong>
             <span>팔로워</span>
           </div>
-          <div>
-            <strong>{data.stats.averageRating || '–'}</strong>
+          <div className={styles.stat}>
+            <strong>{rating ?? <span aria-label="평점 없음">–</span>}</strong>
             <span>평점</span>
           </div>
-        </div>
+        </section>
 
         <div className={styles.actions}>
-          <Button variant="primary" size="lg" onClick={handleShare}>
-            ↗ 명함 공유
-          </Button>
-          {me && me.id !== userId && (
+          {canConnect ? (
             <>
-              <Button
-                variant={isFollowing ? 'soft' : 'outline'}
-                size="lg"
-                isLoading={followMutation.isPending}
-                onClick={() => followMutation.mutate()}
-              >
-                {isFollowing ? '✓ 팔로잉' : '+ 팔로우'}
-              </Button>
-              <Link to="/chats">
-                <Button variant="ghost" size="lg">
-                  💌 메시지
+              <Link to="/chats" className={styles.primaryLink}>
+                <Button variant="primary" size="lg" fullWidth leftIcon={<Icon name="mail" />}>
+                  메시지 보내기
                 </Button>
               </Link>
+              <div className={styles.secondaryRow}>
+                <Button
+                  variant={isFollowing ? 'soft' : 'outline'}
+                  size="lg"
+                  fullWidth
+                  isLoading={followMutation.isPending}
+                  leftIcon={<Icon name={isFollowing ? 'check' : 'plus'} />}
+                  onClick={() => followMutation.mutate()}
+                >
+                  {isFollowing ? '팔로잉' : '팔로우'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  fullWidth
+                  leftIcon={<Icon name="bookmark" />}
+                  onClick={handleShare}
+                >
+                  공유
+                </Button>
+              </div>
             </>
+          ) : (
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              leftIcon={<Icon name="bookmark" />}
+              onClick={handleShare}
+            >
+              명함 공유
+            </Button>
           )}
         </div>
-      </motion.div>
+      </motion.article>
 
       <p className={styles.footnote}>오늘 같은 라운드에서 만난 인연을 기념하는 명함입니다.</p>
-    </div>
+    </main>
   )
 }
