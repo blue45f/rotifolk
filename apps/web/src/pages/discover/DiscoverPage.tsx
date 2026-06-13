@@ -57,6 +57,11 @@ export default function DiscoverPage() {
   const sort = (params.get('sort') as SortKey | null) ?? 'soonest'
   const status = (params.get('status') as StatusKey | null) ?? 'open'
 
+  // 카테고리만 기본 노출하고, 지역·상태·정렬·날짜는 토글 뒤로 접어 초기 복잡도를 낮춘다.
+  const activeSecondaryCount =
+    (area ? 1 : 0) + (status !== 'open' ? 1 : 0) + (sort !== 'soonest' ? 1 : 0) + (date ? 1 : 0)
+  const [showFilters, setShowFilters] = useState(() => activeSecondaryCount > 0)
+
   const [pageSize, setPageSize] = useState(PAGE_INCREMENT)
   const [todayBase] = useState(() => new Date())
 
@@ -151,23 +156,6 @@ export default function DiscoverPage() {
           ))}
         </div>
 
-        <div className={styles.filterRow} role="group" aria-label="지역 필터">
-          {['전체', '한남', '연남', '북촌', '강남', '성수'].map((a) => {
-            const v = a === '전체' ? null : a
-            const active = (v ?? '') === (area ?? '')
-            return (
-              <Chip
-                key={a}
-                selected={active}
-                onClick={() => setParam('area', v)}
-                leadingIcon={<Icon name="pin" />}
-              >
-                {a}
-              </Chip>
-            )
-          })}
-        </div>
-
         {tag && (
           <div className={styles.filterRow} role="group" aria-label="태그 필터">
             <Chip selected onClick={() => setParam('tag', null)} leadingEmoji="#">
@@ -176,58 +164,95 @@ export default function DiscoverPage() {
           </div>
         )}
 
-        <div className={styles.filterRow} role="group" aria-label="상태 필터">
-          {STATUSES.map((s) => (
-            <Chip
-              key={s.value}
-              selected={status === s.value}
-              leadingIcon={<Icon name={s.icon} />}
-              onClick={() => setParam('status', s.value === 'open' ? null : s.value)}
-            >
-              {s.label}
-            </Chip>
-          ))}
-        </div>
+        <button
+          type="button"
+          className={styles.moreToggle}
+          onClick={() => setShowFilters((v) => !v)}
+          aria-expanded={showFilters}
+          aria-controls="discover-more-filters"
+        >
+          <Icon name="sliders" />
+          <span>{showFilters ? '필터 접기' : '지역 · 상태 · 정렬 · 날짜'}</span>
+          {activeSecondaryCount > 0 && (
+            <span className={styles.moreBadge} aria-label={`적용된 필터 ${activeSecondaryCount}개`}>
+              {activeSecondaryCount}
+            </span>
+          )}
+        </button>
 
-        <div className={styles.filterRow} role="group" aria-label="정렬">
-          {SORTS.map((s) => {
-            const disabled = s.value === 'nearby' && !geo.coords
-            const active = sort === s.value
-            return (
-              <Chip
-                key={s.value}
-                selected={active}
-                leadingIcon={<Icon name={s.icon} />}
-                onClick={() => {
-                  if (s.value === 'nearby' && !geo.coords) {
-                    geo.request()
-                  }
-                  setParam('sort', s.value === 'soonest' ? null : s.value)
-                }}
-                aria-disabled={disabled}
-                title={disabled ? '위치 권한이 필요해요' : ''}
-              >
-                {s.label}
-                {disabled && ' (위치 허용 필요)'}
-              </Chip>
-            )
-          })}
-        </div>
+        {showFilters && (
+          <div id="discover-more-filters" className={styles.moreFilters}>
+            <div className={styles.filterRow} role="group" aria-label="지역 필터">
+              {['전체', '한남', '연남', '북촌', '강남', '성수'].map((a) => {
+                const v = a === '전체' ? null : a
+                const active = (v ?? '') === (area ?? '')
+                return (
+                  <Chip
+                    key={a}
+                    selected={active}
+                    onClick={() => setParam('area', v)}
+                    leadingIcon={<Icon name="pin" />}
+                  >
+                    {a}
+                  </Chip>
+                )
+              })}
+            </div>
 
-        <div className={styles.filterRow} role="group" aria-label="날짜 필터">
-          {DATE_FILTERS.map((entry) => {
-            const active = entry.value === null ? !date : date === entry.value
-            return (
-              <Chip
-                key={entry.value ?? '전체'}
-                selected={active}
-                onClick={() => setParam('date', entry.value)}
-              >
-                {entry.label}
-              </Chip>
-            )
-          })}
-        </div>
+            <div className={styles.filterRow} role="group" aria-label="상태 필터">
+              {STATUSES.map((s) => (
+                <Chip
+                  key={s.value}
+                  selected={status === s.value}
+                  leadingIcon={<Icon name={s.icon} />}
+                  onClick={() => setParam('status', s.value === 'open' ? null : s.value)}
+                >
+                  {s.label}
+                </Chip>
+              ))}
+            </div>
+
+            <div className={styles.filterRow} role="group" aria-label="정렬">
+              {SORTS.map((s) => {
+                const disabled = s.value === 'nearby' && !geo.coords
+                const active = sort === s.value
+                return (
+                  <Chip
+                    key={s.value}
+                    selected={active}
+                    leadingIcon={<Icon name={s.icon} />}
+                    onClick={() => {
+                      if (s.value === 'nearby' && !geo.coords) {
+                        geo.request()
+                      }
+                      setParam('sort', s.value === 'soonest' ? null : s.value)
+                    }}
+                    aria-disabled={disabled}
+                    title={disabled ? '위치 권한이 필요해요' : ''}
+                  >
+                    {s.label}
+                    {disabled && ' (위치 허용 필요)'}
+                  </Chip>
+                )
+              })}
+            </div>
+
+            <div className={styles.filterRow} role="group" aria-label="날짜 필터">
+              {DATE_FILTERS.map((entry) => {
+                const active = entry.value === null ? !date : date === entry.value
+                return (
+                  <Chip
+                    key={entry.value ?? '전체'}
+                    selected={active}
+                    onClick={() => setParam('date', entry.value)}
+                  >
+                    {entry.label}
+                  </Chip>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </section>
 
       <section className={`container ${styles.list}`}>
