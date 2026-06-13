@@ -302,10 +302,8 @@
   border-color: color-mix(in oklab, var(--color-primary) 32%, var(--color-border));
 }
 
+/* Radix DropdownMenu.Content (포털) — 위치는 Radix Popper가 잡고, 표면만 스타일링한다. */
 .themeMenu {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 8px);
   z-index: var(--z-overlay);
   min-width: 158px;
   padding: 6px;

@@ -1,3 +1,4 @@
+/* Radix Dialog.Overlay — 흐려진 스크림. 바깥 클릭/스크롤 락은 Radix가 담당. */
 .backdrop {
   position: fixed;
   inset: 0;
@@ -5,37 +6,40 @@
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   z-index: var(--z-modal);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
   animation: fade-up var(--dur-base) var(--ease-out);
 }
-.scrim {
-  position: absolute;
-  inset: 0;
-  border: 0;
-  background: transparent;
-  cursor: default;
-}
+
+/* Radix Dialog.Content — 패널. Overlay 위에 고정 배치한다. */
 .panel {
+  position: fixed;
+  z-index: calc(var(--z-modal) + 1);
   background: var(--color-surface);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  width: 100%;
   max-height: 90dvh;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-xl);
   animation: slide-up var(--dur-slow) var(--ease-out);
-  position: relative;
-  z-index: 1;
 }
 
+/* sheet: 화면 하단에 붙고 가로 중앙 정렬 (transform은 slide-up 애니메이션 전용으로 비워둔다) */
+.v_sheet {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-inline: auto;
+  width: 100%;
+  max-width: 560px;
+}
+
+/* modal: 화면 정중앙 (inset:0 + margin:auto 로 양축 중앙 — transform은 애니메이션 전용) */
 .v_modal {
-  border-radius: var(--radius-xl);
+  inset: 0;
+  margin: auto;
+  height: max-content;
+  border-radius: var(--radius-2xl);
   max-height: 86dvh;
   width: calc(100% - var(--space-6));
-  margin: auto;
-  transition: width var(--dur-base) var(--ease-out);
 }
 .v_modal.s_sm {
   max-width: 360px;
@@ -45,12 +49,6 @@
 }
 .v_modal.s_lg {
   max-width: 720px;
-}
-
-.v_sheet {
-  max-width: 560px;
-  width: 100%;
-  margin-inline: auto;
 }
 
 .header {
@@ -92,7 +90,7 @@
   background: color-mix(in oklab, var(--brand-ink-900) 4%, transparent);
   font-size: 14px;
   color: var(--color-text-muted);
-  transition: 
+  transition:
     background var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-spring);
   cursor: pointer;
@@ -103,9 +101,6 @@
 }
 .close:active {
   transform: scale(0.95);
-}
-.v_modal .panel {
-  border-radius: var(--radius-2xl);
 }
 
 @keyframes slide-up {
