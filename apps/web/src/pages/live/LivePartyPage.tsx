@@ -172,7 +172,7 @@ export default function LivePartyPage() {
             transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           >
             <span className={styles.announceIcon} aria-hidden="true">
-              📣
+              <Icon name="bell" size={1.05} />
             </span>
             <span className={styles.announceMsg}>{announcement.message}</span>
             {isHost && (
@@ -182,7 +182,7 @@ export default function LivePartyPage() {
                 onClick={() => setAnnouncement(null)}
                 aria-label="공지 닫기"
               >
-                ✕
+                <Icon name="close" size={0.95} />
               </button>
             )}
           </motion.div>
@@ -195,31 +195,29 @@ export default function LivePartyPage() {
           onClick={() => navigate(`/parties/${party.id}`)}
           aria-label="나가기"
         >
-          ✕
+          <Icon name="close" size={1} />
         </button>
         <div className={styles.headBody}>
           <div className={styles.headChips}>
-            <Badge tone="gold" size="md">
-              {cat.emoji} {cat.label}
-            </Badge>
-            <Badge tone="danger" size="md">
-              <Icon
-                name="live"
-                size={0.9}
-                style={{ marginRight: '4px', verticalAlign: 'middle' }}
-              />{' '}
+            <span className={styles.liveTag}>
+              <Icon name="live" size={0.85} aria-hidden="true" />
               LIVE
-            </Badge>
-            {state.currentRoundIndex && (
-              <Badge tone="primary" size="md">
-                R {state.currentRoundIndex}/{party.config.totalRounds}
-              </Badge>
-            )}
+            </span>
+            {state.currentRoundIndex ? (
+              <span className={styles.roundTag}>
+                <span className={styles.roundNow}>R{state.currentRoundIndex}</span>
+                <span className={styles.roundTotal}>/{party.config.totalRounds}</span>
+              </span>
+            ) : null}
+            <span className={styles.catTag} aria-hidden="true">
+              {cat.emoji} {cat.label}
+            </span>
           </div>
           <h1 className={styles.title}>{party.title}</h1>
         </div>
         <div className={styles.headRight}>
           <span className={styles.timer} aria-hidden="true">
+            <Icon name="clock" size={0.7} className={styles.timerIcon} />
             {mm}:{ss}
           </span>
           <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">
@@ -572,7 +570,7 @@ function RecreationOverlay({
         onClick={(e) => e.stopPropagation()}
       >
         <button className={styles.recClose} onClick={onClose} aria-label="닫기">
-          ✕
+          <Icon name="close" size={1} />
         </button>
         {rec.kind === 'balance-game' && (
           <>
@@ -692,8 +690,11 @@ function PairPanel({
         {hubId ? 'N:1 핫시트' : partners.length <= 1 ? '1:1 대화' : `그룹 ${partners.length + 1}명`}
       </div>
       {iAmHub && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--space-3)' }}>
-          <Badge tone="gold">🔥 당신이 핫시트예요 · 모두의 질문에 답해보세요</Badge>
+        <div className={styles.hubBanner}>
+          <Badge tone="gold">
+            <Icon name="flame" size={0.85} aria-hidden="true" /> 당신이 핫시트예요 · 모두의 질문에
+            답해보세요
+          </Badge>
         </div>
       )}
       <div className={styles.partners}>
@@ -715,9 +716,17 @@ function PairPanel({
             />
             <h2 className={styles.partnerName}>{p.nickname}</h2>
             <div className={styles.partnerMeta}>
-              {p.isGuest && <Badge tone="gold">🎟 게스트</Badge>}
-              {p.verified && <Badge tone="info">✓ 본인인증</Badge>}
-              {hubId === p.id && <Badge tone="gold">🔥 핫시트</Badge>}
+              {p.isGuest && <Badge tone="gold">게스트</Badge>}
+              {p.verified && (
+                <Badge tone="info">
+                  <Icon name="check" size={0.8} aria-hidden="true" /> 본인인증
+                </Badge>
+              )}
+              {hubId === p.id && (
+                <Badge tone="gold">
+                  <Icon name="flame" size={0.8} aria-hidden="true" /> 핫시트
+                </Badge>
+              )}
               {p.mbti && (
                 <Badge tone="gold" outlined>
                   {p.mbti}
@@ -730,15 +739,21 @@ function PairPanel({
               ))}
             </div>
             <div className={styles.partnerCtas}>
-              <Button variant="gold" size="sm" onClick={() => onLike(p.id)}>
-                ✨ 좋았어요
+              <Button
+                variant="gold"
+                size="sm"
+                leftIcon={<Icon name="sparkle" size={0.9} aria-hidden="true" />}
+                onClick={() => onLike(p.id)}
+              >
+                좋았어요
               </Button>
               <Button
                 variant="soft"
                 size="sm"
+                leftIcon={<Icon name="mail" size={0.9} aria-hidden="true" />}
                 onClick={() => onSendNote({ id: p.id, nickname: p.nickname })}
               >
-                💌 쪽지
+                쪽지
               </Button>
             </div>
             <CompatChip me={me} meId={meId} partner={p} />
@@ -785,45 +800,18 @@ function CompatChip({
   if (!open) {
     return (
       <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-        💞 궁합 보기
+        궁합 보기
       </Button>
     )
   }
   const c = computeCompatibility(me, partner, `${meId}-${partner.id}`)
   return (
-    <div
-      style={{
-        textAlign: 'center',
-        marginTop: 'var(--space-1)',
-        padding: 'var(--space-3)',
-        borderRadius: 'var(--radius-lg)',
-        background: 'color-mix(in oklab, var(--brand-gold-500) 12%, var(--color-surface))',
-        border: '1px solid color-mix(in oklab, var(--brand-gold-500) 32%, transparent)',
-      }}
-    >
-      <strong style={{ fontSize: 'var(--fs-lg)', color: 'var(--brand-burgundy-700)' }}>
-        💞 {c.score}점 · {c.title}
+    <div className={styles.compat}>
+      <strong className={styles.compatScore}>
+        {c.score}점 · {c.title}
       </strong>
-      <p
-        style={{
-          fontSize: 'var(--fs-sm)',
-          color: 'var(--color-text-muted)',
-          marginTop: 'var(--space-1)',
-        }}
-      >
-        {c.blurb}
-      </p>
-      {c.factors.length > 0 && (
-        <p
-          style={{
-            fontSize: 'var(--fs-2xs)',
-            color: 'var(--color-text-subtle)',
-            marginTop: 'var(--space-1)',
-          }}
-        >
-          {c.factors.join(' · ')}
-        </p>
-      )}
+      <p className={styles.compatBlurb}>{c.blurb}</p>
+      {c.factors.length > 0 && <p className={styles.compatFactors}>{c.factors.join(' · ')}</p>}
     </div>
   )
 }
@@ -1017,62 +1005,81 @@ function HostBar({
   }
   return (
     <div className={styles.barInner}>
-      <span className={styles.barRole}>🎙️ 호스트 콘솔</span>
-      <div className={styles.barActions}>
-        {composing ? (
-          <div className={styles.announceCompose}>
-            <input
-              type="text"
-              className={styles.announceInput}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value.slice(0, 140))}
-              placeholder="모든 참가자에게 한 줄 공지 (최대 140자)"
-              maxLength={140}
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  submit()
-                } else if (e.key === 'Escape') {
-                  setComposing(false)
-                  setDraft('')
-                }
-              }}
-            />
-            <Button variant="primary" size="sm" onClick={submit} disabled={!draft.trim()}>
-              📣 발사
+      <span className={styles.barRole}>
+        <Icon name="shield" size={0.9} aria-hidden="true" /> 호스트 콘솔
+      </span>
+      {composing ? (
+        <div className={styles.announceCompose}>
+          <input
+            type="text"
+            className={styles.announceInput}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value.slice(0, 140))}
+            placeholder="모든 참가자에게 한 줄 공지 (최대 140자)"
+            aria-label="공지 내용"
+            maxLength={140}
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                submit()
+              } else if (e.key === 'Escape') {
+                setComposing(false)
+                setDraft('')
+              }
+            }}
+          />
+          <Button
+            variant="primary"
+            size="sm"
+            leftIcon={<Icon name="bell" size={0.85} aria-hidden="true" />}
+            onClick={submit}
+            disabled={!draft.trim()}
+          >
+            발사
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setComposing(false)
+              setDraft('')
+            }}
+          >
+            취소
+          </Button>
+        </div>
+      ) : (
+        <div className={styles.barActions}>
+          <div className={styles.barSecondary}>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<Icon name="clock" size={0.85} aria-hidden="true" />}
+              onClick={onOpenOps}
+            >
+              타이밍
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setComposing(false)
-                setDraft('')
-              }}
+              leftIcon={<Icon name="bell" size={0.85} aria-hidden="true" />}
+              onClick={() => setComposing(true)}
             >
-              취소
+              공지
             </Button>
-          </div>
-        ) : (
-          <>
-            <Button variant="soft" size="sm" onClick={onOpenOps}>
-              ⏱ 타이밍
-            </Button>
-            <Button variant="soft" size="sm" onClick={() => setComposing(true)}>
-              📣 공지
-            </Button>
-            <Button variant="soft" size="sm" onClick={onCheers}>
+            <Button variant="ghost" size="sm" onClick={onCheers}>
               🥂 건배
             </Button>
-            <Button variant="soft" size="sm" onClick={onShuffle}>
+            <Button variant="ghost" size="sm" onClick={onShuffle}>
               🔀 셔플
             </Button>
-            <Button variant="soft" size="sm" onClick={onComplimentRain}>
+            <Button variant="ghost" size="sm" onClick={onComplimentRain}>
               💖 칭찬 폭우
             </Button>
             <span className={styles.barDeck}>
               <Button
-                variant="gold"
+                variant="soft"
                 size="sm"
                 onClick={() =>
                   fireRec('balance-game', { ...BALANCE_GAMES[ri % BALANCE_GAMES.length] })
@@ -1081,7 +1088,7 @@ function HostBar({
                 ⚖️ 밸런스
               </Button>
               <Button
-                variant="gold"
+                variant="soft"
                 size="sm"
                 onClick={() =>
                   fireRec('ideal-type', {
@@ -1092,35 +1099,41 @@ function HostBar({
                 💘 이상형
               </Button>
               <Button
-                variant="gold"
+                variant="soft"
                 size="sm"
                 onClick={() => fireRec('fortune', { ...drawFortune(ri) })}
               >
                 🔮 운세
               </Button>
               <Button
-                variant="gold"
+                variant="soft"
                 size="sm"
                 onClick={() => fireRec('mini-game', { ...MINI_GAMES[ri % MINI_GAMES.length] })}
               >
                 🎮 미니게임
               </Button>
             </span>
-            <Button variant="soft" size="sm" onClick={onLaunchQuiz}>
+            <Button variant="ghost" size="sm" onClick={onLaunchQuiz}>
               🎯 퀴즈 발사
             </Button>
             <Button variant="ghost" size="sm" onClick={onEndRound}>
-              ⏸ 라운드 종료
-            </Button>
-            <Button variant="primary" size="md" onClick={onNextRound}>
-              ▶ 다음 라운드
+              라운드 종료
             </Button>
             <Button variant="danger" size="sm" onClick={onEndParty}>
-              🌹 파티 종료
+              파티 종료
             </Button>
-          </>
-        )}
-      </div>
+          </div>
+          <Button
+            className={styles.primaryAction}
+            variant="primary"
+            size="lg"
+            rightIcon={<Icon name="chevron-right" size={1} aria-hidden="true" />}
+            onClick={onNextRound}
+          >
+            다음 라운드
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
@@ -1139,16 +1152,26 @@ function ParticipantBar({
 }) {
   return (
     <div className={styles.barInner}>
-      <span className={styles.barRole}>🎟️ 참가자</span>
+      <span className={styles.barRole}>
+        <Icon name="user" size={0.9} aria-hidden="true" /> 참가자
+      </span>
       <div className={styles.barActions}>
-        {ordersEnabled && (
-          <Button variant="soft" size="md" onClick={onOpenOrder}>
-            🍷 음료/안주 추가
-          </Button>
-        )}
+        <div className={styles.barSecondary}>
+          {ordersEnabled && (
+            <Button variant="ghost" size="md" onClick={onOpenOrder}>
+              🍷 음료/안주 추가
+            </Button>
+          )}
+        </div>
         {enableFinalMatch && (
-          <Button variant="gold" size="md" onClick={onFinalVote}>
-            💌 최종 매칭 투표
+          <Button
+            className={styles.primaryAction}
+            variant="gold"
+            size="lg"
+            leftIcon={<Icon name="mail" size={1} aria-hidden="true" />}
+            onClick={onFinalVote}
+          >
+            최종 매칭 투표
           </Button>
         )}
       </div>
@@ -1245,7 +1268,7 @@ function BgmPanel({
                   onClick={() => onRemove(t.id)}
                   aria-label={`${t.title} 삭제`}
                 >
-                  ✕
+                  <Icon name="close" size={0.85} />
                 </button>
               )}
             </li>

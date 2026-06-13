@@ -3,11 +3,24 @@
 }
 .head {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-5);
   flex-wrap: wrap;
   margin-bottom: var(--space-8);
+}
+.headIntro {
+  min-width: 0;
+}
+.kicker {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand-apricot-600);
+  margin-bottom: var(--space-2);
 }
 .title {
   font-size: clamp(1.6rem, 3.5vw, 2.4rem);
@@ -16,11 +29,29 @@
   line-height: 1.2;
 }
 .accent {
-  color: var(--brand-burgundy-700);
+  color: var(--brand-apricot-700);
 }
 .lead {
-  margin-top: 6px;
+  margin-top: var(--space-2);
   color: var(--color-text-muted);
+}
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.actionLink {
+  display: inline-flex;
+  text-decoration: none;
+}
+@media (max-width: 560px) {
+  .headActions {
+    width: 100%;
+  }
+  .actionLink,
+  .actionLink > * {
+    width: 100%;
+  }
 }
 .stageLedger {
   margin-bottom: var(--space-10);
@@ -47,25 +78,28 @@
   border-bottom: 1px solid var(--color-border);
 }
 .ledgerRowActive {
-  border-bottom-color: color-mix(in oklab, var(--brand-burgundy-700) 28%, transparent);
+  border-bottom-color: color-mix(in oklab, var(--brand-apricot-600) 28%, transparent);
 }
 .ledgerLabel {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
 }
 .ledgerRowActive .ledgerLabel {
-  color: var(--brand-burgundy-700);
+  color: var(--brand-apricot-700);
   font-weight: var(--fw-bold);
 }
 .ledgerCue {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--brand-burgundy-700);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-burgundy-700) 18%, transparent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-md);
+  color: var(--color-text-subtle);
+}
+.ledgerRowActive .ledgerCue {
+  color: var(--brand-teal-600);
 }
 .ledgerFigure {
   margin: 0;
@@ -76,11 +110,54 @@
   font-feature-settings: 'tnum' 1;
 }
 .ledgerRowActive .ledgerFigure {
-  color: var(--brand-burgundy-700);
+  color: var(--brand-apricot-700);
 }
 
-.revenueCard {
+.revenueDisclosure {
   margin-bottom: var(--space-10);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.revenueSummary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-4);
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--color-text);
+  font-weight: var(--fw-bold);
+}
+.revenueSummary::-webkit-details-marker {
+  display: none;
+}
+.revenueSummary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+.revenueSummaryMain {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--brand-amber-700);
+}
+.revenueSummaryNote {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+  color: var(--color-text-muted);
+}
+.revenueSummaryChevron {
+  margin-left: auto;
+  color: var(--color-text-subtle);
+  transition: transform 160ms var(--ease-out);
+}
+.revenueDisclosure[open] .revenueSummaryChevron {
+  transform: rotate(90deg);
+}
+.revenueCard {
+  margin-bottom: var(--space-4);
   position: relative;
   overflow: hidden;
 }
@@ -93,57 +170,66 @@
     radial-gradient(circle at 100% 100%, color-mix(in oklab, var(--brand-apricot-400) 12%, transparent), transparent 60%);
   pointer-events: none;
 }
-.revenueHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-5);
-  position: relative;
-}
-.revenueTitle {
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-bold);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--brand-amber-600);
-}
-.revenueBadge {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-}
 .revenueStats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3) var(--space-6);
   position: relative;
 }
 .revenueStat {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
 }
 .revenueStat .revenueLabel {
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
 }
 .revenueStat .revenueValue {
-  font-size: var(--fs-3xl);
-  font-weight: var(--fw-black);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 .revenueSubBadge {
   display: inline-flex;
-  margin-left: var(--space-2);
+  margin-left: var(--space-1);
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
+  font-weight: var(--fw-regular);
+}
+.revenueStatHero {
+  grid-column: 1 / -1;
+  border-bottom: 1px solid color-mix(in oklab, var(--brand-apricot-600) 28%, transparent);
+}
+.revenueStatHero .revenueLabel {
+  color: var(--brand-apricot-700);
   font-weight: var(--fw-bold);
 }
 .revenueStatHero .revenueValue {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  color: var(--brand-burgundy-700);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-black);
+  color: var(--brand-apricot-700);
+}
+.revenueStat:has(.scenarioForm) {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-bottom: none;
+  padding-block: var(--space-2) 0;
+}
+.revenueStat:has(.scenarioForm) .revenueLabel {
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+.revenueStat:has(.scenarioForm) .revenueValue {
+  text-align: left;
 }
 .revenueDivider {
   height: 1px;
@@ -433,7 +519,7 @@
 
 @media (max-width: 740px) {
   .revenueStats {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: 1fr;
   }
   .compareStats {
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));

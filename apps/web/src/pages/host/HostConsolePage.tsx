@@ -9,6 +9,7 @@ import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { api } from '@services/api'
 import { REVENUE_MONITORING_POLICY } from '@rotifolk/shared'
 import styles from './HostConsole.module.css'
@@ -405,470 +406,475 @@ export default function HostConsolePage() {
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
-        <div>
+        <div className={styles.headIntro}>
+          <span className={styles.kicker}>HOST CONSOLE</span>
           <h1 className={styles.title}>
-            안녕하세요, <span className={styles.accent}>{user?.nickname}</span> 호스트님 🎙️
+            안녕하세요, <span className={styles.accent}>{user?.nickname}</span> 호스트님
           </h1>
           <p className={styles.lead}>오늘의 라운드를 준비해 볼까요?</p>
         </div>
-        <Link to="/host/create">
-          <Button variant="primary" size="lg">
-            + 새 파티 열기
-          </Button>
-        </Link>
+        <div className={styles.headActions}>
+          <Link to="/host/create" className={styles.actionLink}>
+            <Button variant="primary" size="lg" leftIcon={<Icon name="plus" />}>
+              새 파티 열기
+            </Button>
+          </Link>
+          <Link to="/host/sourcing" className={styles.actionLink}>
+            <Button variant="gold" size="lg" leftIcon={<Icon name="pin" />}>
+              공간 섭외 스튜디오
+            </Button>
+          </Link>
+          <Link to="/host/space" className={styles.actionLink}>
+            <Button variant="outline" size="lg" leftIcon={<Icon name="home" />}>
+              내 가게로 호스팅
+            </Button>
+          </Link>
+        </div>
       </header>
-
-      <section
-        className="container"
-        style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 'var(--space-5)' }}
-      >
-        <Link to="/host/sourcing">
-          <Button variant="gold" size="lg">
-            📍 공간 섭외 스튜디오
-          </Button>
-        </Link>
-        <Link to="/host/space">
-          <Button variant="outline" size="lg">
-            🏠 내 가게로 호스팅
-          </Button>
-        </Link>
-      </section>
 
       <section className={`container ${styles.stageLedger}`} aria-label="호스팅 현황">
         <span className={styles.stageLedgerCaption}>스테이지 현황</span>
         <dl className={styles.ledger}>
-          <StageRow label="진행 중인 파티" value={live} active={live > 0} />
-          <StageRow label="모집 중인 파티" value={open} />
-          <StageRow label="총 호스팅 횟수" value={total} />
+          <StageRow label="진행 중인 파티" value={live} active={live > 0} icon="live" />
+          <StageRow label="모집 중인 파티" value={open} icon="moon" />
+          <StageRow label="총 호스팅 횟수" value={total} icon="sparkle" />
         </dl>
       </section>
 
       <section className="container">
-        <Card padding="lg" variant="gradient" className={styles.revenueCard}>
-          <div className={styles.revenueHead}>
-            <span className={styles.revenueTitle}>호스트 매출 ✨</span>
-            <span className={styles.revenueBadge}>최근 12개 파티 기준 정산</span>
-          </div>
+        <details className={styles.revenueDisclosure}>
+          <summary className={styles.revenueSummary}>
+            <span className={styles.revenueSummaryMain}>
+              <Icon name="sparkle" aria-hidden />
+              정산·매출 자세히 보기
+            </span>
+            <span className={styles.revenueSummaryNote}>최근 12개 파티 기준 정산</span>
+            <Icon name="chevron-right" className={styles.revenueSummaryChevron} aria-hidden />
+          </summary>
+          <Card padding="lg" variant="gradient" className={styles.revenueCard}>
+            <div className={styles.revenueFilter}>
+              <label className={styles.filterField}>
+                <span>비교 모드</span>
+                <select
+                  value={summaryCompareMode}
+                  onChange={(event) =>
+                    setSummaryCompareMode(event.target.value as HostSummaryCompareMode)
+                  }
+                >
+                  <option value="previous_period">직전 기간</option>
+                  <option value="previous_month">전월</option>
+                  <option value="previous_year">전년</option>
+                  <option value="none">비교 미사용</option>
+                </select>
+              </label>
+              <label className={styles.filterField}>
+                <span>조회 시작</span>
+                <input
+                  type="date"
+                  value={summaryFrom}
+                  onChange={(event) => setSummaryFrom(event.target.value)}
+                />
+              </label>
+              <label className={styles.filterField}>
+                <span>조회 종료</span>
+                <input
+                  type="date"
+                  value={summaryTo}
+                  onChange={(event) => setSummaryTo(event.target.value)}
+                />
+              </label>
+              <label className={styles.filterField}>
+                <span>파티 필터(ID)</span>
+                <input
+                  type="text"
+                  value={summaryPartyId}
+                  onChange={(event) => setSummaryPartyId(event.target.value.trim())}
+                  placeholder="예: p_abc123"
+                  maxLength={40}
+                />
+              </label>
+              <div className={styles.filterActions}>
+                <Button variant="ghost" size="sm" onClick={() => setSummaryRange(7)}>
+                  최근 7일
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSummaryRange(30)}>
+                  최근 30일
+                </Button>
+                <Button variant="ghost" size="sm" onClick={clearSummaryFilter}>
+                  전체
+                </Button>
+              </div>
+              <div className={styles.filterActions}>
+                <Button variant="ghost" size="sm" onClick={() => setSummaryTo('')}>
+                  종료일 초기화
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSummaryFrom('')}>
+                  시작일 초기화
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSummaryPartyId('')}>
+                  파티 필터 초기화
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSummaryCompareMode('previous_period')}
+                >
+                  비교 모드 초기화
+                </Button>
+              </div>
+            </div>
 
-          <div className={styles.revenueFilter}>
-            <label className={styles.filterField}>
-              <span>비교 모드</span>
-              <select
-                value={summaryCompareMode}
-                onChange={(event) =>
-                  setSummaryCompareMode(event.target.value as HostSummaryCompareMode)
-                }
-              >
-                <option value="previous_period">직전 기간</option>
-                <option value="previous_month">전월</option>
-                <option value="previous_year">전년</option>
-                <option value="none">비교 미사용</option>
-              </select>
-            </label>
-            <label className={styles.filterField}>
-              <span>조회 시작</span>
-              <input
-                type="date"
-                value={summaryFrom}
-                onChange={(event) => setSummaryFrom(event.target.value)}
-              />
-            </label>
-            <label className={styles.filterField}>
-              <span>조회 종료</span>
-              <input
-                type="date"
-                value={summaryTo}
-                onChange={(event) => setSummaryTo(event.target.value)}
-              />
-            </label>
-            <label className={styles.filterField}>
-              <span>파티 필터(ID)</span>
-              <input
-                type="text"
-                value={summaryPartyId}
-                onChange={(event) => setSummaryPartyId(event.target.value.trim())}
-                placeholder="예: p_abc123"
-                maxLength={40}
-              />
-            </label>
-            <div className={styles.filterActions}>
-              <Button variant="ghost" size="sm" onClick={() => setSummaryRange(7)}>
-                최근 7일
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setSummaryRange(30)}>
-                최근 30일
-              </Button>
-              <Button variant="ghost" size="sm" onClick={clearSummaryFilter}>
-                전체
-              </Button>
-            </div>
-            <div className={styles.filterActions}>
-              <Button variant="ghost" size="sm" onClick={() => setSummaryTo('')}>
-                종료일 초기화
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setSummaryFrom('')}>
-                시작일 초기화
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setSummaryPartyId('')}>
-                파티 필터 초기화
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSummaryCompareMode('previous_period')}
-              >
-                비교 모드 초기화
-              </Button>
-            </div>
-          </div>
+            {!isSummaryRangeValid ? (
+              <p className={styles.sectionHint}>시작일이 종료일보다 늦으면 안 돼요.</p>
+            ) : summaryFrom || summaryTo || summaryPartyId ? (
+              <p className={styles.sectionNote}>
+                조회 구간: {summaryRangeLabelFrom || '전체 시작'} ~{' '}
+                {summaryRangeLabelTo || '전체 종료'}· {comparisonLabel}· 이전 구간 적용{' '}
+                {comparisonMeta.enabled ? '예' : '아니오'}
+                {summaryPartyId ? ` · 파티 ${summaryPartyId}` : ''}
+                {comparisonMeta.rangeFrom
+                  ? ` · 비교 ${comparisonMeta.rangeFrom} ~ ${comparisonMeta.rangeTo ?? '미적용'}`
+                  : ''}
+              </p>
+            ) : null}
 
-          {!isSummaryRangeValid ? (
-            <p className={styles.sectionHint}>시작일이 종료일보다 늦으면 안 돼요.</p>
-          ) : summaryFrom || summaryTo || summaryPartyId ? (
-            <p className={styles.sectionNote}>
-              조회 구간: {summaryRangeLabelFrom || '전체 시작'} ~{' '}
-              {summaryRangeLabelTo || '전체 종료'}· {comparisonLabel}· 이전 구간 적용{' '}
-              {comparisonMeta.enabled ? '예' : '아니오'}
-              {summaryPartyId ? ` · 파티 ${summaryPartyId}` : ''}
-              {comparisonMeta.rangeFrom
-                ? ` · 비교 ${comparisonMeta.rangeFrom} ~ ${comparisonMeta.rangeTo ?? '미적용'}`
-                : ''}
-            </p>
-          ) : null}
-
-          <div className={styles.revenueStats}>
-            <div className={`${styles.revenueStat} ${styles.revenueStatHero}`}>
-              <span className={styles.revenueLabel}>누적 매출</span>
-              <strong className={styles.revenueValue}>
-                {(revenue?.totalKRW ?? 0).toLocaleString()}원
-              </strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>플랫폼 수수료</span>
-              <strong className={styles.revenueValue}>
-                {platformFee.toLocaleString()}원
-                <span className={styles.revenueSubBadge}>
-                  ({(revenue?.platformFeePercent ?? 0).toFixed(1)}%)
-                </span>
-              </strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>환불 보전</span>
-              <strong className={styles.revenueValue}>
-                {refundRetention.toLocaleString()}원
-                <span className={styles.revenueSubBadge}>
-                  ({(revenue?.refundRetentionPercent ?? 0).toFixed(1)}%)
-                </span>
-              </strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>내 정산 예정액</span>
-              <strong className={styles.revenueValue}>{totalPayout.toLocaleString()}원</strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>결제 건수</span>
-              <strong className={styles.revenueValue}>{paidCount.toLocaleString()}건</strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>환불 건수</span>
-              <strong className={styles.revenueValue}>{totalRefunded.toLocaleString()}건</strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>환불 금액</span>
-              <strong className={styles.revenueValue}>
-                {(revenue?.refundedKRW ?? 0).toLocaleString()}원
-              </strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>거래 건수</span>
-              <strong className={styles.revenueValue}>{totalTickets.toLocaleString()}건</strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>환불률</span>
-              <strong className={styles.revenueValue}>{refundRate.toFixed(1)}%</strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>평균 결제액</span>
-              <strong className={styles.revenueValue}>{avgTicket.toLocaleString()}원</strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>운영 파티</span>
-              <strong className={styles.revenueValue}>{partyCount.toLocaleString()}개</strong>
-            </div>
-            <div className={styles.revenueStat}>
-              <span className={styles.revenueLabel}>정산 시뮬레이션</span>
-              <div className={styles.scenarioForm}>
-                <label>
-                  <span className={styles.scenarioLabel}>플랫폼 수수료(%)</span>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={0.1}
-                    value={scenarioPlatformFeePercent}
-                    onChange={(event) => setScenarioPlatformFeePercent(event.target.value)}
-                  />
-                </label>
-                <label>
-                  <span className={styles.scenarioLabel}>환불보전(%)</span>
-                  <input
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={0.1}
-                    value={scenarioRefundPercent}
-                    onChange={(event) => setScenarioRefundPercent(event.target.value)}
-                  />
-                </label>
-                {hasHostScenario && hostScenarioPayoutKRW !== null ? (
-                  <span className={styles.scenarioOutput}>
-                    수수료 {hostScenarioPlatformFeeKRW?.toLocaleString()}원 · 환불보전{' '}
-                    {hostScenarioRefundRetentionKRW?.toLocaleString()}원
-                    <br />
-                    플랫폼 수익 {hostScenarioPlatformRevenueKRW?.toLocaleString()}원
-                    <span
-                      className={
-                        scenarioHostPlatformRevenueDelta !== null &&
-                        scenarioHostPlatformRevenueDelta > 0
-                          ? styles.scenarioDeltaUp
-                          : scenarioHostPlatformRevenueDelta !== null &&
-                              scenarioHostPlatformRevenueDelta < 0
-                            ? styles.scenarioDeltaDown
-                            : ''
-                      }
-                    >
-                      {' '}
-                      (
-                      {scenarioHostPlatformRevenueDelta !== null &&
-                      scenarioHostPlatformRevenueDelta > 0
-                        ? '+'
-                        : ''}
-                      {scenarioHostPlatformRevenueDelta?.toLocaleString()}원)
-                    </span>
-                    <br />
-                    정산 {hostScenarioPayoutKRW.toLocaleString()}원
-                    {scenarioHostPayoutDelta !== null ? (
+            <div className={styles.revenueStats}>
+              <div className={`${styles.revenueStat} ${styles.revenueStatHero}`}>
+                <span className={styles.revenueLabel}>누적 매출</span>
+                <strong className={styles.revenueValue}>
+                  {(revenue?.totalKRW ?? 0).toLocaleString()}원
+                </strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>플랫폼 수수료</span>
+                <strong className={styles.revenueValue}>
+                  {platformFee.toLocaleString()}원
+                  <span className={styles.revenueSubBadge}>
+                    ({(revenue?.platformFeePercent ?? 0).toFixed(1)}%)
+                  </span>
+                </strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>환불 보전</span>
+                <strong className={styles.revenueValue}>
+                  {refundRetention.toLocaleString()}원
+                  <span className={styles.revenueSubBadge}>
+                    ({(revenue?.refundRetentionPercent ?? 0).toFixed(1)}%)
+                  </span>
+                </strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>내 정산 예정액</span>
+                <strong className={styles.revenueValue}>{totalPayout.toLocaleString()}원</strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>결제 건수</span>
+                <strong className={styles.revenueValue}>{paidCount.toLocaleString()}건</strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>환불 건수</span>
+                <strong className={styles.revenueValue}>{totalRefunded.toLocaleString()}건</strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>환불 금액</span>
+                <strong className={styles.revenueValue}>
+                  {(revenue?.refundedKRW ?? 0).toLocaleString()}원
+                </strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>거래 건수</span>
+                <strong className={styles.revenueValue}>{totalTickets.toLocaleString()}건</strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>환불률</span>
+                <strong className={styles.revenueValue}>{refundRate.toFixed(1)}%</strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>평균 결제액</span>
+                <strong className={styles.revenueValue}>{avgTicket.toLocaleString()}원</strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>운영 파티</span>
+                <strong className={styles.revenueValue}>{partyCount.toLocaleString()}개</strong>
+              </div>
+              <div className={styles.revenueStat}>
+                <span className={styles.revenueLabel}>정산 시뮬레이션</span>
+                <div className={styles.scenarioForm}>
+                  <label>
+                    <span className={styles.scenarioLabel}>플랫폼 수수료(%)</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      value={scenarioPlatformFeePercent}
+                      onChange={(event) => setScenarioPlatformFeePercent(event.target.value)}
+                    />
+                  </label>
+                  <label>
+                    <span className={styles.scenarioLabel}>환불보전(%)</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      value={scenarioRefundPercent}
+                      onChange={(event) => setScenarioRefundPercent(event.target.value)}
+                    />
+                  </label>
+                  {hasHostScenario && hostScenarioPayoutKRW !== null ? (
+                    <span className={styles.scenarioOutput}>
+                      수수료 {hostScenarioPlatformFeeKRW?.toLocaleString()}원 · 환불보전{' '}
+                      {hostScenarioRefundRetentionKRW?.toLocaleString()}원
+                      <br />
+                      플랫폼 수익 {hostScenarioPlatformRevenueKRW?.toLocaleString()}원
                       <span
                         className={
-                          scenarioHostPayoutDelta > 0
+                          scenarioHostPlatformRevenueDelta !== null &&
+                          scenarioHostPlatformRevenueDelta > 0
                             ? styles.scenarioDeltaUp
-                            : scenarioHostPayoutDelta < 0
+                            : scenarioHostPlatformRevenueDelta !== null &&
+                                scenarioHostPlatformRevenueDelta < 0
                               ? styles.scenarioDeltaDown
                               : ''
                         }
                       >
                         {' '}
-                        ({scenarioHostPayoutDelta > 0 ? '+' : ''}
-                        {scenarioHostPayoutDelta.toLocaleString()}원)
+                        (
+                        {scenarioHostPlatformRevenueDelta !== null &&
+                        scenarioHostPlatformRevenueDelta > 0
+                          ? '+'
+                          : ''}
+                        {scenarioHostPlatformRevenueDelta?.toLocaleString()}원)
                       </span>
-                    ) : null}
-                    <br />
-                    분배율{' '}
-                    {scenarioPlatformShareRate !== null
-                      ? `플랫폼 ${scenarioPlatformShareRate.toFixed(1)}%, 호스트 ${scenarioHostShareRate?.toFixed(1)}%`
-                      : '계산 중'}
-                  </span>
-                ) : (
-                  <span className={styles.scenarioHint}>0~100 사이 비율을 입력해 주세요.</span>
-                )}
-                <div className={styles.goalSection}>
-                  <label>
-                    <span className={styles.scenarioLabel}>목표 정산액(원)</span>
-                    <input
-                      type="number"
-                      min={0}
-                      step={1000}
-                      value={targetPayoutAmount}
-                      onChange={(event) => setTargetPayoutAmount(event.target.value)}
-                    />
-                  </label>
-                  {parsedTargetPayoutAmount === null ? (
-                    <span className={styles.scenarioHint}>
-                      목표 정산액을 입력하면 달성률을 계산해요.
+                      <br />
+                      정산 {hostScenarioPayoutKRW.toLocaleString()}원
+                      {scenarioHostPayoutDelta !== null ? (
+                        <span
+                          className={
+                            scenarioHostPayoutDelta > 0
+                              ? styles.scenarioDeltaUp
+                              : scenarioHostPayoutDelta < 0
+                                ? styles.scenarioDeltaDown
+                                : ''
+                          }
+                        >
+                          {' '}
+                          ({scenarioHostPayoutDelta > 0 ? '+' : ''}
+                          {scenarioHostPayoutDelta.toLocaleString()}원)
+                        </span>
+                      ) : null}
+                      <br />
+                      분배율{' '}
+                      {scenarioPlatformShareRate !== null
+                        ? `플랫폼 ${scenarioPlatformShareRate.toFixed(1)}%, 호스트 ${scenarioHostShareRate?.toFixed(1)}%`
+                        : '계산 중'}
                     </span>
                   ) : (
-                    <div>
-                      <p className={styles.scenarioOutput}>
-                        목표 정산액 대비 달성률:{' '}
-                        {hostScenarioTargetPayoutReachedRate === null
-                          ? '-'
-                          : `${hostScenarioTargetPayoutReachedRate.toFixed(1)}%`}
-                        {hostScenarioTargetPayoutGap !== null
-                          ? ` (${hostScenarioTargetPayoutGap >= 0 ? '+' : ''}${hostScenarioTargetPayoutGap.toLocaleString()}원)`
-                          : ''}
-                      </p>
-                      {targetFeeForPayout !== null && parsedPlatformFee !== null ? (
-                        <p className={styles.scenarioHint}>
-                          목표 정산액 달성을 위해서는 수수료를{' '}
-                          <strong>{targetFeeForPayout.toFixed(1)}%</strong>로 설정하는 게 필요해요.
-                          {targetFeeReachable ? (
-                            <>
-                              {' '}
-                              (현재 {parsedPlatformFee.toFixed(1)}% 대비{' '}
-                              {targetFeeForPayout >= parsedPlatformFee ? '상향 ' : '하향 '}
-                              {Math.abs(targetFeeForPayout - parsedPlatformFee).toFixed(1)}pp)
-                            </>
-                          ) : (
-                            <span className={styles.scenarioDeltaDown}>
-                              {' '}
-                              목표 정산액이 현재 거래 합계(총매출)보다 큽니다.
-                            </span>
-                          )}
-                        </p>
-                      ) : null}
-                      <div className={styles.goalSectionForecast}>
-                        {hasHostScenario ? (
-                          targetPayoutShortfall !== null && targetPayoutShortfall > 0 ? (
-                            <>
-                              <p className={styles.scenarioOutput}>
-                                추가로 필요한 정산액: {targetPayoutShortfall.toLocaleString()}원
-                              </p>
-                              {hasSummaryPeriod && targetPayoutTargetToReachDays !== null ? (
-                                <p className={styles.scenarioHint}>
-                                  현재 조회 구간 기준 일평균 정산액{' '}
-                                  {hostScenarioDailyPayout?.toLocaleString()}원을 기준으로
-                                  {targetPayoutTargetToReachDays}일 안에 달성 가능해요. (예상 달성일{' '}
-                                  {targetPayoutReachDate ?? '-'})
-                                  {targetPayoutTransactionsEstimate !== null
-                                    ? ` · 거래 건수 기준으로는 약 ${targetPayoutTransactionsEstimate.toLocaleString()}건 추가`
-                                    : ''}
-                                </p>
-                              ) : (
-                                <p className={styles.scenarioHint}>
-                                  조회 구간(시작일/종료일) 기준을 지정하면 일자 기반 도달 시점을
-                                  예측할 수 있어요.
-                                </p>
-                              )}
-                            </>
-                          ) : (
-                            <p className={styles.scenarioOutput}>목표 정산액을 이미 달성했어요.</p>
-                          )
-                        ) : (
-                          <p className={styles.scenarioHint}>
-                            수수료/환불보전 입력값을 먼저 맞춰 주세요.
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                    <span className={styles.scenarioHint}>0~100 사이 비율을 입력해 주세요.</span>
                   )}
-                  <div className={styles.filterActions}>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setTargetPayoutAmount(String(totalPayout))
-                      }}
-                      disabled={!revenue}
-                    >
-                      내 정산 기준 채우기
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setTargetPayoutAmount('')}
-                    >
-                      초기화
-                    </Button>
+                  <div className={styles.goalSection}>
+                    <label>
+                      <span className={styles.scenarioLabel}>목표 정산액(원)</span>
+                      <input
+                        type="number"
+                        min={0}
+                        step={1000}
+                        value={targetPayoutAmount}
+                        onChange={(event) => setTargetPayoutAmount(event.target.value)}
+                      />
+                    </label>
+                    {parsedTargetPayoutAmount === null ? (
+                      <span className={styles.scenarioHint}>
+                        목표 정산액을 입력하면 달성률을 계산해요.
+                      </span>
+                    ) : (
+                      <div>
+                        <p className={styles.scenarioOutput}>
+                          목표 정산액 대비 달성률:{' '}
+                          {hostScenarioTargetPayoutReachedRate === null
+                            ? '-'
+                            : `${hostScenarioTargetPayoutReachedRate.toFixed(1)}%`}
+                          {hostScenarioTargetPayoutGap !== null
+                            ? ` (${hostScenarioTargetPayoutGap >= 0 ? '+' : ''}${hostScenarioTargetPayoutGap.toLocaleString()}원)`
+                            : ''}
+                        </p>
+                        {targetFeeForPayout !== null && parsedPlatformFee !== null ? (
+                          <p className={styles.scenarioHint}>
+                            목표 정산액 달성을 위해서는 수수료를{' '}
+                            <strong>{targetFeeForPayout.toFixed(1)}%</strong>로 설정하는 게
+                            필요해요.
+                            {targetFeeReachable ? (
+                              <>
+                                {' '}
+                                (현재 {parsedPlatformFee.toFixed(1)}% 대비{' '}
+                                {targetFeeForPayout >= parsedPlatformFee ? '상향 ' : '하향 '}
+                                {Math.abs(targetFeeForPayout - parsedPlatformFee).toFixed(1)}pp)
+                              </>
+                            ) : (
+                              <span className={styles.scenarioDeltaDown}>
+                                {' '}
+                                목표 정산액이 현재 거래 합계(총매출)보다 큽니다.
+                              </span>
+                            )}
+                          </p>
+                        ) : null}
+                        <div className={styles.goalSectionForecast}>
+                          {hasHostScenario ? (
+                            targetPayoutShortfall !== null && targetPayoutShortfall > 0 ? (
+                              <>
+                                <p className={styles.scenarioOutput}>
+                                  추가로 필요한 정산액: {targetPayoutShortfall.toLocaleString()}원
+                                </p>
+                                {hasSummaryPeriod && targetPayoutTargetToReachDays !== null ? (
+                                  <p className={styles.scenarioHint}>
+                                    현재 조회 구간 기준 일평균 정산액{' '}
+                                    {hostScenarioDailyPayout?.toLocaleString()}원을 기준으로
+                                    {targetPayoutTargetToReachDays}일 안에 달성 가능해요. (예상
+                                    달성일 {targetPayoutReachDate ?? '-'})
+                                    {targetPayoutTransactionsEstimate !== null
+                                      ? ` · 거래 건수 기준으로는 약 ${targetPayoutTransactionsEstimate.toLocaleString()}건 추가`
+                                      : ''}
+                                  </p>
+                                ) : (
+                                  <p className={styles.scenarioHint}>
+                                    조회 구간(시작일/종료일) 기준을 지정하면 일자 기반 도달 시점을
+                                    예측할 수 있어요.
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <p className={styles.scenarioOutput}>
+                                목표 정산액을 이미 달성했어요.
+                              </p>
+                            )
+                          ) : (
+                            <p className={styles.scenarioHint}>
+                              수수료/환불보전 입력값을 먼저 맞춰 주세요.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    <div className={styles.filterActions}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setTargetPayoutAmount(String(totalPayout))
+                        }}
+                        disabled={!revenue}
+                      >
+                        내 정산 기준 채우기
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setTargetPayoutAmount('')}
+                      >
+                        초기화
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {hasPreviousPeriod ? (
-            <div className={styles.compareSection}>
-              <h3 className={styles.compareTitle}>
-                {comparisonLabel} 비교
-                <span className={styles.compareRange}>
-                  · {comparisonMeta.rangeFrom ?? '미적용'} ~ {comparisonMeta.rangeTo ?? '미적용'}
-                </span>
-              </h3>
-              <div className={styles.compareStats}>
-                {trendComparisonKpis.map((kpi) => {
-                  const trend = trendTone(kpi.percentDelta)
-                  const deltaText = formatDeltaPercent(kpi.percentDelta, !!kpi.isRatePoint)
-                  const currentText = formatTrendValue(kpi.currentValue, kpi.unit)
-                  const previousText = formatTrendValue(kpi.previousValue, kpi.unit)
-                  const deltaClassName =
-                    trend === 'up'
-                      ? styles.compareTrendUp
-                      : trend === 'down'
-                        ? styles.compareTrendDown
-                        : trend === 'flat'
-                          ? styles.compareTrendFlat
-                          : styles.compareTrendNone
+            {hasPreviousPeriod ? (
+              <div className={styles.compareSection}>
+                <h3 className={styles.compareTitle}>
+                  {comparisonLabel} 비교
+                  <span className={styles.compareRange}>
+                    · {comparisonMeta.rangeFrom ?? '미적용'} ~ {comparisonMeta.rangeTo ?? '미적용'}
+                  </span>
+                </h3>
+                <div className={styles.compareStats}>
+                  {trendComparisonKpis.map((kpi) => {
+                    const trend = trendTone(kpi.percentDelta)
+                    const deltaText = formatDeltaPercent(kpi.percentDelta, !!kpi.isRatePoint)
+                    const currentText = formatTrendValue(kpi.currentValue, kpi.unit)
+                    const previousText = formatTrendValue(kpi.previousValue, kpi.unit)
+                    const deltaClassName =
+                      trend === 'up'
+                        ? styles.compareTrendUp
+                        : trend === 'down'
+                          ? styles.compareTrendDown
+                          : trend === 'flat'
+                            ? styles.compareTrendFlat
+                            : styles.compareTrendNone
 
-                  return (
-                    <div key={kpi.label} className={styles.compareStat}>
-                      <span className={styles.compareLabel}>{kpi.label}</span>
-                      <strong className={styles.compareValue}>{currentText}</strong>
-                      <div className={styles.compareMeta}>
-                        <span className={styles.comparePrev}>이전 {previousText}</span>
-                        <span className={`${styles.compareDelta} ${deltaClassName}`}>
-                          {deltaText}
+                    return (
+                      <div key={kpi.label} className={styles.compareStat}>
+                        <span className={styles.compareLabel}>{kpi.label}</span>
+                        <strong className={styles.compareValue}>{currentText}</strong>
+                        <div className={styles.compareMeta}>
+                          <span className={styles.comparePrev}>이전 {previousText}</span>
+                          <span className={`${styles.compareDelta} ${deltaClassName}`}>
+                            {deltaText}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : null}
+
+            <div className={styles.revenueDivider} />
+
+            {(revenue?.totalKRW ?? 0) === 0 ? (
+              <p className={styles.revenueEmpty}>첫 모임이 결제되면 여기에 표시돼요</p>
+            ) : (
+              <ul className={styles.revenueList}>
+                {revenue?.recent
+                  .filter((r) => r.grossTicketCount > 0)
+                  .map((r) => (
+                    <li key={r.partyId} className={styles.revenueListItem}>
+                      <div className={styles.revenueListTitleRow}>
+                        <span className={styles.revenueListTitle} title={r.partyTitle}>
+                          {r.partyTitle}
+                        </span>
+                        {(() => {
+                          const tone = parseMonitorTone(r.refundRatePercent)
+                          return tone ? (
+                            <span
+                              className={`${styles.refundBadge} ${
+                                tone === 'danger'
+                                  ? styles.refundBadgeDanger
+                                  : styles.refundBadgeWarning
+                              }`}
+                            >
+                              {tone === 'danger' ? '고위험 환불률' : '주의 환불률'}
+                            </span>
+                          ) : null
+                        })()}
+                      </div>
+                      <div className={styles.revenueListMetaGroup}>
+                        <span className={styles.revenueListMeta}>
+                          매출 ₩{r.totalKRW.toLocaleString()}
+                          <span className={styles.revenueListCount}>· 결제 {r.paidCount}건</span>
+                        </span>
+                        <span className={styles.revenueListMeta}>
+                          환불 {r.refundedCount}건 / {r.refundRatePercent.toFixed(1)}%
+                          <span className={styles.revenueListCount}>
+                            · 환불 ₩{r.refundedKRW.toLocaleString()}
+                          </span>
+                        </span>
+                        <span className={styles.revenueListMeta}>
+                          수수료 ₩{r.platformFeeKRW.toLocaleString()}
+                          <span className={styles.revenueListCount}>
+                            · 정산 ₩{r.hostPayoutKRW.toLocaleString()}
+                          </span>
                         </span>
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          ) : null}
-
-          <div className={styles.revenueDivider} />
-
-          {(revenue?.totalKRW ?? 0) === 0 ? (
-            <p className={styles.revenueEmpty}>첫 모임이 결제되면 여기에 표시돼요</p>
-          ) : (
-            <ul className={styles.revenueList}>
-              {revenue?.recent
-                .filter((r) => r.grossTicketCount > 0)
-                .map((r) => (
-                  <li key={r.partyId} className={styles.revenueListItem}>
-                    <div className={styles.revenueListTitleRow}>
-                      <span className={styles.revenueListTitle} title={r.partyTitle}>
-                        {r.partyTitle}
-                      </span>
-                      {(() => {
-                        const tone = parseMonitorTone(r.refundRatePercent)
-                        return tone ? (
-                          <span
-                            className={`${styles.refundBadge} ${
-                              tone === 'danger'
-                                ? styles.refundBadgeDanger
-                                : styles.refundBadgeWarning
-                            }`}
-                          >
-                            {tone === 'danger' ? '고위험 환불률' : '주의 환불률'}
-                          </span>
-                        ) : null
-                      })()}
-                    </div>
-                    <div className={styles.revenueListMetaGroup}>
-                      <span className={styles.revenueListMeta}>
-                        매출 ₩{r.totalKRW.toLocaleString()}
-                        <span className={styles.revenueListCount}>· 결제 {r.paidCount}건</span>
-                      </span>
-                      <span className={styles.revenueListMeta}>
-                        환불 {r.refundedCount}건 / {r.refundRatePercent.toFixed(1)}%
-                        <span className={styles.revenueListCount}>
-                          · 환불 ₩{r.refundedKRW.toLocaleString()}
-                        </span>
-                      </span>
-                      <span className={styles.revenueListMeta}>
-                        수수료 ₩{r.platformFeeKRW.toLocaleString()}
-                        <span className={styles.revenueListCount}>
-                          · 정산 ₩{r.hostPayoutKRW.toLocaleString()}
-                        </span>
-                      </span>
-                    </div>
-                  </li>
-                ))}
-            </ul>
-          )}
-        </Card>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </Card>
+        </details>
       </section>
 
       <section className={`container ${styles.list}`}>
@@ -895,21 +901,21 @@ export default function HostConsolePage() {
               <Chip
                 selected={statusFilter === 'live'}
                 onClick={() => setStatusFilter('live')}
-                leadingEmoji="🔴"
+                leadingIcon={<Icon name="live" />}
               >
                 진행 중
               </Chip>
               <Chip
                 selected={statusFilter === 'open'}
                 onClick={() => setStatusFilter('open')}
-                leadingEmoji="🌙"
+                leadingIcon={<Icon name="moon" />}
               >
                 모집 중
               </Chip>
               <Chip
                 selected={statusFilter === 'ended'}
                 onClick={() => setStatusFilter('ended')}
-                leadingEmoji="🏁"
+                leadingIcon={<Icon name="archive" />}
               >
                 지난 파티
               </Chip>
@@ -935,16 +941,20 @@ export default function HostConsolePage() {
 function StageRow({
   label,
   value,
+  icon,
   active = false,
 }: {
   label: string
   value: number
+  icon: IconName
   active?: boolean
 }) {
   return (
     <div className={`${styles.ledgerRow} ${active ? styles.ledgerRowActive : ''}`}>
       <dt className={styles.ledgerLabel}>
-        {active ? <span className={styles.ledgerCue} aria-hidden="true" /> : null}
+        <span className={styles.ledgerCue} aria-hidden="true">
+          <Icon name={icon} />
+        </span>
         {label}
       </dt>
       <dd className={styles.ledgerFigure}>{value.toLocaleString()}</dd>
