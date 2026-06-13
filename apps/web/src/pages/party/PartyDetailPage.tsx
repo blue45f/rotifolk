@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { normalizeTutorialStep } from '@features/tutorial/progress'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AVOID_REASON_LABEL,

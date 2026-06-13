@@ -54,7 +54,7 @@ export default defineConfig({
             return 'vendor'
           if (id.includes('react-router-dom')) return 'router'
           if (id.includes('@tanstack/react-query')) return 'query'
-          if (id.includes('framer-motion')) return 'motion'
+          if (id.includes('node_modules/motion')) return 'motion'
           if (id.includes('socket.io-client')) return 'socket'
         },
       },
