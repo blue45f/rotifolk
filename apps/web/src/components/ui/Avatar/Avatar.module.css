@@ -99,5 +99,5 @@
 .r_gold {
   box-shadow:
     0 0 0 2px var(--color-surface),
-    0 0 0 5px var(--brand-gold-500);
+    0 0 0 5px var(--brand-amber-500);
 }

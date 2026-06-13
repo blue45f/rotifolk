@@ -4,10 +4,9 @@
    해 지기 직전 첫 잔을 나누는 황금빛 사교 시간. 밝고 따뜻하고 명료하게.
    OKLCH로 정렬, 모든 중성색은 warm(40–70) hue로 미세 틴트.
 
-   마이그레이션 메모: 시맨틱 토큰(--color-, --shadow-, --grad- 등)의
-   이름은 유지하고 값만 새 팔레트로 교체한다. 구 brand 램프 이름
-   (--brand-burgundy / gold / cream / ink 계열)은 직접 참조하는 모듈이
-   남아 있어 새 램프로 매핑한 "별칭"으로 임시 보존한다. 스윕이 끝나면 제거.
+   시맨틱 토큰(--color-, --shadow-, --grad- 등)은 이름을 유지하고 값만
+   새 팔레트로 교체한다. brand 램프는 apricot/amber/teal/paper/clay만 쓴다
+   (구 burgundy/gold/cream/ink 별칭은 전 모듈 스윕 후 제거됨).
    ============================================================ */
 
 :root {
@@ -48,34 +47,6 @@
   --brand-clay-800: oklch(25% 0.022 40);
   --brand-clay-700: oklch(31% 0.026 42);
   --brand-clay-600: oklch(38% 0.03 44);
-
-  /* —— Legacy brand aliases (구 토큰 → 새 램프 매핑; 스윕 후 제거) —— */
-  --brand-burgundy-900: var(--brand-apricot-900);
-  --brand-burgundy-800: var(--brand-apricot-800);
-  --brand-burgundy-700: var(--brand-apricot-600); /* old primary */
-  --brand-burgundy-600: var(--brand-apricot-500);
-  --brand-burgundy-500: var(--brand-apricot-500);
-  --brand-burgundy-400: var(--brand-apricot-400); /* old primary-soft / focus */
-  --brand-burgundy-300: var(--brand-apricot-300);
-  --brand-burgundy-200: var(--brand-apricot-200);
-  --brand-burgundy-100: var(--brand-apricot-100);
-  --brand-burgundy-50: var(--brand-apricot-50);
-
-  --brand-gold-700: var(--brand-amber-700);
-  --brand-gold-600: var(--brand-amber-600);
-  --brand-gold-500: var(--brand-amber-500);
-  --brand-gold-400: var(--brand-amber-400);
-  --brand-gold-300: var(--brand-amber-300);
-  --brand-gold-100: var(--brand-amber-100);
-
-  --brand-cream-50: var(--brand-paper-50);
-  --brand-cream-100: var(--brand-paper-100);
-  --brand-cream-200: var(--brand-paper-200);
-
-  --brand-ink-900: var(--brand-clay-900);
-  --brand-ink-800: var(--brand-clay-800);
-  --brand-ink-700: var(--brand-clay-700);
-  --brand-ink-600: var(--brand-clay-600);
 
   /* —— Category accents (warm·bright 대역으로 재튜닝) —— */
   --cat-wine: oklch(52% 0.16 18); /* coral-red */

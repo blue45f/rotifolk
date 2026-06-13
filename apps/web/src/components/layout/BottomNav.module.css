@@ -86,21 +86,21 @@
   border-radius: 50%;
   background: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--brand-gold-500) 95%, white),
-    color-mix(in oklab, var(--brand-gold-700) 95%, var(--brand-burgundy-700) 5%)
+    color-mix(in oklab, var(--brand-amber-500) 95%, white),
+    color-mix(in oklab, var(--brand-amber-700) 95%, var(--brand-apricot-600) 5%)
   );
   color: oklch(20% 0.03 60);
   display: grid;
   place-items: center;
   font-size: 16px;
   box-shadow:
-    0 6px 16px color-mix(in oklab, var(--brand-gold-700) 35%, transparent),
+    0 6px 16px color-mix(in oklab, var(--brand-amber-700) 35%, transparent),
     inset 0 1px 0 color-mix(in oklab, var(--color-text-inverse) 40%, transparent);
 }
 .emphasize.active .icon {
   box-shadow:
-    0 6px 16px color-mix(in oklab, var(--brand-gold-700) 50%, transparent),
-    0 0 0 4px color-mix(in oklab, var(--brand-gold-500) 22%, transparent),
+    0 6px 16px color-mix(in oklab, var(--brand-amber-700) 50%, transparent),
+    0 0 0 4px color-mix(in oklab, var(--brand-amber-500) 22%, transparent),
     inset 0 1px 0 color-mix(in oklab, var(--color-text-inverse) 40%, transparent);
 }
 

@@ -55,28 +55,28 @@
 
 /* —— Sommelier · burgundy (와인) —— */
 .lvl_sommelier {
-  background: linear-gradient(135deg, var(--brand-burgundy-100) 0%, var(--brand-burgundy-300) 100%);
-  color: var(--brand-burgundy-900);
-  border-color: var(--brand-burgundy-300);
+  background: linear-gradient(135deg, var(--brand-apricot-100) 0%, var(--brand-apricot-300) 100%);
+  color: var(--brand-apricot-900);
+  border-color: var(--brand-apricot-300);
 }
 .lvl_sommelier:hover {
-  box-shadow: 0 4px 14px color-mix(in oklab, var(--brand-burgundy-500) 32%, transparent);
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--brand-apricot-500) 32%, transparent);
 }
 
 /* —— Curator · gold —— */
 .lvl_curator {
-  background: linear-gradient(135deg, var(--brand-gold-100) 0%, var(--brand-gold-400) 100%);
-  color: var(--brand-gold-700);
-  border-color: var(--brand-gold-400);
+  background: linear-gradient(135deg, var(--brand-amber-100) 0%, var(--brand-amber-400) 100%);
+  color: var(--brand-amber-700);
+  border-color: var(--brand-amber-400);
 }
 .lvl_curator:hover {
-  box-shadow: 0 4px 14px color-mix(in oklab, var(--brand-gold-500) 36%, transparent);
+  box-shadow: 0 4px 14px color-mix(in oklab, var(--brand-amber-500) 36%, transparent);
 }
 
 /* —— Legend · twilight (어두운 와인-자수정) —— */
 .lvl_legend {
   background: linear-gradient(135deg, oklch(28% 0.075 10) 0%, oklch(36% 0.115 320) 100%);
-  color: var(--brand-cream-100);
+  color: var(--brand-paper-100);
   border-color: oklch(40% 0.095 320);
 }
 .lvl_legend:hover {

@@ -14,7 +14,7 @@
 .hoverable:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
-  border-color: var(--brand-burgundy-200);
+  border-color: var(--brand-apricot-200);
 }
 
 /* Variants */
@@ -34,7 +34,7 @@
 .v_gradient {
   background: var(--grad-cream-rose);
   border-color: transparent;
-  color: var(--brand-burgundy-900);
+  color: var(--brand-apricot-900);
 }
 .v_twilight {
   background: var(--grad-twilight);

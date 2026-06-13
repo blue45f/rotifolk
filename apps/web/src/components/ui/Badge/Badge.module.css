@@ -23,7 +23,7 @@
 }
 .t_primary {
   background: var(--color-primary-soft);
-  color: var(--brand-burgundy-800);
+  color: var(--brand-apricot-800);
 }
 .t_success {
   background: var(--color-success-bg);
@@ -42,8 +42,8 @@
   color: var(--color-info);
 }
 .t_gold {
-  background: var(--brand-gold-100);
-  color: var(--brand-gold-700);
+  background: var(--brand-amber-100);
+  color: var(--brand-amber-700);
 }
 .t_wine {
   background: color-mix(in oklab, var(--color-primary) 10%, transparent);

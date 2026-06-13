@@ -18,10 +18,10 @@
   background:
     linear-gradient(
       135deg,
-      color-mix(in oklab, var(--brand-ink-900) 96%, var(--brand-burgundy-700)),
-      color-mix(in oklab, var(--brand-burgundy-900) 82%, black)
+      color-mix(in oklab, var(--brand-clay-900) 96%, var(--brand-apricot-600)),
+      color-mix(in oklab, var(--brand-apricot-900) 82%, black)
     ),
-    var(--brand-ink-900);
+    var(--brand-clay-900);
   border: 1px solid color-mix(in oklab, white 12%, transparent);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
@@ -37,7 +37,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in oklab, var(--brand-gold-500) 22%, transparent),
+    color-mix(in oklab, var(--brand-amber-500) 22%, transparent),
     transparent
   );
   transform: rotate(-8deg);
@@ -48,7 +48,7 @@
 .kicker,
 .sectionEyebrow {
   margin: 0 0 var(--space-2);
-  color: color-mix(in oklab, var(--brand-gold-300) 88%, white);
+  color: color-mix(in oklab, var(--brand-amber-300) 88%, white);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-uppercase);
@@ -71,7 +71,7 @@
 .heroCopy p:not(.kicker) {
   max-width: 620px;
   margin: var(--space-3) 0 0;
-  color: color-mix(in oklab, var(--brand-cream-50) 78%, transparent);
+  color: color-mix(in oklab, var(--brand-paper-50) 78%, transparent);
   line-height: var(--lh-normal);
 }
 
@@ -86,7 +86,7 @@
 .statGrid span {
   min-width: 0;
   padding: var(--space-3);
-  color: color-mix(in oklab, var(--brand-cream-50) 74%, transparent);
+  color: color-mix(in oklab, var(--brand-paper-50) 74%, transparent);
   background: color-mix(in oklab, white 8%, transparent);
   border: 1px solid color-mix(in oklab, white 12%, transparent);
   border-radius: var(--radius-sm);
@@ -125,10 +125,10 @@
   background:
     linear-gradient(
       130deg,
-      color-mix(in oklab, var(--brand-burgundy-800) 92%, black),
-      color-mix(in oklab, var(--brand-gold-700) 42%, var(--brand-burgundy-900))
+      color-mix(in oklab, var(--brand-apricot-800) 92%, black),
+      color-mix(in oklab, var(--brand-amber-700) 42%, var(--brand-apricot-900))
     ),
-    var(--brand-burgundy-900);
+    var(--brand-apricot-900);
 }
 
 .visualOverlay {
@@ -138,14 +138,14 @@
   gap: var(--space-2);
   padding: var(--space-4);
   color: white;
-  background: color-mix(in oklab, var(--brand-ink-900) 72%, transparent);
+  background: color-mix(in oklab, var(--brand-clay-900) 72%, transparent);
   border: 1px solid color-mix(in oklab, white 14%, transparent);
   border-radius: var(--radius-sm);
   backdrop-filter: blur(16px);
 }
 
 .originLabel {
-  color: color-mix(in oklab, var(--brand-gold-300) 88%, white);
+  color: color-mix(in oklab, var(--brand-amber-300) 88%, white);
   font-size: var(--fs-xs);
   font-weight: var(--fw-bold);
 }
@@ -416,13 +416,13 @@
   background:
     linear-gradient(
       180deg,
-      color-mix(in oklab, var(--brand-gold-100) 52%, var(--color-surface)),
+      color-mix(in oklab, var(--brand-amber-100) 52%, var(--color-surface)),
       var(--color-surface)
     ),
     var(--color-surface);
-  border-color: color-mix(in oklab, var(--brand-gold-600) 52%, var(--color-border));
+  border-color: color-mix(in oklab, var(--brand-amber-600) 52%, var(--color-border));
   box-shadow:
-    inset 0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 24%, transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--brand-amber-500) 24%, transparent),
     var(--shadow-sm);
 }
 
@@ -431,9 +431,9 @@
   top: var(--space-2);
   left: var(--space-2);
   padding: 3px 7px;
-  color: var(--brand-burgundy-800);
-  background: var(--brand-gold-100);
-  border: 1px solid color-mix(in oklab, var(--brand-gold-600) 18%, transparent);
+  color: var(--brand-apricot-800);
+  background: var(--brand-amber-100);
+  border: 1px solid color-mix(in oklab, var(--brand-amber-600) 18%, transparent);
   border-radius: var(--radius-pill);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-black);

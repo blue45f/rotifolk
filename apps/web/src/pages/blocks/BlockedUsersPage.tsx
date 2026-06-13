@@ -278,7 +278,7 @@ export default function BlockedUsersPage() {
                   <Link to={`/hosts/${u.id}`} className={styles.identity}>
                     <Avatar
                       size="md"
-                      hue="var(--brand-burgundy-700)"
+                      hue="var(--brand-apricot-600)"
                       pattern="gradient"
                       emoji={u.nickname[0]}
                       imageSrc={u.avatarImage ?? null}

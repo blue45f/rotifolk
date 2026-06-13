@@ -70,7 +70,7 @@
   transition: background var(--dur-fast) var(--ease-out);
 }
 .close:hover {
-  background: color-mix(in oklab, var(--brand-ink-900) 8%, transparent);
+  background: color-mix(in oklab, var(--brand-clay-900) 8%, transparent);
 }
 
 .body {

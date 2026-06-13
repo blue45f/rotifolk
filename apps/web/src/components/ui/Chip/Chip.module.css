@@ -22,7 +22,7 @@
   justify-content: center;
   /* burgundy mark off-state (brand-dominant, keeps gold scarce); the mark
      follows the chip's own color when selected (cream on burgundy). */
-  color: var(--brand-burgundy-500);
+  color: var(--brand-apricot-500);
   font-size: 1em;
   line-height: 0;
   margin-inline-start: -1px;
@@ -32,17 +32,17 @@
   color: inherit;
 }
 .chip:hover {
-  border-color: var(--brand-burgundy-300);
+  border-color: var(--brand-apricot-300);
 }
 .chip:hover .leading {
-  color: var(--brand-burgundy-700);
+  color: var(--brand-apricot-600);
 }
 .chip:active {
   transform: scale(0.97);
 }
 .selected {
-  background: var(--brand-burgundy-700);
+  background: var(--brand-apricot-600);
   color: var(--color-text-inverse);
-  border-color: var(--brand-burgundy-700);
+  border-color: var(--brand-apricot-600);
   box-shadow: 0 4px 14px color-mix(in oklab, var(--color-primary) 30%, transparent);
 }

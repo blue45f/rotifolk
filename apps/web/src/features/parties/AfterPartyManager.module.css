@@ -94,34 +94,34 @@
 .rsvpBtn:hover {
   transform: translateY(-2px);
   background: var(--color-surface);
-  border-color: var(--brand-burgundy-300);
+  border-color: var(--brand-apricot-300);
 }
 
 .rsvpGo.active {
-  background: var(--brand-burgundy-700);
-  color: var(--brand-cream-50);
-  border-color: var(--brand-burgundy-700);
+  background: var(--brand-apricot-600);
+  color: var(--brand-paper-50);
+  border-color: var(--brand-apricot-600);
 }
 
 .rsvpMaybe.active {
-  background: var(--brand-gold-500);
-  color: var(--brand-ink-900);
-  border-color: var(--brand-gold-500);
+  background: var(--brand-amber-500);
+  color: var(--brand-clay-900);
+  border-color: var(--brand-amber-500);
 }
 
 .rsvpNo.active {
   background: var(--color-text-subtle);
-  color: var(--brand-cream-50);
+  color: var(--brand-paper-50);
   border-color: var(--color-text-subtle);
 }
 
 .rsvpGo.active span,
 .rsvpNo.active span {
-  color: var(--brand-cream-100);
+  color: var(--brand-paper-100);
 }
 
 .rsvpMaybe.active span {
-  color: var(--brand-ink-800);
+  color: var(--brand-clay-800);
 }
 
 .progressArea {
@@ -147,7 +147,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--brand-burgundy-400), var(--brand-burgundy-700));
+  background: linear-gradient(90deg, var(--brand-apricot-400), var(--brand-apricot-600));
   border-radius: var(--radius-pill);
   transition: width var(--dur-slow) var(--ease-out);
 }
@@ -164,17 +164,17 @@
   font-weight: var(--fw-semibold);
   padding: 3px 8px;
   border-radius: var(--radius-pill);
-  color: var(--brand-cream-50);
+  color: var(--brand-paper-50);
   border: 1px solid transparent;
 }
 
 .avatarBadge.go {
-  background: color-mix(in oklab, var(--brand-burgundy-700) 85%, transparent);
+  background: color-mix(in oklab, var(--brand-apricot-600) 85%, transparent);
 }
 
 .avatarBadge.maybe {
-  background: color-mix(in oklab, var(--brand-gold-600) 80%, transparent);
-  color: var(--brand-ink-900);
+  background: color-mix(in oklab, var(--brand-amber-600) 80%, transparent);
+  color: var(--brand-clay-900);
 }
 
 /* ============ Venues Section ============ */
@@ -209,13 +209,13 @@
 
 .venueCard:hover {
   transform: translateY(-3px);
-  border-color: color-mix(in oklab, var(--brand-gold-500) 35%, transparent);
+  border-color: color-mix(in oklab, var(--brand-amber-500) 35%, transparent);
   box-shadow: var(--shadow-sm);
 }
 
 .venueVoted {
-  border-color: var(--brand-gold-500);
-  box-shadow: 0 0 0 1px var(--brand-gold-400);
+  border-color: var(--brand-amber-500);
+  box-shadow: 0 0 0 1px var(--brand-amber-400);
 }
 
 .venueBody {
@@ -230,7 +230,7 @@
   font-weight: var(--fw-semibold);
   letter-spacing: var(--tracking-uppercase);
   text-transform: uppercase;
-  color: var(--brand-gold-600);
+  color: var(--brand-amber-600);
 }
 
 .venueBody h4 {
@@ -261,8 +261,8 @@
 }
 
 .venueVoteBtn.voted {
-  background: var(--brand-gold-100);
-  color: var(--brand-ink-900);
+  background: var(--brand-amber-100);
+  color: var(--brand-clay-900);
 }
 
 .voteCount {
@@ -277,8 +277,8 @@
 
 /* ============ Host Section ============ */
 .hostSection {
-  background: color-mix(in oklab, var(--brand-gold-100) 30%, transparent);
-  border: 1px dashed var(--brand-gold-500);
+  background: color-mix(in oklab, var(--brand-amber-100) 30%, transparent);
+  border: 1px dashed var(--brand-amber-500);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   margin-top: var(--space-2);
@@ -294,7 +294,7 @@
 
 .hostPrompt p {
   font-size: var(--fs-xs);
-  color: var(--brand-gold-700);
+  color: var(--brand-amber-700);
   font-weight: var(--fw-medium);
 }
 
@@ -326,7 +326,7 @@
 }
 
 .formGroup input:focus {
-  outline: 2px solid var(--brand-gold-500);
+  outline: 2px solid var(--brand-amber-500);
   outline-offset: 1px;
 }
 
@@ -339,8 +339,8 @@
 /* ============ Confirmed Box ============ */
 .confirmedBox {
   background: var(--grad-cellar);
-  color: var(--brand-cream-50);
-  border: 1px solid color-mix(in oklab, var(--brand-gold-500) 45%, transparent);
+  color: var(--brand-paper-50);
+  border: 1px solid color-mix(in oklab, var(--brand-amber-500) 45%, transparent);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   display: flex;
@@ -357,7 +357,7 @@
   gap: 6px;
   font-size: var(--fs-2xs);
   font-weight: var(--fw-bold);
-  color: var(--brand-gold-400);
+  color: var(--brand-amber-400);
   letter-spacing: var(--tracking-uppercase);
   text-transform: uppercase;
 }
@@ -381,7 +381,7 @@
   align-items: center;
   gap: var(--space-3);
   font-size: var(--fs-sm);
-  color: var(--brand-cream-200);
+  color: var(--brand-paper-200);
 }
 
 .confirmedMeta .divider {
