@@ -184,7 +184,7 @@
 }
 .depthBtnActive {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-primary-fg);
   border-color: var(--color-primary);
 }
 .cardTextarea {

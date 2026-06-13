@@ -131,7 +131,7 @@ export default function MatchCardsPage() {
                   >
                     <Avatar
                       size="lg"
-                      hue="#7A1F3D"
+                      hue="var(--color-primary)"
                       pattern="gradient"
                       emoji={c.partnerNickname[0]}
                       imageSrc={c.partnerAvatarImage ?? null}
@@ -163,7 +163,7 @@ export default function MatchCardsPage() {
             >
               <Avatar
                 size="lg"
-                hue="#7A1F3D"
+                hue="var(--color-primary)"
                 pattern="gradient"
                 emoji={c.partnerNickname[0]}
                 imageSrc={c.partnerAvatarImage ?? null}

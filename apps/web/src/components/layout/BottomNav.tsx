@@ -3,18 +3,26 @@ import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@store/authStore'
 import { api } from '@services/api'
 import { chatKeys } from '@features/chat/queries'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import styles from './BottomNav.module.css'
 
 const BASE_ITEMS = [
-  { to: '/', label: '홈', icon: '🏠', end: true, key: 'home' },
-  { to: '/tutorial', label: '튜토리얼', icon: '🧭', key: 'tutorial' },
-  { to: '/community', label: '커뮤니티', icon: '💬', key: 'community' },
-  { to: '/quick', label: '즉석', icon: '⚡', emphasize: true, key: 'quick' },
-  { to: '/chats', label: '채팅', icon: '💌', key: 'chats' },
-  { to: '/me', label: '나', icon: '🌙', key: 'me' },
-] as const
+  { to: '/', label: '홈', icon: 'home', end: true, key: 'home' },
+  { to: '/tutorial', label: '튜토리얼', icon: 'compass', key: 'tutorial' },
+  { to: '/community', label: '커뮤니티', icon: 'chat', key: 'community' },
+  { to: '/quick', label: '즉석', icon: 'bolt', emphasize: true, key: 'quick' },
+  { to: '/chats', label: '채팅', icon: 'mail', key: 'chats' },
+  { to: '/me', label: '나', icon: 'user', key: 'me' },
+] as const satisfies readonly {
+  to: string
+  label: string
+  icon: IconName
+  key: string
+  end?: boolean
+  emphasize?: boolean
+}[]
 
-const ADMIN_ITEM = { to: '/admin', label: '관리', icon: '🛡️', key: 'admin' } as const
+const ADMIN_ITEM = { to: '/admin', label: '관리', icon: 'shield', key: 'admin' } as const
 
 export function BottomNav() {
   const location = useLocation()
@@ -53,7 +61,7 @@ export function BottomNav() {
           >
             <span className={styles.iconWrap}>
               <span className={styles.icon} aria-hidden="true">
-                {it.icon}
+                <Icon name={it.icon} />
               </span>
               {showBadge && (
                 <span

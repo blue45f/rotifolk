@@ -83,7 +83,7 @@
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid color-mix(in oklab, white 18%, transparent);
-  color: var(--brand-cream-50, #fcfaf5);
+  color: var(--brand-paper-50);
   font-size: 16px;
   font-weight: var(--fw-bold);
   display: grid;
@@ -104,10 +104,10 @@
   background: color-mix(in oklab, var(--brand-ink-900) 75%, transparent);
 }
 .saveBtnActive {
-  background: var(--brand-gold-500, #d6a84e);
-  color: var(--brand-ink-900, #14101d);
+  background: var(--brand-amber-500);
+  color: var(--brand-clay-900);
   border-color: transparent;
-  box-shadow: 0 6px 16px color-mix(in oklab, var(--brand-gold-700, #b8893b) 38%, transparent);
+  box-shadow: 0 6px 16px color-mix(in oklab, var(--brand-amber-600) 38%, transparent);
 }
 @media (hover: none) {
   .saveBtn {

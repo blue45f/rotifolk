@@ -84,7 +84,7 @@ export default function ChatListPage() {
                 >
                   <Avatar
                     size="lg"
-                    hue={room.kind === 'pair' ? '#C9627F' : '#7A1F3D'}
+                    hue={room.kind === 'pair' ? 'var(--brand-apricot-400)' : 'var(--color-primary)'}
                     pattern="gradient"
                     emoji={room.kind === 'pair' ? '💌' : '🍷'}
                     // 1:1 방은 상대의 업로드 사진을 보여준다 — 단톡방은 파티 글리프 유지.

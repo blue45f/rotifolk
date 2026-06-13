@@ -38,7 +38,7 @@
 }
 .v_twilight {
   background: var(--grad-twilight);
-  color: #fbf3e2;
+  color: var(--brand-amber-100);
   border-color: transparent;
   box-shadow: var(--shadow-lg);
 }

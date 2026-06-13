@@ -255,7 +255,7 @@ function PopularBanner({
           <div key={person.userId} className={styles.popularCard}>
             <Avatar
               size="lg"
-              hue="#7A1F3D"
+              hue="var(--color-primary)"
               pattern="sparkle"
               emoji={person.nickname[0]}
               imageSrc={person.avatarImage ?? null}
@@ -310,7 +310,7 @@ function MatchCard({
       <div className={styles.cardTop}>
         <Avatar
           size="xl"
-          hue="#7A1F3D"
+          hue="var(--color-primary)"
           pattern="gradient"
           emoji={match.nickname[0]}
           imageSrc={match.avatarImage ?? null}

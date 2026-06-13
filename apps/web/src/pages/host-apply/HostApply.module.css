@@ -78,7 +78,7 @@
 .textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(122, 31, 61, 0.12);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 12%, transparent);
 }
 .textarea[aria-invalid='true'] {
   border-color: var(--color-danger);
@@ -151,7 +151,7 @@
     --color-primary-soft,
     color-mix(in oklab, var(--color-primary) 8%, var(--color-surface))
   );
-  box-shadow: 0 0 0 3px rgba(122, 31, 61, 0.12);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 12%, transparent);
 }
 
 .chipRow {

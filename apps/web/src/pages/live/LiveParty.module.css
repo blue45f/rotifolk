@@ -256,13 +256,13 @@
   gap: var(--space-3);
   padding: 12px 18px;
   border-radius: var(--radius-pill);
-  background: linear-gradient(135deg, #fcfaf5 0%, #fbeef1 100%);
-  color: #14101d;
+  background: linear-gradient(135deg, var(--brand-paper-50) 0%, var(--brand-apricot-50) 100%);
+  color: var(--brand-clay-900);
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
   box-shadow:
-    0 12px 30px rgba(20, 16, 29, 0.35),
-    0 0 0 1px rgba(214, 168, 78, 0.45);
+    0 12px 30px color-mix(in oklab, var(--brand-clay-900) 35%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--brand-amber-500) 45%, transparent);
 }
 .announceIcon {
   font-size: 22px;
@@ -288,7 +288,7 @@
   flex-shrink: 0;
 }
 .announceDismiss:hover {
-  background: rgba(20, 16, 29, 0.08);
+  background: color-mix(in oklab, var(--brand-clay-900) 8%, transparent);
 }
 
 .announceCompose {
@@ -304,17 +304,17 @@
   padding: 8px 14px;
   border-radius: var(--radius-pill);
   border: 1.5px solid color-mix(in oklab, white 30%, transparent);
-  background: rgba(20, 16, 29, 0.55);
-  color: #fcfaf5;
+  background: color-mix(in oklab, var(--brand-clay-900) 55%, transparent);
+  color: var(--brand-paper-50);
   font: inherit;
   font-size: var(--fs-sm);
 }
 .announceInput::placeholder {
-  color: color-mix(in oklab, #fcfaf5 60%, transparent);
+  color: color-mix(in oklab, var(--brand-paper-50) 60%, transparent);
 }
 .announceInput:focus {
   outline: none;
-  border-color: var(--brand-gold-500, #d6a84e);
+  border-color: var(--brand-amber-500);
 }
 
 .eventBurst {
@@ -322,8 +322,8 @@
   bottom: 20%;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #d4a24c, #c9627f);
-  color: #2a1f0c;
+  background: linear-gradient(135deg, var(--brand-amber-500), var(--brand-apricot-400));
+  color: var(--brand-clay-900);
   font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
   padding: 14px 28px;
@@ -335,7 +335,7 @@
   position: relative;
   z-index: 2;
   padding: env(safe-area-inset-bottom, var(--space-3)) var(--space-3) var(--space-3);
-  background: linear-gradient(180deg, transparent, rgba(20, 16, 29, 0.6));
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--brand-clay-900) 60%, transparent));
 }
 .barInner {
   display: flex;
@@ -528,8 +528,8 @@
   height: 18px;
   padding: 0 5px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #d4a24c, #c9627f);
-  color: #2a1f0c;
+  background: linear-gradient(135deg, var(--brand-amber-500), var(--brand-apricot-400));
+  color: var(--brand-clay-900);
   font-size: 11px;
   font-weight: var(--fw-bold);
   display: grid;
@@ -626,8 +626,8 @@
   list-style: none;
 }
 .bgmTrackActive {
-  border-color: color-mix(in oklab, var(--brand-gold-500, #d4a24c) 60%, transparent);
-  background: color-mix(in oklab, var(--brand-gold-500, #d4a24c) 12%, var(--color-surface-soft));
+  border-color: color-mix(in oklab, var(--brand-amber-500) 60%, transparent);
+  background: color-mix(in oklab, var(--brand-amber-500) 12%, var(--color-surface-soft));
 }
 .bgmIdx {
   width: 24px;
@@ -675,7 +675,7 @@
   flex-shrink: 0;
 }
 .bgmRemove:hover {
-  background: var(--color-danger, #c9627f);
+  background: var(--color-danger);
   color: var(--brand-cream-50);
 }
 
@@ -702,7 +702,7 @@
   font-size: var(--fs-sm);
 }
 .bgmInput:focus {
-  outline: 2px solid color-mix(in oklab, var(--brand-gold-500, #d4a24c) 70%, transparent);
+  outline: 2px solid color-mix(in oklab, var(--brand-amber-500) 70%, transparent);
   outline-offset: 1px;
 }
 .bgmHint {
@@ -740,7 +740,7 @@
   padding: var(--space-8) var(--space-6) var(--space-7);
   border-radius: var(--radius-2xl);
   background: var(--color-surface);
-  border: 1px solid color-mix(in oklab, var(--brand-gold-500, #d4a24c) 45%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-amber-500) 45%, transparent);
   box-shadow: var(--shadow-glow);
   text-align: center;
 }
@@ -956,7 +956,7 @@
 }
 .kitChipOn {
   background: var(--brand-gold-500);
-  color: #2a1f0c;
+  color: var(--brand-clay-900);
   border-color: transparent;
 }
 .kitText {

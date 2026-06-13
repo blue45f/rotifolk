@@ -59,7 +59,7 @@
   display: grid;
   place-items: center;
   font-size: 28px;
-  color: var(--brand-cream-50, #fcfaf5);
+  color: var(--brand-paper-50);
   flex-shrink: 0;
   overflow: hidden;
 }

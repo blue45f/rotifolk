@@ -236,7 +236,7 @@ export default function InvitePage() {
               <div className={styles.guestJoined} role="status">
                 <Avatar
                   size="md"
-                  hue={guestParticipation.guestAvatar?.hue ?? '#7A1F3D'}
+                  hue={guestParticipation.guestAvatar?.hue ?? 'var(--color-primary)'}
                   pattern="gradient"
                   emoji={guestParticipation.guestAvatar?.emoji ?? '🎟'}
                   imageSrc={guestParticipation.guestAvatar?.imageData ?? null}

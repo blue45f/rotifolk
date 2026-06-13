@@ -145,7 +145,7 @@
 }
 .emojiActive {
   background: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(122, 31, 61, 0.35);
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--color-primary) 35%, transparent);
 }
 
 .editField {
@@ -323,10 +323,10 @@
 }
 .achievementEarned {
   opacity: 1;
-  border-color: color-mix(in oklab, var(--brand-gold-500, #d6a84e) 50%, var(--color-border));
+  border-color: color-mix(in oklab, var(--brand-amber-500) 50%, var(--color-border));
   background: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--brand-gold-500, #d6a84e) 6%, var(--color-surface)) 0%,
+    color-mix(in oklab, var(--brand-amber-500) 6%, var(--color-surface)) 0%,
     var(--color-surface) 100%
   );
 }
@@ -343,8 +343,8 @@
 .achievementEarned .achievementEmoji {
   background: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--brand-gold-500, #d6a84e) 25%, var(--color-surface-soft)),
-    color-mix(in oklab, var(--brand-burgundy-500, #c9627f) 18%, var(--color-surface-soft))
+    color-mix(in oklab, var(--brand-amber-500) 25%, var(--color-surface-soft)),
+    color-mix(in oklab, var(--brand-apricot-400) 18%, var(--color-surface-soft))
   );
 }
 .achievementBody {
@@ -370,8 +370,8 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--brand-gold-500, #d6a84e);
-  color: var(--brand-ink-900, #14101d);
+  background: var(--brand-amber-500);
+  color: var(--brand-clay-900);
   font-size: 12px;
   font-weight: var(--fw-black);
   display: grid;

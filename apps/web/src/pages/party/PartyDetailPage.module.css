@@ -105,7 +105,7 @@
 }
 .hero {
   position: relative;
-  color: #fcfaf5;
+  color: var(--brand-paper-50);
   padding: var(--space-12) 0 var(--space-16);
   overflow: hidden;
 }
@@ -113,7 +113,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 30%, rgba(20, 16, 29, 0.4) 100%);
+  background: linear-gradient(180deg, transparent 30%, color-mix(in oklab, var(--brand-clay-900) 40%, transparent) 100%);
   z-index: 0;
 }
 .heroInner {
@@ -596,8 +596,8 @@
   right: 0;
   bottom: 0;
   padding: 6px 8px;
-  background: linear-gradient(180deg, transparent, rgba(20, 16, 29, 0.72));
-  color: var(--brand-cream-50, #fcfaf5);
+  background: linear-gradient(180deg, transparent, color-mix(in oklab, var(--brand-clay-900) 72%, transparent));
+  color: var(--brand-cream-50);
   font-size: var(--fs-xs);
   font-weight: var(--fw-medium);
   line-height: 1.3;
@@ -656,11 +656,11 @@
   color: var(--color-text);
 }
 .feedbackTagChipActive {
-  background: rgba(197, 160, 89, 0.12); /* Gold tint */
-  border-color: var(--color-gold);
-  color: var(--color-gold);
+  background: color-mix(in oklab, var(--brand-amber-500) 12%, transparent); /* Gold tint */
+  border-color: var(--brand-amber-500);
+  color: var(--brand-amber-500);
   font-weight: var(--fw-semibold);
-  box-shadow: 0 0 8px rgba(197, 160, 89, 0.2);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--brand-amber-500) 20%, transparent);
 }
 
 /* Review Item Badges */
@@ -701,16 +701,16 @@
   font-size: var(--fs-3xs);
   padding: 4px 8px;
   border-radius: var(--radius-md);
-  background: rgba(197, 160, 89, 0.06);
-  border: 1px solid rgba(197, 160, 89, 0.2);
-  color: var(--color-gold);
+  background: color-mix(in oklab, var(--brand-amber-500) 6%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-amber-500) 20%, transparent);
+  color: var(--brand-amber-500);
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
 }
 .hostFeedbackCount {
   font-weight: var(--fw-bold);
-  background: rgba(197, 160, 89, 0.15);
+  background: color-mix(in oklab, var(--brand-amber-500) 15%, transparent);
   padding: 1px 4px;
   border-radius: var(--radius-xs);
   font-family: var(--font-mono);

@@ -15,7 +15,7 @@ interface AvatarProps {
 
 export function Avatar({
   size = 'md',
-  hue = '#7A1F3D',
+  hue = 'var(--color-primary)',
   pattern = 'gradient',
   emoji,
   initials,

@@ -139,7 +139,7 @@ export default function ChatRoomPage() {
               {!mine && (
                 <Avatar
                   size="sm"
-                  hue="#7A1F3D"
+                  hue="var(--color-primary)"
                   pattern="gradient"
                   emoji={m.nickname[0]}
                   imageSrc={memberImageById.get(m.userId) ?? null}

@@ -545,7 +545,7 @@ function GuestRow({
     <div className={styles.part}>
       <Avatar
         size="lg"
-        hue={avatar?.hue ?? '#7A1F3D'}
+        hue={avatar?.hue ?? 'var(--color-primary)'}
         pattern="gradient"
         emoji={avatar?.emoji ?? nickname[0]}
         imageSrc={imageSrc ?? null}

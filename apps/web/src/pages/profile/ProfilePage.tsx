@@ -34,7 +34,15 @@ const MOODS: { value: AvatarMood; label: string; emoji: string }[] = [
   { value: 'cozy', label: '따뜻한', emoji: '☕️' },
   { value: 'mystery', label: '신비로운', emoji: '🌹' },
 ]
-const HUES = ['#7A1F3D', '#C9627F', '#D4A24C', '#6B8E5A', '#2F7884', '#6E5BB3', '#6B4226']
+const HUES = [
+  'var(--color-primary)',
+  'var(--brand-apricot-400)',
+  'var(--brand-amber-500)',
+  'var(--cat-tea)',
+  'var(--cat-cocktail)',
+  'var(--cat-custom)',
+  'var(--cat-coffee)',
+]
 const EMOJIS = ['🍷', '☕️', '🍵', '🥃', '✨', '🌹', '🍯', '🎷', '🎻', '🌙']
 
 export default function ProfilePage() {

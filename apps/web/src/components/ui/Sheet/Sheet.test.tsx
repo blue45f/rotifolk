@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { Sheet } from './Sheet'
@@ -54,7 +54,8 @@ describe('Sheet focus trap', () => {
     const trigger = screen.getByRole('button', { name: '시트 열기' })
     await user.click(trigger)
     await user.keyboard('{Escape}')
-    expect(screen.queryByRole('dialog')).toBeNull()
-    expect(document.activeElement).toBe(trigger)
+    // Radix unmounts the dialog and restores focus to the opener asynchronously.
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(document.activeElement).toBe(trigger))
   })
 })

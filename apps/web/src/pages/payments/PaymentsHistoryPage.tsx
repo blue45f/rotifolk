@@ -153,7 +153,7 @@ export default function PaymentsHistoryPage() {
                   <li key={p.id} className={styles.row}>
                     <div
                       className={styles.rowCover}
-                      style={{ background: cat?.bgGradient ?? '#7A1F3D' }}
+                      style={{ background: cat?.bgGradient ?? 'var(--color-primary)' }}
                     >
                       {p.party?.coverImageUrl ? (
                         <img src={p.party.coverImageUrl} alt="" loading="lazy" />

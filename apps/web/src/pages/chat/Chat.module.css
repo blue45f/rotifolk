@@ -62,8 +62,8 @@
   white-space: nowrap;
 }
 .rowUnread {
-  background: color-mix(in oklab, var(--brand-burgundy-50, #fbeef1) 60%, var(--color-surface));
-  border-color: color-mix(in oklab, var(--brand-burgundy-700, #7a1f3d) 22%, var(--color-border));
+  background: color-mix(in oklab, var(--brand-apricot-50) 60%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-primary) 22%, var(--color-border));
 }
 .rowLastUnread {
   color: var(--color-text);
@@ -73,8 +73,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--brand-burgundy-700, #7a1f3d);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-burgundy-700, #7a1f3d) 18%, transparent);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 18%, transparent);
   flex-shrink: 0;
   margin-left: auto;
 }
@@ -210,7 +210,7 @@
   display: inline-block;
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
-  background: rgba(0, 0, 0, 0.05);
+  background: color-mix(in oklab, var(--brand-clay-900) 5%, transparent);
   padding: 4px 12px;
   border-radius: var(--radius-pill);
 }
@@ -218,7 +218,7 @@
 .splitCard {
   align-self: center;
   background: var(--grad-gold-shine);
-  color: #2a1f0c;
+  color: var(--brand-clay-800);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   max-width: 320px;

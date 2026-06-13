@@ -640,7 +640,7 @@ export default function PartyDetailPage() {
                   <div key={p.id} className={styles.part}>
                     <Avatar
                       size="lg"
-                      hue={p.guestAvatar?.hue ?? '#7A1F3D'}
+                      hue={p.guestAvatar?.hue ?? 'var(--color-primary)'}
                       pattern="gradient"
                       emoji={p.guestAvatar?.emoji ?? (p.user?.nickname ?? p.guestName ?? '익')[0]}
                       imageSrc={
@@ -1051,7 +1051,7 @@ export default function PartyDetailPage() {
             <Link to={`/hosts/${party.hostId}`} className={styles.hostBlock}>
               <Avatar
                 size="lg"
-                hue="#7A1F3D"
+                hue="var(--color-primary)"
                 pattern="gradient"
                 emoji={party.host?.nickname?.[0]}
                 imageSrc={party.host?.avatarImage ?? null}

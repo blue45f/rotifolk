@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { useLocale, useT } from '@features/i18n/useI18n'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
@@ -18,13 +19,13 @@ interface HeaderProps {
 type ThemeOption = {
   value: 'light' | 'dark' | 'system'
   labelKey: 'theme.light' | 'theme.dark' | 'theme.system'
-  emoji: string
+  icon: IconName
 }
 
 const THEME_OPTIONS: ThemeOption[] = [
-  { value: 'light', labelKey: 'theme.light', emoji: '☀️' },
-  { value: 'dark', labelKey: 'theme.dark', emoji: '🌙' },
-  { value: 'system', labelKey: 'theme.system', emoji: '🖥️' },
+  { value: 'light', labelKey: 'theme.light', icon: 'sun' },
+  { value: 'dark', labelKey: 'theme.dark', icon: 'moon' },
+  { value: 'system', labelKey: 'theme.system', icon: 'monitor' },
 ]
 
 export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
@@ -141,13 +142,13 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
               aria-label={t('command.quick.onboarding')}
               title={t('command.quick.onboarding')}
             >
-              🧭
+              <Icon name="compass" />
               <span className={styles.commandBtnHint}>튜토리얼</span>
             </button>
           )}
           {!user && (
             <Link to={demoLoginHref} className={styles.commandBtn} aria-label="데모 계정 빠른 시작">
-              <span aria-hidden="true">🎁</span>
+              <Icon name="sparkle" aria-hidden />
               <span className={styles.commandBtnHint}>데모</span>
             </Link>
           )}
@@ -184,7 +185,7 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
               aria-expanded={themeMenuOpen}
               aria-haspopup="menu"
             >
-              {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '🖥️'}
+              <Icon name={theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'monitor'} />
             </button>
             <span className={styles.themeModeText}>{themeModeLabel}</span>
             {themeMenuOpen && (
@@ -206,7 +207,7 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
                       setThemeMenuOpen(false)
                     }}
                   >
-                    <span aria-hidden="true">{item.emoji}</span>
+                    <Icon name={item.icon} aria-hidden />
                     <span>{t(item.labelKey)}</span>
                   </button>
                 ))}
@@ -215,7 +216,7 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
           </div>
           {user && (
             <Link to="/notifications" className={styles.bell} aria-label="알림">
-              <span aria-hidden="true">🔔</span>
+              <Icon name="bell" aria-hidden />
               {(unread?.count ?? 0) > 0 && (
                 <span className={styles.bellDot} aria-hidden="true">
                   {unread!.count > 9 ? '9+' : unread!.count}
@@ -228,7 +229,7 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
               <Avatar
                 size="sm"
                 emoji={user.nickname[0]}
-                hue="#7A1F3D"
+                hue="var(--color-primary)"
                 pattern="gradient"
                 imageSrc={user.avatarImage ?? null}
               />

@@ -348,7 +348,7 @@
   color: var(--color-text-muted);
 }
 .reviewStars {
-  color: #d6a84e;
+  color: var(--brand-amber-500);
   letter-spacing: 1px;
   font-size: var(--fs-xs);
 }

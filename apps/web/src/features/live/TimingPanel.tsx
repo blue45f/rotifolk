@@ -98,7 +98,7 @@ export function TimingPanel({ party, participants, settings, onUpdate }: TimingP
             <li key={p.id} className={styles.rosterRow}>
               <Avatar
                 size="sm"
-                hue={p.guestAvatar?.hue ?? '#7A1F3D'}
+                hue={p.guestAvatar?.hue ?? 'var(--color-primary)'}
                 pattern="gradient"
                 emoji={p.guestAvatar?.emoji ?? (p.user?.nickname ?? p.guestName ?? '익')[0]}
                 imageSrc={p.guestAvatar?.imageData ?? p.user?.avatarImage ?? null}

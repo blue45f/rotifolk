@@ -3368,7 +3368,7 @@ export const handlers = [
         id: 'avatar_me',
         ownerId: mockUsers[0].id,
         mood: 'sparkling',
-        hue: '#7A1F3D',
+        hue: 'var(--color-primary)',
         pattern: 'gradient',
         emojiBadge: '🍷',
         faceSeed: mockUsers[0].nickname,

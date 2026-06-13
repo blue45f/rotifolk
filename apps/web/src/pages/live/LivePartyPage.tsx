@@ -459,7 +459,13 @@ export default function LivePartyPage() {
           <ul className={styles.matchList}>
             {state.finalMatches.map((m, i) => (
               <li key={i}>
-                <Avatar size="md" hue="#7A1F3D" pattern="gradient" emoji="💌" ring="gold" />
+                <Avatar
+                  size="md"
+                  hue="var(--color-primary)"
+                  pattern="gradient"
+                  emoji="💌"
+                  ring="gold"
+                />
                 <strong>
                   {participants.find((p) => p.userId === m.userAId)?.user?.nickname ?? '익명'} ↔{' '}
                   {participants.find((p) => p.userId === m.userBId)?.user?.nickname ?? '익명'}
@@ -701,7 +707,7 @@ function PairPanel({
           >
             <Avatar
               size="xl"
-              hue="#FCFAF5"
+              hue="var(--brand-paper-50)"
               pattern="gradient"
               emoji={p.nickname[0]}
               imageSrc={p.avatarImage ?? null}

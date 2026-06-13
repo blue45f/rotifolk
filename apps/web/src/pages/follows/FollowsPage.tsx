@@ -79,7 +79,7 @@ export default function FollowsPage() {
                 <Link to={`/hosts/${u.id}`} className={styles.rowInner}>
                   <Avatar
                     size="md"
-                    hue="#7A1F3D"
+                    hue="var(--color-primary)"
                     pattern="gradient"
                     emoji={u.nickname[0]}
                     imageSrc={u.avatarImage ?? null}

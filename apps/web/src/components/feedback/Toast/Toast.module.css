@@ -16,7 +16,7 @@
   gap: 10px;
   padding: 12px 18px;
   background: var(--brand-ink-900);
-  color: #fcfaf5;
+  color: var(--brand-paper-50);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-lg);
   font-size: var(--fs-sm);
@@ -32,18 +32,18 @@
   background: currentColor;
 }
 .k_info {
-  background: #14101d;
-  color: #fcfaf5;
+  background: var(--brand-clay-900);
+  color: var(--brand-paper-50);
 }
 .k_success {
   background: #2f8f66;
-  color: #fff;
+  color: var(--color-text-inverse);
 }
 .k_warning {
-  background: #c9871f;
-  color: #2a1f0c;
+  background: var(--brand-amber-600);
+  color: var(--brand-clay-800);
 }
 .k_error {
-  background: #c13f4e;
-  color: #fff;
+  background: var(--brand-apricot-500);
+  color: var(--color-text-inverse);
 }

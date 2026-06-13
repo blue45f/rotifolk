@@ -257,7 +257,7 @@
 }
 .kindChipActive {
   background: var(--color-primary);
-  color: var(--brand-cream-50, #fcfaf5);
+  color: var(--brand-paper-50);
   border-color: var(--color-primary);
 }
 .reasonField {
@@ -305,7 +305,7 @@
 }
 .avgRating {
   font-size: var(--fs-sm);
-  color: #d6a84e;
+  color: var(--brand-amber-500);
   font-weight: var(--fw-semibold);
   margin-left: var(--space-2);
 }
@@ -330,7 +330,7 @@
   gap: var(--space-2);
 }
 .reviewRating {
-  color: #d6a84e;
+  color: var(--brand-amber-500);
   font-size: var(--fs-md);
   letter-spacing: 1px;
 }

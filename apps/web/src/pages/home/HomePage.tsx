@@ -361,7 +361,11 @@ export default function HomePage() {
                   to={`/parties/${r.id}`}
                   className={styles.recentChip}
                   role="listitem"
-                  style={{ ['--chip-accent' as never]: cat?.accentHex ?? '#7A1F3D' } as never}
+                  style={
+                    {
+                      ['--chip-accent' as never]: cat?.accentHex ?? 'var(--color-primary)',
+                    } as never
+                  }
                 >
                   <span className={styles.recentEmoji} aria-hidden="true">
                     {cat?.emoji ?? '🍷'}

@@ -93,7 +93,7 @@ export default function MatchCardPage() {
         <div className={styles.stamp}>R O T I F O L K</div>
         <Avatar
           size="xl"
-          hue="#7A1F3D"
+          hue="var(--color-primary)"
           pattern="gradient"
           emoji={data.user.nickname[0]}
           imageSrc={data.user.avatarImage ?? null}
