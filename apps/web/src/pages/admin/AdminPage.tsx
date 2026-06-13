@@ -5,6 +5,7 @@ import { Card } from '@components/ui/Card/Card'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Tabs } from '@components/ui/Tabs/Tabs'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -2138,31 +2139,39 @@ export default function AdminPage() {
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
         <p className={styles.headBadge}>Admin Operations Console</p>
-        <h1>🛡️ 어드민 콘솔</h1>
+        <div className={styles.headTitleRow}>
+          <span className={styles.headIcon} aria-hidden="true">
+            <Icon name="shield" />
+          </span>
+          <h1>어드민 콘솔</h1>
+        </div>
         <p>
           미처리 신고 {openCount}건, 검토 중 신고 {reviewingCount}건입니다. 우선순위는 ‘미처리 신고
-          처리 → 진행 검토 → 조치 완료’이며, 수익 제안은 우측 패널에서 바로 적용해 운영 상태를
+          처리 → 진행 검토 → 조치 완료’이며, 수익 제안은 아래 패널에서 바로 적용해 운영 상태를
           안정화하세요. 게시글 숨김·복구·첨부 제거는{' '}
-          <Link to="/admin/moderation">콘텐츠 모더레이션</Link>에서 처리해요.
+          <Link to="/admin/moderation" className={styles.moderationLink}>
+            콘텐츠 모더레이션
+          </Link>
+          에서 처리해요.
         </p>
       </header>
 
-      <div className={styles.statsRow}>
+      <dl className={styles.statsRow} aria-label="신고 처리 현황 요약">
         <div className={styles.statCard}>
-          <span className={`${styles.statNum} ${styles.statNumDanger}`}>{openCount}</span>
-          <span className={styles.statLabel}>미처리</span>
+          <dd className={`${styles.statNum} ${styles.statNumDanger}`}>{openCount}</dd>
+          <dt className={styles.statLabel}>미처리</dt>
         </div>
         <div className={styles.statCard}>
-          <span className={`${styles.statNum} ${styles.statNumGold}`}>{reviewingCount}</span>
-          <span className={styles.statLabel}>검토 중</span>
+          <dd className={`${styles.statNum} ${styles.statNumGold}`}>{reviewingCount}</dd>
+          <dt className={styles.statLabel}>검토 중</dt>
         </div>
         <div className={styles.statCard}>
-          <span className={styles.statNum}>{openCount + reviewingCount}</span>
-          <span className={styles.statLabel}>처리 대기</span>
+          <dd className={styles.statNum}>{openCount + reviewingCount}</dd>
+          <dt className={styles.statLabel}>처리 대기</dt>
         </div>
-      </div>
+      </dl>
 
-      <section className={`${styles.revenueSection} ${styles.adminPulse}`}>
+      <section className={`${styles.revenueSection} ${styles.adminPulse}`} aria-label="수익 운영">
         <Card padding="lg" className={`${styles.revenuePanel} ${styles.adminPulse}`}>
           <h2 className={styles.sectionTitle}>수익 운영 대시보드</h2>
           <p className={styles.sectionNote}>
@@ -2320,12 +2329,17 @@ export default function AdminPage() {
                     }`}
                   >
                     <div className={styles.insightHeaderMetaRow}>
-                      <span className={styles.insightToneIcon}>
-                        {insight.tone === 'success'
-                          ? '🎯'
-                          : insight.tone === 'warning'
-                            ? '⚠️'
-                            : '🚨'}
+                      <span className={styles.insightToneIcon} aria-hidden="true">
+                        <Icon
+                          name={
+                            insight.tone === 'success'
+                              ? 'check'
+                              : insight.tone === 'warning'
+                                ? 'bell'
+                                : 'flame'
+                          }
+                          size={0.95}
+                        />
                       </span>
                       <span className={styles.insightPriorityBadge}>
                         우선순위 {insight.priority}
@@ -3583,151 +3597,125 @@ export default function AdminPage() {
         </Card>
       </section>
 
-      {isLoading ? (
-        <Loading />
-      ) : isOpenReportsError || isReviewingReportsError || isTabReportsError ? (
-        <div className={styles.emptyStateWrap}>
-          <EmptyState
-            emoji="⚠️"
-            title="데이터를 불러오지 못했어요"
-            description="신고 큐 조회 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요."
-          />
-        </div>
-      ) : (
-        <>
-          <div className={styles.tabsPanel}>
-            <div className={styles.tabsTitleWrap}>
-              <h3 className={styles.tabsTitle}>신고 처리 워크플로우</h3>
-              <span className={styles.tabsSub}>우선 액션: 미처리 신고 → 검토 진행 → 조치 완료</span>
-            </div>
-            <Tabs
-              tabs={[
-                { value: 'open', label: `미처리${openCount > 0 ? ` (${openCount})` : ''}` },
-                {
-                  value: 'reviewing',
-                  label: `검토 중${reviewingCount > 0 ? ` (${reviewingCount})` : ''}`,
-                },
-                { value: 'resolved', label: '처리 완료' },
-              ]}
-              value={tab}
-              onChange={(v) => setTab(v as TabKey)}
+      <section aria-label="신고 처리 워크플로우" className={styles.reportSection}>
+        {isLoading ? (
+          <Loading />
+        ) : isOpenReportsError || isReviewingReportsError || isTabReportsError ? (
+          <div className={styles.emptyStateWrap}>
+            <EmptyState
+              emoji="⚠️"
+              title="데이터를 불러오지 못했어요"
+              description="신고 큐 조회 중 오류가 발생했어요. 잠시 후 다시 시도해 주세요."
             />
           </div>
-          <div className={styles.list}>
-            {isLoading ? (
-              <div className={styles.emptyStateWrap}>
-                <Loading />
+        ) : (
+          <>
+            <div className={styles.tabsPanel}>
+              <div className={styles.tabsTitleWrap}>
+                <h3 className={styles.tabsTitle}>신고 처리 워크플로우</h3>
+                <span className={styles.tabsSub}>
+                  우선 액션: 미처리 신고 → 검토 진행 → 조치 완료
+                </span>
               </div>
-            ) : !data || data.length === 0 ? (
-              <div className={styles.emptyStateWrap}>
-                <EmptyState emoji="🕊️" title="처리할 신고가 없어요" />
-              </div>
-            ) : (
-              data.map((r) => (
-                <Card key={r.id} padding="lg" className={styles.reportCard}>
-                  <div className={styles.head2}>
-                    <Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>
-                    <Badge tone="neutral">{KIND_LABEL[r.kind] ?? r.kind}</Badge>
-                    <time>{new Date(r.createdAt).toLocaleString('ko-KR')}</time>
-                  </div>
-                  <p className={styles.body}>{r.body}</p>
-                  <dl className={styles.meta}>
-                    <div>
-                      <dt>신고자</dt>
-                      <dd>
-                        <Link to={`/hosts/${r.reporter.id}`} className={styles.userLink}>
-                          {r.reporter.nickname}
-                        </Link>
-                      </dd>
+              <Tabs
+                tabs={[
+                  { value: 'open', label: `미처리${openCount > 0 ? ` (${openCount})` : ''}` },
+                  {
+                    value: 'reviewing',
+                    label: `검토 중${reviewingCount > 0 ? ` (${reviewingCount})` : ''}`,
+                  },
+                  { value: 'resolved', label: '처리 완료' },
+                ]}
+                value={tab}
+                onChange={(v) => setTab(v as TabKey)}
+              />
+            </div>
+            <div className={styles.list}>
+              {isLoading ? (
+                <div className={styles.emptyStateWrap}>
+                  <Loading />
+                </div>
+              ) : !data || data.length === 0 ? (
+                <div className={styles.emptyStateWrap}>
+                  <EmptyState emoji="🕊️" title="처리할 신고가 없어요" />
+                </div>
+              ) : (
+                data.map((r) => (
+                  <Card key={r.id} padding="lg" className={styles.reportCard}>
+                    <div className={styles.head2}>
+                      <Badge tone={STATUS_TONE[r.status]}>{STATUS_LABEL[r.status]}</Badge>
+                      <Badge tone="neutral">{KIND_LABEL[r.kind] ?? r.kind}</Badge>
+                      <time>{new Date(r.createdAt).toLocaleString('ko-KR')}</time>
                     </div>
-                    {r.target && (
+                    <p className={styles.body}>{r.body}</p>
+                    <dl className={styles.meta}>
                       <div>
-                        <dt>대상</dt>
+                        <dt>신고자</dt>
                         <dd>
-                          <Link to={`/hosts/${r.target.id}`} className={styles.userLink}>
-                            {r.target.nickname}
+                          <Link to={`/hosts/${r.reporter.id}`} className={styles.userLink}>
+                            {r.reporter.nickname}
                           </Link>
                         </dd>
                       </div>
-                    )}
-                    {r.party && (
-                      <div>
-                        <dt>파티</dt>
-                        <dd>
-                          <Link to={`/parties/${r.party.id}`} className={styles.userLink}>
-                            {r.party.title}
+                      {r.target && (
+                        <div>
+                          <dt>대상</dt>
+                          <dd>
+                            <Link to={`/hosts/${r.target.id}`} className={styles.userLink}>
+                              {r.target.nickname}
+                            </Link>
+                          </dd>
+                        </div>
+                      )}
+                      {r.party && (
+                        <div>
+                          <dt>파티</dt>
+                          <dd>
+                            <Link to={`/parties/${r.party.id}`} className={styles.userLink}>
+                              {r.party.title}
+                            </Link>
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+                    {(r.communityPost || r.communityComment) && (
+                      <div className={styles.reportEvidence}>
+                        <span>커뮤니티 신고 대상</span>
+                        {r.communityPost && (
+                          <Link
+                            to={`/community?from=${adminFrom}`}
+                            className={styles.reportEvidenceLink}
+                          >
+                            글: {r.communityPost.title}
                           </Link>
-                        </dd>
+                        )}
+                        {r.communityComment && <p>댓글: {r.communityComment.body}</p>}
                       </div>
                     )}
-                  </dl>
-                  {(r.communityPost || r.communityComment) && (
-                    <div className={styles.reportEvidence}>
-                      <span>커뮤니티 신고 대상</span>
-                      {r.communityPost && (
-                        <Link
-                          to={`/community?from=${adminFrom}`}
-                          className={styles.reportEvidenceLink}
-                        >
-                          글: {r.communityPost.title}
-                        </Link>
-                      )}
-                      {r.communityComment && <p>댓글: {r.communityComment.body}</p>}
-                    </div>
-                  )}
-                  {(r.autoHiddenAt || r.resolvedNote || (r.auditTrail?.length ?? 0) > 0) && (
-                    <div className={styles.auditTrail}>
-                      <div className={styles.auditTrailHead}>
-                        <span>운영 이력</span>
-                        {r.autoHiddenAt && <Badge tone="warning">자동 임시 숨김</Badge>}
+                    {(r.autoHiddenAt || r.resolvedNote || (r.auditTrail?.length ?? 0) > 0) && (
+                      <div className={styles.auditTrail}>
+                        <div className={styles.auditTrailHead}>
+                          <span>운영 이력</span>
+                          {r.autoHiddenAt && <Badge tone="warning">자동 임시 숨김</Badge>}
+                        </div>
+                        {r.resolvedNote && <p>최근 메모: {r.resolvedNote}</p>}
+                        {(r.auditTrail ?? []).length > 0 && (
+                          <ul>
+                            {(r.auditTrail ?? []).slice(0, 3).map((log) => (
+                              <li key={log.id}>
+                                <strong>{AUDIT_ACTION_LABEL[log.action] ?? log.action}</strong>
+                                <span>
+                                  {log.note ? `${log.note} · ` : ''}
+                                  {new Date(log.createdAt).toLocaleString('ko-KR')}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
-                      {r.resolvedNote && <p>최근 메모: {r.resolvedNote}</p>}
-                      {(r.auditTrail ?? []).length > 0 && (
-                        <ul>
-                          {(r.auditTrail ?? []).slice(0, 3).map((log) => (
-                            <li key={log.id}>
-                              <strong>{AUDIT_ACTION_LABEL[log.action] ?? log.action}</strong>
-                              <span>
-                                {log.note ? `${log.note} · ` : ''}
-                                {new Date(log.createdAt).toLocaleString('ko-KR')}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  )}
-                  {r.status === 'open' && (
-                    <div className={styles.actions}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={patch.isPending}
-                        onClick={() =>
-                          patch.mutate({
-                            id: r.id,
-                            status: 'reviewing',
-                            note: '운영자 검토 시작',
-                          })
-                        }
-                      >
-                        검토 시작
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={patch.isPending}
-                        onClick={() =>
-                          patch.mutate({
-                            id: r.id,
-                            status: 'dismissed',
-                            note: '운영 기준상 조치 없음',
-                          })
-                        }
-                      >
-                        기각
-                      </Button>
-                      {(r.communityPost || r.communityComment) && (
+                    )}
+                    {r.status === 'open' && (
+                      <div className={styles.actions}>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -3735,48 +3723,13 @@ export default function AdminPage() {
                           onClick={() =>
                             patch.mutate({
                               id: r.id,
-                              status: 'resolved',
-                              hideContent: true,
-                              note: '커뮤니티 콘텐츠 숨김 처리',
+                              status: 'reviewing',
+                              note: '운영자 검토 시작',
                             })
                           }
                         >
-                          콘텐츠 숨김 처리
+                          검토 시작
                         </Button>
-                      )}
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        disabled={patch.isPending}
-                        onClick={() =>
-                          patch.mutate({
-                            id: r.id,
-                            status: 'resolved',
-                            note: '신고 처리 완료',
-                          })
-                        }
-                      >
-                        조치 완료
-                      </Button>
-                    </div>
-                  )}
-                  {r.status === 'reviewing' && (
-                    <div className={styles.actions}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={patch.isPending}
-                        onClick={() =>
-                          patch.mutate({
-                            id: r.id,
-                            status: 'dismissed',
-                            note: '운영 기준상 조치 없음',
-                          })
-                        }
-                      >
-                        기각
-                      </Button>
-                      {(r.communityPost || r.communityComment) && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -3784,37 +3737,102 @@ export default function AdminPage() {
                           onClick={() =>
                             patch.mutate({
                               id: r.id,
-                              status: 'resolved',
-                              hideContent: true,
-                              note: '커뮤니티 콘텐츠 숨김 처리',
+                              status: 'dismissed',
+                              note: '운영 기준상 조치 없음',
                             })
                           }
                         >
-                          콘텐츠 숨김 처리
+                          기각
                         </Button>
-                      )}
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        disabled={patch.isPending}
-                        onClick={() =>
-                          patch.mutate({
-                            id: r.id,
-                            status: 'resolved',
-                            note: '신고 처리 완료',
-                          })
-                        }
-                      >
-                        조치 완료
-                      </Button>
-                    </div>
-                  )}
-                </Card>
-              ))
-            )}
-          </div>
-        </>
-      )}
+                        {(r.communityPost || r.communityComment) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={patch.isPending}
+                            onClick={() =>
+                              patch.mutate({
+                                id: r.id,
+                                status: 'resolved',
+                                hideContent: true,
+                                note: '커뮤니티 콘텐츠 숨김 처리',
+                              })
+                            }
+                          >
+                            콘텐츠 숨김 처리
+                          </Button>
+                        )}
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          disabled={patch.isPending}
+                          onClick={() =>
+                            patch.mutate({
+                              id: r.id,
+                              status: 'resolved',
+                              note: '신고 처리 완료',
+                            })
+                          }
+                        >
+                          조치 완료
+                        </Button>
+                      </div>
+                    )}
+                    {r.status === 'reviewing' && (
+                      <div className={styles.actions}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={patch.isPending}
+                          onClick={() =>
+                            patch.mutate({
+                              id: r.id,
+                              status: 'dismissed',
+                              note: '운영 기준상 조치 없음',
+                            })
+                          }
+                        >
+                          기각
+                        </Button>
+                        {(r.communityPost || r.communityComment) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={patch.isPending}
+                            onClick={() =>
+                              patch.mutate({
+                                id: r.id,
+                                status: 'resolved',
+                                hideContent: true,
+                                note: '커뮤니티 콘텐츠 숨김 처리',
+                              })
+                            }
+                          >
+                            콘텐츠 숨김 처리
+                          </Button>
+                        )}
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          disabled={patch.isPending}
+                          onClick={() =>
+                            patch.mutate({
+                              id: r.id,
+                              status: 'resolved',
+                              note: '신고 처리 완료',
+                            })
+                          }
+                        >
+                          조치 완료
+                        </Button>
+                      </div>
+                    )}
+                  </Card>
+                ))
+              )}
+            </div>
+          </>
+        )}
+      </section>
     </div>
   )
 }

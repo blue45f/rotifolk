@@ -11,6 +11,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './HostApply.module.css'
@@ -43,6 +44,25 @@ const HOSTING_STYLES = [
   { value: '따뜻', emoji: '☕️', desc: '환대로 시작하는' },
   { value: '진지', emoji: '📖', desc: '깊은 대화를 위한' },
   { value: '발랄', emoji: '✨', desc: '경쾌하고 즐거운' },
+] as const
+
+/** 호스트가 되면 좋은 점 — 가치 제안 인트로. */
+const HOST_PERKS = [
+  {
+    icon: 'live' as const,
+    title: '라운드를 직접 운영',
+    desc: '5분 로테이션을 한 손으로 진행하는 무대 뒤 호스트가 돼요.',
+  },
+  {
+    icon: 'sparkle' as const,
+    title: '모든 카테고리 개설',
+    desc: '와인·커피·차·위스키, 그리는 모임을 자유롭게 열 수 있어요.',
+  },
+  {
+    icon: 'shield' as const,
+    title: '인증 배지',
+    desc: '검토를 통과하면 프로필에 호스트 배지가 달려요.',
+  },
 ] as const
 
 /** 호스트 인증 신청 폼 검증 — 소개 50자 이상, 진행 스타일·카테고리 필수, 경험은 선택. */
@@ -143,8 +163,8 @@ export default function HostApplyPage() {
       return (
         <Card padding="lg" variant="gradient" className={styles.statusCard}>
           <div className={styles.statusHead}>
-            <span className={styles.statusEmoji} aria-hidden="true">
-              ✅
+            <span className={`${styles.statusMark} ${styles.statusMarkOk}`} aria-hidden="true">
+              <Icon name="check" />
             </span>
             <div>
               <h2 className={styles.statusTitle}>인증된 호스트입니다</h2>
@@ -176,8 +196,8 @@ export default function HostApplyPage() {
       return (
         <Card padding="lg" variant="soft" className={styles.statusCard}>
           <div className={styles.statusHead}>
-            <span className={styles.statusEmoji} aria-hidden="true">
-              🕰️
+            <span className={styles.statusMark} aria-hidden="true">
+              <Icon name="clock" />
             </span>
             <div>
               <h2 className={styles.statusTitle}>검토 중이에요</h2>
@@ -208,7 +228,7 @@ export default function HostApplyPage() {
     return (
       <Card padding="lg" className={styles.statusCard}>
         <div className={styles.statusHead}>
-          <span className={styles.statusEmoji} aria-hidden="true">
+          <span className={styles.statusMark} aria-hidden="true">
             🤍
           </span>
           <div>
@@ -242,10 +262,10 @@ export default function HostApplyPage() {
         <Badge tone="primary" size="md" outlined>
           호스트 인증
         </Badge>
-        <h1 className={styles.title}>더 많은 사람을 잇고 싶다면</h1>
+        <h1 className={styles.title}>더 많은 사람을 잇는 호스트가 되어주세요</h1>
         <p className={styles.lead}>
           짧은 자기소개로 시작해요. 어떤 라운드를 그리고 있는지, 어떤 분위기로 진행할지 알려주시면
-          1~2일 내로 인증해 드릴게요. 인증되면 모든 카테고리의 모임을 직접 열 수 있어요.
+          1~2일 내로 인증해 드릴게요.
         </p>
       </header>
 
@@ -256,160 +276,212 @@ export default function HostApplyPage() {
       ) : application ? (
         <section className={`container ${styles.body}`}>{renderStatusCard()}</section>
       ) : (
-        <form className={`container ${styles.body}`} onSubmit={onSubmit} noValidate>
-          <Card padding="lg" className={styles.card}>
-            <h2 className={styles.h2}>1. 어떤 호스트가 되고 싶나요?</h2>
-            <p className={styles.sectionLead}>
-              호스트 페르소나를 그릴 수 있도록 자유롭게 적어주세요. 최소 50자.
-            </p>
-            <div className={styles.field}>
-              <label htmlFor="introduction" className={styles.fieldLabel}>
-                소개
-              </label>
-              <textarea
-                id="introduction"
-                className={styles.textarea}
-                rows={6}
-                placeholder="예) 평일 저녁 한남동에서 와인을 따르는 게 가장 좋은 시간이에요. 처음 만난 사람도 한 잔 두 잔 부딪치다 보면 결국 자기 이야기를 꺼내게 되는데, 그 순간을 가장 좋아합니다."
-                aria-describedby="intro-counter"
-                aria-invalid={isSubmitted && introLen < 50}
-                {...register('introduction')}
-              />
-              <div className={styles.fieldFoot} id="intro-counter">
-                <span className={introLen < 50 ? styles.counterPending : styles.counterDone}>
-                  {introLen} / 50자
+        <div className={`container ${styles.body}`}>
+          <ul className={styles.perks}>
+            {HOST_PERKS.map((perk) => (
+              <li key={perk.title} className={styles.perk}>
+                <span className={styles.perkIcon} aria-hidden="true">
+                  <Icon name={perk.icon} />
                 </span>
-                {isSubmitted && introLen < 50 && (
-                  <span className={styles.fieldError}>50자 이상 적어주세요.</span>
+                <div className={styles.perkText}>
+                  <strong className={styles.perkTitle}>{perk.title}</strong>
+                  <span className={styles.perkDesc}>{perk.desc}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <form className={styles.form} onSubmit={onSubmit} noValidate>
+            <Card padding="lg" className={styles.card}>
+              <fieldset className={styles.fieldset}>
+                <legend className={styles.legend}>
+                  <span className={styles.stepNo} aria-hidden="true">
+                    1
+                  </span>
+                  어떤 호스트가 되고 싶나요?
+                </legend>
+                <p className={styles.sectionLead}>
+                  호스트 페르소나를 그릴 수 있도록 자유롭게 적어주세요. 최소 50자.
+                </p>
+                <div className={styles.field}>
+                  <label htmlFor="introduction" className={styles.fieldLabel}>
+                    소개
+                  </label>
+                  <textarea
+                    id="introduction"
+                    className={styles.textarea}
+                    rows={6}
+                    placeholder="예) 평일 저녁 한남동에서 와인을 따르는 게 가장 좋은 시간이에요. 처음 만난 사람도 한 잔 두 잔 부딪치다 보면 결국 자기 이야기를 꺼내게 되는데, 그 순간을 가장 좋아합니다."
+                    aria-describedby="intro-counter"
+                    aria-invalid={isSubmitted && introLen < 50}
+                    {...register('introduction')}
+                  />
+                  <div className={styles.fieldFoot} id="intro-counter">
+                    <span className={introLen < 50 ? styles.counterPending : styles.counterDone}>
+                      {introLen < 50 ? null : (
+                        <Icon name="check" className={styles.counterTick} aria-hidden="true" />
+                      )}
+                      {introLen} / 50자
+                    </span>
+                    {isSubmitted && introLen < 50 && (
+                      <span className={styles.fieldError}>50자 이상 적어주세요.</span>
+                    )}
+                  </div>
+                </div>
+              </fieldset>
+            </Card>
+
+            <Card padding="lg" className={styles.card}>
+              <Controller
+                control={control}
+                name="hostingStyle"
+                render={({ field }) => (
+                  <fieldset
+                    className={styles.fieldset}
+                    role="radiogroup"
+                    aria-label="진행 스타일"
+                    aria-invalid={isSubmitted && !field.value}
+                  >
+                    <legend className={styles.legend}>
+                      <span className={styles.stepNo} aria-hidden="true">
+                        2
+                      </span>
+                      진행 스타일
+                    </legend>
+                    <p className={styles.sectionLead}>가장 가까운 스타일 하나를 골라주세요.</p>
+                    <div className={styles.styleGrid}>
+                      {HOSTING_STYLES.map((s) => {
+                        const active = field.value === s.value
+                        return (
+                          <button
+                            type="button"
+                            key={s.value}
+                            role="radio"
+                            aria-checked={active}
+                            className={`${styles.styleBtn} ${active ? styles.styleActive : ''}`}
+                            onClick={() => field.onChange(s.value)}
+                          >
+                            <span className={styles.styleEmoji} aria-hidden="true">
+                              {s.emoji}
+                            </span>
+                            <strong>{s.value}</strong>
+                            <span className={styles.styleDesc}>{s.desc}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {isSubmitted && errors.hostingStyle && (
+                      <p className={styles.fieldError}>{errors.hostingStyle.message}</p>
+                    )}
+                  </fieldset>
                 )}
-              </div>
-            </div>
-          </Card>
-
-          <Card padding="lg" className={styles.card}>
-            <h2 className={styles.h2}>2. 진행 스타일</h2>
-            <p className={styles.sectionLead}>가장 가까운 스타일 하나를 골라주세요.</p>
-            <Controller
-              control={control}
-              name="hostingStyle"
-              render={({ field }) => (
-                <div
-                  className={styles.styleGrid}
-                  role="radiogroup"
-                  aria-label="진행 스타일"
-                  aria-invalid={isSubmitted && !field.value}
-                >
-                  {HOSTING_STYLES.map((s) => {
-                    const active = field.value === s.value
-                    return (
-                      <button
-                        type="button"
-                        key={s.value}
-                        role="radio"
-                        aria-checked={active}
-                        className={`${styles.styleBtn} ${active ? styles.styleActive : ''}`}
-                        onClick={() => field.onChange(s.value)}
-                      >
-                        <span className={styles.styleEmoji} aria-hidden="true">
-                          {s.emoji}
-                        </span>
-                        <strong>{s.value}</strong>
-                        <span className={styles.styleDesc}>{s.desc}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            />
-            {isSubmitted && errors.hostingStyle && (
-              <p className={styles.fieldError}>{errors.hostingStyle.message}</p>
-            )}
-          </Card>
-
-          <Card padding="lg" className={styles.card}>
-            <h2 className={styles.h2}>3. 진행하고 싶은 카테고리</h2>
-            <p className={styles.sectionLead}>
-              여러 개를 골라도 좋아요. 첫 모임은 가장 자신 있는 한두 가지부터 추천드려요.
-            </p>
-            <Controller
-              control={control}
-              name="plannedCategories"
-              render={({ field }) => (
-                <div className={styles.chipRow}>
-                  {ALL_CATEGORIES.map((c) => {
-                    const selected = field.value.includes(c.value)
-                    return (
-                      <Chip
-                        key={c.value}
-                        leadingEmoji={c.emoji}
-                        selected={selected}
-                        onClick={() =>
-                          field.onChange(
-                            selected
-                              ? field.value.filter((x) => x !== c.value)
-                              : [...field.value, c.value],
-                          )
-                        }
-                      >
-                        {c.shortLabel}
-                      </Chip>
-                    )
-                  })}
-                </div>
-              )}
-            />
-            {isSubmitted && errors.plannedCategories && (
-              <p className={styles.fieldError}>{errors.plannedCategories.message}</p>
-            )}
-          </Card>
-
-          <Card padding="lg" className={styles.card}>
-            <h2 className={styles.h2}>
-              4. 진행 경험 <span className={styles.optional}>(선택)</span>
-            </h2>
-            <p className={styles.sectionLead}>
-              모임/스터디/북클럽/팝업 등 사람을 모아본 경험이 있다면 자유롭게 적어주세요.
-            </p>
-            <div className={styles.field}>
-              <label htmlFor="experience" className={styles.fieldLabel}>
-                경험
-              </label>
-              <textarea
-                id="experience"
-                className={styles.textarea}
-                rows={4}
-                placeholder="예) 분기마다 8명 규모 와인 살롱을 6회 진행했어요. 한 라운드는 약 30분, 페어링 한 잔에 한 주제로."
-                {...register('experience')}
               />
-            </div>
-          </Card>
+            </Card>
 
-          {isSubmitted && validationHints.length > 0 && (
-            <div className={styles.hintBox} role="status" aria-live="polite">
-              <strong>아직 한 걸음 남았어요</strong>
-              <ul>
-                {validationHints.map((h) => (
-                  <li key={h}>{h}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+            <Card padding="lg" className={styles.card}>
+              <Controller
+                control={control}
+                name="plannedCategories"
+                render={({ field }) => (
+                  <fieldset
+                    className={styles.fieldset}
+                    aria-label="진행하고 싶은 카테고리"
+                    aria-invalid={isSubmitted && field.value.length === 0}
+                  >
+                    <legend className={styles.legend}>
+                      <span className={styles.stepNo} aria-hidden="true">
+                        3
+                      </span>
+                      진행하고 싶은 카테고리
+                    </legend>
+                    <p className={styles.sectionLead}>
+                      여러 개를 골라도 좋아요. 첫 모임은 가장 자신 있는 한두 가지부터 추천드려요.
+                    </p>
+                    <div className={styles.chipRow}>
+                      {ALL_CATEGORIES.map((c) => {
+                        const selected = field.value.includes(c.value)
+                        return (
+                          <Chip
+                            key={c.value}
+                            leadingEmoji={c.emoji}
+                            selected={selected}
+                            onClick={() =>
+                              field.onChange(
+                                selected
+                                  ? field.value.filter((x) => x !== c.value)
+                                  : [...field.value, c.value],
+                              )
+                            }
+                          >
+                            {c.shortLabel}
+                          </Chip>
+                        )
+                      })}
+                    </div>
+                    {isSubmitted && errors.plannedCategories && (
+                      <p className={styles.fieldError}>{errors.plannedCategories.message}</p>
+                    )}
+                  </fieldset>
+                )}
+              />
+            </Card>
 
-          <div className={styles.actions}>
-            <p className={styles.smallNote}>
-              제출 후에는 본인의 자기소개 페이지에도 동일하게 반영됩니다.
-            </p>
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              isLoading={create.isPending}
-              disabled={create.isPending}
-            >
-              호스트 인증 신청 보내기
-            </Button>
-          </div>
-        </form>
+            <Card padding="lg" className={styles.card}>
+              <fieldset className={styles.fieldset}>
+                <legend className={styles.legend}>
+                  <span className={styles.stepNo} aria-hidden="true">
+                    4
+                  </span>
+                  진행 경험 <span className={styles.optional}>(선택)</span>
+                </legend>
+                <p className={styles.sectionLead}>
+                  모임/스터디/북클럽/팝업 등 사람을 모아본 경험이 있다면 자유롭게 적어주세요.
+                </p>
+                <div className={styles.field}>
+                  <label htmlFor="experience" className={styles.fieldLabel}>
+                    경험
+                  </label>
+                  <textarea
+                    id="experience"
+                    className={styles.textarea}
+                    rows={4}
+                    placeholder="예) 분기마다 8명 규모 와인 살롱을 6회 진행했어요. 한 라운드는 약 30분, 페어링 한 잔에 한 주제로."
+                    {...register('experience')}
+                  />
+                </div>
+              </fieldset>
+            </Card>
+
+            {isSubmitted && validationHints.length > 0 && (
+              <div className={styles.hintBox} role="status" aria-live="polite">
+                <strong className={styles.hintTitle}>
+                  <Icon name="sparkle" aria-hidden="true" />
+                  아직 한 걸음 남았어요
+                </strong>
+                <ul>
+                  {validationHints.map((h) => (
+                    <li key={h}>{h}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className={styles.actions}>
+              <p className={styles.smallNote}>
+                제출 후에는 본인의 자기소개 페이지에도 동일하게 반영됩니다.
+              </p>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                isLoading={create.isPending}
+                disabled={create.isPending}
+              >
+                호스트 인증 신청 보내기
+              </Button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   )

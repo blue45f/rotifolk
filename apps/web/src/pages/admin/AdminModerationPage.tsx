@@ -12,6 +12,7 @@ import { api } from '@services/api'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -125,167 +126,203 @@ export default function AdminModerationPage() {
     <main className={styles.page}>
       <div className="container">
         <header className={styles.head}>
-          <div>
+          <div className={styles.headText}>
+            <p className={styles.kicker}>
+              <Icon name="shield" aria-hidden />
+              운영 도구
+            </p>
             <h1>콘텐츠 모더레이션</h1>
-            <p>
+            <p className={styles.headDesc}>
               커뮤니티와 클럽 게시글의 숨김, 복구, 삭제, 첨부 제거를 처리합니다. 모든 조치는 감사
               로그에 남아요.
             </p>
           </div>
           <Link className={styles.backLink} to="/admin">
+            <Icon name="home" aria-hidden />
             관리자 홈으로
           </Link>
         </header>
 
-        <div className={styles.toolbar}>
-          <div className={styles.chipRow} role="group" aria-label="대상 게시판">
-            {SCOPE_TABS.map((item) => (
-              <Chip
-                key={item.value}
-                selected={scope === item.value}
-                onClick={() => {
-                  setScope(item.value)
-                  setPage(1)
-                }}
-              >
-                {item.label}
-              </Chip>
-            ))}
-          </div>
-          <div className={styles.chipRow} role="group" aria-label="상태 필터">
-            {STATUS_FILTERS.map((item) => (
-              <Chip
-                key={item.value}
-                selected={status === item.value}
-                onClick={() => {
-                  setStatus(item.value)
-                  setPage(1)
-                }}
-              >
-                {item.label}
-              </Chip>
-            ))}
-          </div>
-          <div className={styles.searchBox}>
-            <Input
-              type="search"
-              label="검색"
-              placeholder="제목이나 본문으로 검색"
-              value={searchText}
-              onChange={(event) => {
-                setSearchText(event.target.value)
-                setPage(1)
-              }}
-            />
-          </div>
-        </div>
+        <section className={styles.section} aria-labelledby="moderation-queue-title">
+          <h2 id="moderation-queue-title" className={styles.sectionTitle}>
+            게시글 큐
+          </h2>
 
-        {postsQuery.isLoading ? (
-          <div className={styles.stateBlock}>
-            <Loading />
+          <div className={styles.toolbar}>
+            <div className={styles.filterField} role="group" aria-label="대상 게시판">
+              <span className={styles.filterLabel}>게시판</span>
+              <div className={styles.chipRow}>
+                {SCOPE_TABS.map((item) => (
+                  <Chip
+                    key={item.value}
+                    selected={scope === item.value}
+                    onClick={() => {
+                      setScope(item.value)
+                      setPage(1)
+                    }}
+                  >
+                    {item.label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+            <div className={styles.filterField} role="group" aria-label="상태 필터">
+              <span className={styles.filterLabel}>상태</span>
+              <div className={styles.chipRow}>
+                {STATUS_FILTERS.map((item) => (
+                  <Chip
+                    key={item.value}
+                    selected={status === item.value}
+                    onClick={() => {
+                      setStatus(item.value)
+                      setPage(1)
+                    }}
+                  >
+                    {item.label}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+            <div className={styles.searchBox}>
+              <Input
+                type="search"
+                label="검색"
+                placeholder="제목이나 본문으로 검색"
+                value={searchText}
+                onChange={(event) => {
+                  setSearchText(event.target.value)
+                  setPage(1)
+                }}
+              />
+            </div>
           </div>
-        ) : postsQuery.isError ? (
-          <div className={styles.stateBlock}>
-            <EmptyState
-              emoji="🛠️"
-              title="목록을 불러오지 못했어요"
-              action={
-                <Button variant="soft" onClick={() => postsQuery.refetch()}>
-                  다시 시도
-                </Button>
-              }
-            />
-          </div>
-        ) : !postsQuery.data || postsQuery.data.items.length === 0 ? (
-          <div className={styles.stateBlock}>
-            <EmptyState emoji="🍃" title="조건에 맞는 게시글이 없어요" />
-          </div>
-        ) : (
-          <>
-            <ul className={styles.list}>
-              {postsQuery.data.items.map((post) => (
-                <li key={`${post.scope}-${post.id}`} className={styles.row}>
-                  <div className={styles.rowMain}>
-                    <strong>{post.title}</strong>
-                    <p className={styles.excerpt}>{post.excerpt}</p>
-                    <div className={styles.metaLine}>
-                      <span className={STATUS_CLASS[post.status]}>{STATUS_LABEL[post.status]}</span>
-                      {post.clubName && <span>클럽 {post.clubName}</span>}
-                      <span>{post.authorNickname}</span>
-                      <span>{formatDate(post.createdAt)}</span>
-                      <span>댓글 {post.commentCount}</span>
-                      {post.hasImage && <span>첨부 있음</span>}
-                      {post.reportCount > 0 && (
-                        <span className={styles.reportFlag}>신고 {post.reportCount}건</span>
+
+          {postsQuery.isLoading ? (
+            <div className={styles.stateBlock}>
+              <Loading />
+            </div>
+          ) : postsQuery.isError ? (
+            <div className={styles.stateBlock}>
+              <EmptyState
+                emoji="🛠️"
+                title="목록을 불러오지 못했어요"
+                action={
+                  <Button variant="soft" onClick={() => postsQuery.refetch()}>
+                    다시 시도
+                  </Button>
+                }
+              />
+            </div>
+          ) : !postsQuery.data || postsQuery.data.items.length === 0 ? (
+            <div className={styles.stateBlock}>
+              <EmptyState emoji="🍃" title="조건에 맞는 게시글이 없어요" />
+            </div>
+          ) : (
+            <>
+              <ul className={styles.list}>
+                {postsQuery.data.items.map((post) => (
+                  <li key={`${post.scope}-${post.id}`} className={styles.row}>
+                    <div className={styles.rowMain}>
+                      <span className={`${styles.statusPill} ${STATUS_CLASS[post.status]}`}>
+                        {STATUS_LABEL[post.status]}
+                      </span>
+                      <strong className={styles.rowTitle}>{post.title}</strong>
+                      <p className={styles.excerpt}>{post.excerpt}</p>
+                      <div className={styles.metaLine}>
+                        {post.clubName && <span>클럽 {post.clubName}</span>}
+                        <span className={styles.metaItem}>
+                          <Icon name="user" aria-hidden />
+                          {post.authorNickname}
+                        </span>
+                        <span className={styles.metaItem}>
+                          <Icon name="clock" aria-hidden />
+                          {formatDate(post.createdAt)}
+                        </span>
+                        <span className={styles.metaItem}>
+                          <Icon name="chat" aria-hidden />
+                          댓글 {post.commentCount}
+                        </span>
+                        {post.hasImage && (
+                          <span className={styles.metaItem}>
+                            <Icon name="bookmark" aria-hidden />
+                            첨부 있음
+                          </span>
+                        )}
+                        {post.reportCount > 0 && (
+                          <span className={`${styles.metaItem} ${styles.reportFlag}`}>
+                            <Icon name="flame" aria-hidden />
+                            신고 {post.reportCount}건
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className={styles.rowActions}>
+                      {post.status === 'open' ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={moderate.isPending}
+                          onClick={() => runAction(post, 'hide')}
+                        >
+                          숨김
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="soft"
+                          size="sm"
+                          disabled={moderate.isPending}
+                          onClick={() => runAction(post, 'restore')}
+                        >
+                          복구
+                        </Button>
+                      )}
+                      {post.hasImage && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={moderate.isPending}
+                          onClick={() => runAction(post, 'clear-image')}
+                        >
+                          첨부 제거
+                        </Button>
+                      )}
+                      {post.status !== 'removed' && (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          disabled={moderate.isPending}
+                          onClick={() => runAction(post, 'remove')}
+                        >
+                          삭제
+                        </Button>
                       )}
                     </div>
-                  </div>
-                  <div className={styles.rowActions}>
-                    {post.status === 'open' ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={moderate.isPending}
-                        onClick={() => runAction(post, 'hide')}
-                      >
-                        숨김
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={moderate.isPending}
-                        onClick={() => runAction(post, 'restore')}
-                      >
-                        복구
-                      </Button>
-                    )}
-                    {post.hasImage && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={moderate.isPending}
-                        onClick={() => runAction(post, 'clear-image')}
-                      >
-                        첨부 제거
-                      </Button>
-                    )}
-                    {post.status !== 'removed' && (
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        disabled={moderate.isPending}
-                        onClick={() => runAction(post, 'remove')}
-                      >
-                        삭제
-                      </Button>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-            {(postsQuery.data.hasNext || page > 1) && (
-              <div className={styles.pager}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={page <= 1}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                >
-                  이전
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={!postsQuery.data.hasNext}
-                  onClick={() => setPage((prev) => prev + 1)}
-                >
-                  다음
-                </Button>
-              </div>
-            )}
-          </>
-        )}
+                  </li>
+                ))}
+              </ul>
+              {(postsQuery.data.hasNext || page > 1) && (
+                <div className={styles.pager}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={page <= 1}
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  >
+                    이전
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={!postsQuery.data.hasNext}
+                    onClick={() => setPage((prev) => prev + 1)}
+                  >
+                    다음
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </section>
 
         <ContentReportsSection />
       </div>
@@ -333,9 +370,12 @@ function ContentReportsSection() {
   }
 
   return (
-    <section aria-labelledby="content-reports-title">
+    <section className={styles.section} aria-labelledby="content-reports-title">
       <h2 id="content-reports-title" className={styles.sectionTitle}>
         콘텐츠 신고 처리
+        {contentReports.length > 0 && (
+          <span className={styles.countBadge}>{contentReports.length}</span>
+        )}
       </h2>
       <p className={styles.sectionDesc}>
         커뮤니티 글과 댓글에 들어온 미처리 신고예요. 처리(인용) 시 "콘텐츠 숨김"을 켜면 대상 글이나
@@ -356,6 +396,7 @@ function ContentReportsSection() {
             <li key={report.id} className={styles.reportRow}>
               <div className={styles.reportHead}>
                 <span className={styles.reportKind}>
+                  <Icon name="flame" aria-hidden />
                   {REPORT_KIND_LABEL[report.kind] ?? report.kind}
                 </span>
                 <span className={styles.reportTargetLine}>
@@ -364,7 +405,11 @@ function ContentReportsSection() {
                     : `글: ${report.communityPost?.title ?? ''}`}
                 </span>
                 <span className={styles.reportTargetLine}>
-                  신고자 {report.reporter.nickname} · {formatDate(report.createdAt)}
+                  <Icon name="user" aria-hidden />
+                  신고자 {report.reporter.nickname}
+                  <span aria-hidden> · </span>
+                  <Icon name="clock" aria-hidden />
+                  {formatDate(report.createdAt)}
                 </span>
               </div>
               <p className={styles.reportBody}>{report.body}</p>

@@ -8,7 +8,7 @@
   align-items: flex-start;
   gap: var(--space-3);
   max-width: 720px;
-  margin-bottom: var(--space-10);
+  margin-bottom: var(--space-8);
 }
 .title {
   font-size: clamp(1.8rem, 4vw, 2.6rem);
@@ -20,9 +20,59 @@
   color: var(--color-text-muted);
   line-height: 1.6;
   font-size: var(--fs-md);
+  max-width: 60ch;
 }
 
 .body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Value-prop intro — warm "why host" strip, text + divider, no nested cards. */
+.perks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3) var(--space-5);
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--grad-cream-rose);
+  box-shadow: var(--shadow-sm);
+}
+.perk {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.perkIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--brand-apricot-600) 14%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: var(--fs-lg);
+}
+.perkText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.perkTitle {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+}
+.perkDesc {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+}
+
+.form {
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
@@ -31,24 +81,52 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
 }
 
-.h2 {
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0;
   font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
   letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+.stepNo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  line-height: 1;
 }
 .optional {
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   color: var(--color-text-muted);
-  margin-left: var(--space-2);
+  margin-left: var(--space-1);
 }
 .sectionLead {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
   line-height: 1.6;
+  margin-top: calc(var(--space-2) * -1);
 }
 
 .field {
@@ -75,10 +153,13 @@
     border-color var(--dur-base) var(--ease-out),
     box-shadow var(--dur-base) var(--ease-out);
 }
-.textarea:focus {
-  outline: none;
+.textarea::placeholder {
+  color: var(--color-text-subtle);
+}
+.textarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 12%, transparent);
 }
 .textarea[aria-invalid='true'] {
   border-color: var(--color-danger);
@@ -96,8 +177,14 @@
   color: var(--color-text-muted);
 }
 .counterDone {
-  color: var(--color-success, #2f7d4f);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-success);
   font-weight: var(--fw-medium);
+}
+.counterTick {
+  font-size: 1em;
 }
 .fieldError {
   color: var(--color-danger);
@@ -113,6 +200,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-height: 44px;
   padding: var(--space-4);
   border-radius: var(--radius-lg);
   border: 1.5px solid var(--color-border);
@@ -128,11 +216,12 @@
 }
 .styleBtn:hover {
   transform: translateY(-2px);
-  border-color: var(--brand-burgundy-300, var(--color-primary));
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
 }
 .styleBtn:focus-visible {
   outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 .styleEmoji {
   font-size: 1.6rem;
@@ -147,11 +236,8 @@
 }
 .styleActive {
   border-color: var(--color-primary);
-  background: var(
-    --color-primary-soft,
-    color-mix(in oklab, var(--color-primary) 8%, var(--color-surface))
-  );
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 12%, transparent);
+  background: var(--color-primary-soft);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 14%, transparent);
 }
 
 .chipRow {
@@ -169,9 +255,13 @@
   flex-direction: column;
   gap: var(--space-2);
 }
-.hintBox strong {
+.hintTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--fs-md);
   font-weight: var(--fw-bold);
+  color: var(--color-primary);
 }
 .hintBox ul {
   display: flex;
@@ -206,9 +296,22 @@
   gap: var(--space-4);
   align-items: flex-start;
 }
-.statusEmoji {
-  font-size: 2.4rem;
+.statusMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--brand-apricot-600) 14%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: 1.6rem;
   line-height: 1;
+}
+.statusMarkOk {
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 .statusTitle {
   font-size: var(--fs-2xl);
@@ -263,5 +366,15 @@
   .actions {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .textarea,
+  .styleBtn {
+    transition: none;
+  }
+  .styleBtn:hover {
+    transform: none;
   }
 }
