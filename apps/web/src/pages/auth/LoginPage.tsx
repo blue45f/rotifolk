@@ -9,6 +9,7 @@ import { GoogleSignInButton } from '@features/auth/GoogleSignInButton'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { usePrompt } from '@components/feedback/Prompt/usePrompt'
 import { api } from '@services/api'
@@ -153,27 +154,36 @@ export default function LoginPage() {
   return (
     <div className={styles.page}>
       <div className={styles.bg} aria-hidden="true" />
-      <Card padding="lg" variant="glass" className={styles.card}>
-        <h1 className={styles.title}>다시 만나서 반가워요 🍷</h1>
-        <p className={styles.lead}>Rotifolk로 새로운 라운드를 시작해 보세요.</p>
-        <button
-          type="button"
-          className={styles.kakaoBtn}
-          onClick={handleKakao}
-          disabled={kakaoLoading}
-        >
-          <span aria-hidden="true">💬</span>
-          {kakaoLoading ? '카카오로 입장 중…' : '카카오로 시작하기'}
-        </button>
-        <p className={styles.kakaoHint}>데모 환경: 실제 카카오 인증 없이 닉네임으로 진입</p>
-        {authConfig.data?.googleClientId && (
-          <div className={styles.googleRow}>
-            <GoogleSignInButton
-              clientId={authConfig.data.googleClientId}
-              onCredential={handleGoogleCredential}
-            />
-          </div>
-        )}
+      <Card padding="lg" variant="soft" className={styles.card}>
+        <p className={styles.brand}>
+          <Icon name="sparkle" />
+          Rotifolk
+        </p>
+        <div className={styles.intro}>
+          <h1 className={styles.title}>다시 만나서 반가워요 🍷</h1>
+          <p className={styles.lead}>로그인하고 새로운 라운드를 시작해 보세요.</p>
+        </div>
+        <div className={styles.social}>
+          <button
+            type="button"
+            className={styles.kakaoBtn}
+            onClick={handleKakao}
+            disabled={kakaoLoading}
+          >
+            <Icon name="chat" />
+            {kakaoLoading ? '카카오로 입장 중…' : '카카오로 시작하기'}
+          </button>
+          <p className={styles.kakaoHint}>데모 환경: 실제 카카오 인증 없이 닉네임으로 진입</p>
+          {authConfig.data?.googleClientId && (
+            <div className={styles.googleRow}>
+              <GoogleSignInButton
+                clientId={authConfig.data.googleClientId}
+                onCredential={handleGoogleCredential}
+              />
+            </div>
+          )}
+        </div>
+        <div className={styles.divider}>또는 이메일로</div>
         <form
           className={styles.form}
           onSubmit={handleSubmit(async (data) => {
@@ -214,8 +224,10 @@ export default function LoginPage() {
           </Link>
         </p>
         <div className={styles.devHint}>
-          데모 계정: <code>{`${DEMO_ACCOUNT.email} / ${DEMO_ACCOUNT.password}`}</code>
-          <div style={{ marginTop: 8, display: 'flex', gap: 8, justifyContent: 'center' }}>
+          <span>
+            데모 계정: <code>{`${DEMO_ACCOUNT.email} / ${DEMO_ACCOUNT.password}`}</code>
+          </span>
+          <div className={styles.devActions}>
             <Button type="button" size="sm" variant="outline" onClick={fillDemoForm}>
               데모 값 채우기
             </Button>

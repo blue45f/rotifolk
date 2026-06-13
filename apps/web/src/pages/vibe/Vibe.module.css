@@ -5,7 +5,9 @@
   max-width: var(--max-content);
   margin-inline: auto;
 }
-.heroVeil {
+
+/* Sunset veil: apricot wash from top, amber/teal warmth at the base. */
+.veil {
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -13,51 +15,104 @@
   background:
     radial-gradient(
       60% 40% at 10% 0%,
-      color-mix(in oklab, var(--brand-burgundy-400) 16%, transparent),
+      color-mix(in oklab, var(--brand-apricot-400) 18%, transparent),
       transparent 60%
     ),
     radial-gradient(
       50% 35% at 90% 100%,
-      color-mix(in oklab, var(--brand-gold-500) 18%, transparent),
+      color-mix(in oklab, var(--brand-amber-500) 18%, transparent),
       transparent 60%
     );
 }
-.hero {
-  max-width: 680px;
+
+.intro {
+  max-width: var(--max-prose);
   margin-inline: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
   text-align: center;
   align-items: center;
 }
+
+.badgeIcon {
+  margin-right: var(--space-1);
+  vertical-align: middle;
+}
+
 .title {
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-size: clamp(2rem, 5vw, var(--fs-4xl));
   font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
-  line-height: 1.05;
+  line-height: var(--lh-tight);
 }
+
 .lead {
   color: var(--color-text-muted);
+  max-width: 46ch;
+  line-height: var(--lh-normal);
+}
+
+/* —— Composer —— */
+.composerBlock {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+}
+.fieldLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
 }
 .composer {
   width: 100%;
   border: 1.5px solid var(--color-border);
   background: var(--color-surface);
+  color: var(--color-text);
   border-radius: var(--radius-lg);
   padding: var(--space-4) var(--space-5);
   font: inherit;
   font-size: var(--fs-lg);
+  line-height: var(--lh-normal);
   resize: vertical;
   min-height: 100px;
   transition:
     border-color var(--dur-fast) var(--ease-out-quart),
     box-shadow var(--dur-fast) var(--ease-out-quart);
 }
+.composer::placeholder {
+  color: var(--color-text-subtle);
+}
 .composer:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 14%, transparent);
+}
+
+/* —— Suggestions —— */
+.suggest {
+  width: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+}
+.suggestLabel {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  padding: 0;
 }
 .tagRow {
   display: flex;
@@ -66,30 +121,59 @@
   justify-content: center;
 }
 
+.cta {
+  margin-top: var(--space-2);
+}
+
+/* —— Result —— */
 .result {
   margin-top: var(--space-12);
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
 }
+.result:empty {
+  margin-top: 0;
+}
 .resultHead {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
+  flex-wrap: wrap;
 }
-.resultHead h2 {
+.resultHeadText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.resultTitle {
   font-size: var(--fs-2xl);
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
 }
 .muted {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
-  margin-top: 4px;
 }
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-5);
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-top: var(--space-8);
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .composer {
+    transition: none;
+  }
 }

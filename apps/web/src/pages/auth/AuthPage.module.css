@@ -1,3 +1,7 @@
+/* Auth (login / signup) — shared module.
+   "Aperitivo · Sunset Social": a calm single-column card on warm paper,
+   apricot identity with a teal/amber sunset wash behind. */
+
 .page {
   position: relative;
   min-height: calc(100dvh - var(--header-h));
@@ -6,45 +10,85 @@
   padding: var(--space-8) var(--space-4) var(--space-16);
   overflow: hidden;
 }
+
+/* Sunset wash: apricot rising, a single amber glint. Warm canvas underneath. */
 .bg {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 30%, color-mix(in oklab, var(--brand-apricot-400) 25%, transparent), transparent 50%),
-    radial-gradient(circle at 80% 70%, color-mix(in oklab, var(--brand-amber-500) 20%, transparent), transparent 55%), var(--color-bg);
+    radial-gradient(
+      ellipse 90% 60% at 20% 12%,
+      color-mix(in oklab, var(--brand-apricot-400) 30%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 84% 78%,
+      color-mix(in oklab, var(--brand-amber-500) 18%, transparent),
+      transparent 55%
+    ),
+    var(--color-bg);
   z-index: -1;
 }
+
 .card {
   width: 100%;
-  max-width: 460px;
-  background: color-mix(in oklab, var(--color-surface) 75%, transparent);
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
-  border: 1px solid color-mix(in oklab, var(--color-surface) 60%, transparent);
-}
-.title {
-  font-size: clamp(1.5rem, 3vw, 1.9rem);
-  font-weight: var(--fw-black);
-  letter-spacing: -0.03em;
-  margin-bottom: 6px;
-}
-.lead {
-  color: var(--color-text-muted);
-  margin-bottom: var(--space-6);
-}
-.form {
+  max-width: 26rem;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-5);
+  box-shadow: var(--shadow-md);
 }
+
+/* Welcome */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-black);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--color-text);
+}
+
+.lead {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+
+/* Social / demo region */
+.social {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
 .kakaoBtn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
   width: 100%;
-  height: 52px;
+  min-height: 44px;
+  height: 48px;
   padding: 0 var(--space-5);
+  /* Kakao brand yellow — preserved verbatim per spec. */
   background: #fee500;
   color: #191600;
   border: none;
@@ -54,33 +98,61 @@
   letter-spacing: -0.01em;
   cursor: pointer;
   transition:
-    background-color 0.18s ease,
-    transform 0.18s ease;
-  margin-bottom: var(--space-3);
+    background-color 0.18s var(--ease-out),
+    transform 0.12s var(--ease-out);
 }
 .kakaoBtn:hover:not(:disabled) {
   background: #f0d800;
 }
 .kakaoBtn:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: scale(0.98);
 }
 .kakaoBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
+.kakaoBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
 .kakaoHint {
   text-align: center;
   font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  margin-bottom: var(--space-5);
+  color: var(--color-text-subtle);
 }
+
 .googleRow {
   display: flex;
   justify-content: center;
-  margin-bottom: var(--space-5);
 }
+
+/* Divider between social and email form */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Login <-> signup switch */
 .alt {
-  margin-top: var(--space-4);
   text-align: center;
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
@@ -92,21 +164,37 @@
 .link:hover {
   text-decoration: underline;
 }
+.link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* Demo account helper (login only) */
 .devHint {
-  margin-top: var(--space-4);
-  padding: var(--space-3);
-  background: var(--brand-gold-100);
-  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-primary-soft);
+  border-radius: var(--radius-md);
   font-size: var(--fs-xs);
-  color: var(--brand-gold-700);
+  color: var(--color-primary-hover);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 .devHint code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background: color-mix(in oklab, var(--brand-clay-900) 4%, transparent);
+  background: color-mix(in oklab, var(--brand-clay-900) 5%, transparent);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
+  word-break: break-all;
+}
+.devActions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 /* Password strength */
@@ -126,7 +214,7 @@
   width: 36px;
   border-radius: var(--radius-pill);
   background: var(--color-border);
-  transition: background 0.2s ease;
+  transition: background 0.2s var(--ease-out);
 }
 .strengthBar.weak {
   background: var(--color-danger);
@@ -145,7 +233,7 @@
   color: var(--color-danger);
 }
 .strengthLabel.medium {
-  color: var(--brand-amber-600);
+  color: var(--brand-amber-700);
 }
 .strengthLabel.strong {
   color: var(--color-success);
@@ -158,14 +246,15 @@
   gap: var(--space-2);
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
+  line-height: 1.5;
   cursor: pointer;
 }
 .agreeCheck {
   margin-top: 2px;
   flex-shrink: 0;
   accent-color: var(--color-primary);
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
 }
 .agreeRow.agreeError {
@@ -174,5 +263,20 @@
 .agreeHint {
   font-size: var(--fs-xs);
   color: var(--color-danger);
-  margin-top: calc(-1 * var(--space-3));
+}
+
+@media (min-width: 480px) {
+  .title {
+    font-size: var(--fs-3xl);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kakaoBtn,
+  .strengthBar {
+    transition: none;
+  }
+  .kakaoBtn:active:not(:disabled) {
+    transform: none;
+  }
 }

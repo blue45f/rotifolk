@@ -9,6 +9,7 @@ import { normalizeTutorialStep } from '@features/tutorial/progress'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './AuthPage.module.css'
 
@@ -62,9 +63,15 @@ export default function SignUpPage() {
   return (
     <div className={styles.page}>
       <div className={styles.bg} aria-hidden="true" />
-      <Card padding="lg" variant="glass" className={styles.card}>
-        <h1 className={styles.title}>5분 라운드, 시작해 볼까요</h1>
-        <p className={styles.lead}>닉네임과 이메일이면 충분해요.</p>
+      <Card padding="lg" variant="soft" className={styles.card}>
+        <p className={styles.brand}>
+          <Icon name="sparkle" />
+          Rotifolk
+        </p>
+        <div className={styles.intro}>
+          <h1 className={styles.title}>5분 라운드, 시작해 볼까요</h1>
+          <p className={styles.lead}>닉네임과 이메일이면 충분해요.</p>
+        </div>
         <form
           className={styles.form}
           onSubmit={handleSubmit(async (data) => {
