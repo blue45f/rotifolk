@@ -1,108 +1,86 @@
-/* ============ HERO — wine cellar at twilight ============ */
+/* ============ HERO — Aperitivo sunset ============ */
 .hero {
   position: relative;
   overflow: hidden;
-  min-height: clamp(560px, 90vh, 800px);
+  min-height: clamp(520px, 82vh, 720px);
   display: flex;
   align-items: flex-end;
   padding-bottom: var(--space-16);
   isolation: isolate;
-  color: var(--brand-cream-50);
-  background-image: 
-    linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--brand-ink-900) 92%, transparent) 0%,
-      color-mix(in oklab, var(--brand-ink-900) 45%, transparent) 40%,
-      color-mix(in oklab, var(--brand-ink-900) 80%, transparent) 80%,
-      var(--color-bg) 100%
-    ),
-    url('/images/wine_cellar_twilight_bg.png');
-  background-size: cover;
-  background-position: center 65%;
-  background-repeat: no-repeat;
-  transition: background-position 0.3s var(--ease-out);
+  color: var(--color-text);
+  background: var(--grad-cellar);
 }
+/* Soft sunburst glow toward the upper area, warming the sky. */
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    110% 70% at 20% 25%,
-    color-mix(in oklab, var(--brand-burgundy-700) 15%, transparent),
-    transparent 60%
-  );
+  background:
+    radial-gradient(
+      90% 70% at 78% 8%,
+      color-mix(in oklab, var(--brand-amber-300) 70%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      80% 60% at 14% 0%,
+      color-mix(in oklab, var(--brand-apricot-200) 45%, transparent),
+      transparent 60%
+    );
   z-index: 0;
   pointer-events: none;
 }
 
-.cellar {
+/* —— Decorative sunset glasses —— */
+.heroSky {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  pointer-events: none;
 }
-.cellarVeil {
+.glasses {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--brand-ink-900) 78%, transparent) 0%,
-    transparent 38%,
-    color-mix(in oklab, var(--brand-ink-900) 50%, transparent) 100%
-  );
-}
-
-.bottles {
-  position: absolute;
-  inset: 12% 0 0 0;
+  inset: 16% 0 18% 0;
   display: block;
 }
-.bottle {
+.glass {
   position: absolute;
   bottom: 0;
-  width: 56px;
+  width: 54px;
   transform: translateX(-50%);
-  display: block;
-  border-radius: 24px 24px 4px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(
+    0 18px 36px color-mix(in oklab, var(--brand-apricot-700) 28%, transparent)
+  );
+}
+.glassBowl {
+  width: 100%;
+  flex: 1;
+  border-radius: 50% 50% 46% 46% / 18% 18% 82% 82%;
   background: linear-gradient(
     180deg,
-    color-mix(in oklab, var(--brand-ink-900) 80%, transparent) 0%,
-    color-mix(in oklab, var(--brand-burgundy-900) 80%, transparent) 30%,
-    color-mix(in oklab, var(--brand-burgundy-700) 86%, transparent) 100%
+    color-mix(in oklab, var(--brand-amber-100) 70%, transparent) 0%,
+    color-mix(in oklab, var(--brand-apricot-400) 60%, transparent) 60%,
+    color-mix(in oklab, var(--brand-apricot-600) 70%, transparent) 100%
   );
   box-shadow:
-    inset -8px 0 14px color-mix(in oklab, var(--brand-ink-900) 50%, transparent),
-    inset 6px 0 12px color-mix(in oklab, white 12%, transparent),
-    0 -22px 60px color-mix(in oklab, var(--brand-burgundy-400) 28%, transparent);
+    inset 0 2px 8px color-mix(in oklab, var(--color-surface) 40%, transparent),
+    inset -6px 0 12px color-mix(in oklab, var(--brand-apricot-700) 26%, transparent);
 }
-.bottleNeck {
-  position: absolute;
-  top: -28px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 20px;
-  height: 32px;
-  background: color-mix(in oklab, var(--brand-ink-900) 85%, transparent);
-  border-radius: 6px 6px 2px 2px;
-  box-shadow: inset -3px 0 6px color-mix(in oklab, var(--brand-ink-900) 60%, transparent);
-}
-.bottleLabel {
-  position: absolute;
-  bottom: 36%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  height: 26%;
-  background: color-mix(in oklab, var(--brand-cream-100) 80%, transparent);
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 40%, transparent);
+.glassStem {
+  width: 6px;
+  height: 22px;
+  border-radius: 0 0 4px 4px;
+  background: color-mix(in oklab, var(--brand-apricot-700) 55%, transparent);
 }
 
 .heroEdge {
   position: absolute;
   inset-inline: 0;
   bottom: 0;
-  height: 96px;
+  height: 120px;
   background: linear-gradient(180deg, transparent, var(--color-bg));
   z-index: 1;
   pointer-events: none;
@@ -118,35 +96,33 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  background: color-mix(in oklab, var(--brand-ink-900) 45%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: color-mix(in oklab, var(--color-surface) 78%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: var(--space-7) var(--space-8);
   border-radius: var(--radius-xl);
-  border: 1px solid color-mix(in oklab, white 8%, transparent);
-  box-shadow: 
-    0 24px 48px color-mix(in oklab, var(--brand-ink-900) 40%, transparent),
-    inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-apricot-600) 18%, transparent);
+  box-shadow: var(--shadow-lg);
 }
 .kicker {
+  font-family: var(--font-mono);
   font-size: var(--fs-xs);
   letter-spacing: var(--tracking-uppercase);
   text-transform: uppercase;
-  color: color-mix(in oklab, var(--brand-gold-400) 90%, white);
-  font-weight: var(--fw-medium);
+  color: var(--brand-apricot-700);
+  font-weight: var(--fw-semibold);
 }
 .heroTitle {
   font-size: clamp(2.6rem, 6.2vw, 4.6rem);
   font-weight: var(--fw-black);
-  line-height: 1.02;
+  line-height: var(--lh-tight);
   letter-spacing: var(--tracking-tight);
-  color: var(--brand-cream-50);
-  text-shadow: 0 24px 60px color-mix(in oklab, var(--brand-ink-900) 50%, transparent);
+  color: var(--color-text);
 }
 .heroLead {
   font-size: var(--fs-lg);
   line-height: var(--lh-relaxed);
-  color: color-mix(in oklab, var(--brand-cream-100) 92%, transparent);
+  color: var(--color-text-muted);
   max-width: 56ch;
 }
 .heroCta {
@@ -155,25 +131,28 @@
   flex-wrap: wrap;
   margin-top: var(--space-2);
 }
+.heroCtaLink {
+  text-decoration: none;
+}
 .heroProof {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   flex-wrap: wrap;
   margin-top: var(--space-3);
-  color: color-mix(in oklab, var(--brand-cream-100) 80%, transparent);
+  color: var(--color-text-muted);
   font-size: var(--fs-sm);
 }
 .heroProof li span {
   font-weight: var(--fw-bold);
-  color: var(--brand-gold-400);
+  color: var(--brand-apricot-700);
   margin-right: 4px;
 }
 .proofDot {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: color-mix(in oklab, var(--brand-cream-100) 50%, transparent);
+  background: color-mix(in oklab, var(--color-text-subtle) 60%, transparent);
 }
 
 /* ============ Sections ============ */
@@ -192,391 +171,150 @@
   font-size: clamp(1.6rem, 3.2vw, 2.2rem);
   font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
-  line-height: 1.1;
+  line-height: var(--lh-snug);
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
 }
 .sectionSub {
-  margin-top: 4px;
+  margin-top: var(--space-1);
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
 }
 .sectionAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   color: var(--color-primary);
   font-weight: var(--fw-semibold);
   font-size: var(--fs-sm);
+  min-height: 44px;
+  text-decoration: none;
 }
 .sectionAction:hover {
   text-decoration: underline;
 }
 
-.quickStartGrid {
+/* ============ Onboarding strip (demoted quick-start) ============ */
+.onboard {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--space-3);
+  padding-block: var(--space-8) 0;
 }
-
-.quickStartCard {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+.onboardLink {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
-  min-height: 110px;
-  padding: var(--space-4);
+  min-height: 64px;
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-2xl);
-  color: inherit;
+  border-radius: var(--radius-lg);
   background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
   transition:
     transform var(--dur-fast) var(--ease-out-quart),
     border-color var(--dur-fast) var(--ease-out-quart),
     box-shadow var(--dur-fast) var(--ease-out-quart);
 }
-
-.quickStartCard:hover {
+.onboardLink:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--color-primary) 30%, transparent);
-  box-shadow: 0 12px 28px color-mix(in oklab, var(--color-primary) 16%, transparent);
+  border-color: color-mix(in oklab, var(--color-primary) 36%, transparent);
+  box-shadow: var(--shadow-sm);
 }
-
-.quickStartIcon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+.onboardLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+.onboardIcon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  font-size: 1.4rem;
-  background: color-mix(in oklab, var(--color-primary) 16%, transparent);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-lg);
+  color: var(--brand-apricot-700);
+  background: var(--color-primary-soft);
 }
-
-.quickStartBody {
-  display: grid;
-  gap: 6px;
+.onboardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
+  flex: 1;
 }
-
-.quickStartBody strong {
+.onboardBody strong {
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-tight);
 }
-
-.quickStartBody small {
+.onboardBody small {
   color: var(--color-text-muted);
-  line-height: var(--lh-relaxed);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+}
+.onboardArrow {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
 }
 
-.quickStartAction {
-  color: var(--color-primary);
-  font-weight: var(--fw-semibold);
-  font-size: var(--fs-sm);
-}
-
+/* ============ Live signal strip (folded pulse console) ============ */
 .liveDot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--color-danger);
-  box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-danger) 60%, transparent);
+  background: var(--color-accent);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 60%, transparent);
   animation: live-pulse 1.6s var(--ease-out-expo) infinite;
 }
 @keyframes live-pulse {
   0% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-danger) 50%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 50%, transparent);
   }
   100% {
-    box-shadow: 0 0 0 14px color-mix(in oklab, var(--color-danger) 0%, transparent);
-  }
-}
-
-/* ============ Live ticker ============ */
-.tickerStrip {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: 10px clamp(var(--space-3), 4vw, var(--space-8));
-  background: color-mix(in oklab, var(--brand-ink-900) 96%, transparent);
-  color: var(--brand-cream-50);
-  overflow: hidden;
-  border-bottom: 1px solid color-mix(in oklab, white 6%, transparent);
-}
-.tickerLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-xs);
-  letter-spacing: 0.2em;
-  font-weight: var(--fw-bold);
-  color: var(--brand-gold-400);
-  flex-shrink: 0;
-}
-.tickerTrack {
-  display: flex;
-  gap: var(--space-6);
-  flex: 1;
-  overflow: hidden;
-  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
-  animation: ticker-scroll 40s linear infinite;
-}
-.tickerItem {
-  display: inline-flex;
-  gap: 6px;
-  align-items: baseline;
-  white-space: nowrap;
-  font-size: var(--fs-sm);
-  color: var(--brand-cream-50);
-}
-.tickerItem strong {
-  font-weight: var(--fw-semibold);
-}
-.tickerItem span {
-  opacity: 0.75;
-  font-size: var(--fs-xs);
-}
-@keyframes ticker-scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
+    box-shadow: 0 0 0 12px color-mix(in oklab, var(--color-accent) 0%, transparent);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tickerTrack {
+  .liveDot {
     animation: none;
   }
 }
 
-/* ============ Rotation signal ============ */
-.pulseBand {
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(
-      90% 120% at 8% 0%,
-      color-mix(in oklab, var(--brand-burgundy-500) 28%, transparent),
-      transparent 60%
-    ),
-    radial-gradient(
-      70% 100% at 100% 80%,
-      color-mix(in oklab, var(--brand-gold-500) 18%, transparent),
-      transparent 62%
-    ),
-    linear-gradient(135deg, var(--brand-ink-900), var(--brand-burgundy-900));
-  color: var(--brand-cream-50);
-  padding: var(--space-14, 3.5rem) 0;
-  border-block: 1px solid color-mix(in oklab, var(--brand-cream-100) 12%, transparent);
-}
-.pulseBand::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--brand-cream-100) 8%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--brand-cream-100) 7%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 56px 56px;
-  mask-image: radial-gradient(circle at 70% 45%, black, transparent 76%);
-  opacity: 0.5;
-  pointer-events: none;
-}
-.pulseInner {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(420px, 1.15fr);
-  gap: clamp(var(--space-8), 6vw, var(--space-16));
-  align-items: center;
-}
-.pulseCopy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  max-width: 520px;
-}
-.pulseKicker {
-  font-size: var(--fs-xs);
-  letter-spacing: var(--tracking-wide);
-  color: color-mix(in oklab, var(--brand-gold-400) 90%, white);
-  font-weight: var(--fw-medium);
-}
-.pulseCopy h2 {
-  font-size: var(--fs-4xl);
-  line-height: var(--lh-tight);
-  letter-spacing: var(--tracking-tight);
-  font-weight: var(--fw-black);
-}
-.pulseCopy p {
-  color: color-mix(in oklab, var(--brand-cream-100) 82%, transparent);
-  line-height: var(--lh-relaxed);
-  max-width: 58ch;
-}
-.pulseConsole {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: var(--space-6);
-  align-items: center;
-  padding: var(--space-6);
-  border: 1px solid color-mix(in oklab, var(--brand-cream-100) 18%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--brand-cream-50) 8%, transparent),
-    color-mix(in oklab, var(--brand-ink-900) 16%, transparent)
-  );
-  border-radius: var(--radius-2xl);
-  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--brand-cream-50) 16%, transparent);
-}
-.orbit {
-  --orbit-size: 210px;
-  position: relative;
-  width: var(--orbit-size);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(circle, var(--brand-ink-900) 46%, transparent 47%),
-    conic-gradient(
-      var(--brand-gold-500) var(--fill-rate, 0%),
-      color-mix(in oklab, var(--brand-cream-100) 14%, transparent) 0
-    );
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--brand-cream-100) 14%, transparent),
-    0 24px 56px color-mix(in oklab, var(--brand-burgundy-900) 48%, transparent);
-}
-.orbit::after {
-  content: '';
-  position: absolute;
-  inset: 18px;
-  border: 1px dashed color-mix(in oklab, var(--brand-cream-100) 22%, transparent);
-  border-radius: inherit;
-}
-.orbitSeat {
-  position: absolute;
-  inset: 50% auto auto 50%;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: color-mix(in oklab, var(--brand-cream-100) 20%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand-cream-100) 6%, transparent);
-}
-.orbitSeatActive {
-  background: var(--brand-gold-400);
-  box-shadow:
-    0 0 0 4px color-mix(in oklab, var(--brand-gold-500) 15%, transparent),
-    0 0 26px color-mix(in oklab, var(--brand-gold-500) 62%, transparent);
-}
-.orbitSeat:nth-child(1) {
-  transform: translate(-50%, -50%) rotate(0deg) translateY(-92px);
-}
-.orbitSeat:nth-child(2) {
-  transform: translate(-50%, -50%) rotate(36deg) translateY(-92px);
-}
-.orbitSeat:nth-child(3) {
-  transform: translate(-50%, -50%) rotate(72deg) translateY(-92px);
-}
-.orbitSeat:nth-child(4) {
-  transform: translate(-50%, -50%) rotate(108deg) translateY(-92px);
-}
-.orbitSeat:nth-child(5) {
-  transform: translate(-50%, -50%) rotate(144deg) translateY(-92px);
-}
-.orbitSeat:nth-child(6) {
-  transform: translate(-50%, -50%) rotate(180deg) translateY(-92px);
-}
-.orbitSeat:nth-child(7) {
-  transform: translate(-50%, -50%) rotate(216deg) translateY(-92px);
-}
-.orbitSeat:nth-child(8) {
-  transform: translate(-50%, -50%) rotate(252deg) translateY(-92px);
-}
-.orbitSeat:nth-child(9) {
-  transform: translate(-50%, -50%) rotate(288deg) translateY(-92px);
-}
-.orbitSeat:nth-child(10) {
-  transform: translate(-50%, -50%) rotate(324deg) translateY(-92px);
-}
-.orbitCore {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  gap: 2px;
-  width: 112px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: color-mix(in oklab, var(--brand-ink-900) 88%, var(--brand-burgundy-700));
-  border: 1px solid color-mix(in oklab, var(--brand-gold-500) 36%, transparent);
-}
-.orbitCore strong {
-  font-size: var(--fs-3xl);
-  line-height: 1;
-  color: var(--brand-gold-400);
-}
-.orbitCore span {
-  font-size: var(--fs-2xs);
-  letter-spacing: var(--tracking-uppercase);
-  color: color-mix(in oklab, var(--brand-cream-100) 74%, transparent);
-}
-.signalGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-3);
-}
-.signalGrid div {
-  min-height: 84px;
-  padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  background: color-mix(in oklab, var(--brand-cream-50) 8%, transparent);
-  border: 1px solid color-mix(in oklab, var(--brand-cream-100) 12%, transparent);
-}
-.signalGrid dt {
-  font-size: var(--fs-2xs);
-  letter-spacing: var(--tracking-uppercase);
-  color: color-mix(in oklab, var(--brand-gold-400) 86%, transparent);
-  margin-bottom: var(--space-2);
-}
-.signalGrid dd {
-  margin: 0;
-  font-weight: var(--fw-bold);
-  color: var(--brand-cream-50);
-  line-height: var(--lh-snug);
-}
-.areaSignals {
-  grid-column: 1 / -1;
+.liveStrip {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin-bottom: var(--space-8);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xs);
 }
-.areaSignals span {
+.liveTag {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-pill);
-  background: color-mix(in oklab, var(--brand-burgundy-400) 16%, transparent);
-  color: color-mix(in oklab, var(--brand-cream-100) 88%, transparent);
-  font-size: var(--fs-sm);
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-uppercase);
+  font-weight: var(--fw-bold);
+  color: var(--brand-teal-700);
 }
-.areaSignals strong {
-  display: grid;
-  place-items: center;
-  min-width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--brand-gold-500);
-  color: var(--brand-ink-900);
-  font-size: var(--fs-2xs);
+.liveFact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+.liveFact :global(svg) {
+  color: var(--brand-apricot-600);
 }
 
 /* ============ Recent rail ============ */
@@ -597,6 +335,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: 56px;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-pill);
   background: var(--color-surface);
@@ -615,6 +354,10 @@
   border-color: var(--chip-accent, var(--color-primary));
   box-shadow: 0 8px 22px
     color-mix(in oklab, var(--chip-accent, var(--color-primary)) 18%, transparent);
+}
+.recentChip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
 }
 .recentEmoji {
   font-size: 22px;
@@ -686,7 +429,8 @@
   padding: var(--space-5);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  color: var(--brand-cream-50);
+  color: var(--color-text-inverse);
+  text-decoration: none;
   isolation: isolate;
   transition:
     transform var(--dur-base) var(--ease-spring),
@@ -694,20 +438,21 @@
 }
 .catTile:hover {
   transform: translateY(-6px) scale(1.02);
-  box-shadow: 
-    0 22px 40px color-mix(in oklab, var(--brand-burgundy-900) 28%, transparent),
-    0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 20%, transparent),
-    var(--shadow-lg);
+  box-shadow: var(--shadow-lg);
+}
+.catTile:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
 }
 .tileSurface {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--tile-bg, var(--grad-burgundy-night));
+  background: var(--tile-bg, var(--grad-cellar));
   transition: filter var(--dur-base) var(--ease-out);
 }
 .catTile:hover .tileSurface {
-  filter: brightness(1.08) saturate(1.04);
+  filter: brightness(1.06) saturate(1.04);
 }
 .tileSurface::after {
   content: '';
@@ -716,13 +461,13 @@
   background:
     radial-gradient(
       120% 80% at 100% 0%,
-      color-mix(in oklab, white 24%, transparent),
+      color-mix(in oklab, var(--brand-paper-50) 24%, transparent),
       transparent 55%
     ),
     linear-gradient(
       180deg,
       transparent 40%,
-      color-mix(in oklab, var(--brand-ink-900) 45%, transparent) 100%
+      color-mix(in oklab, var(--brand-clay-900) 45%, transparent) 100%
     );
   transition: opacity var(--dur-base) var(--ease-out);
 }
@@ -732,7 +477,7 @@
 .tileEmoji {
   font-size: 2.8rem;
   transition: transform var(--dur-base) var(--ease-spring);
-  filter: drop-shadow(0 12px 24px color-mix(in oklab, var(--brand-ink-900) 60%, transparent));
+  filter: drop-shadow(0 12px 24px color-mix(in oklab, var(--brand-clay-900) 50%, transparent));
 }
 .catTile:hover .tileEmoji {
   transform: scale(1.1) rotate(6deg);
@@ -749,7 +494,7 @@
 }
 .tileBody small {
   font-size: var(--fs-xs);
-  opacity: 0.86;
+  opacity: 0.92;
   line-height: var(--lh-snug);
 }
 
@@ -807,7 +552,7 @@
   border-radius: var(--radius-2xl);
   padding: var(--space-16) var(--space-8);
   background: var(--grad-cellar);
-  color: var(--brand-cream-50);
+  color: var(--color-text-inverse);
   text-align: center;
   overflow: hidden;
   isolation: isolate;
@@ -820,12 +565,12 @@
   background:
     radial-gradient(
       60% 40% at 70% 20%,
-      color-mix(in oklab, var(--brand-gold-500) 35%, transparent),
+      color-mix(in oklab, var(--brand-amber-300) 45%, transparent),
       transparent 70%
     ),
     radial-gradient(
       80% 50% at 20% 90%,
-      color-mix(in oklab, var(--brand-burgundy-400) 40%, transparent),
+      color-mix(in oklab, var(--brand-apricot-700) 40%, transparent),
       transparent 70%
     );
 }
@@ -836,7 +581,7 @@
   margin-block: var(--space-4) var(--space-3);
 }
 .ctaCard p {
-  color: color-mix(in oklab, var(--brand-cream-100) 90%, transparent);
+  color: color-mix(in oklab, var(--color-text-inverse) 92%, transparent);
   margin-bottom: var(--space-6);
 }
 
@@ -845,10 +590,9 @@
   .section {
     padding: var(--space-12) var(--space-3);
   }
-  /* 좁은 폭에선 배경 이미지의 좌측 가장자리(베이크된 장식 텍스트)가 어중간하게
-     잘려 보이므로, 초점을 중앙으로 옮겨 가장자리 텍스트가 잘린 채 노출되지 않게 한다. */
-  .hero {
-    background-position: center 60%;
+  .onboard {
+    grid-template-columns: 1fr;
+    padding-inline: var(--space-3);
   }
   .heroInner {
     padding-block: var(--space-12) var(--space-8);
@@ -861,61 +605,10 @@
   .heroProof {
     font-size: var(--fs-xs);
   }
-  /* 장식용 CSS 와인병(흰 라벨 박스 포함)은 좁은 폭에서 본문 카드와 겹쳐
-     "빈 박스가 잘린" 것처럼 보인다. 순수 장식(aria-hidden)이므로 모바일에선 숨긴다. */
-  .bottles {
+  /* 장식용 잔(sunset glasses)은 좁은 폭에서 본문 카드와 겹치므로 숨긴다.
+     순수 장식(aria-hidden)이라 의미 손실이 없다. */
+  .glasses {
     display: none;
-  }
-  .pulseBand {
-    padding: var(--space-10) 0;
-  }
-  .pulseInner {
-    grid-template-columns: 1fr;
-  }
-  .pulseCopy h2 {
-    font-size: var(--fs-3xl);
-  }
-  .pulseConsole {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    padding: var(--space-4);
-  }
-  .orbit {
-    --orbit-size: 186px;
-  }
-  .orbitSeat:nth-child(n) {
-    transform: translate(-50%, -50%) rotate(0deg) translateY(-82px);
-  }
-  .orbitSeat:nth-child(2) {
-    transform: translate(-50%, -50%) rotate(36deg) translateY(-82px);
-  }
-  .orbitSeat:nth-child(3) {
-    transform: translate(-50%, -50%) rotate(72deg) translateY(-82px);
-  }
-  .orbitSeat:nth-child(4) {
-    transform: translate(-50%, -50%) rotate(108deg) translateY(-82px);
-  }
-  .orbitSeat:nth-child(5) {
-    transform: translate(-50%, -50%) rotate(144deg) translateY(-82px);
-  }
-  .orbitSeat:nth-child(6) {
-    transform: translate(-50%, -50%) rotate(180deg) translateY(-82px);
-  }
-  .orbitSeat:nth-child(7) {
-    transform: translate(-50%, -50%) rotate(216deg) translateY(-82px);
-  }
-  .orbitSeat:nth-child(8) {
-    transform: translate(-50%, -50%) rotate(252deg) translateY(-82px);
-  }
-  .orbitSeat:nth-child(9) {
-    transform: translate(-50%, -50%) rotate(288deg) translateY(-82px);
-  }
-  .orbitSeat:nth-child(10) {
-    transform: translate(-50%, -50%) rotate(324deg) translateY(-82px);
-  }
-  .signalGrid {
-    width: 100%;
-    grid-template-columns: 1fr;
   }
 }
 
@@ -924,57 +617,7 @@
   .heroTitle {
     font-size: 2.2rem;
   }
-  .quickStartGrid {
-    grid-template-columns: 1fr;
-  }
   .partyGrid {
     grid-template-columns: 1fr;
-  }
-  .orbit {
-    --orbit-size: 144px;
-  }
-  .orbitSeat:nth-child(n) {
-    transform: translate(-50%, -50%) rotate(0deg) translateY(-62px);
-    width: 8px;
-    height: 8px;
-  }
-  .orbitSeat:nth-child(2) {
-    transform: translate(-50%, -50%) rotate(36deg) translateY(-62px);
-  }
-  .orbitSeat:nth-child(3) {
-    transform: translate(-50%, -50%) rotate(72deg) translateY(-62px);
-  }
-  .orbitSeat:nth-child(4) {
-    transform: translate(-50%, -50%) rotate(108deg) translateY(-62px);
-  }
-  .orbitSeat:nth-child(5) {
-    transform: translate(-50%, -50%) rotate(144deg) translateY(-62px);
-  }
-  .orbitSeat:nth-child(6) {
-    transform: translate(-50%, -50%) rotate(180deg) translateY(-62px);
-  }
-  .orbitSeat:nth-child(7) {
-    transform: translate(-50%, -50%) rotate(216deg) translateY(-62px);
-  }
-  .orbitSeat:nth-child(8) {
-    transform: translate(-50%, -50%) rotate(252deg) translateY(-62px);
-  }
-  .orbitSeat:nth-child(9) {
-    transform: translate(-50%, -50%) rotate(288deg) translateY(-62px);
-  }
-  .orbitSeat:nth-child(10) {
-    transform: translate(-50%, -50%) rotate(324deg) translateY(-62px);
-  }
-  .orbitCore strong {
-    font-size: var(--fs-xl);
-  }
-  .orbitCore span {
-    font-size: var(--fs-3xs);
-  }
-  .areaSignals {
-    font-size: var(--fs-2xs);
-    gap: var(--space-1);
-    flex-wrap: wrap;
-    justify-content: center;
   }
 }

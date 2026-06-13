@@ -1,8 +1,10 @@
 .page {
   padding-block: var(--space-8) var(--space-16);
 }
+
+/* ============ Header ============ */
 .head {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 .head h1 {
   font-size: clamp(1.8rem, 4vw, 2.6rem);
@@ -13,21 +15,93 @@
   margin-top: 6px;
   color: var(--color-text-muted);
 }
+
+/* ============ Filter rail ============ */
 .filters {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
   margin-bottom: var(--space-8);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
 }
-.filterRow {
+
+/* Primary control row: status segmented control + sort segmented control. */
+.controlRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+/* Horizontally scrollable chip strips keep one tidy line on mobile. */
+.chipScroll {
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
 }
+
+/* Secondary refinement (area / date) grouped under inline labels. */
+.refine {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.refineGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.refineLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
+  min-width: 64px;
+  padding-top: var(--space-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+}
+.refineLabel svg {
+  color: var(--brand-apricot-600);
+}
+
+/* Active-filter summary bar. */
+.activeBar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface-soft);
+  border-radius: var(--radius-lg);
+}
+.activeLabel {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+.activeChipInner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ============ Results ============ */
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
+}
+.resultHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 .count {
   color: var(--color-text-muted);
@@ -37,32 +111,99 @@
   color: var(--color-text);
   font-weight: var(--fw-bold);
 }
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.sectionTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+.sectionTitle svg {
+  color: var(--brand-amber-600);
+}
+
+/* Default browse grid. */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-5);
 }
+
+/* Featured "now / soon" row reads larger, giving the list a pulse. */
+.featGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-5);
+}
+
 .loadMore {
   display: flex;
   justify-content: center;
-  margin-top: var(--space-6);
+  margin-top: var(--space-4);
+}
+
+/* ============ Area sheet ============ */
+.sheetChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 /* ============ Mobile Breakpoints ============ */
+@media (max-width: 760px) {
+  .controlRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  /* Let segmented controls and chip strips scroll horizontally on narrow screens. */
+  .chipScroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: var(--space-1);
+    scroll-snap-type: x proximity;
+  }
+  .chipScroll::-webkit-scrollbar {
+    display: none;
+  }
+  .chipScroll > * {
+    flex: none;
+    scroll-snap-align: start;
+  }
+}
+
 @media (max-width: 640px) {
   .page {
     padding-block: var(--space-6) var(--space-10);
   }
-  .filters {
-    gap: var(--space-2);
+  .head {
+    margin-bottom: var(--space-5);
   }
-  .grid {
-    gap: var(--space-3);
+  .grid,
+  .featGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  .refineGroup {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .refineLabel {
+    padding-top: 0;
   }
 }
 
-@media (max-width: 380px) {
-  .grid {
-    grid-template-columns: 1fr;
+@media (prefers-reduced-motion: reduce) {
+  .chipScroll {
+    scroll-behavior: auto;
+    scroll-snap-type: none;
   }
 }

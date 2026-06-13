@@ -8,6 +8,8 @@ import { ALL_CATEGORIES } from '@features/categories/meta'
 import { useGeolocation } from '@features/geo/useGeolocation'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Tabs } from '@components/ui/Tabs/Tabs'
+import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import EmptyState from '@components/feedback/EmptyState'
 import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
@@ -30,6 +32,8 @@ const DATE_FILTERS = [
   { label: '내일', value: 'tomorrow' },
   { label: '이번 주말', value: 'weekend' },
 ] as const
+
+const QUICK_AREAS = ['한남', '연남', '북촌', '강남', '성수'] as const
 
 const SORTS: { value: SortKey; label: string; icon: IconName }[] = [
   { value: 'soonest', label: '곧 시작', icon: 'clock' },
@@ -58,6 +62,7 @@ export default function DiscoverPage() {
   const status = (params.get('status') as StatusKey | null) ?? 'open'
 
   const [pageSize, setPageSize] = useState(PAGE_INCREMENT)
+  const [areaSheetOpen, setAreaSheetOpen] = useState(false)
   const [todayBase] = useState(() => new Date())
 
   const today = isoDate(todayBase)
@@ -116,12 +121,54 @@ export default function DiscoverPage() {
     return arr
   }, [data, sort, geo.coords])
 
+  // List rhythm: lift "happening now / about to start" out of the uniform grid
+  // so the list reads as a feed with a pulse, not an endless identical card wall.
+  const { featured, rest } = useMemo(() => {
+    if (status !== 'open') return { featured: [], rest: sortedItems }
+    const soonCutoff = todayBase.getTime() + 6 * 3_600_000
+    const feat = sortedItems.filter(
+      (p) => p.status === 'live' || new Date(p.startAt).getTime() <= soonCutoff,
+    )
+    if (feat.length === 0 || feat.length === sortedItems.length) {
+      return { featured: [], rest: sortedItems }
+    }
+    const featSet = new Set(feat.map((p) => p.id))
+    return { featured: feat, rest: sortedItems.filter((p) => !featSet.has(p.id)) }
+  }, [sortedItems, status, todayBase])
+
   const setParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(params)
     if (value) next.set(key, value)
     else next.delete(key)
     setParams(next, { replace: true })
   }
+
+  const areaActive = (a: string | null) => (a ?? '') === (area ?? '')
+  const otherAreas = Object.keys(SEOUL_AREAS).filter(
+    (a) => !QUICK_AREAS.includes(a as (typeof QUICK_AREAS)[number]),
+  )
+
+  // Active secondary filters drive a small summary + reset affordance.
+  const activeChips: { key: string; label: string }[] = []
+  if (category) {
+    const meta = ALL_CATEGORIES.find((c) => c.value === category)
+    if (meta) activeChips.push({ key: 'category', label: `${meta.emoji} ${meta.shortLabel}` })
+  }
+  if (area) activeChips.push({ key: 'area', label: area })
+  if (date) {
+    const d = DATE_FILTERS.find((e) => e.value === date)
+    activeChips.push({ key: 'date', label: d?.label ?? date })
+  }
+  if (tag) activeChips.push({ key: 'tag', label: `#${tag}` })
+
+  const clearAll = () => {
+    const next = new URLSearchParams(params)
+    for (const k of ['category', 'area', 'date', 'tag']) next.delete(k)
+    setParams(next, { replace: true })
+  }
+
+  const renderCards = (items: typeof sortedItems) =>
+    items.map((p) => <PartyCard key={p.id} party={p} />)
 
   return (
     <div className={styles.page}>
@@ -130,8 +177,38 @@ export default function DiscoverPage() {
         <p>관심 있는 카테고리 · 지역으로 필터링해 보세요.</p>
       </header>
 
-      <section className={`container ${styles.filters}`}>
-        <div className={styles.filterRow} role="group" aria-label="카테고리 필터">
+      <section className={`container ${styles.filters}`} aria-label="모임 필터">
+        {/* Primary axis: what am I browsing (status) + how it's ordered (sort). */}
+        <div className={styles.controlRow}>
+          <Tabs
+            label="모임 상태"
+            value={status}
+            onChange={(v) => setParam('status', v === 'open' ? null : v)}
+            tabs={STATUSES.map((s) => ({
+              value: s.value,
+              label: s.label,
+              icon: <Icon name={s.icon} />,
+            }))}
+          />
+          <Tabs
+            label="정렬 기준"
+            variant="underline"
+            size="sm"
+            value={sort}
+            onChange={(v) => {
+              if (v === 'nearby' && !geo.coords) geo.request()
+              setParam('sort', v === 'soonest' ? null : v)
+            }}
+            tabs={SORTS.map((s) => ({
+              value: s.value,
+              label: s.value === 'nearby' && !geo.coords ? `${s.label} (위치)` : s.label,
+              icon: <Icon name={s.icon} />,
+            }))}
+          />
+        </div>
+
+        {/* Category — the primary content filter, keeps brand emoji. */}
+        <div className={styles.chipScroll} role="group" aria-label="카테고리 필터">
           <Chip
             selected={!category}
             onClick={() => setParam('category', null)}
@@ -151,86 +228,84 @@ export default function DiscoverPage() {
           ))}
         </div>
 
-        <div className={styles.filterRow} role="group" aria-label="지역 필터">
-          {['전체', '한남', '연남', '북촌', '강남', '성수'].map((a) => {
-            const v = a === '전체' ? null : a
-            const active = (v ?? '') === (area ?? '')
-            return (
-              <Chip
-                key={a}
-                selected={active}
-                onClick={() => setParam('area', v)}
-                leadingIcon={<Icon name="pin" />}
-              >
-                {a}
+        {/* Secondary refinement: area + date, clearly labeled and grouped. */}
+        <div className={styles.refine}>
+          <div className={styles.refineGroup} role="group" aria-label="지역 필터">
+            <span className={styles.refineLabel}>
+              <Icon name="pin" /> 지역
+            </span>
+            <div className={styles.chipScroll}>
+              <Chip selected={areaActive(null)} onClick={() => setParam('area', null)}>
+                전체
               </Chip>
-            )
-          })}
+              {QUICK_AREAS.map((a) => (
+                <Chip key={a} selected={areaActive(a)} onClick={() => setParam('area', a)}>
+                  {a}
+                </Chip>
+              ))}
+              {area && !QUICK_AREAS.includes(area as (typeof QUICK_AREAS)[number]) && (
+                <Chip selected onClick={() => setParam('area', null)}>
+                  {area}
+                </Chip>
+              )}
+              {otherAreas.length > 0 && (
+                <Chip
+                  onClick={() => setAreaSheetOpen(true)}
+                  leadingIcon={<Icon name="plus" />}
+                  aria-haspopup="dialog"
+                >
+                  더보기
+                </Chip>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.refineGroup} role="group" aria-label="날짜 필터">
+            <span className={styles.refineLabel}>
+              <Icon name="clock" /> 날짜
+            </span>
+            <div className={styles.chipScroll}>
+              {DATE_FILTERS.map((entry) => {
+                const active = entry.value === null ? !date : date === entry.value
+                return (
+                  <Chip
+                    key={entry.value ?? '전체'}
+                    selected={active}
+                    onClick={() => setParam('date', entry.value)}
+                  >
+                    {entry.label}
+                  </Chip>
+                )
+              })}
+            </div>
+          </div>
         </div>
 
-        {tag && (
-          <div className={styles.filterRow} role="group" aria-label="태그 필터">
-            <Chip selected onClick={() => setParam('tag', null)} leadingEmoji="#">
-              {tag} ✕
-            </Chip>
+        {/* Active-filter summary + one-tap reset. */}
+        {activeChips.length > 0 && (
+          <div className={styles.activeBar} role="group" aria-label="적용된 필터">
+            <span className={styles.activeLabel}>필터</span>
+            {activeChips.map((c) => (
+              <Chip
+                key={c.key}
+                selected
+                onClick={() => setParam(c.key, null)}
+                aria-label={`${c.label} 필터 해제`}
+              >
+                <span className={styles.activeChipInner}>
+                  {c.label}
+                  <Icon name="close" />
+                </span>
+              </Chip>
+            ))}
+            <Button variant="ghost" size="sm" onClick={clearAll} leftIcon={<Icon name="close" />}>
+              모두 지우기
+            </Button>
           </div>
         )}
-
-        <div className={styles.filterRow} role="group" aria-label="상태 필터">
-          {STATUSES.map((s) => (
-            <Chip
-              key={s.value}
-              selected={status === s.value}
-              leadingIcon={<Icon name={s.icon} />}
-              onClick={() => setParam('status', s.value === 'open' ? null : s.value)}
-            >
-              {s.label}
-            </Chip>
-          ))}
-        </div>
-
-        <div className={styles.filterRow} role="group" aria-label="정렬">
-          {SORTS.map((s) => {
-            const disabled = s.value === 'nearby' && !geo.coords
-            const active = sort === s.value
-            return (
-              <Chip
-                key={s.value}
-                selected={active}
-                leadingIcon={<Icon name={s.icon} />}
-                onClick={() => {
-                  if (s.value === 'nearby' && !geo.coords) {
-                    geo.request()
-                  }
-                  setParam('sort', s.value === 'soonest' ? null : s.value)
-                }}
-                aria-disabled={disabled}
-                title={disabled ? '위치 권한이 필요해요' : ''}
-              >
-                {s.label}
-                {disabled && ' (위치 허용 필요)'}
-              </Chip>
-            )
-          })}
-        </div>
-
-        <div className={styles.filterRow} role="group" aria-label="날짜 필터">
-          {DATE_FILTERS.map((entry) => {
-            const active = entry.value === null ? !date : date === entry.value
-            return (
-              <Chip
-                key={entry.value ?? '전체'}
-                selected={active}
-                onClick={() => setParam('date', entry.value)}
-              >
-                {entry.label}
-              </Chip>
-            )
-          })}
-        </div>
       </section>
 
-      <section className={`container ${styles.list}`}>
+      <section className={`container ${styles.list}`} aria-busy={isFetching || undefined}>
         {isLoading ? (
           <PartyCardSkeletonGrid />
         ) : !data || data.items.length === 0 ? (
@@ -238,17 +313,40 @@ export default function DiscoverPage() {
             emoji="🍷"
             title="조건에 맞는 파티가 없어요"
             description="필터를 조금 풀어보거나, 직접 파티를 열어보는 건 어떠세요?"
+            action={
+              activeChips.length > 0 ? (
+                <Button variant="soft" size="md" onClick={clearAll}>
+                  필터 초기화
+                </Button>
+              ) : undefined
+            }
           />
         ) : (
           <>
-            <p className={styles.count}>
-              총 <strong>{data.total}</strong>개의 파티
-            </p>
-            <div className={styles.grid}>
-              {sortedItems.map((p) => (
-                <PartyCard key={p.id} party={p} />
-              ))}
+            <div className={styles.resultHead}>
+              <p className={styles.count}>
+                총 <strong>{data.total}</strong>개의 파티
+              </p>
             </div>
+
+            {featured.length > 0 && (
+              <div className={styles.section}>
+                <h2 className={styles.sectionTitle}>
+                  <Icon name="bolt" /> 지금 · 곧 시작
+                </h2>
+                <div className={styles.featGrid}>{renderCards(featured)}</div>
+              </div>
+            )}
+
+            <div className={styles.section}>
+              {featured.length > 0 && (
+                <h2 className={styles.sectionTitle}>
+                  <Icon name="sparkle" /> 둘러보기
+                </h2>
+              )}
+              <div className={styles.grid}>{renderCards(rest)}</div>
+            </div>
+
             {data.hasNext && pageSize < MAX_PAGE_SIZE && (
               <div className={styles.loadMore}>
                 <Button
@@ -264,6 +362,38 @@ export default function DiscoverPage() {
           </>
         )}
       </section>
+
+      <Sheet
+        open={areaSheetOpen}
+        onClose={() => setAreaSheetOpen(false)}
+        title="지역 선택"
+        description="원하는 동네를 골라 모임을 좁혀보세요."
+      >
+        <div className={styles.sheetChips} role="group" aria-label="전체 지역">
+          <Chip
+            selected={areaActive(null)}
+            onClick={() => {
+              setParam('area', null)
+              setAreaSheetOpen(false)
+            }}
+          >
+            전체
+          </Chip>
+          {Object.keys(SEOUL_AREAS).map((a) => (
+            <Chip
+              key={a}
+              selected={areaActive(a)}
+              leadingIcon={<Icon name="pin" />}
+              onClick={() => {
+                setParam('area', a)
+                setAreaSheetOpen(false)
+              }}
+            >
+              {a}
+            </Chip>
+          ))}
+        </div>
+      </Sheet>
     </div>
   )
 }

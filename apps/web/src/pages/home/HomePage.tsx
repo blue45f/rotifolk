@@ -45,7 +45,6 @@ export default function HomePage() {
     liveParties: nowParties ?? [],
   })
   const demoLoginHref = `/login?demo=1&auto=1&from=${encodedCurrentPath}`
-  const activeSeats = Math.min(10, Math.round(pulse.averageFillRate / 10))
   const nextPartyTime = pulse.nextParty
     ? new Date(pulse.nextParty.startAt).toLocaleString('ko-KR', {
         month: 'short',
@@ -55,11 +54,14 @@ export default function HomePage() {
       })
     : '새 라운드 준비 중'
 
+  const liveParties = nowParties ?? []
+  const hasLive = liveParties.length > 0
+
   return (
     <div>
+      {/* ===== HERO — sunset aperitivo, one clear primary path ===== */}
       <section className={styles.hero} aria-labelledby="hero-title">
-        <div className={styles.cellar} aria-hidden="true">
-          <span className={styles.cellarVeil} />
+        <div className={styles.heroSky} aria-hidden="true">
           <CellarBottles reduce={reduce} />
         </div>
 
@@ -81,12 +83,12 @@ export default function HomePage() {
               서로를 고른 사람만 1:1로 이어집니다.
             </p>
             <div className={styles.heroCta}>
-              <Link to="/discover">
+              <Link to="/discover" className={styles.heroCtaLink}>
                 <Button variant="primary" size="xl">
                   오늘의 파티
                 </Button>
               </Link>
-              <Link to="/quick">
+              <Link to="/quick" className={styles.heroCtaLink}>
                 <Button variant="outline" size="xl" leftIcon={<Icon name="bolt" />}>
                   즉석 모임
                 </Button>
@@ -109,170 +111,95 @@ export default function HomePage() {
         <div className={styles.heroEdge} aria-hidden="true" />
       </section>
 
-      <section className={`container ${styles.section}`} aria-labelledby="quick-start-title">
-        <header className={styles.sectionHead}>
-          <h2 id="quick-start-title" className={styles.sectionTitle}>
-            지금 바로 시작하기
-          </h2>
-          <p className={styles.sectionSub}>처음 오더라도 오늘 바로 체험해볼 동선을 추천해요.</p>
-        </header>
-        <div className={styles.quickStartGrid}>
-          <Link to={tutorialHref} className={styles.quickStartCard}>
-            <span className={styles.quickStartIcon} aria-hidden="true">
-              🧭
-            </span>
-            <div className={styles.quickStartBody}>
-              <strong>튜토리얼 다시 보기</strong>
-              <small>8단계 가이드로 핵심 흐름과 동선을 다시 확인해요.</small>
-            </div>
-            <span className={styles.quickStartAction} aria-hidden="true">
-              시작 →
-            </span>
-          </Link>
-          <Link to={communityHref} className={styles.quickStartCard}>
-            <span className={styles.quickStartIcon} aria-hidden="true">
-              💬
-            </span>
-            <div className={styles.quickStartBody}>
-              <strong>커뮤니티 첫 질문 가이드</strong>
-              <small>템플릿으로 1분 안에 질문/후기/팁 게시물을 써요.</small>
-            </div>
-            <span className={styles.quickStartAction} aria-hidden="true">
-              시작 →
-            </span>
-          </Link>
-          <Link to={demoLoginHref} className={styles.quickStartCard}>
-            <span className={styles.quickStartIcon} aria-hidden="true">
-              🎁
-            </span>
-            <div className={styles.quickStartBody}>
-              <strong>데모로 즉시 체험</strong>
-              <small>가입 없이 데모 계정으로 핵심 플로우를 먼저 봐요.</small>
-            </div>
-            <span className={styles.quickStartAction} aria-hidden="true">
-              시작 →
-            </span>
-          </Link>
-        </div>
-      </section>
+      {/* ===== Onboarding — demoted to a slim assistive strip under the hero ===== */}
+      <nav className={`container ${styles.onboard}`} aria-label="처음이라면 이렇게 시작해요">
+        <Link to={tutorialHref} className={styles.onboardLink}>
+          <span className={styles.onboardIcon} aria-hidden="true">
+            <Icon name="compass" />
+          </span>
+          <span className={styles.onboardBody}>
+            <strong>튜토리얼 다시 보기</strong>
+            <small>8단계로 핵심 흐름 확인</small>
+          </span>
+          <Icon name="chevron-right" className={styles.onboardArrow} aria-hidden="true" />
+        </Link>
+        <Link to={communityHref} className={styles.onboardLink}>
+          <span className={styles.onboardIcon} aria-hidden="true">
+            <Icon name="chat" />
+          </span>
+          <span className={styles.onboardBody}>
+            <strong>커뮤니티 첫 질문</strong>
+            <small>템플릿으로 1분 작성</small>
+          </span>
+          <Icon name="chevron-right" className={styles.onboardArrow} aria-hidden="true" />
+        </Link>
+        <Link to={demoLoginHref} className={styles.onboardLink}>
+          <span className={styles.onboardIcon} aria-hidden="true">
+            <Icon name="sparkle" />
+          </span>
+          <span className={styles.onboardBody}>
+            <strong>데모로 즉시 체험</strong>
+            <small>가입 없이 핵심 플로우</small>
+          </span>
+          <Icon name="chevron-right" className={styles.onboardArrow} aria-hidden="true" />
+        </Link>
+      </nav>
 
-      <section className={styles.pulseBand} aria-labelledby="pulse-title">
-        <div className={`container ${styles.pulseInner}`}>
-          <div className={styles.pulseCopy}>
-            <span className={styles.pulseKicker}>지금 흐르는 라운드</span>
-            <h2 id="pulse-title">오늘의 사람 흐름을 한눈에</h2>
-            <p>
-              모집, 체크인, 라이브 라운드, 매칭 이후 채팅까지 끊기지 않게 이어지는 Rotifolk 운영
-              신호입니다.
-            </p>
-          </div>
-
-          <div className={styles.pulseConsole} aria-label="오늘의 Rotifolk 운영 신호">
-            <div
-              className={styles.orbit}
-              style={{ ['--fill-rate' as never]: `${pulse.averageFillRate}%` } as never}
-              aria-label={`현재 평균 채움률 ${pulse.averageFillRate}%`}
-            >
-              {Array.from({ length: 10 }).map((_, index) => (
-                <span
-                  key={index}
-                  className={`${styles.orbitSeat} ${
-                    index < activeSeats ? styles.orbitSeatActive : ''
-                  }`}
-                  aria-hidden="true"
-                />
-              ))}
-              <div className={styles.orbitCore}>
-                <strong>{pulse.averageFillRate}%</strong>
-                <span>채움률</span>
-              </div>
-            </div>
-
-            <dl className={styles.signalGrid}>
-              <div>
-                <dt>라이브</dt>
-                <dd>{pulse.liveCount}개 진행 중</dd>
-              </div>
-              <div>
-                <dt>모집</dt>
-                <dd>{pulse.openCount}개 열림</dd>
-              </div>
-              <div>
-                <dt>다음 라운드</dt>
-                <dd>{nextPartyTime}</dd>
-              </div>
-              <div>
-                <dt>강한 무드</dt>
-                <dd>
-                  {pulse.leadingCategory
-                    ? `${pulse.leadingCategory.label} ${pulse.leadingCategory.count}개`
-                    : '데이터 대기'}
-                </dd>
-              </div>
-            </dl>
-
-            <div className={styles.areaSignals} aria-label="활성 동네">
-              {pulse.hotAreas.length > 0 ? (
-                pulse.hotAreas.map((area) => (
-                  <span key={area.area}>
-                    {area.area}
-                    <strong>{area.count}</strong>
-                  </span>
-                ))
-              ) : (
-                <span>
-                  첫 동네 신호 대기
-                  <strong>0</strong>
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {nowParties && nowParties.length > 0 && (
-        <>
-          <div className={styles.tickerStrip} role="status" aria-label="지금 진행 중인 파티">
-            <span className={styles.tickerLabel}>
+      {/* ===== Live signal — pulse data folded into ONE calm strip + cards ===== */}
+      {hasLive ? (
+        <section className={`container ${styles.section}`} aria-labelledby="now-title">
+          <div className={styles.liveStrip} role="status" aria-label="지금 흐르는 라운드 신호">
+            <span className={styles.liveTag}>
               <span className={styles.liveDot} aria-hidden="true" />
               LIVE
             </span>
-            <div className={styles.tickerTrack}>
-              {[...nowParties, ...nowParties].map((p, i) => (
-                <Link to={`/parties/${p.id}`} key={`${p.id}-${i}`} className={styles.tickerItem}>
-                  <strong>{p.title}</strong>
-                  <span>
-                    · {p.venueArea} · {p.currentParticipants}/{p.maxParticipants}명
-                  </span>
-                </Link>
-              ))}
-            </div>
+            <span className={styles.liveFact}>
+              <Icon name="live" aria-hidden="true" />
+              {pulse.liveCount}개 진행 중
+            </span>
+            <span className={styles.liveFact}>
+              <Icon name="moon" aria-hidden="true" />
+              {pulse.openCount}개 모집
+            </span>
+            <span className={styles.liveFact}>
+              <Icon name="clock" aria-hidden="true" />
+              다음 {nextPartyTime}
+            </span>
+            {pulse.leadingCategory ? (
+              <span className={styles.liveFact}>
+                <Icon name="flame" aria-hidden="true" />
+                {pulse.leadingCategory.label} {pulse.leadingCategory.count}개
+              </span>
+            ) : null}
           </div>
-          <section className={`container ${styles.section}`} aria-labelledby="now-title">
-            <header className={styles.sectionHead}>
-              <h2 id="now-title" className={styles.sectionTitle}>
-                <span className={styles.liveDot} aria-hidden="true" />
-                지금 진행 중
-              </h2>
-              <Link to="/discover?status=live" className={styles.sectionAction}>
-                전체 보기 →
-              </Link>
-            </header>
-            <div className={styles.partyGrid}>
-              {nowParties.slice(0, 3).map((p) => (
-                <PartyCard key={p.id} party={p} />
-              ))}
-            </div>
-          </section>
-        </>
-      )}
 
+          <header className={styles.sectionHead}>
+            <h2 id="now-title" className={styles.sectionTitle}>
+              <span className={styles.liveDot} aria-hidden="true" />
+              지금 진행 중
+            </h2>
+            <Link to="/discover?status=live" className={styles.sectionAction}>
+              전체 보기
+              <Icon name="chevron-right" aria-hidden="true" />
+            </Link>
+          </header>
+          <div className={styles.partyGrid}>
+            {liveParties.slice(0, 3).map((p) => (
+              <PartyCard key={p.id} party={p} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* ===== Categories — brand identity, emoji kept ===== */}
       <section className={`container ${styles.section}`} aria-labelledby="cats-title">
         <header className={styles.sectionHead}>
-          <h2 id="cats-title" className={styles.sectionTitle}>
-            오늘은 어떤 잔으로
-          </h2>
-          <p className={styles.sectionSub}>카테고리마다 라운드 컨셉과 분위기가 달라요.</p>
+          <div>
+            <h2 id="cats-title" className={styles.sectionTitle}>
+              오늘은 어떤 잔으로
+            </h2>
+            <p className={styles.sectionSub}>카테고리마다 라운드 컨셉과 분위기가 달라요.</p>
+          </div>
         </header>
         <div className={styles.catRail}>
           {ALL_CATEGORIES.filter((c) => c.value !== 'custom').map((cat) => (
@@ -295,6 +222,67 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== For-you recommendations ===== */}
+      {recommended.length > 0 && (
+        <section className={`container ${styles.section}`} aria-labelledby="rec-title">
+          <header className={styles.sectionHead}>
+            <div>
+              <h2 id="rec-title" className={styles.sectionTitle}>
+                <Badge tone="gold" size="sm">
+                  FOR YOU
+                </Badge>
+                {me?.nickname}님께 어울리는 모임
+              </h2>
+              <p className={styles.sectionSub}>관심사 · MBTI · 카테고리 기반 추천</p>
+            </div>
+          </header>
+          <div className={styles.partyGrid}>
+            {recommended.map((p) => (
+              <PartyCard key={p.id} party={p} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ===== Open for sign-up ===== */}
+      <section className={`container ${styles.section}`} aria-labelledby="open-title">
+        <header className={styles.sectionHead}>
+          <div>
+            <h2 id="open-title" className={styles.sectionTitle}>
+              지금 모집 중
+            </h2>
+            <p className={styles.sectionSub}>첫 잔을 함께 열 사람을 찾는 라운드</p>
+          </div>
+          <Link to="/discover" className={styles.sectionAction}>
+            전체 보기
+            <Icon name="chevron-right" aria-hidden="true" />
+          </Link>
+        </header>
+        {isLoading ? (
+          <PartyCardSkeletonGrid />
+        ) : !parties || parties.items.length === 0 ? (
+          <EmptyState
+            emoji="🌙"
+            title="아직 모집 중인 모임이 없어요"
+            description="가장 먼저 한 잔을 열어보는 건 어때요?"
+            action={
+              <Link to="/quick">
+                <Button variant="primary" leftIcon={<Icon name="bolt" />}>
+                  즉석 모임
+                </Button>
+              </Link>
+            }
+          />
+        ) : (
+          <div className={styles.partyGrid}>
+            {parties.items.map((p) => (
+              <PartyCard key={p.id} party={p} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ===== How it works — explanatory, demoted below the listings ===== */}
       <section className={`container ${styles.section}`} aria-labelledby="how-title">
         <header className={styles.sectionHead}>
           <h2 id="how-title" className={styles.sectionTitle}>
@@ -325,32 +313,16 @@ export default function HomePage() {
         </ol>
       </section>
 
-      {recommended.length > 0 && (
-        <section className={`container ${styles.section}`} aria-labelledby="rec-title">
-          <header className={styles.sectionHead}>
-            <h2 id="rec-title" className={styles.sectionTitle}>
-              <Badge tone="gold" size="sm">
-                FOR YOU
-              </Badge>
-              {me?.nickname}님께 어울리는 모임
-            </h2>
-            <p className={styles.sectionSub}>관심사 · MBTI · 카테고리 기반 추천</p>
-          </header>
-          <div className={styles.partyGrid}>
-            {recommended.map((p) => (
-              <PartyCard key={p.id} party={p} />
-            ))}
-          </div>
-        </section>
-      )}
-
+      {/* ===== Recently viewed — slim personal rail ===== */}
       {recentTop.length > 0 && (
         <section className={`container ${styles.section}`} aria-labelledby="recent-title">
           <header className={styles.sectionHead}>
-            <h2 id="recent-title" className={styles.sectionTitle}>
-              최근 본 모임
-            </h2>
-            <p className={styles.sectionSub}>이 기기에만 저장되는 방문 기록</p>
+            <div>
+              <h2 id="recent-title" className={styles.sectionTitle}>
+                최근 본 모임
+              </h2>
+              <p className={styles.sectionSub}>이 기기에만 저장되는 방문 기록</p>
+            </div>
           </header>
           <div className={styles.recentRail} role="list">
             {recentTop.map((r) => {
@@ -381,39 +353,7 @@ export default function HomePage() {
         </section>
       )}
 
-      <section className={`container ${styles.section}`} aria-labelledby="open-title">
-        <header className={styles.sectionHead}>
-          <h2 id="open-title" className={styles.sectionTitle}>
-            지금 모집 중
-          </h2>
-          <Link to="/discover" className={styles.sectionAction}>
-            전체 보기 →
-          </Link>
-        </header>
-        {isLoading ? (
-          <PartyCardSkeletonGrid />
-        ) : !parties || parties.items.length === 0 ? (
-          <EmptyState
-            emoji="🌙"
-            title="아직 모집 중인 모임이 없어요"
-            description="가장 먼저 한 잔을 열어보는 건 어때요?"
-            action={
-              <Link to="/quick">
-                <Button variant="primary" leftIcon={<Icon name="bolt" />}>
-                  즉석 모임
-                </Button>
-              </Link>
-            }
-          />
-        ) : (
-          <div className={styles.partyGrid}>
-            {parties.items.map((p) => (
-              <PartyCard key={p.id} party={p} />
-            ))}
-          </div>
-        )}
-      </section>
-
+      {/* ===== Host CTA ===== */}
       <section className={`container ${styles.ctaSection}`} aria-labelledby="host-cta">
         <div className={styles.ctaCard}>
           <Badge tone="gold" size="md">
@@ -432,28 +372,32 @@ export default function HomePage() {
   )
 }
 
+/**
+ * SunsetGlasses — decorative aperitivo glasses catching the sunset behind the
+ * hero copy. Purely ornamental (aria-hidden), hidden on narrow widths.
+ */
 function CellarBottles({ reduce }: { reduce: boolean }) {
-  const bottles = [
-    { left: '8%', delay: 0, height: 220 },
-    { left: '22%', delay: 0.4, height: 260 },
-    { left: '36%', delay: 0.8, height: 200 },
-    { left: '64%', delay: 0.6, height: 240 },
-    { left: '78%', delay: 0.3, height: 220 },
-    { left: '90%', delay: 0.9, height: 250 },
+  const glasses = [
+    { left: '12%', delay: 0, height: 150 },
+    { left: '26%', delay: 0.5, height: 190 },
+    { left: '40%', delay: 0.9, height: 140 },
+    { left: '66%', delay: 0.7, height: 176 },
+    { left: '80%', delay: 0.3, height: 158 },
+    { left: '92%', delay: 1, height: 184 },
   ]
   return (
-    <div className={styles.bottles}>
-      {bottles.map((b, i) => (
+    <div className={styles.glasses}>
+      {glasses.map((g, i) => (
         <motion.span
           key={i}
-          className={styles.bottle}
-          style={{ left: b.left, height: b.height }}
+          className={styles.glass}
+          style={{ left: g.left, height: g.height }}
           initial={reduce ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: b.delay, duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
+          transition={{ delay: g.delay, duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
         >
-          <span className={styles.bottleNeck} />
-          <span className={styles.bottleLabel} />
+          <span className={styles.glassBowl} />
+          <span className={styles.glassStem} />
         </motion.span>
       ))}
     </div>
