@@ -99,7 +99,7 @@
 .stateBox {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
-  background: color-mix(in oklab, var(--color-surface) 94%, var(--brand-paper-100));
+  background: var(--color-surface);
   box-shadow: var(--shadow-sm);
 }
 
