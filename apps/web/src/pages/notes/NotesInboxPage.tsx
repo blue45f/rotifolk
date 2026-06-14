@@ -3,6 +3,8 @@ import type { PartyNote } from '@rotifolk/shared'
 import { useMyNotes, useMarkNoteRead } from '@features/notes/queries'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Icon } from '@components/ui/Icon/Icon'
+import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import styles from './Notes.module.css'
 
@@ -34,47 +36,70 @@ function formatArrival(iso?: string | null): string {
   return relativeTime.format(-minute, 'minute')
 }
 
-function NoteCard({ note, onRead }: { note: PartyNote; onRead: (id: string) => void }) {
+function NoteRow({ note, onRead }: { note: PartyNote; onRead: (id: string) => void }) {
   const unread = !note.readAt
-  return (
-    <article
-      className={`${styles.card} ${unread ? styles.cardUnread : ''}`}
-      onClick={() => unread && onRead(note.id)}
-    >
-      {unread && (
-        <span className={styles.seal} aria-hidden="true">
-          새 쪽지
-        </span>
-      )}
+  const sender = note.fromNickname ?? '익명'
+  const arrival = formatArrival(note.deliveredAt)
 
-      <div className={styles.cardHead}>
-        <Avatar
-          size="md"
-          initials={initialsOf(note.fromNickname)}
-          imageSrc={note.fromAvatarImage ?? null}
-          ring={unread ? 'gold' : 'soft'}
-        />
-        <div className={styles.who}>
-          <span className={styles.name}>{note.fromNickname ?? '익명'}</span>
-          <span className={styles.time}>{formatArrival(note.deliveredAt)} 도착</span>
+  const inner = (
+    <>
+      <Avatar
+        size="md"
+        initials={initialsOf(note.fromNickname)}
+        imageSrc={note.fromAvatarImage ?? null}
+        ring={unread ? 'gold' : 'soft'}
+      />
+
+      <div className={styles.main}>
+        <div className={styles.metaRow}>
+          <span className={styles.name}>{sender}</span>
+          {note.emoji && (
+            <span className={styles.sticker} aria-hidden="true">
+              {note.emoji}
+            </span>
+          )}
+          {arrival && (
+            <span className={styles.time}>
+              <Icon name="clock" size={0.85} aria-hidden="true" />
+              {arrival}
+            </span>
+          )}
         </div>
-        {note.emoji && (
-          <span className={styles.sticker} aria-hidden="true">
-            {note.emoji}
-          </span>
+
+        <p className={styles.preview}>{note.body}</p>
+
+        {note.shareContact && (
+          <div className={styles.badges}>
+            <Badge tone="gold" outlined className={styles.contactBadge}>
+              <Icon name="user" size={0.85} aria-hidden="true" /> 연락처 동봉
+            </Badge>
+          </div>
         )}
       </div>
 
-      <blockquote className={styles.body}>{note.body}</blockquote>
+      {unread && <span className={styles.unreadDot} aria-hidden="true" />}
+    </>
+  )
 
-      {note.shareContact && (
-        <div className={styles.badges}>
-          <Badge tone="gold" outlined className={styles.contactBadge}>
-            <span aria-hidden="true">📇</span> 연락처 동봉
-          </Badge>
-        </div>
-      )}
-    </article>
+  if (unread) {
+    return (
+      <li className={styles.item}>
+        <button
+          type="button"
+          className={`${styles.row} ${styles.rowUnread}`}
+          onClick={() => onRead(note.id)}
+          aria-label={`${sender}님의 새 쪽지 읽기${arrival ? `, ${arrival} 도착` : ''}`}
+        >
+          {inner}
+        </button>
+      </li>
+    )
+  }
+
+  return (
+    <li className={styles.item}>
+      <div className={styles.row}>{inner}</div>
+    </li>
   )
 }
 
@@ -90,8 +115,11 @@ export default function NotesInboxPage() {
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
-        <span className={styles.kicker}>ROUND KEEPSAKES</span>
-        <h1 className={styles.title}>쪽지함</h1>
+        <span className={styles.kicker}>
+          <Icon name="mail" size={0.95} aria-hidden="true" />
+          쪽지함
+        </span>
+        <h1 className={styles.title}>받은 쪽지</h1>
         <p className={styles.sub}>
           {notes.length > 0 ? (
             <>
@@ -107,23 +135,17 @@ export default function NotesInboxPage() {
       </header>
 
       {notes.length === 0 ? (
-        <section className={styles.empty}>
-          <div className={styles.emptyMark} aria-hidden="true">
-            <span className={styles.emptyEnvelope}>💌</span>
-          </div>
-          <h2 className={styles.emptyTitle}>아직 도착한 쪽지가 없어요</h2>
-          <p className={styles.emptyDesc}>
-            모임이 끝나면, 라운드에서 마주 앉았던 사람들이 남긴 한마디가
-            <br />
-            이곳으로 한 통씩 배달돼요.
-          </p>
-        </section>
+        <EmptyState
+          emoji="💌"
+          title="아직 도착한 쪽지가 없어요"
+          description="모임이 끝나면, 라운드에서 마주 앉았던 사람들이 남긴 한마디가 이곳으로 한 통씩 배달돼요."
+        />
       ) : (
-        <div className={styles.list}>
+        <ul className={styles.list}>
           {notes.map((note) => (
-            <NoteCard key={note.id} note={note} onRead={(id) => markRead.mutate(id)} />
+            <NoteRow key={note.id} note={note} onRead={(id) => markRead.mutate(id)} />
           ))}
-        </div>
+        </ul>
       )}
     </div>
   )

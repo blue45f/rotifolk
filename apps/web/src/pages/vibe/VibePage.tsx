@@ -7,6 +7,7 @@ import { PartyCard } from '@features/parties/PartyCard'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Vibe.module.css'
@@ -59,98 +60,123 @@ export default function VibePage() {
     return recommendParties(data.items, { interests }, 6)
   }, [data, committed, interests])
 
+  const canSubmit = text.trim().length > 0
+
   return (
-    <div className={styles.page}>
-      <div className={styles.heroVeil} aria-hidden="true" />
+    <main className={styles.page} aria-labelledby="vibe-title">
+      <div className={styles.veil} aria-hidden="true" />
+
       <motion.section
-        className={styles.hero}
+        className={styles.intro}
+        aria-labelledby="vibe-title"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
       >
         <Badge tone="gold" size="md">
+          <Icon name="sparkle" className={styles.badgeIcon} aria-hidden="true" />
           VIBE CHECK
         </Badge>
-        <h1 className={styles.title}>
+        <h1 id="vibe-title" className={styles.title}>
           오늘의 기분을 한 줄로,
           <br />
           어울리는 모임 찾아드릴게요.
         </h1>
         <p className={styles.lead}>자기소개 형식이 아니어도 좋아요. 키워드만 던져도 충분합니다.</p>
-        <textarea
-          className={styles.composer}
-          rows={3}
-          placeholder="예) 조용한 와인 한잔, 깊은 대화 좋아해요"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <div className={styles.tagRow}>
-          {SUGGESTIONS.map((s) => (
-            <Chip
-              key={s}
-              onClick={() => {
-                setText(s)
-                setCommitted(s)
-              }}
-            >
-              {s}
-            </Chip>
-          ))}
+
+        <div className={styles.composerBlock}>
+          <label htmlFor="vibe-input" className={styles.fieldLabel}>
+            지금의 기분 · 키워드
+          </label>
+          <textarea
+            id="vibe-input"
+            className={styles.composer}
+            rows={3}
+            placeholder="예) 조용한 와인 한잔, 깊은 대화 좋아해요"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
         </div>
+
+        <fieldset className={styles.suggest}>
+          <legend className={styles.suggestLabel}>이렇게 적어도 좋아요</legend>
+          <div className={styles.tagRow}>
+            {SUGGESTIONS.map((s) => (
+              <Chip
+                key={s}
+                selected={text === s}
+                onClick={() => {
+                  setText(s)
+                  setCommitted(s)
+                }}
+              >
+                {s}
+              </Chip>
+            ))}
+          </div>
+        </fieldset>
+
         <Button
+          className={styles.cta}
           size="xl"
           variant="primary"
-          disabled={!text.trim()}
+          disabled={!canSubmit}
+          leftIcon={<Icon name="sparkle" aria-hidden="true" />}
           onClick={() => setCommitted(text.trim())}
         >
-          ✨ 추천 받기
+          추천 받기
         </Button>
       </motion.section>
 
-      {committed && (
-        <section className={styles.result}>
-          <header className={styles.resultHead}>
-            <div>
-              <h2>이런 모임이 어울려요</h2>
-              {interests.length > 0 && (
-                <p className={styles.muted}>
-                  감지한 키워드: {interests.map((t) => `#${t}`).join(' ')}
-                </p>
-              )}
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setCommitted(null)
-                setText('')
-              }}
-            >
-              ↩ 다시 시도
-            </Button>
-          </header>
-          {isLoading ? (
-            <Loading />
-          ) : picks.length === 0 ? (
-            <EmptyState
-              emoji="🌙"
-              title="딱 맞는 모임을 못 찾았어요"
-              description="조금 다르게 적어보거나, 전체 둘러보기로 가볼까요?"
-              action={
-                <Link to="/discover">
-                  <Button variant="primary">전체 모임 둘러보기</Button>
-                </Link>
-              }
-            />
-          ) : (
-            <div className={styles.grid}>
-              {picks.map((p) => (
-                <PartyCard key={p.id} party={p} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-    </div>
+      <section className={styles.result} aria-live="polite" aria-labelledby="result-title">
+        {committed && (
+          <>
+            <header className={styles.resultHead}>
+              <div className={styles.resultHeadText}>
+                <h2 id="result-title" className={styles.resultTitle}>
+                  이런 모임이 어울려요
+                </h2>
+                {interests.length > 0 && (
+                  <p className={styles.muted}>
+                    감지한 키워드: {interests.map((t) => `#${t}`).join(' ')}
+                  </p>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<Icon name="close" aria-hidden="true" />}
+                onClick={() => {
+                  setCommitted(null)
+                  setText('')
+                }}
+              >
+                다시 시도
+              </Button>
+            </header>
+            {isLoading ? (
+              <Loading />
+            ) : picks.length === 0 ? (
+              <EmptyState
+                emoji="🌙"
+                title="딱 맞는 모임을 못 찾았어요"
+                description="조금 다르게 적어보거나, 전체 둘러보기로 가볼까요?"
+                action={
+                  <Link to="/discover">
+                    <Button variant="primary">전체 모임 둘러보기</Button>
+                  </Link>
+                }
+              />
+            ) : (
+              <div className={styles.grid}>
+                {picks.map((p) => (
+                  <PartyCard key={p.id} party={p} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+    </main>
   )
 }

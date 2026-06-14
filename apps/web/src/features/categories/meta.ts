@@ -10,6 +10,19 @@ export interface CategoryMeta {
   bgGradient: string
 }
 
+/**
+ * Category identity. `accentHex` / `bgGradient` are injected as inline CSS
+ * values (e.g. `--chip-accent`, `background`), so they reference the
+ * Aperitivo `--cat-*` design tokens directly — a single source of truth that
+ * also follows light/dark. The names keep the historical `*Hex` shape for
+ * compatibility, but hold token references rather than raw hex.
+ *
+ * Per the design system, the category EMOJI are intentional brand identity and
+ * are kept as-is (they are not replaced by line icons).
+ */
+const drench = (token: string) =>
+  `linear-gradient(135deg, color-mix(in oklab, ${token} 60%, var(--brand-clay-900)) 0%, ${token} 52%, color-mix(in oklab, ${token} 42%, var(--brand-paper-100)) 100%)`
+
 export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
   wine: {
     value: 'wine',
@@ -17,8 +30,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '와인',
     emoji: '🍷',
     description: '6 라운드, 6 잔의 와인. 마지막 라운드에 최종 매칭.',
-    accentHex: '#7A1F3D',
-    bgGradient: 'linear-gradient(135deg, #4A0E25 0%, #7A1F3D 50%, #C9627F 100%)',
+    accentHex: 'var(--cat-wine)',
+    bgGradient: drench('var(--cat-wine)'),
   },
   'natural-wine': {
     value: 'natural-wine',
@@ -26,8 +39,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '내추럴',
     emoji: '🌿',
     description: '자연 그대로의 와인, 약간 거친 맛으로 시작하는 대화.',
-    accentHex: '#8E6B27',
-    bgGradient: 'linear-gradient(135deg, #5C4A22 0%, #B47433 100%)',
+    accentHex: 'var(--cat-tea)',
+    bgGradient: drench('var(--cat-tea)'),
   },
   coffee: {
     value: 'coffee',
@@ -35,8 +48,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '커피',
     emoji: '☕️',
     description: '스페셜티 빈을 두고, 같은 잔을 두고 농담하다 보면 친해져요.',
-    accentHex: '#6B4226',
-    bgGradient: 'linear-gradient(135deg, #4A2D1A 0%, #6B4226 50%, #C49A6A 100%)',
+    accentHex: 'var(--cat-coffee)',
+    bgGradient: drench('var(--cat-coffee)'),
   },
   tea: {
     value: 'tea',
@@ -44,8 +57,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '차',
     emoji: '🍵',
     description: '한옥 다실에서 깊고 조용한 4단계 질문 카드.',
-    accentHex: '#6B8E5A',
-    bgGradient: 'linear-gradient(135deg, #3F5C36 0%, #6B8E5A 50%, #B5CFA3 100%)',
+    accentHex: 'var(--cat-tea)',
+    bgGradient: drench('var(--cat-tea)'),
   },
   whisky: {
     value: 'whisky',
@@ -53,8 +66,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '위스키',
     emoji: '🥃',
     description: '6종 싱글몰트와 다크초콜릿. 라운드마다 글래스가 바뀝니다.',
-    accentHex: '#B47433',
-    bgGradient: 'linear-gradient(135deg, #5B3A18 0%, #B47433 50%, #E2B978 100%)',
+    accentHex: 'var(--cat-whisky)',
+    bgGradient: drench('var(--cat-whisky)'),
   },
   cocktail: {
     value: 'cocktail',
@@ -62,8 +75,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '칵테일',
     emoji: '🍸',
     description: '바텐더가 라운드마다 새 시그니처를 따라줘요.',
-    accentHex: '#2F7884',
-    bgGradient: 'linear-gradient(135deg, #1E4D55 0%, #2F7884 50%, #7FBFC9 100%)',
+    accentHex: 'var(--cat-cocktail)',
+    bgGradient: drench('var(--cat-cocktail)'),
   },
   beer: {
     value: 'beer',
@@ -71,8 +84,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '비어',
     emoji: '🍺',
     description: 'IPA부터 스타우트까지, 가볍게 시작하는 라운드.',
-    accentHex: '#C89E2A',
-    bgGradient: 'linear-gradient(135deg, #6B5310 0%, #C89E2A 50%, #F2D77E 100%)',
+    accentHex: 'var(--cat-beer)',
+    bgGradient: drench('var(--cat-beer)'),
   },
   sake: {
     value: 'sake',
@@ -80,8 +93,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '사케',
     emoji: '🍶',
     description: '차게, 데우게, 그리고 새로 만난 사람과.',
-    accentHex: '#5E7575',
-    bgGradient: 'linear-gradient(135deg, #303D3D 0%, #5E7575 50%, #B7C8C8 100%)',
+    accentHex: 'var(--cat-sake)',
+    bgGradient: drench('var(--cat-sake)'),
   },
   dessert: {
     value: 'dessert',
@@ -89,8 +102,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '디저트',
     emoji: '🍰',
     description: '달콤한 한 입과 함께, 가볍고 빠른 라운드.',
-    accentHex: '#C9628E',
-    bgGradient: 'linear-gradient(135deg, #80365A 0%, #C9628E 50%, #F6BFD3 100%)',
+    accentHex: 'var(--cat-dessert)',
+    bgGradient: drench('var(--cat-dessert)'),
   },
   custom: {
     value: 'custom',
@@ -98,8 +111,8 @@ export const CATEGORY_META: Record<PartyCategory, CategoryMeta> = {
     shortLabel: '커스텀',
     emoji: '✨',
     description: '직접 정하는 테마 파티.',
-    accentHex: '#6E5BB3',
-    bgGradient: 'linear-gradient(135deg, #3F326E 0%, #6E5BB3 50%, #B7AAE3 100%)',
+    accentHex: 'var(--cat-custom)',
+    bgGradient: drench('var(--cat-custom)'),
   },
 }
 

@@ -54,15 +54,15 @@
   --btn-shadow: var(--shadow-md);
 }
 .v_secondary {
-  --btn-bg: var(--brand-ink-900);
-  --btn-bg-hover: var(--brand-ink-800);
+  --btn-bg: var(--brand-clay-900);
+  --btn-bg-hover: var(--brand-clay-800);
   --btn-fg: var(--color-text-inverse);
   --btn-shadow: var(--shadow-sm);
 }
 .v_soft {
   --btn-bg: var(--color-primary-soft);
-  --btn-bg-hover: var(--brand-burgundy-200);
-  --btn-fg: var(--brand-burgundy-800);
+  --btn-bg-hover: var(--brand-apricot-200);
+  --btn-fg: var(--brand-apricot-800);
 }
 .v_ghost {
   --btn-bg: transparent;
@@ -77,12 +77,12 @@
 }
 .v_danger {
   --btn-bg: var(--color-danger);
-  --btn-bg-hover: color-mix(in oklab, var(--color-danger) 82%, var(--brand-ink-900) 18%);
+  --btn-bg-hover: color-mix(in oklab, var(--color-danger) 82%, var(--brand-clay-900) 18%);
   --btn-fg: var(--color-text-inverse);
 }
 .v_gold {
-  --btn-bg: var(--brand-gold-500);
-  --btn-bg-hover: var(--brand-gold-600);
+  --btn-bg: var(--brand-amber-500);
+  --btn-bg-hover: var(--brand-amber-600);
   --btn-fg: var(--color-accent-fg);
   --btn-shadow: 0 8px 24px color-mix(in oklab, var(--color-accent) 35%, transparent);
 }

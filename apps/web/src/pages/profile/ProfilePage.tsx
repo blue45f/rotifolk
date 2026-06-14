@@ -7,7 +7,6 @@ import { useMyParties } from '@features/parties/queries'
 import { useLogout, useMe } from '@features/auth/queries'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
-import { Card } from '@components/ui/Card/Card'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
@@ -16,6 +15,7 @@ import { Tabs } from '@components/ui/Tabs/Tabs'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { PartyCard } from '@features/parties/PartyCard'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
@@ -34,8 +34,25 @@ const MOODS: { value: AvatarMood; label: string; emoji: string }[] = [
   { value: 'cozy', label: '따뜻한', emoji: '☕️' },
   { value: 'mystery', label: '신비로운', emoji: '🌹' },
 ]
-const HUES = ['#7A1F3D', '#C9627F', '#D4A24C', '#6B8E5A', '#2F7884', '#6E5BB3', '#6B4226']
+const HUES = [
+  'var(--color-primary)',
+  'var(--brand-apricot-400)',
+  'var(--brand-amber-500)',
+  'var(--cat-tea)',
+  'var(--cat-cocktail)',
+  'var(--cat-custom)',
+  'var(--cat-coffee)',
+]
 const EMOJIS = ['🍷', '☕️', '🍵', '🥃', '✨', '🌹', '🍯', '🎷', '🎻', '🌙']
+
+const SETTINGS_LINKS: { to: string; icon: IconName; label: string }[] = [
+  { to: '/me/profile-studio', icon: 'shield', label: '사전 프로필 · 신상 인증 · 지인 회피' },
+  { to: '/me/notes', icon: 'mail', label: '쪽지함' },
+  { to: '/me/saved', icon: 'bookmark', label: '저장한 모임' },
+  { to: '/me/payments', icon: 'archive', label: '결제 내역' },
+  { to: '/me/follows', icon: 'user', label: '팔로잉' },
+  { to: '/me/blocks', icon: 'shield', label: '차단한 사용자' },
+]
 
 export default function ProfilePage() {
   useMe()
@@ -126,6 +143,13 @@ export default function ProfilePage() {
   )
   const past = mine?.filter((m) => ['cancelled', 'no-show'].includes(m.participation.status))
 
+  const stats: { label: string; value: string | number }[] = [
+    { label: '호스팅', value: user.hostedCount },
+    { label: '참여', value: user.joinedCount },
+    { label: '만난 사람', value: Math.round(user.hostedCount * 6 + user.joinedCount * 8) },
+    { label: '신뢰도', value: user.trustScore.toFixed(0) },
+  ]
+
   const saveAvatar = async () => {
     try {
       await api.patch('avatars/me', {
@@ -147,6 +171,13 @@ export default function ProfilePage() {
   const openAvatarEditor = () => {
     setDraftImage(user?.avatarImage ?? null)
     setShowAvatar(true)
+  }
+
+  const openProfileEditor = () => {
+    setBioDraft(user.bio ?? '')
+    setMbtiDraft(user.mbti ?? '')
+    setInterestsDraft((user.interests ?? []).join(', '))
+    setShowProfileEdit(true)
   }
 
   const onPickAvatarFile = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -185,6 +216,8 @@ export default function ProfilePage() {
     }
   }
 
+  const showVerifyNudge = !user.verifiedFields?.includes('identity') && !verifyNudgeOff
+
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
@@ -200,44 +233,44 @@ export default function ProfilePage() {
         <div className={styles.headBody}>
           <h1 className={styles.name}>
             {user.nickname}
-            {user.isVerified && <Badge tone="info">✓ 인증</Badge>}
+            {user.isVerified && (
+              <Badge tone="info">
+                <Icon name="check" size={0.85} /> 인증
+              </Badge>
+            )}
             <HostLevelBadge level={hostLevel.level} size="md" />
           </h1>
           <p className={styles.bio}>{user.bio ?? '한 줄 소개를 추가해 보세요.'}</p>
-          <div className={styles.statRow}>
-            <span>
-              <strong>{user.hostedCount}</strong> 호스팅
-            </span>
-            <span>
-              <strong>{user.joinedCount}</strong> 참여
-            </span>
-            <span>
-              <strong>{Math.round(user.hostedCount * 6 + user.joinedCount * 8)}</strong> 만난 사람
-            </span>
-            <span>
-              <strong>{user.trustScore.toFixed(0)}</strong> 신뢰도
-            </span>
-          </div>
+          <dl className={styles.statRow}>
+            {stats.map((s) => (
+              <div key={s.label} className={styles.stat}>
+                <dt>{s.label}</dt>
+                <dd>{s.value}</dd>
+              </div>
+            ))}
+          </dl>
           <div className={styles.actions}>
             <Button
-              variant="ghost"
+              variant="primary"
               size="sm"
-              onClick={() => {
-                setBioDraft(user.bio ?? '')
-                setMbtiDraft(user.mbti ?? '')
-                setInterestsDraft((user.interests ?? []).join(', '))
-                setShowProfileEdit(true)
-              }}
+              leftIcon={<Icon name="user" />}
+              onClick={openProfileEditor}
             >
-              ✏️ 프로필 편집
+              프로필 편집
             </Button>
-            <Button variant="ghost" size="sm" onClick={openAvatarEditor}>
+            <Button
+              variant="soft"
+              size="sm"
+              leftIcon={<Icon name="sparkle" />}
+              onClick={openAvatarEditor}
+            >
               아바타 편집
             </Button>
             {user.role === 'participant' && (
               <Button
-                variant="soft"
+                variant="ghost"
                 size="sm"
+                leftIcon={<Icon name="shield" />}
                 onClick={async () => {
                   await api.post('users/me/become-host')
                   updateLocal({ role: 'host' })
@@ -251,49 +284,33 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      {!user.verifiedFields?.includes('identity') && !verifyNudgeOff && (
+      {showVerifyNudge && (
         <div className="container">
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--space-3)',
-              padding: 'var(--space-4) var(--space-5)',
-              borderRadius: 'var(--radius-xl)',
-              background: 'color-mix(in oklab, var(--brand-burgundy-400) 8%, var(--color-surface))',
-              border: '1px solid color-mix(in oklab, var(--brand-burgundy-400) 22%, transparent)',
-            }}
-          >
-            <span aria-hidden="true" style={{ fontSize: '1.5rem' }}>
-              🪪
+          <div className={styles.nudge} role="note">
+            <span className={styles.nudgeIcon} aria-hidden="true">
+              <Icon name="shield" />
             </span>
-            <div style={{ flex: 1 }}>
-              <strong style={{ display: 'block' }}>본인인증으로 신뢰를 더해보세요</strong>
-              <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--color-text-muted)' }}>
-                선택이에요. 인증하면 매칭 상대·참가자에게 ✓ 배지로 신뢰를 줄 수 있어요.
+            <div className={styles.nudgeBody}>
+              <strong>본인인증으로 신뢰를 더해보세요</strong>
+              <span>
+                선택이에요. 인증하면 매칭 상대·참가자에게 인증 배지로 신뢰를 줄 수 있어요.
               </span>
             </div>
-            <Link to="/me/profile-studio">
+            <Link to="/me/profile-studio" className={styles.nudgeCta}>
               <Button variant="gold" size="sm">
                 인증하기
               </Button>
             </Link>
             <button
               type="button"
-              aria-label="닫기"
+              className={styles.nudgeClose}
+              aria-label="안내 닫기"
               onClick={() => {
                 localStorage.setItem('rotifolk-verify-nudge', 'off')
                 setVerifyNudgeOff(true)
               }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-text-subtle)',
-                fontSize: 'var(--fs-lg)',
-              }}
             >
-              ✕
+              <Icon name="close" />
             </button>
           </div>
         </div>
@@ -301,6 +318,7 @@ export default function ProfilePage() {
 
       <div className={`container ${styles.tabsRow}`}>
         <Tabs
+          label="프로필 섹션"
           tabs={[
             { value: 'upcoming', label: `다가오는 (${upcoming?.length ?? 0})` },
             { value: 'saved', label: `저장 (${savedItems?.length ?? 0})` },
@@ -314,7 +332,7 @@ export default function ProfilePage() {
         />
       </div>
 
-      <section className={`container ${styles.section}`}>
+      <section className={`container ${styles.section}`} aria-label="프로필 내용">
         {tab === 'upcoming' &&
           (upcoming && upcoming.length > 0 ? (
             <div className={styles.grid}>
@@ -346,16 +364,18 @@ export default function ProfilePage() {
               {savedItems.length > 9 && (
                 <div className={styles.savedFoot}>
                   <Link to="/me/saved">
-                    <Button variant="outline">전체 {savedItems.length}개 보기 →</Button>
+                    <Button variant="outline" rightIcon={<Icon name="chevron-right" />}>
+                      전체 {savedItems.length}개 보기
+                    </Button>
                   </Link>
                 </div>
               )}
             </>
           ) : (
             <EmptyState
-              emoji="★"
+              emoji="🔖"
               title="저장한 모임이 없어요"
-              description="파티 상세에서 ☆를 누르면 여기 모여요."
+              description="파티 상세에서 저장 버튼을 누르면 여기 모여요."
             />
           ))}
 
@@ -387,7 +407,7 @@ export default function ProfilePage() {
                 </div>
                 {a.earned && (
                   <span className={styles.achievementMark} aria-label="획득">
-                    ✓
+                    <Icon name="check" size={0.8} />
                   </span>
                 )}
               </div>
@@ -398,9 +418,11 @@ export default function ProfilePage() {
         {tab === 'reviews' && <ReceivedReviews userId={user.id} />}
 
         {tab === 'settings' && (
-          <>
-            <Card padding="lg">
-              <h3 className={styles.h3}>친구 초대 코드</h3>
+          <div className={styles.settings}>
+            <section className={styles.settingsGroup} aria-labelledby="set-referral">
+              <h2 id="set-referral" className={styles.groupTitle}>
+                친구 초대 코드
+              </h2>
               <p className={styles.referralLead}>
                 친구가 이 코드로 가입하면 <strong>둘 다 3,000원</strong>이 적립돼요. 다음 모임
                 결제에 사용할 수 있어요.
@@ -432,52 +454,53 @@ export default function ProfilePage() {
                   </strong>
                 </div>
               </div>
-            </Card>
+            </section>
 
-            <Card padding="lg">
-              <h3 className={styles.h3}>화면</h3>
-              <div className={styles.themeRow}>
+            <section className={styles.settingsGroup} aria-labelledby="set-display">
+              <h2 id="set-display" className={styles.groupTitle}>
+                화면
+              </h2>
+              <div className={styles.themeRow} role="group" aria-label="테마 선택">
                 {(['light', 'dark', 'system'] as const).map((t) => (
-                  <Chip key={t} selected={theme === t} onClick={() => setTheme(t)}>
-                    {t === 'light' ? '🌞 라이트' : t === 'dark' ? '🌙 다크' : '🌗 시스템'}
+                  <Chip
+                    key={t}
+                    selected={theme === t}
+                    leadingIcon={
+                      <Icon name={t === 'light' ? 'sun' : t === 'dark' ? 'moon' : 'monitor'} />
+                    }
+                    onClick={() => setTheme(t)}
+                  >
+                    {t === 'light' ? '라이트' : t === 'dark' ? '다크' : '시스템'}
                   </Chip>
                 ))}
               </div>
-              <div className={styles.divider} />
-              <div className={styles.settingsLinks}>
-                <Link to="/me/profile-studio" className={styles.settingsLink}>
-                  <span>🪪 사전 프로필 · 신상 인증 · 지인 회피</span>
-                  <span aria-hidden="true">→</span>
-                </Link>
-                <Link to="/me/notes" className={styles.settingsLink}>
-                  <span>💌 쪽지함</span>
-                  <span aria-hidden="true">→</span>
-                </Link>
-                <Link to="/me/saved" className={styles.settingsLink}>
-                  <span>☆ 저장한 모임</span>
-                  <span aria-hidden="true">→</span>
-                </Link>
-                <Link to="/me/payments" className={styles.settingsLink}>
-                  <span>🧾 결제 내역</span>
-                  <span aria-hidden="true">→</span>
-                </Link>
-                <Link to="/me/follows" className={styles.settingsLink}>
-                  <span>👥 팔로잉</span>
-                  <span aria-hidden="true">→</span>
-                </Link>
-                <Link to="/me/blocks" className={styles.settingsLink}>
-                  <span>🚫 차단한 사용자</span>
-                  <span aria-hidden="true">→</span>
-                </Link>
-              </div>
+            </section>
+
+            <section className={styles.settingsGroup} aria-labelledby="set-links">
+              <h2 id="set-links" className={styles.groupTitle}>
+                바로가기
+              </h2>
+              <nav className={styles.settingsLinks} aria-label="프로필 바로가기">
+                {SETTINGS_LINKS.map((l) => (
+                  <Link key={l.to} to={l.to} className={styles.settingsLink}>
+                    <span className={styles.settingsLinkIcon} aria-hidden="true">
+                      <Icon name={l.icon} />
+                    </span>
+                    <span className={styles.settingsLinkLabel}>{l.label}</span>
+                    <Icon name="chevron-right" aria-hidden="true" />
+                  </Link>
+                ))}
+              </nav>
               <div className={styles.divider} />
               <Button variant="ghost" onClick={() => logout()}>
                 로그아웃
               </Button>
-            </Card>
+            </section>
 
-            <Card padding="lg">
-              <h3 className={styles.h3}>계정 관리</h3>
+            <section className={styles.settingsGroup} aria-labelledby="set-account">
+              <h2 id="set-account" className={styles.groupTitle}>
+                계정 관리
+              </h2>
               <p className={styles.settingsDanger}>
                 계정을 삭제하면 모든 데이터(참가 내역, 명함, 저장 목록)가 영구적으로 삭제돼요.
               </p>
@@ -495,7 +518,7 @@ export default function ProfilePage() {
                       취소
                     </Button>
                     <Button
-                      variant="primary"
+                      variant="danger"
                       size="sm"
                       onClick={() => deleteAccount.mutate()}
                       isLoading={deleteAccount.isPending}
@@ -505,8 +528,8 @@ export default function ProfilePage() {
                   </div>
                 </div>
               )}
-            </Card>
-          </>
+            </section>
+          </div>
         )}
       </section>
 
@@ -598,9 +621,10 @@ export default function ProfilePage() {
             variant="soft"
             size="sm"
             isLoading={imageBusy}
+            leftIcon={<Icon name="sparkle" />}
             onClick={() => fileInputRef.current?.click()}
           >
-            📷 {draftImage ? '사진 변경' : '사진 올리기'}
+            {draftImage ? '사진 변경' : '사진 올리기'}
           </Button>
           {draftImage && (
             <Button variant="ghost" size="sm" onClick={() => setDraftImage(null)}>
@@ -635,6 +659,7 @@ export default function ProfilePage() {
               className={`${styles.swatch} ${draftHue === h ? styles.swatchActive : ''}`}
               style={{ background: h }}
               aria-label={`색상 ${h}`}
+              aria-pressed={draftHue === h}
               onClick={() => setDraftHue(h)}
             />
           ))}
@@ -647,6 +672,8 @@ export default function ProfilePage() {
               key={e}
               type="button"
               className={`${styles.emojiBtn} ${draftEmoji === e ? styles.emojiActive : ''}`}
+              aria-label={`이모지 ${e}`}
+              aria-pressed={draftEmoji === e}
               onClick={() => setDraftEmoji(e)}
             >
               {e}
@@ -681,20 +708,20 @@ function ReceivedReviews({ userId }: { userId: string }) {
   if (!data || data.count === 0)
     return (
       <EmptyState
-        emoji="⭐"
+        emoji="✨"
         title="아직 받은 후기가 없어요"
         description="모임을 호스팅하거나 참가하면 후기가 여기 모여요."
       />
     )
   return (
-    <Card padding="lg">
+    <div className={styles.reviews}>
       <div className={styles.reviewSummary}>
         <strong className={styles.reviewAvg}>{data.averageRating.toFixed(1)}</strong>
         <span className={styles.reviewStars} aria-label={`${data.averageRating}점`}>
           {'★'.repeat(Math.round(data.averageRating))}
           {'☆'.repeat(5 - Math.round(data.averageRating))}
         </span>
-        <span>총 {data.count}개 후기</span>
+        <span className={styles.reviewCount}>총 {data.count}개 후기</span>
       </div>
       <ul className={styles.reviewList}>
         {data.reviews.map((r) => (
@@ -709,13 +736,15 @@ function ReceivedReviews({ userId }: { userId: string }) {
             <p>{r.body}</p>
             {r.hostReply && (
               <div className={styles.reviewReply}>
-                <strong>🎙️ 내 답글</strong>
+                <strong>
+                  <Icon name="chat" size={0.9} /> 내 답글
+                </strong>
                 <p>{r.hostReply}</p>
               </div>
             )}
           </li>
         ))}
       </ul>
-    </Card>
+    </div>
   )
 }

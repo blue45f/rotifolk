@@ -8,6 +8,7 @@ import { PartyCard } from '@features/parties/PartyCard'
 import { CATEGORY_META } from '@features/categories/meta'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -17,6 +18,9 @@ import styles from './Digest.module.css'
  * /digest — 매주 한 번 갱신되는 주간 다이제스트.
  * useParties로 받은 'open' 파티 50개를 클라이언트에서 집계해서 보여준다.
  * 별도 백엔드 엔드포인트를 만들지 않고, 모든 카운트는 메모이즈된 reduce로 구한다.
+ *
+ * 레이아웃은 통계 대시보드가 아니라 "따뜻한 에디토리얼 라운드업"으로 읽히게 한다:
+ * 텍스트 + divider가 기본, 카드는 cover가 있는 객체(파티)에만.
  */
 
 interface Rank<T = string> {
@@ -98,11 +102,11 @@ export default function DigestPage() {
   const topHosts = useMemo<Rank[]>(() => {
     const map = countBy(items, (p) => p.hostId)
     const nicknameOf = new Map(items.map((p) => [p.hostId, p.hostNickname]))
-    return topN(map, 3).map((r, i) => ({
+    return topN(map, 3).map((r) => ({
       key: r.key,
       label: nicknameOf.get(r.key) ?? r.key,
       count: r.count,
-      meta: `${['🥇', '🥈', '🥉'][i]} 이번 주 ${r.count}개 진행`,
+      meta: `이번 주 ${r.count}개 모임을 열었어요`,
     }))
   }, [items])
 
@@ -118,11 +122,11 @@ export default function DigestPage() {
 
   const topAreas = useMemo<Rank[]>(() => {
     const map = countBy(items, (p) => p.venueArea)
-    return topN(map, 3).map((r, i) => ({
+    return topN(map, 3).map((r) => ({
       key: r.key,
       label: r.key,
       count: r.count,
-      meta: `${i + 1}위 · ${r.count}개 모임`,
+      meta: `${r.count}개 모임`,
     }))
   }, [items])
 
@@ -143,21 +147,31 @@ export default function DigestPage() {
   const newlyMatched = items.reduce((acc, p) => acc + p.currentParticipants, 0)
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
       <header className={`container ${styles.hero}`} aria-labelledby="digest-title">
         <Badge tone="gold" size="sm" className={styles.weeklyBadge}>
-          WEEKLY
+          <Icon name="sparkle" size={0.9} aria-hidden /> WEEKLY
         </Badge>
         <h1 id="digest-title" className={styles.heroTitle}>
           이번 주 Rotifolk
         </h1>
         <p className={styles.heroLead}>
-          이번 주 <strong>{totalParties}</strong>개 모임 · <strong>{newlyMatched}</strong>명이 새로
-          매칭됨
+          이번 주 열린 모임과 가장 따뜻했던 자리들을 한 잔에 모았어요. 마음에 드는 곳이 보이면 바로
+          이어가세요.
         </p>
+        <div className={styles.heroFacts}>
+          <span className={styles.heroFact}>
+            <strong>{totalParties}</strong>개 모임
+          </span>
+          <span className={styles.heroDot} aria-hidden="true" />
+          <span className={styles.heroFact}>
+            <strong>{newlyMatched}</strong>명 참여
+          </span>
+        </div>
         <Button
           variant="soft"
           size="sm"
+          className={styles.shareBtn}
           onClick={async () => {
             const url = window.location.href
             const title = '이번 주 Rotifolk 다이제스트'
@@ -169,7 +183,7 @@ export default function DigestPage() {
             }
           }}
         >
-          공유하기
+          <Icon name="mail" size={1} aria-hidden /> 공유하기
         </Button>
       </header>
 
@@ -187,43 +201,41 @@ export default function DigestPage() {
         </div>
       ) : (
         <>
-          <section className={`container ${styles.section}`} aria-labelledby="hosts-title">
+          <section className={`container ${styles.section}`} aria-labelledby="picks-title">
             <header className={styles.sectionHead}>
-              <h2 id="hosts-title" className={styles.sectionTitle}>
-                🏆 이번 주 베스트 호스트
+              <p className={styles.kicker}>
+                <Icon name="sparkle" size={0.95} aria-hidden /> 이번 주 픽
+              </p>
+              <h2 id="picks-title" className={styles.sectionTitle}>
+                다음 주 추천 모임
               </h2>
-              <p className={styles.sectionSub}>이번 주 가장 많은 모임을 연 호스트예요.</p>
+              <p className={styles.sectionSub}>
+                지금부터 7일 안에 시작하는 모임 중 가장 빨리 잔을 채울 곳들.
+              </p>
             </header>
 
-            {topHosts.length === 0 ? (
-              <p className={styles.softNote}>아직 집계할 호스트가 없어요.</p>
+            {nextWeekPicks.length === 0 ? (
+              <EmptyState
+                emoji="🌙"
+                title="다음 주는 한 박자 쉬어가요"
+                description="아직 7일 안에 열리는 모임이 없어요. 새 파티가 열리면 여기에 다시 보여드릴게요."
+              />
             ) : (
-              <ol className={styles.hostList}>
-                {topHosts.map((host, i) => (
-                  <li key={host.key} className={styles.hostRow}>
-                    <span className={styles.hostRank} aria-hidden="true">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <div className={styles.hostBody}>
-                      <Link to={`/hosts/${host.key}`} className={styles.hostName}>
-                        <strong>{host.label}</strong>
-                      </Link>
-                      <span className={styles.hostMeta}>{host.meta}</span>
-                    </div>
-                    <span className={styles.hostCount}>
-                      <em>{host.count}</em>
-                      <small>모임</small>
-                    </span>
-                  </li>
+              <div className={styles.pickGrid}>
+                {nextWeekPicks.map((p) => (
+                  <PartyCard key={p.id} party={p} />
                 ))}
-              </ol>
+              </div>
             )}
           </section>
 
           <section className={`container ${styles.section}`} aria-labelledby="cats-title">
             <header className={styles.sectionHead}>
+              <p className={styles.kicker}>
+                <Icon name="flame" size={0.95} aria-hidden /> 무드
+              </p>
               <h2 id="cats-title" className={styles.sectionTitle}>
-                🍷 인기 카테고리
+                인기 카테고리
               </h2>
               <p className={styles.sectionSub}>이번 주에 가장 자주 잔을 채운 테마.</p>
             </header>
@@ -255,6 +267,7 @@ export default function DigestPage() {
                       </div>
                       <div className={styles.catTileFoot}>
                         <span>{entry.count}개 진행</span>
+                        <Icon name="chevron-right" size={1} aria-hidden />
                       </div>
                     </article>
                   </Link>
@@ -263,47 +276,15 @@ export default function DigestPage() {
             )}
           </section>
 
-          <section className={`container ${styles.section}`} aria-labelledby="areas-title">
-            <header className={styles.sectionHead}>
-              <h2 id="areas-title" className={styles.sectionTitle}>
-                📍 인기 지역
-              </h2>
-              <p className={styles.sectionSub}>발걸음이 가장 많이 닿은 동네 세 곳.</p>
-            </header>
-
-            {topAreas.length === 0 ? (
-              <p className={styles.softNote}>아직 집계할 지역이 없어요.</p>
-            ) : (
-              <ul className={styles.areaList}>
-                {topAreas.map((area, i) => (
-                  <li key={area.key} className={styles.areaRow}>
-                    <Link
-                      to={`/discover?area=${encodeURIComponent(area.key)}`}
-                      className={styles.areaRowLink}
-                    >
-                      <span className={styles.areaPin} aria-hidden="true">
-                        📍
-                      </span>
-                      <div className={styles.areaBody}>
-                        <strong className={styles.areaName}>{area.label}</strong>
-                        <span className={styles.areaMeta}>{area.meta}</span>
-                      </div>
-                      <span className={styles.areaIndex} aria-hidden="true">
-                        {i + 1}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
           <section className={`container ${styles.section}`} aria-labelledby="reviews-title">
             <header className={styles.sectionHead}>
+              <p className={styles.kicker}>
+                <Icon name="chat" size={0.95} aria-hidden /> 후기
+              </p>
               <h2 id="reviews-title" className={styles.sectionTitle}>
-                💬 따끈한 후기
+                따끈한 후기
               </h2>
-              <p className={styles.sectionSub}>최근 모임에서 남겨진 이야기들</p>
+              <p className={styles.sectionSub}>최근 모임에서 남겨진 이야기들.</p>
             </header>
 
             <ul className={styles.reviewList}>
@@ -327,8 +308,10 @@ export default function DigestPage() {
                       </header>
                       <blockquote className={styles.reviewBody}>{review.body}</blockquote>
                       <footer className={styles.reviewFoot}>
-                        <span className={styles.reviewStars}>{stars}</span>
-                        <span>— {review.reviewer}</span>
+                        <span className={styles.reviewStars} aria-hidden="true">
+                          {stars}
+                        </span>
+                        <span className={styles.reviewer}>{review.reviewer}</span>
                       </footer>
                     </li>
                   )
@@ -337,32 +320,89 @@ export default function DigestPage() {
             </ul>
           </section>
 
-          <section className={`container ${styles.section}`} aria-labelledby="picks-title">
+          <section className={`container ${styles.section}`} aria-labelledby="rounds-title">
             <header className={styles.sectionHead}>
-              <h2 id="picks-title" className={styles.sectionTitle}>
-                다음 주 추천 모임 5개
+              <p className={styles.kicker}>
+                <Icon name="bookmark" size={0.95} aria-hidden /> 라운드업
+              </p>
+              <h2 id="rounds-title" className={styles.sectionTitle}>
+                이번 주를 채운 사람들과 동네
               </h2>
               <p className={styles.sectionSub}>
-                지금부터 7일 안에 시작하는 모임 중 가장 빨리 잔을 채울 곳들.
+                가장 자주 자리를 연 호스트와, 발걸음이 가장 많이 닿은 동네.
               </p>
             </header>
 
-            {nextWeekPicks.length === 0 ? (
-              <EmptyState
-                emoji="🌙"
-                title="다음 주는 한 박자 쉬어가요"
-                description="아직 7일 안에 열리는 모임이 없어요. 새 파티가 열리면 여기에 다시 보여드릴게요."
-              />
-            ) : (
-              <div className={styles.pickGrid}>
-                {nextWeekPicks.map((p) => (
-                  <PartyCard key={p.id} party={p} />
-                ))}
+            <div className={styles.roundupGrid}>
+              <div className={styles.roundupCol} aria-labelledby="hosts-title">
+                <h3 id="hosts-title" className={styles.subTitle}>
+                  <Icon name="user" size={1} aria-hidden /> 베스트 호스트
+                </h3>
+                {topHosts.length === 0 ? (
+                  <p className={styles.softNote}>아직 집계할 호스트가 없어요.</p>
+                ) : (
+                  <ol className={styles.rankList}>
+                    {topHosts.map((host, i) => (
+                      <li key={host.key} className={styles.rankRow}>
+                        <span className={styles.rankNum} aria-hidden="true">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <div className={styles.rankBody}>
+                          <Link to={`/hosts/${host.key}`} className={styles.rankName}>
+                            <strong>{host.label}</strong>
+                          </Link>
+                          <span className={styles.rankMeta}>{host.meta}</span>
+                        </div>
+                        <span className={styles.rankCount}>
+                          <em>{host.count}</em>
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
               </div>
-            )}
+
+              <div className={styles.roundupCol} aria-labelledby="areas-title">
+                <h3 id="areas-title" className={styles.subTitle}>
+                  <Icon name="pin" size={1} aria-hidden /> 인기 동네
+                </h3>
+                {topAreas.length === 0 ? (
+                  <p className={styles.softNote}>아직 집계할 지역이 없어요.</p>
+                ) : (
+                  <ol className={styles.rankList}>
+                    {topAreas.map((area, i) => (
+                      <li key={area.key} className={styles.rankRow}>
+                        <span className={styles.rankNum} aria-hidden="true">
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                        <div className={styles.rankBody}>
+                          <Link
+                            to={`/discover?area=${encodeURIComponent(area.key)}`}
+                            className={styles.rankName}
+                          >
+                            <strong>{area.label}</strong>
+                          </Link>
+                          <span className={styles.rankMeta}>{area.meta}</span>
+                        </div>
+                        <span className={styles.rankGo} aria-hidden="true">
+                          <Icon name="chevron-right" size={1} aria-hidden />
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            </div>
+
+            <p className={styles.onward}>
+              <Link to="/discover" className={styles.onwardLink}>
+                모든 모임 둘러보기
+                <Icon name="chevron-right" size={1} aria-hidden />
+              </Link>
+            </p>
           </section>
         </>
       )}
-    </div>
+    </main>
   )
 }

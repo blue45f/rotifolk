@@ -5,6 +5,7 @@ import { api } from '@services/api'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -43,6 +44,14 @@ function formatPhoneForSubmit(value: string): string | null {
     return `${normalized.slice(0, 2)}-${normalized.slice(2, 6)}-${normalized.slice(6)}`
   }
   return normalized
+}
+
+function formatBlockDate(value: string): string {
+  return new Date(value).toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  })
 }
 
 export default function BlockedUsersPage() {
@@ -202,9 +211,13 @@ export default function BlockedUsersPage() {
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
-        <h1>블랙리스트 & 안심 매칭 관리</h1>
+        <p className={styles.kicker}>
+          <Icon name="shield" />
+          안심 매칭
+        </p>
+        <h1>차단 목록 관리</h1>
         <p className={styles.muted}>
-          원치 않는 사용자를 매칭 및 소셜링에서 완전히 격리하고 지인 회피를 직접 설정하세요.
+          원치 않는 사용자를 매칭과 소셜링에서 격리하고, 지인 회피를 직접 설정하세요.
         </p>
       </header>
 
@@ -253,10 +266,11 @@ export default function BlockedUsersPage() {
                 placeholder="차단 유저 닉네임 검색"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                leftIcon={<span aria-hidden="true">🔎</span>}
+                leftIcon={<Icon name="search" />}
               />
             </div>
             <Button variant="primary" onClick={() => setIsUserModalOpen(true)}>
+              <Icon name="plus" />
               사용자 직접 차단
             </Button>
           </div>
@@ -278,7 +292,7 @@ export default function BlockedUsersPage() {
                   <Link to={`/hosts/${u.id}`} className={styles.identity}>
                     <Avatar
                       size="md"
-                      hue="var(--brand-burgundy-700)"
+                      hue="var(--brand-apricot-600)"
                       pattern="gradient"
                       emoji={u.nickname[0]}
                       imageSrc={u.avatarImage ?? null}
@@ -286,19 +300,11 @@ export default function BlockedUsersPage() {
                     />
                     <div className={styles.body}>
                       <strong>{u.nickname}</strong>
-                      {u.reason && (
-                        <small>
-                          <span className={styles.reasonBadge}>{u.reason}</span>
-                        </small>
-                      )}
+                      {u.reason && <span className={styles.reasonBadge}>{u.reason}</span>}
                       {u.blockedAt && (
-                        <time>
-                          차단일:{' '}
-                          {new Date(u.blockedAt).toLocaleDateString('ko-KR', {
-                            year: 'numeric',
-                            month: 'numeric',
-                            day: 'numeric',
-                          })}
+                        <time className={styles.rowMeta}>
+                          <Icon name="clock" />
+                          차단일 {formatBlockDate(u.blockedAt)}
                         </time>
                       )}
                     </div>
@@ -326,13 +332,16 @@ export default function BlockedUsersPage() {
           aria-labelledby="blocked-users-tab-phones"
           aria-label={activeTabLabel}
         >
-          <div className={styles.privacyNote}>
-            <strong>원본 번호는 저장하지 않아요</strong>
-            <span>입력한 번호는 서버에서 해시로 바뀐 뒤 매칭 회피 대조에만 사용됩니다.</span>
-          </div>
+          <p className={styles.privacyNote}>
+            <Icon name="shield" />
+            <span>
+              <strong>원본 번호는 저장하지 않아요</strong>
+              입력한 번호는 서버에서 해시로 바뀐 뒤 매칭 회피 대조에만 사용됩니다.
+            </span>
+          </p>
 
           <form className={styles.phoneBlockForm} onSubmit={handleSinglePhoneSubmit}>
-            <h3 className={styles.formTitle}>지인 연락처 개별 등록</h3>
+            <h2 className={styles.formTitle}>지인 연락처 개별 등록</h2>
             <div className={styles.formGrid}>
               <Input
                 label="전화번호"
@@ -360,7 +369,9 @@ export default function BlockedUsersPage() {
             </div>
           </form>
 
-          <h3 className={styles.listTitle}>회피 등록된 연락처 ({phoneBlocks?.length ?? 0})</h3>
+          <h2 className={styles.listTitle}>
+            회피 등록된 연락처 <span className={styles.count}>{phoneBlocks?.length ?? 0}</span>
+          </h2>
 
           {!phoneBlocks || phoneBlocks.length === 0 ? (
             <EmptyState
@@ -369,20 +380,14 @@ export default function BlockedUsersPage() {
               description="이 번호로 가입한 회원은 같은 소셜 모임 및 매칭 카드 목록에서 자동으로 필터링됩니다."
             />
           ) : (
-            <div className={styles.phoneList}>
+            <ul className={styles.phoneList}>
               {phoneBlocks.map((pb) => (
-                <div key={pb.id} className={styles.phoneRow}>
+                <li key={pb.id} className={styles.phoneRow}>
                   <div className={styles.phoneInfo}>
                     <span className={styles.phoneLabel}>{pb.label || '메모 없는 회피 연락처'}</span>
                     <span className={styles.phoneMeta}>
                       <span className={styles.pillStatus}>해시 등록됨</span>
-                      <time>
-                        {new Date(pb.createdAt).toLocaleDateString('ko-KR', {
-                          year: 'numeric',
-                          month: 'numeric',
-                          day: 'numeric',
-                        })}
-                      </time>
+                      <time>{formatBlockDate(pb.createdAt)}</time>
                     </span>
                   </div>
                   <Button
@@ -398,9 +403,9 @@ export default function BlockedUsersPage() {
                   >
                     해제
                   </Button>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </section>
       )}
@@ -427,12 +432,12 @@ export default function BlockedUsersPage() {
                 aria-label="닫기"
                 onClick={() => setIsUserModalOpen(false)}
               >
-                &times;
+                <Icon name="close" />
               </button>
             </div>
             <form onSubmit={handleBlockUserSubmit}>
               <div className={styles.modalBody}>
-                <div>
+                <div className={styles.field}>
                   <label htmlFor="blocked-user-candidate" className={styles.fieldLabel}>
                     차단 대상 사용자 선택
                   </label>
@@ -452,7 +457,7 @@ export default function BlockedUsersPage() {
                   </select>
                 </div>
 
-                <div>
+                <div className={styles.field}>
                   <label htmlFor="blocked-user-reason" className={styles.fieldLabel}>
                     차단 사유
                   </label>
@@ -517,7 +522,7 @@ export default function BlockedUsersPage() {
                 aria-label="닫기"
                 onClick={() => setIsPhoneModalOpen(false)}
               >
-                &times;
+                <Icon name="close" />
               </button>
             </div>
             <form onSubmit={handleBulkPhoneSubmit}>
@@ -525,17 +530,19 @@ export default function BlockedUsersPage() {
                 <p className={styles.modalHint}>
                   여러 번호를 쉼표(,), 세미콜론(;) 또는 개행(Enter)으로 구분하여 입력하세요.
                 </p>
-                <label htmlFor="bulk-phone-list" className={styles.fieldLabel}>
-                  전화번호 목록
-                </label>
-                <textarea
-                  id="bulk-phone-list"
-                  className={styles.bulkTextarea}
-                  placeholder="010-1111-2222&#10;010-3333-4444, 010-5555-6666"
-                  value={bulkPhonesText}
-                  onChange={(e) => setBulkPhonesText(e.target.value)}
-                  required
-                />
+                <div className={styles.field}>
+                  <label htmlFor="bulk-phone-list" className={styles.fieldLabel}>
+                    전화번호 목록
+                  </label>
+                  <textarea
+                    id="bulk-phone-list"
+                    className={styles.bulkTextarea}
+                    placeholder="010-1111-2222&#10;010-3333-4444, 010-5555-6666"
+                    value={bulkPhonesText}
+                    onChange={(e) => setBulkPhonesText(e.target.value)}
+                    required
+                  />
+                </div>
                 <Input
                   label="일괄 차단 사유 (선택)"
                   placeholder="예: 지인 회피 목적"

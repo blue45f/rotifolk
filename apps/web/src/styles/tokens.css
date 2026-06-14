@@ -1,119 +1,135 @@
 /* ============================================================
    Rotifolk Design Tokens
-   Wine cellar at twilight — burgundy × cream × gold.
-   OKLCH로 정렬, 모든 중성색은 burgundy hue로 미세 틴트.
+   Aperitivo · Sunset Social — apricot × warm paper × teal.
+   해 지기 직전 첫 잔을 나누는 황금빛 사교 시간. 밝고 따뜻하고 명료하게.
+   OKLCH로 정렬, 모든 중성색은 warm(40–70) hue로 미세 틴트.
+
+   시맨틱 토큰(--color-, --shadow-, --grad- 등)은 이름을 유지하고 값만
+   새 팔레트로 교체한다. brand 램프는 apricot/amber/teal/paper/clay만 쓴다
+   (구 burgundy/gold/cream/ink 별칭은 전 모듈 스윕 후 제거됨).
    ============================================================ */
 
 :root {
-  /* —— Brand (OKLCH) —— */
-  --brand-burgundy-900: oklch(25% 0.1 10);
-  --brand-burgundy-800: oklch(30% 0.115 10);
-  --brand-burgundy-700: oklch(36% 0.13 10); /* primary */
-  --brand-burgundy-600: oklch(43% 0.13 10);
-  --brand-burgundy-500: oklch(53% 0.13 10);
-  --brand-burgundy-400: oklch(63% 0.115 10); /* primary-soft / rose accent */
-  --brand-burgundy-300: oklch(73% 0.085 10);
-  --brand-burgundy-200: oklch(85% 0.055 10);
-  --brand-burgundy-100: oklch(94% 0.025 10);
-  --brand-burgundy-50: oklch(98% 0.012 10);
+  /* —— Brand · Apricot/Coral (primary, OKLCH) —— */
+  --brand-apricot-900: oklch(34% 0.1 30);
+  --brand-apricot-800: oklch(42% 0.135 32);
+  --brand-apricot-700: oklch(50% 0.16 34); /* primary hover */
+  --brand-apricot-600: oklch(57% 0.17 36); /* primary */
+  --brand-apricot-500: oklch(67% 0.165 40);
+  --brand-apricot-400: oklch(76% 0.14 46); /* soft accent / dark primary */
+  --brand-apricot-300: oklch(84% 0.1 50);
+  --brand-apricot-200: oklch(90% 0.065 54);
+  --brand-apricot-100: oklch(95% 0.032 58);
+  --brand-apricot-50: oklch(98% 0.014 60);
 
-  --brand-gold-700: oklch(55% 0.105 78);
-  --brand-gold-600: oklch(63% 0.115 80);
-  --brand-gold-500: oklch(74% 0.125 80); /* accent */
-  --brand-gold-400: oklch(82% 0.105 82);
-  --brand-gold-300: oklch(88% 0.07 82);
-  --brand-gold-100: oklch(96% 0.03 82);
+  /* —— Brand · Teal (accent — 또렷해야 하는 순간: 라이브·매칭·핵심 CTA) —— */
+  --brand-teal-700: oklch(52% 0.1 200);
+  --brand-teal-600: oklch(60% 0.11 197);
+  --brand-teal-500: oklch(70% 0.11 195); /* accent */
+  --brand-teal-400: oklch(79% 0.095 193);
+  --brand-teal-300: oklch(87% 0.07 192);
+  --brand-teal-100: oklch(95% 0.035 192);
 
-  --brand-cream-50: oklch(99% 0.008 80);
-  --brand-cream-100: oklch(97% 0.02 80); /* canvas warm */
-  --brand-cream-200: oklch(93% 0.045 82);
+  /* —— Brand · Amber (warm secondary highlight) —— */
+  --brand-amber-700: oklch(60% 0.12 72);
+  --brand-amber-600: oklch(70% 0.13 74);
+  --brand-amber-500: oklch(80% 0.13 78);
+  --brand-amber-400: oklch(86% 0.11 80);
+  --brand-amber-300: oklch(90% 0.08 82);
+  --brand-amber-100: oklch(96% 0.035 82);
 
-  --brand-ink-900: oklch(15% 0.025 290); /* dark canvas */
-  --brand-ink-800: oklch(20% 0.03 290);
-  --brand-ink-700: oklch(26% 0.035 290);
-  --brand-ink-600: oklch(32% 0.04 290);
+  /* —— Brand · Paper (warm canvas) & Clay (warm dark) —— */
+  --brand-paper-50: oklch(99.3% 0.006 70);
+  --brand-paper-100: oklch(98.5% 0.01 70); /* canvas warm */
+  --brand-paper-200: oklch(95% 0.02 66);
 
-  /* —— Category accents (OKLCH, 같은 명도 대역에서 채도만 살짝) —— */
-  --cat-wine: oklch(36% 0.13 10);
-  --cat-coffee: oklch(36% 0.07 50);
-  --cat-tea: oklch(56% 0.07 135);
-  --cat-whisky: oklch(57% 0.13 60);
-  --cat-cocktail: oklch(48% 0.08 200);
-  --cat-beer: oklch(70% 0.13 85);
-  --cat-sake: oklch(72% 0.02 195);
-  --cat-dessert: oklch(60% 0.13 10);
-  --cat-custom: oklch(48% 0.09 295);
+  --brand-clay-900: oklch(20% 0.02 40); /* warm dark canvas */
+  --brand-clay-800: oklch(25% 0.022 40);
+  --brand-clay-700: oklch(31% 0.026 42);
+  --brand-clay-600: oklch(38% 0.03 44);
+
+  /* —— Category accents (warm·bright 대역으로 재튜닝) —— */
+  --cat-wine: oklch(52% 0.16 18); /* coral-red */
+  --cat-coffee: oklch(48% 0.07 55); /* clay mocha */
+  --cat-tea: oklch(60% 0.09 150); /* sage */
+  --cat-whisky: oklch(62% 0.12 72); /* amber */
+  --cat-cocktail: oklch(62% 0.1 200); /* teal */
+  --cat-beer: oklch(78% 0.13 90); /* golden */
+  --cat-sake: oklch(70% 0.03 200);
+  --cat-dessert: oklch(66% 0.13 8); /* pink */
+  --cat-custom: oklch(58% 0.1 300); /* soft violet */
 
   /* —— Semantic —— */
-  --color-primary: var(--brand-burgundy-700);
-  --color-primary-hover: var(--brand-burgundy-800);
-  --color-primary-soft: var(--brand-burgundy-100);
-  --color-primary-fg: oklch(98% 0.005 80);
+  --color-primary: var(--brand-apricot-600);
+  --color-primary-hover: var(--brand-apricot-700);
+  --color-primary-soft: var(--brand-apricot-100);
+  --color-primary-fg: oklch(99% 0.008 70);
 
-  --color-accent: var(--brand-gold-500);
-  --color-accent-fg: oklch(20% 0.03 60);
+  --color-accent: var(--brand-teal-500);
+  --color-accent-fg: oklch(24% 0.04 215);
 
-  --color-bg: oklch(98.5% 0.008 80);
-  --color-surface: oklch(100% 0 80);
-  --color-surface-soft: oklch(96.5% 0.022 80);
-  --color-surface-elev: oklch(100% 0 80);
-  --color-overlay: color-mix(in oklab, var(--brand-ink-900) 60%, transparent);
+  --color-bg: oklch(98.5% 0.01 70);
+  --color-surface: oklch(99.5% 0.005 70);
+  --color-surface-soft: oklch(96% 0.016 68);
+  --color-surface-elev: oklch(100% 0 0);
+  --color-overlay: color-mix(in oklab, var(--brand-clay-900) 55%, transparent);
 
-  --color-text: oklch(20% 0.025 290);
-  --color-text-muted: oklch(45% 0.02 290);
-  --color-text-subtle: oklch(60% 0.012 290);
-  --color-text-inverse: var(--brand-cream-50);
+  --color-text: oklch(26% 0.022 50);
+  --color-text-muted: oklch(46% 0.022 48);
+  --color-text-subtle: oklch(62% 0.016 50);
+  --color-text-inverse: var(--brand-paper-50);
 
-  --color-border: color-mix(in oklab, var(--brand-ink-900) 10%, transparent);
-  --color-border-strong: color-mix(in oklab, var(--brand-ink-900) 18%, transparent);
+  --color-border: color-mix(in oklab, var(--brand-clay-900) 12%, transparent);
+  --color-border-strong: color-mix(in oklab, var(--brand-clay-900) 20%, transparent);
 
-  --color-success: oklch(58% 0.11 160);
-  --color-success-bg: oklch(95% 0.03 160);
-  --color-warning: oklch(70% 0.13 70);
-  --color-warning-bg: oklch(96% 0.045 82);
-  --color-danger: oklch(57% 0.165 20);
-  --color-danger-bg: oklch(95% 0.035 20);
-  --color-info: oklch(56% 0.105 250);
-  --color-info-bg: oklch(95% 0.025 250);
+  --color-success: oklch(58% 0.12 155);
+  --color-success-bg: oklch(95% 0.035 155);
+  --color-warning: oklch(72% 0.14 72);
+  --color-warning-bg: oklch(96% 0.05 80);
+  --color-danger: oklch(57% 0.18 22);
+  --color-danger-bg: oklch(95% 0.04 22);
+  --color-info: oklch(60% 0.11 220);
+  --color-info-bg: oklch(95% 0.03 220);
 
-  /* —— Gradients —— */
+  /* —— Gradients (sunset) —— */
   --grad-cellar: linear-gradient(
     180deg,
-    oklch(20% 0.04 290) 0%,
-    oklch(28% 0.075 10) 55%,
-    oklch(40% 0.115 12) 100%
+    oklch(82% 0.12 78) 0%,
+    oklch(72% 0.16 45) 52%,
+    oklch(60% 0.17 30) 100%
   );
   --grad-burgundy-night: linear-gradient(
     135deg,
-    oklch(25% 0.1 10) 0%,
-    oklch(38% 0.13 10) 50%,
-    oklch(60% 0.12 12) 100%
+    oklch(80% 0.13 80) 0%,
+    oklch(68% 0.17 42) 50%,
+    oklch(57% 0.17 28) 100%
   );
   --grad-cream-rose: linear-gradient(
     135deg,
-    oklch(96.5% 0.022 80) 0%,
-    oklch(93% 0.045 22) 60%,
-    oklch(85% 0.075 18) 100%
+    oklch(98% 0.014 70) 0%,
+    oklch(94% 0.05 50) 60%,
+    oklch(88% 0.08 38) 100%
   );
   --grad-gold-shine: linear-gradient(
     135deg,
-    oklch(96% 0.03 82) 0%,
-    oklch(82% 0.105 82) 50%,
-    oklch(58% 0.115 78) 100%
+    oklch(96% 0.035 82) 0%,
+    oklch(86% 0.11 80) 50%,
+    oklch(70% 0.13 74) 100%
   );
   --grad-twilight: var(--grad-cellar);
+  --grad-paper-coral: var(--grad-cream-rose);
   --grad-wine-glow:
     radial-gradient(
       120% 80% at 30% 20%,
-      color-mix(in oklab, var(--brand-burgundy-400) 50%, transparent),
+      color-mix(in oklab, var(--brand-amber-400) 55%, transparent),
       transparent 60%
     ),
     radial-gradient(
       100% 70% at 80% 70%,
-      color-mix(in oklab, var(--brand-burgundy-700) 50%, transparent),
+      color-mix(in oklab, var(--brand-apricot-500) 55%, transparent),
       transparent 65%
     ),
-    var(--brand-ink-900);
+    oklch(96% 0.03 60);
 
   /* —— Typography —— */
   --font-sans:
@@ -131,9 +147,9 @@
   --fs-xl: 1.25rem;
   --fs-2xl: 1.5rem;
   --fs-3xl: 1.875rem;
-  --fs-4xl: 2.375rem;
-  --fs-5xl: 3rem;
-  --fs-6xl: 3.75rem;
+  --fs-4xl: 2.5rem;
+  --fs-5xl: 3.25rem;
+  --fs-6xl: 4rem;
 
   --fw-regular: 400;
   --fw-medium: 500;
@@ -141,15 +157,15 @@
   --fw-bold: 700;
   --fw-black: 800;
 
-  --lh-tight: 1.1;
+  --lh-tight: 1.08;
   --lh-snug: 1.25;
   --lh-normal: 1.6;
   --lh-relaxed: 1.7;
 
-  --tracking-tight: -0.012em;
+  --tracking-tight: -0.02em;
   --tracking-normal: 0;
   --tracking-wide: 0.04em;
-  --tracking-uppercase: 0.18em;
+  --tracking-uppercase: 0.16em;
 
   /* —— Space (4px base) —— */
   --space-0: 0;
@@ -168,32 +184,32 @@
   --space-24: 6rem;
 
   /* —— Radius —— */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  --radius-2xl: 34px;
   --radius-pill: 999px;
 
-  /* —— Shadows (warm, burgundy-tinted) —— */
-  --shadow-xs: 0 1px 2px color-mix(in oklab, var(--brand-burgundy-900) 8%, transparent);
+  /* —— Shadows (warm, apricot/clay-tinted) —— */
+  --shadow-xs: 0 1px 2px color-mix(in oklab, var(--brand-apricot-900) 9%, transparent);
   --shadow-sm:
-    0 2px 6px color-mix(in oklab, var(--brand-burgundy-900) 10%, transparent),
-    0 1px 2px color-mix(in oklab, var(--brand-burgundy-900) 6%, transparent);
+    0 2px 6px color-mix(in oklab, var(--brand-apricot-900) 11%, transparent),
+    0 1px 2px color-mix(in oklab, var(--brand-apricot-900) 7%, transparent);
   --shadow-md:
-    0 10px 24px color-mix(in oklab, var(--brand-burgundy-900) 12%, transparent),
-    0 2px 6px color-mix(in oklab, var(--brand-burgundy-900) 8%, transparent);
+    0 10px 24px color-mix(in oklab, var(--brand-apricot-900) 14%, transparent),
+    0 2px 6px color-mix(in oklab, var(--brand-apricot-900) 9%, transparent);
   --shadow-lg:
-    0 22px 48px color-mix(in oklab, var(--brand-burgundy-900) 16%, transparent),
-    0 4px 12px color-mix(in oklab, var(--brand-burgundy-900) 10%, transparent);
+    0 22px 48px color-mix(in oklab, var(--brand-apricot-900) 18%, transparent),
+    0 4px 12px color-mix(in oklab, var(--brand-apricot-900) 11%, transparent);
   --shadow-xl:
-    0 40px 80px color-mix(in oklab, var(--brand-burgundy-900) 22%, transparent),
-    0 14px 30px color-mix(in oklab, var(--brand-burgundy-900) 14%, transparent);
+    0 40px 80px color-mix(in oklab, var(--brand-apricot-900) 24%, transparent),
+    0 14px 30px color-mix(in oklab, var(--brand-apricot-900) 15%, transparent);
   --shadow-glow:
-    0 0 0 4px color-mix(in oklab, var(--brand-burgundy-400) 22%, transparent),
-    0 14px 36px color-mix(in oklab, var(--brand-burgundy-700) 32%, transparent);
-  --shadow-inset: inset 0 1px 0 color-mix(in oklab, white 36%, transparent);
+    0 0 0 4px color-mix(in oklab, var(--brand-amber-400) 30%, transparent),
+    0 14px 36px color-mix(in oklab, var(--brand-apricot-500) 34%, transparent);
+  --shadow-inset: inset 0 1px 0 color-mix(in oklab, white 50%, transparent);
 
   /* —— Motion —— */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -219,24 +235,25 @@
   --z-toast: 300;
 }
 
-/* —— Dark = late-night cellar —— */
+/* —— Dark = warm cocoa lounge —— */
 :root[data-theme='dark'] {
-  --color-bg: var(--brand-ink-900);
-  --color-surface: oklch(22% 0.03 290);
-  --color-surface-soft: oklch(26% 0.035 290);
-  --color-surface-elev: oklch(28% 0.038 290);
+  --color-bg: var(--brand-clay-900);
+  --color-surface: oklch(25% 0.022 40);
+  --color-surface-soft: oklch(29% 0.026 42);
+  --color-surface-elev: oklch(31% 0.028 42);
 
-  --color-text: oklch(94% 0.01 80);
-  --color-text-muted: oklch(77% 0.012 290);
-  --color-text-subtle: oklch(64% 0.015 290);
-  --color-text-inverse: var(--brand-ink-900);
+  --color-text: oklch(94% 0.012 70);
+  --color-text-muted: oklch(78% 0.016 60);
+  --color-text-subtle: oklch(64% 0.018 56);
+  --color-text-inverse: var(--brand-clay-900);
 
-  --color-border: color-mix(in oklab, white 9%, transparent);
-  --color-border-strong: color-mix(in oklab, white 18%, transparent);
+  --color-border: color-mix(in oklab, white 10%, transparent);
+  --color-border-strong: color-mix(in oklab, white 20%, transparent);
 
-  --color-primary: var(--brand-burgundy-400);
-  --color-primary-hover: var(--brand-burgundy-300);
-  --color-primary-soft: color-mix(in oklab, var(--brand-burgundy-400) 18%, transparent);
+  --color-primary: var(--brand-apricot-400);
+  --color-primary-hover: var(--brand-apricot-300);
+  --color-primary-fg: oklch(22% 0.04 36);
+  --color-primary-soft: color-mix(in oklab, var(--brand-apricot-400) 20%, transparent);
 
   --shadow-xs: 0 1px 2px oklch(0% 0 0 / 0.45);
   --shadow-sm: 0 2px 6px oklch(0% 0 0 / 0.45);
@@ -251,22 +268,23 @@
    no-script fallback. :not([data-theme='light']) lets a user-pinned light win. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-bg: var(--brand-ink-900);
-    --color-surface: oklch(22% 0.03 290);
-    --color-surface-soft: oklch(26% 0.035 290);
-    --color-surface-elev: oklch(28% 0.038 290);
+    --color-bg: var(--brand-clay-900);
+    --color-surface: oklch(25% 0.022 40);
+    --color-surface-soft: oklch(29% 0.026 42);
+    --color-surface-elev: oklch(31% 0.028 42);
 
-    --color-text: oklch(94% 0.01 80);
-    --color-text-muted: oklch(70% 0.015 290);
-    --color-text-subtle: oklch(55% 0.018 290);
-    --color-text-inverse: var(--brand-ink-900);
+    --color-text: oklch(94% 0.012 70);
+    --color-text-muted: oklch(76% 0.016 60);
+    --color-text-subtle: oklch(60% 0.018 56);
+    --color-text-inverse: var(--brand-clay-900);
 
-    --color-border: color-mix(in oklab, white 9%, transparent);
-    --color-border-strong: color-mix(in oklab, white 18%, transparent);
+    --color-border: color-mix(in oklab, white 10%, transparent);
+    --color-border-strong: color-mix(in oklab, white 20%, transparent);
 
-    --color-primary: var(--brand-burgundy-400);
-    --color-primary-hover: var(--brand-burgundy-300);
-    --color-primary-soft: color-mix(in oklab, var(--brand-burgundy-400) 18%, transparent);
+    --color-primary: var(--brand-apricot-400);
+    --color-primary-hover: var(--brand-apricot-300);
+    --color-primary-fg: oklch(22% 0.04 36);
+    --color-primary-soft: color-mix(in oklab, var(--brand-apricot-400) 20%, transparent);
 
     --shadow-xs: 0 1px 2px oklch(0% 0 0 / 0.45);
     --shadow-sm: 0 2px 6px oklch(0% 0 0 / 0.45);

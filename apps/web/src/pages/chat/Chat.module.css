@@ -1,3 +1,10 @@
+/* ============================================================
+   Chat — shared module for ChatListPage + ChatRoomPage
+   Aperitivo · Sunset Social: warm paper, apricot accents,
+   teal/amber sparingly. Tokens only, warm shadows only.
+   ============================================================ */
+
+/* ---------- Chat List ---------- */
 .page {
   padding-block: var(--space-8) var(--space-16);
 }
@@ -8,33 +15,41 @@
   margin-bottom: var(--space-6);
 }
 .searchWrap {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
 }
 .count {
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
-  margin-bottom: var(--space-3);
+  margin-top: var(--space-3);
 }
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 .row {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--color-surface);
+  padding: var(--space-3) var(--space-4);
+  min-height: 72px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  border: 1px solid transparent;
   transition:
+    background var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
     transform var(--dur-base) var(--ease-spring),
-    box-shadow var(--dur-base);
+    box-shadow var(--dur-base) var(--ease-out);
 }
 .row:hover {
+  background: var(--color-surface);
+  border-color: var(--color-border);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
+}
+.row:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 .rowBody {
   flex: 1;
@@ -45,8 +60,12 @@
   align-items: center;
   gap: var(--space-2);
 }
-.rowHead strong {
+.rowName {
   font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .rowLast {
   margin-top: 4px;
@@ -56,29 +75,39 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.rowMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
 .rowTime {
   color: var(--color-text-subtle);
   font-size: var(--fs-xs);
   white-space: nowrap;
 }
 .rowUnread {
-  background: color-mix(in oklab, var(--brand-burgundy-50, #fbeef1) 60%, var(--color-surface));
-  border-color: color-mix(in oklab, var(--brand-burgundy-700, #7a1f3d) 22%, var(--color-border));
+  background: color-mix(in oklab, var(--brand-apricot-50) 60%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-primary) 22%, var(--color-border));
+}
+.rowUnread:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 30%, var(--color-border));
 }
 .rowLastUnread {
   color: var(--color-text);
   font-weight: var(--fw-semibold);
 }
 .unreadDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--brand-burgundy-700, #7a1f3d);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-burgundy-700, #7a1f3d) 18%, transparent);
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 18%, transparent);
   flex-shrink: 0;
-  margin-left: auto;
 }
 
+/* ---------- Chat Room shell ---------- */
 .roomWrap {
   position: fixed;
   inset: 0;
@@ -87,6 +116,8 @@
   background: var(--color-bg);
   z-index: 30;
 }
+
+/* ---------- Room header ---------- */
 .roomHeader {
   display: flex;
   align-items: center;
@@ -96,13 +127,25 @@
   background: var(--color-surface);
 }
 .roomBack {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 18px;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
   display: grid;
   place-items: center;
+  color: var(--color-text);
   background: var(--color-surface-soft);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.roomBack:hover {
+  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
+}
+.roomBack:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.roomBackIcon {
+  transform: rotate(180deg);
 }
 .roomHeaderBody {
   flex: 1;
@@ -114,26 +157,88 @@
 .roomTitle {
   font-size: var(--fs-lg);
   font-weight: var(--fw-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .roomPartyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   font-size: var(--fs-xs);
   color: var(--color-primary);
   text-decoration: none;
   font-weight: var(--fw-medium);
-  opacity: 0.8;
+  width: fit-content;
 }
 .roomPartyLink:hover {
-  opacity: 1;
+  text-decoration: underline;
+}
+.roomPartyLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
 }
 .roomSub {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
-  flex-shrink: 0;
 }
 
+/* ---------- Message log ---------- */
+.roomMain {
+  overflow-y: auto;
+  background: var(--color-surface-soft);
+}
+.msgLog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  list-style: none;
+  margin: 0;
+}
+.logItem {
+  display: flex;
+}
+
+.msgRow {
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+.msgMine {
+  justify-content: flex-end;
+}
+.msgBubble {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) var(--radius-xs);
+  padding: var(--space-2) var(--space-3);
+  max-width: 76%;
+  box-shadow: var(--shadow-xs);
+}
+.msgMine .msgBubble {
+  background: var(--color-primary);
+  color: var(--color-primary-fg);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-xs) var(--radius-lg);
+}
+.msgName {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
 .msgText {
   white-space: pre-wrap;
   word-break: break-word;
+}
+.msgBubble p {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.msgBubble time {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-3xs);
+  opacity: 0.7;
 }
 .msgImgLink {
   display: block;
@@ -153,72 +258,30 @@
   margin-top: 4px;
   font-size: var(--fs-xs);
   word-break: break-all;
-  opacity: 0.8;
+  opacity: 0.85;
   text-decoration: underline;
   color: inherit;
 }
 
-.roomMain {
-  padding: var(--space-4);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  background: var(--color-surface-soft);
-}
-
-.msgRow {
-  display: flex;
-  gap: var(--space-2);
-}
-.msgMine {
-  justify-content: flex-end;
-}
-.msgBubble {
-  background: var(--color-surface);
-  border-radius: 16px 16px 16px 4px;
-  padding: 10px 14px;
-  max-width: 70%;
-  box-shadow: var(--shadow-xs);
-}
-.msgMine .msgBubble {
-  background: var(--color-primary);
-  color: var(--color-primary-fg);
-  border-radius: 16px 16px 4px 16px;
-}
-.msgName {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-  margin-bottom: 2px;
-}
-.msgBubble p {
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-.msgBubble time {
-  display: block;
-  margin-top: 4px;
-  font-size: var(--fs-3xs);
-  opacity: 0.6;
-}
-
+/* ---------- System notice ---------- */
 .systemMsg {
+  justify-content: center;
   text-align: center;
-  margin-block: var(--space-2);
 }
 .systemMsg span {
   display: inline-block;
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
-  background: rgba(0, 0, 0, 0.05);
+  background: color-mix(in oklab, var(--brand-clay-900) 5%, transparent);
   padding: 4px 12px;
   border-radius: var(--radius-pill);
 }
 
+/* ---------- Split-bill card ---------- */
 .splitCard {
-  align-self: center;
+  margin-inline: auto;
   background: var(--grad-gold-shine);
-  color: #2a1f0c;
+  color: var(--brand-clay-800);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   max-width: 320px;
@@ -236,6 +299,7 @@
   flex-direction: column;
   gap: 4px;
   font-size: var(--fs-sm);
+  list-style: none;
 }
 .splitCard ul li {
   display: flex;
@@ -250,8 +314,10 @@
   opacity: 0.85;
 }
 
+/* ---------- Composer ---------- */
 .roomFooter {
   display: flex;
+  align-items: flex-end;
   gap: var(--space-2);
   padding: var(--space-3);
   border-top: 1px solid var(--color-border);
@@ -265,11 +331,34 @@
   padding: 10px 12px;
   resize: none;
   font: inherit;
+  color: var(--color-text);
   min-height: 44px;
   max-height: 120px;
   outline: none;
   background: var(--color-surface-soft);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.composer::placeholder {
+  color: var(--color-text-subtle);
 }
 .composer:focus {
   border-color: var(--color-primary);
+}
+.composer:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.sendBtn {
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .roomBack,
+  .composer {
+    transition: none;
+  }
+  .row:hover {
+    transform: none;
+  }
 }

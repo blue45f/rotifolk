@@ -116,56 +116,94 @@ export default function HostAnalyticsTab({ participants }: Props) {
   }
 
   return (
-    <section className={styles.wrap} aria-label="파티 분석">
-      <header className={styles.header}>
-        <div>
-          <h2 className={styles.title}>파티 분석</h2>
-          <p className={styles.subtitle}>지금까지 모인 참가자 데이터를 한눈에 살펴보세요.</p>
-        </div>
+    <section className={styles.wrap} aria-labelledby="host-analytics-title">
+      <header className={styles.intro}>
+        <span className={styles.kicker}>호스트 분석</span>
+        <h2 id="host-analytics-title" className={styles.title}>
+          이번 파티는 이렇게 모였어요
+        </h2>
+        <p className={styles.lead}>
+          지금까지 모인 참가자 {stats.total}명을 차분히 읽어볼 수 있게 정리했어요.
+        </p>
       </header>
 
-      <div className={styles.grid}>
-        {/* Participants */}
-        <article className={styles.card} aria-label="참가자 수">
-          <span className={styles.label}>참가자</span>
-          <div>
-            <span className={styles.bigNumber}>{stats.total}</span>
-            <span className={styles.unit}>명</span>
-          </div>
-          <div className={styles.subLabel}>확정 {stats.confirmed}명</div>
-        </article>
+      {/* ── 참석 현황 ─────────────────────────── */}
+      <section className={styles.section} aria-labelledby="host-analytics-attendance">
+        <div className={styles.sectionHead}>
+          <h3 id="host-analytics-attendance" className={styles.sectionTitle}>
+            참석 현황
+          </h3>
+          <p className={styles.sectionNote}>모집부터 도착까지 한 줄로 흐름을 봐요.</p>
+        </div>
 
-        {/* Check-in rate */}
-        <article className={styles.card} aria-label="체크인율">
-          <span className={styles.label}>체크인율</span>
-          <div>
-            <span className={`${styles.bigNumber} ${styles.sage}`}>{stats.checkInRate}</span>
-            <span className={styles.unit}>%</span>
+        <dl className={styles.ledger}>
+          <div className={styles.ledgerRow}>
+            <dt className={styles.ledgerLabel}>참가자</dt>
+            <dd className={styles.ledgerValue}>
+              {stats.total}
+              <span className={styles.unit}>명</span>
+            </dd>
+          </div>
+          <div className={styles.ledgerRow}>
+            <dt className={styles.ledgerLabel}>확정</dt>
+            <dd className={styles.ledgerValue}>
+              {stats.confirmed}
+              <span className={styles.unit}>명</span>
+            </dd>
+          </div>
+          <div className={styles.ledgerRow}>
+            <dt className={styles.ledgerLabel}>도착(체크인)</dt>
+            <dd className={styles.ledgerValue}>
+              {stats.checkedIn}
+              <span className={styles.unit}>명</span>
+            </dd>
+          </div>
+        </dl>
+
+        <div className={styles.meter}>
+          <div className={styles.meterTop}>
+            <span className={styles.meterLabel}>체크인율</span>
+            <span className={styles.meterValue}>{stats.checkInRate}%</span>
           </div>
           <div
             className={styles.barTrack}
             role="progressbar"
+            aria-label="체크인율"
             aria-valuenow={stats.checkInRate}
             aria-valuemin={0}
             aria-valuemax={100}
+            aria-valuetext={`${stats.checkInRate}%, ${stats.confirmed}명 중 ${stats.checkedIn}명 도착`}
           >
-            <div
-              className={`${styles.barFill} ${styles.sage}`}
-              style={{ width: `${stats.checkInRate}%` }}
-            />
+            <div className={styles.barFill} style={{ width: `${stats.checkInRate}%` }} />
           </div>
-          <div className={styles.subLabel}>
-            {stats.checkedIn} / {stats.confirmed}명 도착
-          </div>
-        </article>
+          <p className={styles.meterCaption}>
+            확정 {stats.confirmed}명 중 {stats.checkedIn}명 도착
+          </p>
+        </div>
+      </section>
 
-        {/* Gender ratio */}
-        <article
-          className={`${styles.card} ${stats.isBalanced ? styles.accent : ''}`}
-          aria-label="성별 비율"
-        >
-          <span className={styles.label}>성별 비율</span>
-          {stats.isBalanced && <span className={styles.balanceBadge}>★ 5:5 황금밸런스</span>}
+      {/* ── 참가자 구성 ───────────────────────── */}
+      <section className={styles.section} aria-labelledby="host-analytics-composition">
+        <div className={styles.sectionHead}>
+          <h3 id="host-analytics-composition" className={styles.sectionTitle}>
+            참가자 구성
+          </h3>
+          <p className={styles.sectionNote}>성비·나이·성향으로 모임 무드를 그려봐요.</p>
+        </div>
+
+        {/* Gender */}
+        <div className={styles.facet}>
+          <div className={styles.facetHead}>
+            <span className={styles.facetLabel}>성별 비율</span>
+            {stats.isBalanced && (
+              <span className={styles.balanceTag}>
+                <span className={styles.catEmoji} aria-hidden="true">
+                  ✨
+                </span>
+                5:5 황금밸런스
+              </span>
+            )}
+          </div>
           {stats.genderKnown > 0 ? (
             <>
               <div
@@ -177,86 +215,99 @@ export default function HostAnalyticsTab({ participants }: Props) {
                 <div className={styles.splitRight} style={{ flexBasis: `${stats.femalePct}%` }} />
               </div>
               <div className={styles.splitLegend}>
-                <span>
-                  <span className={`${styles.dot} ${styles.burgundy}`} aria-hidden="true" /> 남{' '}
+                <span className={styles.legendItem}>
+                  <span className={`${styles.dot} ${styles.dotApricot}`} aria-hidden="true" /> 남{' '}
                   <strong>{stats.male}</strong> · {stats.malePct}%
                 </span>
-                <span>
+                <span className={styles.legendItem}>
                   여 <strong>{stats.female}</strong> · {stats.femalePct}%{' '}
-                  <span className={`${styles.dot} ${styles.gold}`} aria-hidden="true" />
+                  <span className={`${styles.dot} ${styles.dotAmber}`} aria-hidden="true" />
                 </span>
               </div>
             </>
           ) : (
-            <div className={styles.subLabel}>아직 성별 정보가 없어요</div>
+            <p className={styles.facetEmpty}>아직 성별 정보가 없어요.</p>
           )}
-        </article>
+        </div>
 
-        {/* Average age */}
-        <article className={styles.card} aria-label="평균 나이">
-          <span className={styles.label}>평균 나이</span>
-          <div>
-            <span className={`${styles.bigNumber} ${styles.gold}`}>{stats.avgAge ?? '–'}</span>
-            <span className={styles.unit}>{stats.avgAge != null ? '세' : ''}</span>
+        {/* Average age + MBTI as a quiet two-up ledger */}
+        <dl className={styles.factGroup}>
+          <div className={styles.fact}>
+            <dt className={styles.factLabel}>평균 나이</dt>
+            <dd className={styles.factValue}>
+              {stats.avgAge ?? '–'}
+              {stats.avgAge != null && <span className={styles.unit}>세</span>}
+            </dd>
+            <p className={styles.factCaption}>
+              {stats.ageSampleSize > 0
+                ? `출생연도 기준 ${stats.ageSampleSize}명 추정`
+                : '출생연도 정보가 없어요'}
+            </p>
           </div>
-          <div className={styles.subLabel}>
-            {stats.ageSampleSize > 0
-              ? `출생연도 기준 ${stats.ageSampleSize}명 추정`
-              : '출생연도 정보가 없어요'}
+
+          <div className={styles.fact}>
+            <dt className={styles.factLabel}>MBTI · E vs I</dt>
+            {stats.mbtiKnown > 0 ? (
+              <dd className={styles.factValue}>
+                <span
+                  className={styles.donut}
+                  style={{ ['--pct' as never]: stats.ePct } as React.CSSProperties}
+                  role="img"
+                  aria-label={`외향 E ${stats.ePct}%, 내향 I ${100 - stats.ePct}%`}
+                >
+                  <span className={styles.donutCenter}>
+                    {stats.ePct >= 50 ? 'E' : 'I'} {Math.max(stats.ePct, 100 - stats.ePct)}%
+                  </span>
+                </span>
+                <span className={styles.donutLegend}>
+                  <span className={styles.legendRow}>
+                    <span className={`${styles.dot} ${styles.dotApricot}`} aria-hidden="true" />
+                    외향 E <strong>{stats.mbtiE}</strong> · {stats.ePct}%
+                  </span>
+                  <span className={styles.legendRow}>
+                    <span className={`${styles.dot} ${styles.dotTeal}`} aria-hidden="true" />
+                    내향 I <strong>{stats.mbtiI}</strong> · {100 - stats.ePct}%
+                  </span>
+                </span>
+              </dd>
+            ) : (
+              <dd className={styles.factValue}>
+                <p className={styles.facetEmpty}>아직 MBTI 정보가 없어요.</p>
+              </dd>
+            )}
           </div>
-        </article>
+        </dl>
+      </section>
 
-        {/* MBTI E/I distribution */}
-        <article className={styles.card} aria-label="MBTI E·I 분포">
-          <span className={styles.label}>MBTI · E vs I</span>
-          {stats.mbtiKnown > 0 ? (
-            <div className={styles.donutRow}>
-              <div
-                className={styles.donut}
-                style={{ ['--pct' as never]: stats.ePct } as React.CSSProperties}
-                role="img"
-                aria-label={`외향 ${stats.ePct}%, 내향 ${100 - stats.ePct}%`}
-              >
-                <div className={styles.donutCenter}>
-                  {stats.ePct >= 50 ? 'E' : 'I'}
-                  <span style={{ marginLeft: 2 }}>{Math.max(stats.ePct, 100 - stats.ePct)}%</span>
-                </div>
-              </div>
-              <div className={styles.donutLegend}>
-                <div className={styles.legendRow}>
-                  <span className={`${styles.dot} ${styles.burgundy}`} aria-hidden="true" />
-                  외향 E <strong>{stats.mbtiE}</strong> · {stats.ePct}%
-                </div>
-                <div className={styles.legendRow}>
-                  <span className={`${styles.dot} ${styles.sage}`} aria-hidden="true" />
-                  내향 I <strong>{stats.mbtiI}</strong> · {100 - stats.ePct}%
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={styles.subLabel}>아직 MBTI 정보가 없어요</div>
-          )}
-        </article>
-      </div>
-
+      {/* ── 관심사 ───────────────────────────── */}
       {stats.topInterests.length > 0 && (
-        <article className={styles.interestsCard} aria-label="참가자 관심사">
-          <span className={styles.label}>참가자 관심사 TOP {stats.topInterests.length}</span>
+        <section className={styles.section} aria-labelledby="host-analytics-interests">
+          <div className={styles.sectionHead}>
+            <h3 id="host-analytics-interests" className={styles.sectionTitle}>
+              참가자 관심사 TOP {stats.topInterests.length}
+            </h3>
+            <p className={styles.sectionNote}>가장 많이 겹친 관심사예요.</p>
+          </div>
           <ul className={styles.interestList}>
             {stats.topInterests.map(({ tag, count }) => (
               <li key={tag} className={styles.interestRow}>
                 <span className={styles.interestTag}>{tag}</span>
-                <div className={styles.barTrack} style={{ flex: 1 }}>
-                  <div
-                    className={`${styles.barFill} ${styles.gold}`}
+                <span
+                  className={styles.barTrack}
+                  role="img"
+                  aria-label={`${tag} ${count}명`}
+                  style={{ flex: 1 }}
+                >
+                  <span
+                    className={styles.barFill}
                     style={{ width: `${pct(count, stats.topInterests[0].count)}%` }}
                   />
-                </div>
+                </span>
                 <span className={styles.interestCount}>{count}</span>
               </li>
             ))}
           </ul>
-        </article>
+        </section>
       )}
     </section>
   )

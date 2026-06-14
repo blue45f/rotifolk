@@ -72,7 +72,7 @@
 }
 .emojiChipOn {
   border-color: var(--color-accent);
-  background: color-mix(in oklab, var(--brand-gold-500) 16%, var(--color-surface));
+  background: color-mix(in oklab, var(--brand-amber-500) 16%, var(--color-surface));
   box-shadow: var(--shadow-sm);
 }
 

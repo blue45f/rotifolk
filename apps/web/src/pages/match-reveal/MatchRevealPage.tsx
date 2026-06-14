@@ -23,6 +23,7 @@ import {
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { useAuthStore } from '@store/authStore'
@@ -79,6 +80,16 @@ export default function MatchRevealPage() {
   const matches = data?.matches ?? []
   const title = party?.party.title ?? '오늘의 모임'
   const policy = data?.contactExchangePolicy ?? 'mutual-consent'
+  const hasMatches = matches.length > 0
+
+  // 가장 또렷한 인연을 무대 중앙에. 상호 매칭이 있으면 그 사람을 먼저.
+  const featured = hasMatches ? (matches.find((m) => m.result === 'mutual') ?? matches[0]) : null
+  const rest = featured ? matches.filter((m) => m.partnerId !== featured.partnerId) : []
+
+  const headline = hasMatches ? '오늘, 서로를 골랐어요' : '오늘의 라운드가 끝났어요'
+  const announce = hasMatches
+    ? `매칭 ${matches.length}명. ${featured?.nickname ?? ''}님과 이어졌어요.`
+    : '이번엔 최종 매칭이 없어요.'
 
   const copyHandle = async (handle: string) => {
     try {
@@ -125,100 +136,226 @@ export default function MatchRevealPage() {
 
   return (
     <div className={styles.page}>
+      {/* 스크린리더에 결과를 한 번 또렷하게 알린다. */}
+      <p className={styles.srOnly} role="status" aria-live="polite">
+        {announce}
+      </p>
+
       <header className={`container ${styles.head}`}>
-        <div className={styles.headTop}>
-          <span className={styles.kicker}>MATCH RESULT</span>
-          {data && (
-            <Badge tone={policy === 'request-approval' ? 'gold' : 'primary'} size="md">
-              {CONTACT_EXCHANGE_POLICY_LABEL[policy]}
-            </Badge>
-          )}
-        </div>
+        <span className={styles.kicker}>
+          <Icon name="sparkle" aria-hidden /> MATCH RESULT
+        </span>
         <motion.h1
           className={styles.title}
           initial={reduce ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: EASE }}
         >
-          이제 이렇게 이어가면 돼요
+          {headline}
         </motion.h1>
         <p className={styles.lead}>
           {title}. {data ? SCOPE_LEAD[data.scope] : '오늘 이어질 인연을 확인해요.'}
         </p>
-
-        {data && (
-          <div className={styles.summary} aria-label="매칭 요약">
-            <div className={styles.summaryItem}>
-              <span>이어진 사람</span>
-              <strong>{matches.length}명</strong>
-            </div>
-            <div className={styles.summaryItem}>
-              <span>받은 호감</span>
-              <strong>{data.myLikesReceived ?? 0}개</strong>
-            </div>
-            <div className={styles.summaryItem}>
-              <span>연결 방식</span>
-              <strong>{CONTACT_EXCHANGE_POLICY_LABEL[policy]}</strong>
-            </div>
-          </div>
-        )}
-        <p className={styles.policyNote}>{POLICY_LEAD[policy]}</p>
+        <p className={styles.policyNote}>
+          {data && (
+            <Badge tone={policy === 'request-approval' ? 'gold' : 'primary'} size="sm">
+              {CONTACT_EXCHANGE_POLICY_LABEL[policy]}
+            </Badge>
+          )}
+          <span>{POLICY_LEAD[policy]}</span>
+        </p>
       </header>
 
-      <PopularBanner popular={popular} reduce={reduce} />
-
-      <section className={`container ${styles.body}`}>
-        {matches.length === 0 ? (
-          <div className={styles.empty}>
+      <main className={`container ${styles.body}`}>
+        {!hasMatches ? (
+          <section className={styles.empty} aria-labelledby="empty-title">
             <span className={styles.emptyMark} aria-hidden="true">
-              0
+              <Icon name="moon" />
             </span>
-            <h2>이번엔 최종 매칭이 없어요</h2>
+            <h2 id="empty-title">이번엔 최종 매칭이 없어요</h2>
             <p>라운드 기록은 남아 있어요. 다음 모임에서는 더 편하게 선택해 보세요.</p>
-            <Link to="/discover">
-              <Button variant="primary" size="lg">
+            <Link to="/discover" className={styles.emptyCta}>
+              <Button variant="primary" size="lg" leftIcon={<Icon name="compass" aria-hidden />}>
                 다음 모임 보기
               </Button>
             </Link>
-          </div>
+          </section>
         ) : (
           <>
-            <div className={styles.resultBar}>
-              <strong>먼저 채팅으로 인사해 보세요.</strong>
-              <span>외부 연락처는 각 카드에서 상태를 확인할 수 있어요.</span>
-            </div>
-            <div className={styles.grid}>
-              {matches.map((match, index) => (
-                <MatchCard
-                  key={match.partnerId}
-                  match={match}
-                  index={index}
-                  reduce={reduce}
-                  busyKey={busyKey}
-                  onChat={() => navigate('/chats')}
-                  onCopyHandle={copyHandle}
-                  onRequestContact={requestExternalContact}
-                  onDecideContact={decideExternalContact}
-                />
-              ))}
-            </div>
+            {featured && (
+              <SpotlightMatch
+                match={featured}
+                reduce={reduce}
+                busyKey={busyKey}
+                onChat={() => navigate('/chats')}
+                onCopyHandle={copyHandle}
+                onRequestContact={requestExternalContact}
+                onDecideContact={decideExternalContact}
+              />
+            )}
+
+            {rest.length > 0 && (
+              <section className={styles.restSection} aria-label="이어진 다른 인연">
+                <h2 className={styles.restHeading}>
+                  이어진 다른 인연 <span aria-hidden="true">{rest.length}</span>
+                </h2>
+                <div className={styles.grid}>
+                  {rest.map((match, index) => (
+                    <MatchCard
+                      key={match.partnerId}
+                      match={match}
+                      index={index}
+                      reduce={reduce}
+                      busyKey={busyKey}
+                      onChat={() => navigate('/chats')}
+                      onCopyHandle={copyHandle}
+                      onRequestContact={requestExternalContact}
+                      onDecideContact={decideExternalContact}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <PopularBanner popular={popular} reduce={reduce} />
 
             {data?.groupAfterParty && (
               <AfterPartyManager partyId={partyId!} isHost={party?.party.hostId === me?.id} />
             )}
           </>
         )}
-      </section>
+      </main>
 
       <footer className={`container ${styles.footer}`}>
         <Link to="/me/cards">
-          <Button variant="soft">내 매칭 명함</Button>
+          <Button variant="soft" leftIcon={<Icon name="bookmark" aria-hidden />}>
+            내 매칭 명함
+          </Button>
         </Link>
         <Link to={`/parties/${partyId}`}>
-          <Button variant="ghost">파티로 돌아가기</Button>
+          <Button variant="ghost" leftIcon={<Icon name="chevron-right" aria-hidden />}>
+            파티로 돌아가기
+          </Button>
         </Link>
       </footer>
     </div>
+  )
+}
+
+/**
+ * 무대 중앙의 한 사람. 큰 아바타(글로우 링) + 이름 + 궁합 + 단 하나의 1차 CTA.
+ * 매칭의 감정적 절정을 한 카드에 모은다.
+ */
+function SpotlightMatch({
+  match,
+  reduce,
+  busyKey,
+  onChat,
+  onCopyHandle,
+  onRequestContact,
+  onDecideContact,
+}: {
+  match: PartyMatch
+  reduce: boolean
+  busyKey: string | null
+  onChat: () => void
+  onCopyHandle: (handle: string) => void
+  onRequestContact: (partnerId: string, channel: ConnectionChannel) => void
+  onDecideContact: (
+    requestId: string,
+    action: 'approve' | 'reject',
+    partnerId: string,
+    channel: ConnectionChannel,
+  ) => void
+}) {
+  const chat = match.channels.find((channel) => channel.channel === 'chat')
+  const externalChannels = match.channels.filter((channel) => channel.channel !== 'chat')
+
+  return (
+    <motion.section
+      className={styles.spotlight}
+      aria-labelledby="spotlight-name"
+      initial={reduce ? false : { opacity: 0, y: 18, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, ease: EASE }}
+    >
+      <div className={styles.spotlightGlow} aria-hidden="true" />
+      <div className={styles.spotlightAvatar}>
+        <Avatar
+          size="xl"
+          hue="var(--color-primary)"
+          pattern="gradient"
+          emoji={match.nickname[0]}
+          imageSrc={match.avatarImage ?? null}
+          ring={match.result === 'mutual' ? 'glow' : 'gold'}
+        />
+      </div>
+
+      <div className={styles.spotlightBadges}>
+        <Badge tone={match.result === 'mutual' ? 'gold' : 'primary'} size="md">
+          {RESULT_LABEL[match.result]}
+        </Badge>
+        {match.verified && (
+          <Badge tone="info" size="md">
+            본인인증
+          </Badge>
+        )}
+      </div>
+
+      <h2 id="spotlight-name" className={styles.spotlightName}>
+        {match.nickname}
+      </h2>
+
+      {match.compatibility && (
+        <div className={styles.spotlightCompat}>
+          <strong>
+            궁합 {match.compatibility.score}점 · {match.compatibility.title}
+          </strong>
+          {match.compatibility.blurb && <p>{match.compatibility.blurb}</p>}
+          {match.compatibility.factors && match.compatibility.factors.length > 0 && (
+            <span>{match.compatibility.factors.join(' · ')}</span>
+          )}
+        </div>
+      )}
+
+      <div className={styles.spotlightAction}>
+        <Button
+          variant="primary"
+          size="xl"
+          fullWidth
+          onClick={onChat}
+          disabled={!chat}
+          leftIcon={<Icon name="chat" aria-hidden />}
+        >
+          채팅 시작하기
+        </Button>
+        {!chat && <span className={styles.actionNote}>이 모임은 채팅 채널을 제공하지 않아요.</span>}
+      </div>
+
+      <div className={styles.connections}>
+        <div className={styles.connectionHeader}>
+          <strong>외부 연락처</strong>
+          <span>
+            {externalChannels.length > 0 ? '필요한 채널만 열어보세요' : '제공된 외부 채널 없음'}
+          </span>
+        </div>
+        {externalChannels.length === 0 ? (
+          <span className={styles.channelLocked}>채팅으로 먼저 인사할 수 있어요.</span>
+        ) : (
+          externalChannels.map((channel) => (
+            <ChannelRow
+              key={channel.channel}
+              partnerId={match.partnerId}
+              channel={channel}
+              busyKey={busyKey}
+              onCopyHandle={onCopyHandle}
+              onRequestContact={onRequestContact}
+              onDecideContact={onDecideContact}
+            />
+          ))
+        )}
+      </div>
+    </motion.section>
   )
 }
 
@@ -243,19 +380,21 @@ function PopularBanner({
 
   return (
     <motion.section
-      className={`container ${styles.popular}`}
+      className={styles.popular}
       initial={reduce ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, delay: 0.08, ease: EASE }}
       aria-label="오늘 많이 선택된 멤버"
     >
-      <span className={styles.popularKicker}>오늘 많이 선택된 멤버</span>
+      <span className={styles.popularKicker}>
+        <Icon name="flame" aria-hidden /> 오늘 많이 선택된 멤버
+      </span>
       <div className={styles.popularRow}>
         {winners.map(({ person, label }) => (
           <div key={person.userId} className={styles.popularCard}>
             <Avatar
               size="lg"
-              hue="#7A1F3D"
+              hue="var(--color-primary)"
               pattern="sparkle"
               emoji={person.nickname[0]}
               imageSrc={person.avatarImage ?? null}
@@ -309,8 +448,8 @@ function MatchCard({
     >
       <div className={styles.cardTop}>
         <Avatar
-          size="xl"
-          hue="#7A1F3D"
+          size="lg"
+          hue="var(--color-primary)"
           pattern="gradient"
           emoji={match.nickname[0]}
           imageSrc={match.avatarImage ?? null}
@@ -344,7 +483,14 @@ function MatchCard({
       )}
 
       <div className={styles.primaryAction}>
-        <Button variant="primary" size="lg" fullWidth onClick={onChat} disabled={!chat}>
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          onClick={onChat}
+          disabled={!chat}
+          leftIcon={<Icon name="chat" aria-hidden />}
+        >
           채팅 시작하기
         </Button>
         {!chat && <span>이 모임은 채팅 채널을 제공하지 않아요.</span>}

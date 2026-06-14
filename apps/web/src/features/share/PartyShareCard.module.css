@@ -5,7 +5,7 @@
   overflow: hidden;
   padding: clamp(22px, 4vw, 40px);
   border-radius: var(--radius-xl);
-  color: var(--brand-cream-50);
+  color: var(--brand-paper-50);
   box-shadow: var(--shadow-lg);
   isolation: isolate;
 }
@@ -17,12 +17,12 @@
   background:
     radial-gradient(
       circle at 18% 12%,
-      color-mix(in oklab, var(--brand-cream-50) 32%, transparent),
+      color-mix(in oklab, var(--brand-paper-50) 32%, transparent),
       transparent 28%
     ),
     linear-gradient(
       135deg,
-      color-mix(in oklab, var(--brand-ink-900) 16%, transparent),
+      color-mix(in oklab, var(--brand-clay-900) 16%, transparent),
       transparent 52%
     );
 }
@@ -42,7 +42,7 @@
   min-height: 34px;
   padding: 0 14px;
   border-radius: var(--radius-pill);
-  background: color-mix(in oklab, var(--brand-ink-900) 22%, transparent);
+  background: color-mix(in oklab, var(--brand-clay-900) 22%, transparent);
   color: inherit;
   font-size: clamp(0.78rem, 1.8vw, 0.95rem);
   font-weight: var(--fw-bold);
@@ -51,7 +51,7 @@
 }
 
 .spots {
-  background: var(--brand-gold-500);
+  background: var(--brand-amber-500);
   color: var(--color-accent-fg);
 }
 

@@ -13,6 +13,7 @@
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   font-weight: var(--fw-black);
   letter-spacing: -0.03em;
+  color: var(--color-text);
 }
 
 .searchField :global(.input),
@@ -33,7 +34,7 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: 0 14px 30px rgba(20, 16, 29, 0.18);
+  box-shadow: var(--shadow-lg);
   padding: var(--space-3);
   display: flex;
   flex-direction: column;
@@ -99,7 +100,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: 8px var(--space-2);
+  padding: var(--space-2);
+  min-height: 44px;
   background: transparent;
   border: 0;
   text-align: left;
@@ -107,6 +109,19 @@
   color: var(--color-text);
   font-size: var(--fs-md);
   min-width: 0;
+}
+
+.suggestIcon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.suggestMark {
+  flex-shrink: 0;
+  display: inline-flex;
+  width: 1.2em;
+  justify-content: center;
+  color: var(--color-text-muted);
 }
 .suggestRow:focus-visible {
   outline: 2px solid color-mix(in oklab, var(--color-primary) 80%, transparent);
@@ -134,8 +149,8 @@
   border: 0;
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   cursor: pointer;
   display: grid;
@@ -188,7 +203,25 @@
 }
 
 .grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-5);
+}
+
+.gridItem {
+  display: flex;
+}
+
+.gridItem > * {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suggestItem {
+    transition: none;
+  }
 }

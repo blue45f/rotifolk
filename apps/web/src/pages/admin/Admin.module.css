@@ -19,12 +19,12 @@
   background:
     radial-gradient(
       circle at 90% 5%,
-      color-mix(in oklab, var(--color-primary) 12%, transparent) 0 38%,
+      color-mix(in oklab, var(--brand-apricot-400) 14%, transparent) 0 38%,
       transparent 58%
     ),
     radial-gradient(
       circle at 0% 95%,
-      color-mix(in oklab, var(--brand-burgundy-100) 12%, transparent) 0 34%,
+      color-mix(in oklab, var(--brand-teal-500) 10%, transparent) 0 34%,
       transparent 54%
     );
 }
@@ -33,14 +33,46 @@
   position: relative;
   border-radius: var(--radius-xl);
   border: 1px solid color-mix(in oklab, var(--color-border) 80%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--color-surface-elev) 90%, transparent),
-    var(--color-surface)
-  );
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in oklab, var(--brand-apricot-400) 16%, transparent),
+      transparent 60%
+    ),
+    var(--grad-cream-rose);
   padding: var(--space-6);
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  box-shadow: var(--shadow-sm);
+}
+
+.headTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.headIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--color-primary) 14%, var(--color-surface));
+  color: var(--color-primary);
+  font-size: var(--fs-lg);
+}
+
+.moderationLink {
+  color: var(--color-primary);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+}
+
+.moderationLink:hover {
+  text-decoration: underline;
 }
 
 .head::after {
@@ -78,12 +110,15 @@
 .headBadge {
   width: fit-content;
   border-radius: var(--radius-pill);
-  border: 1px solid color-mix(in oklab, var(--brand-burgundy-400) 25%, transparent);
-  background: color-mix(in oklab, var(--brand-burgundy-50) 62%, transparent);
-  padding: 4px 10px;
+  border: 1px solid color-mix(in oklab, var(--brand-apricot-400) 32%, transparent);
+  background: color-mix(in oklab, var(--brand-apricot-100) 70%, transparent);
+  padding: 4px 12px;
+  font-family: var(--font-mono);
   font-size: var(--fs-xxs);
-  letter-spacing: 0.02em;
-  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-apricot-700);
 }
 
 .adminPulse {
@@ -107,52 +142,37 @@
 }
 
 .statsRow {
-  margin-top: var(--space-4);
-  margin-bottom: 0;
-  display: grid;
-  gap: var(--space-3);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.statCard {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--space-2) var(--space-5);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  padding: var(--space-4);
-  display: grid;
-  gap: 2px;
-  position: relative;
-  transition:
-    transform var(--dur-base) var(--ease-out),
-    border-color var(--dur-base) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out);
-  overflow: hidden;
+  padding: var(--space-4) var(--space-5);
+  box-shadow: var(--shadow-sm);
 }
 
-.statCard::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--color-primary) 55%, transparent),
-    transparent
-  );
+.statCard {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 2px 0;
 }
 
-.statCard:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--color-primary) 40%, transparent);
-  box-shadow: 0 10px 24px color-mix(in oklab, var(--color-text) 8%, transparent);
+.statCard + .statCard {
+  padding-left: var(--space-5);
+  border-left: 1px solid var(--color-border);
 }
 
 .statNum {
   margin: 0;
-  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  font-size: var(--fs-lg);
   line-height: 1.2;
-  font-weight: var(--fw-black);
-  letter-spacing: -0.02em;
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.01em;
+  color: var(--color-text);
 }
 
 .statNumDanger {
@@ -170,6 +190,11 @@
 }
 
 .revenueSection {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.reportSection {
   display: grid;
   gap: var(--space-4);
 }
@@ -345,9 +370,9 @@
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    color-mix(in oklab, white 16%, transparent),
+    color-mix(in oklab, var(--brand-paper-50) 22%, transparent),
     transparent,
-    color-mix(in oklab, white 16%, transparent)
+    color-mix(in oklab, var(--brand-paper-50) 22%, transparent)
   );
   opacity: 0.35;
 }
@@ -511,11 +536,40 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
   border: 1px solid color-mix(in oklab, var(--color-border) 70%, transparent);
   background: var(--color-surface-soft);
+  color: var(--color-text-muted);
+  font-size: var(--fs-xs);
+}
+
+.insightHeaderMetaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.insightPriorityBadge {
+  margin-right: auto;
+  font-size: var(--fs-xxs);
+  color: var(--color-text-subtle);
+  font-weight: var(--fw-semibold);
+}
+
+.insightRunTitle {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.insightRunSummary {
+  margin: 0;
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
 }
 
 .insightTitle {
@@ -718,12 +772,22 @@
 .ruleField input,
 .historyReasonInput {
   width: 100%;
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text);
   padding: 8px 12px;
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.filterField input:hover,
+.filterField select:hover,
+.ruleField input:hover,
+.historyReasonInput:hover {
+  border-color: color-mix(in oklab, var(--color-primary) 35%, var(--color-border));
 }
 
 .filterField input:focus-visible,
@@ -733,7 +797,8 @@
 .plannerInputs input:focus-visible,
 .plannerInputs select:focus-visible,
 .topPartyItem button:focus-visible {
-  outline: none;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
   border-color: color-mix(in oklab, var(--color-primary) 65%, transparent);
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 16%, transparent);
 }
@@ -1106,7 +1171,7 @@
 }
 
 .list {
-  margin-top: var(--space-5);
+  margin-top: 0;
   display: grid;
   gap: var(--space-3);
 }
@@ -1283,7 +1348,6 @@
     padding-inline: var(--space-4);
   }
 
-  .statsRow,
   .filterPanel,
   .kpiGrid,
   .plannerInputs,
@@ -1325,7 +1389,6 @@
     padding: var(--space-3);
   }
 
-  .statsRow,
   .filterPanel,
   .kpiGrid,
   .plannerInputs,
@@ -1339,6 +1402,11 @@
   .historyList,
   .alertList {
     grid-template-columns: 1fr;
+  }
+
+  .statCard + .statCard {
+    padding-left: 0;
+    border-left: 0;
   }
 
   .ruleMeta,
@@ -1405,13 +1473,8 @@
     gap: var(--space-2);
   }
 
-  .kpiValue,
-  .statNum {
+  .kpiValue {
     font-size: clamp(1.1rem, 4vw, 1.4rem);
-  }
-
-  .statCard {
-    padding: var(--space-3);
   }
 
   .insightCard,
@@ -1430,10 +1493,6 @@
   .alertBody span,
   .topPartyAmount {
     font-size: var(--fs-xxs);
-  }
-
-  .statNum {
-    font-size: 1.2rem;
   }
 
   .sectionTitle {

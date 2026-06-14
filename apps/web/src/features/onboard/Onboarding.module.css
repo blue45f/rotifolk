@@ -8,7 +8,7 @@
 }
 .emoji {
   font-size: 4rem;
-  filter: drop-shadow(0 12px 24px color-mix(in oklab, var(--brand-burgundy-900) 30%, transparent));
+  filter: drop-shadow(0 12px 24px color-mix(in oklab, var(--brand-apricot-900) 30%, transparent));
 }
 .title {
   font-size: var(--fs-2xl);

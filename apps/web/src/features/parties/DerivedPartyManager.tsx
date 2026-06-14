@@ -336,7 +336,7 @@ export default function DerivedPartyManager({
                 <Avatar
                   key={c.id}
                   size="sm"
-                  hue="var(--brand-burgundy-700)"
+                  hue="var(--brand-apricot-600)"
                   pattern="gradient"
                   emoji={c.nickname[0] ?? 'R'}
                   imageSrc={c.avatarImage ?? null}
@@ -550,7 +550,7 @@ export default function DerivedPartyManager({
                   <span className={styles.rank}>#{candidate.rank}</span>
                   <Avatar
                     size="lg"
-                    hue="var(--brand-burgundy-700)"
+                    hue="var(--brand-apricot-600)"
                     pattern="gradient"
                     emoji={candidate.nickname[0] ?? 'R'}
                     imageSrc={candidate.avatarImage ?? null}

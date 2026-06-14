@@ -1,14 +1,15 @@
 /* ============================================================
    /digest — Weekly Rotifolk
-   Burgundy × cream × gold 토큰만 사용. Gradient-text·side stripe·
-   modal-first 같은 화려한 패턴은 의도적으로 배제.
+   "Aperitivo · Sunset Social" — apricot/teal/amber over warm paper.
+   에디토리얼 라운드업: 텍스트 + divider가 기본, 카드는 cover가 있는
+   객체(파티·카테고리)에만. 통계 대시보드 느낌 배제, 따뜻한 그림자만.
    ============================================================ */
 
 .page {
   padding-block: var(--space-8) var(--space-16);
   display: flex;
   flex-direction: column;
-  gap: var(--space-10);
+  gap: var(--space-12);
 }
 
 /* ---------- Hero ---------- */
@@ -17,10 +18,13 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-3);
-  padding-block: var(--space-10) var(--space-6);
+  padding-block: var(--space-8) var(--space-6);
   border-bottom: 1px solid var(--color-border);
 }
 .weeklyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   letter-spacing: var(--tracking-uppercase);
   text-transform: uppercase;
 }
@@ -35,12 +39,35 @@
 .heroLead {
   color: var(--color-text-muted);
   font-size: var(--fs-md);
-  max-width: 56ch;
+  line-height: var(--lh-relaxed);
+  max-width: var(--max-prose);
   margin: 0;
 }
-.heroLead strong {
+.heroFacts {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+.heroFact strong {
   color: var(--color-primary);
   font-weight: var(--fw-bold);
+  font-size: var(--fs-lg);
+  margin-right: 2px;
+}
+.heroDot {
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text-subtle);
+}
+.shareBtn {
+  margin-top: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 /* ---------- Sections ---------- */
@@ -54,16 +81,31 @@
   flex-direction: column;
   gap: var(--space-1);
 }
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
 .sectionTitle {
-  font-size: clamp(1.25rem, 2.2vw, 1.65rem);
+  font-size: clamp(1.5rem, 2.4vw, 1.875rem);
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
   color: var(--color-text);
   margin: 0;
 }
 .sectionSub {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+  max-width: var(--max-prose);
   margin: 0;
 }
 .softNote {
@@ -72,75 +114,14 @@
   margin: 0;
 }
 
-/* ---------- Hosts (ranked list, not a card grid) ---------- */
-.hostList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-.hostRow {
+/* ---------- Picks (PartyCard grid — the lead, real objects with covers) ---------- */
+.pickGrid {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--color-border);
-}
-.hostRow:first-child {
-  border-top: 0;
-}
-.hostRank {
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  color: var(--color-text-subtle);
-  letter-spacing: var(--tracking-wide);
-}
-.hostBody {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.hostName {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-decoration: none;
-}
-.hostName:hover strong {
-  text-decoration: underline;
-}
-.hostMeta {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-}
-.hostCount {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  color: var(--color-primary);
-}
-.hostCount em {
-  font-style: normal;
-  font-weight: var(--fw-black);
-  font-size: var(--fs-xl);
-}
-.hostCount small {
-  font-size: var(--fs-2xs);
-  color: var(--color-text-muted);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-5);
 }
 
-/* ---------- Categories (big gradient tiles, 3-up) ---------- */
+/* ---------- Categories (drenched gradient tiles, 3-up) ---------- */
 .catGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -151,14 +132,17 @@
   text-decoration: none;
   color: inherit;
   border-radius: var(--radius-xl);
-  overflow: hidden;
   transition:
     transform var(--dur-fast) var(--ease-out-quart),
     box-shadow var(--dur-fast) var(--ease-out-quart);
 }
 .catTileLink:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+.catTileLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
 }
 .catTile {
   position: relative;
@@ -171,9 +155,9 @@
   flex-direction: column;
   justify-content: space-between;
   gap: var(--space-4);
-  color: var(--brand-cream-50);
-  background: var(--tile-bg, var(--grad-burgundy-night));
-  box-shadow: var(--shadow-md);
+  color: var(--brand-paper-50);
+  background: var(--tile-bg, var(--grad-paper-coral));
+  box-shadow: var(--shadow-sm);
 }
 .tileSurface {
   position: absolute;
@@ -182,13 +166,13 @@
   background:
     radial-gradient(
       120% 80% at 20% 10%,
-      color-mix(in oklab, white 22%, transparent),
+      color-mix(in oklab, var(--brand-paper-50) 22%, transparent),
       transparent 65%
     ),
     linear-gradient(
       180deg,
       transparent 50%,
-      color-mix(in oklab, var(--brand-ink-900) 36%, transparent) 100%
+      color-mix(in oklab, var(--brand-clay-900) 38%, transparent) 100%
     );
   pointer-events: none;
 }
@@ -212,7 +196,7 @@
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-wide);
-  color: color-mix(in oklab, var(--brand-cream-50) 88%, transparent);
+  color: color-mix(in oklab, var(--brand-paper-50) 88%, transparent);
 }
 .catTileBody {
   display: flex;
@@ -228,66 +212,16 @@
   margin: 0;
   font-size: var(--fs-sm);
   line-height: var(--lh-snug);
-  color: color-mix(in oklab, var(--brand-cream-50) 80%, transparent);
+  color: color-mix(in oklab, var(--brand-paper-50) 82%, transparent);
 }
 .catTileFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   font-size: var(--fs-xs);
   letter-spacing: var(--tracking-wide);
-  color: color-mix(in oklab, var(--brand-cream-50) 76%, transparent);
-}
-
-/* ---------- Areas (compact ranked list) ---------- */
-.areaList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-3);
-}
-.areaRow {
-  background: var(--color-surface-soft);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-.areaRowLink {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
-  text-decoration: none;
-  color: inherit;
-  border-radius: var(--radius-lg);
-  transition: background var(--dur-fast) var(--ease-out-quart);
-}
-.areaRowLink:hover {
-  background: var(--brand-burgundy-50);
-}
-.areaPin {
-  font-size: var(--fs-lg);
-}
-.areaBody {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.areaName {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-}
-.areaMeta {
-  font-size: var(--fs-xs);
-  color: var(--color-text-muted);
-}
-.areaIndex {
-  font-family: var(--font-mono);
-  font-size: var(--fs-2xl);
-  font-weight: var(--fw-bold);
-  color: color-mix(in oklab, var(--color-accent) 70%, var(--color-text));
+  color: color-mix(in oklab, var(--brand-paper-50) 80%, transparent);
 }
 
 /* ---------- Reviews (quote cards) ---------- */
@@ -347,17 +281,133 @@
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
 }
+.reviewer {
+  font-weight: var(--fw-semibold);
+}
 .reviewStars {
-  color: #d6a84e;
+  color: var(--brand-amber-600);
   letter-spacing: 1px;
   font-size: var(--fs-xs);
 }
 
-/* ---------- Picks (re-use PartyCard grid, but lighter density) ---------- */
-.pickGrid {
+/* ---------- Roundup (hosts + areas, text-and-divider ranked lists) ---------- */
+.roundupGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-6);
+}
+.roundupCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.subTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
+}
+.subTitle svg {
+  color: var(--color-accent);
+}
+.rankList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.rankRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 44px;
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+.rankRow:first-child {
+  border-top: 0;
+}
+.rankNum {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--color-text-subtle);
+  letter-spacing: var(--tracking-wide);
+}
+.rankBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.rankName {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  text-decoration: none;
+  overflow: hidden;
+}
+.rankName strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rankName:hover strong {
+  text-decoration: underline;
+}
+.rankName:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
+}
+.rankMeta {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+.rankCount {
+  display: inline-flex;
+  align-items: baseline;
+  color: var(--color-primary);
+}
+.rankCount em {
+  font-style: normal;
+  font-weight: var(--fw-black);
+  font-size: var(--fs-xl);
+}
+.rankGo {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-subtle);
+}
+
+/* ---------- Onward link ---------- */
+.onward {
+  margin: 0;
+}
+.onwardLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 44px;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.onwardLink:hover {
+  text-decoration: underline;
+}
+.onwardLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
 }
 
 /* ---------- Misc ---------- */
@@ -368,14 +418,22 @@
 }
 
 @media (max-width: 640px) {
-  .hostRow {
-    padding: var(--space-4);
-    gap: var(--space-3);
+  .page {
+    gap: var(--space-10);
   }
   .catTile {
     min-height: 200px;
   }
   .reviewBody {
     font-size: var(--fs-sm);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catTileLink {
+    transition: none;
+  }
+  .catTileLink:hover {
+    transform: none;
   }
 }

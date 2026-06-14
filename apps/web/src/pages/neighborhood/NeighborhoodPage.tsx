@@ -7,11 +7,11 @@ import { useGeolocation } from '@features/geo/useGeolocation'
 import { useVenueAreas } from '@features/venues/queries'
 import { PartyCard } from '@features/parties/PartyCard'
 import { Chip } from '@components/ui/Chip/Chip'
-import { Badge } from '@components/ui/Badge/Badge'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { Link } from 'react-router-dom'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import styles from './Neighborhood.module.css'
 
 const AREA_DESC: Record<string, string> = {
@@ -60,69 +60,107 @@ export default function NeighborhoodPage() {
     ? (AREA_DESC[area] ?? `${area}에서 열리는 로테이션 모임을 모아봤어요.`)
     : null
 
+  const areaTitle = data?.area ?? '내 주변'
+  const count = data?.items.length ?? 0
+
   return (
     <div className={styles.page}>
       <div className={styles.bg} aria-hidden="true" />
+
       <header className={`container ${styles.head}`}>
-        <Badge tone="info" size="md">
-          📍 우리 동네
-        </Badge>
-        <h1 className={styles.title}>{data?.area ?? '내 주변'} 모임</h1>
+        <p className={styles.kicker}>
+          <Icon name="pin" aria-hidden="true" />
+          우리 동네
+        </p>
+        <h1 className={styles.title}>{areaTitle} 모임</h1>
         <p className={styles.lead}>
           {selectedDesc ?? '걸어서 갈 만한 거리의 로테이션 모임만 모아봤어요.'}
         </p>
-        {geo.status === 'pending' && <p className={styles.geoStatus}>📡 현재 위치 감지 중…</p>}
-        {geo.status === 'denied' && (
-          <p className={styles.geoStatus}>위치 권한 없이 보는 중 · 거리 표시 불가</p>
-        )}
+        <p className={styles.geoStatus} role="status" aria-live="polite">
+          {geo.status === 'pending' ? (
+            <>
+              <Icon name="compass" aria-hidden="true" />
+              현재 위치 감지 중…
+            </>
+          ) : geo.status === 'denied' ? (
+            <>위치 권한 없이 보는 중 · 거리 표시 불가</>
+          ) : null}
+        </p>
       </header>
 
-      <section className={`container ${styles.chips}`}>
-        <Chip selected={!area} onClick={() => setArea(null)}>
-          🏠 내 동네
+      <nav className={`container ${styles.chips}`} aria-label="동네 선택">
+        <Chip
+          selected={!area}
+          onClick={() => setArea(null)}
+          leadingIcon={<Icon name="home" aria-hidden="true" />}
+        >
+          내 동네
         </Chip>
         {sortedAreas.map((a) => {
           const km = distanceMap?.[a]
           return (
-            <Chip key={a} selected={area === a} onClick={() => setArea(area === a ? null : a)}>
-              📍 {a}
+            <Chip
+              key={a}
+              selected={area === a}
+              onClick={() => setArea(area === a ? null : a)}
+              leadingIcon={<Icon name="pin" aria-hidden="true" />}
+            >
+              {a}
               {km != null && <span className={styles.chipDist}>{formatDistanceKm(km)}</span>}
             </Chip>
           )
         })}
-      </section>
+      </nav>
 
       {geo.status === 'idle' && !geo.coords && (
-        <div className={`container ${styles.geoBanner}`}>
-          <span>📍 위치를 허용하면 가까운 동네 순으로 정렬돼요.</span>
-          <button type="button" className={styles.geoBtn} onClick={geo.request}>
-            위치 허용하기
-          </button>
+        <div className={`container`}>
+          <div className={styles.geoBanner}>
+            <span className={styles.geoBannerText}>
+              <Icon name="pin" aria-hidden="true" />
+              위치를 허용하면 가까운 동네 순으로 정렬돼요.
+            </span>
+            <Button variant="soft" size="sm" onClick={geo.request}>
+              위치 허용하기
+            </Button>
+          </div>
         </div>
       )}
 
-      <section className={`container ${styles.list}`}>
+      <section className={`container ${styles.list}`} aria-label={`${areaTitle} 모임 목록`}>
         {isLoading ? (
           <Loading />
-        ) : !data || data.items.length === 0 ? (
+        ) : count === 0 ? (
           <EmptyState
             emoji="🌙"
             title="이 동네엔 아직 모임이 없어요"
             description="첫 모임을 즉석으로 열어보는 건 어때요?"
             action={
-              <Link to="/quick">
-                <Button variant="gold" size="lg">
-                  ⚡ 즉석 모임 열기
+              <Link to="/quick" className={styles.emptyLink}>
+                <Button variant="gold" size="lg" leftIcon={<Icon name="bolt" aria-hidden="true" />}>
+                  즉석 모임 열기
                 </Button>
               </Link>
             }
           />
         ) : (
-          <div className={styles.grid}>
-            {data.items.map((p) => (
-              <PartyCard key={p.id} party={p} />
-            ))}
-          </div>
+          <>
+            <div className={styles.listHead}>
+              <h2 className={styles.listTitle}>가까운 모임</h2>
+              <span className={styles.count}>{count}개</span>
+            </div>
+            <div className={styles.grid}>
+              {data!.items.map((p) => (
+                <PartyCard key={p.id} party={p} />
+              ))}
+            </div>
+            <p className={styles.onward}>
+              찾는 모임이 없나요?{' '}
+              <Link to="/discover" className={styles.onwardLink}>
+                전체 둘러보기
+                <Icon name="chevron-right" aria-hidden="true" />
+              </Link>
+            </p>
+          </>
         )}
       </section>
     </div>

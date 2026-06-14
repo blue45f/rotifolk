@@ -104,7 +104,7 @@ export default function HostProfilePage() {
         <div className={styles.identity}>
           <Avatar
             size="xl"
-            hue="#7A1F3D"
+            hue="var(--color-primary)"
             pattern="gradient"
             emoji={user.nickname[0]}
             imageSrc={user.avatarImage ?? null}

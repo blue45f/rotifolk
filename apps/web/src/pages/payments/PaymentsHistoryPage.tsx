@@ -4,10 +4,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@services/api'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { useConfirm } from '@components/feedback/Confirm/useConfirm'
 import { CATEGORY_META } from '@features/categories/meta'
@@ -52,6 +51,26 @@ const STATUS_LABEL: Record<Payment['status'], string> = {
   cancelled: '취소됨',
 }
 
+const FILTERS: { value: 'all' | Payment['status']; label: string }[] = [
+  { value: 'all', label: '전체' },
+  { value: 'paid', label: '결제 완료' },
+  { value: 'pending', label: '결제 대기' },
+  { value: 'refunded', label: '환불됨' },
+  { value: 'cancelled', label: '취소됨' },
+]
+
+const won = (n: number) => `${n.toLocaleString('ko-KR')}원`
+
+function formatWhen(value: string) {
+  return new Date(value).toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 export default function PaymentsHistoryPage() {
   const [filterStatus, setFilterStatus] = useState<'all' | Payment['status']>('all')
   const qc = useQueryClient()
@@ -72,6 +91,7 @@ export default function PaymentsHistoryPage() {
   })
 
   if (isLoading) return <Loading />
+
   const items = data ?? []
   const filtered = filterStatus === 'all' ? items : items.filter((p) => p.status === filterStatus)
   const paidTotal = items
@@ -84,63 +104,56 @@ export default function PaymentsHistoryPage() {
   return (
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
+        <p className={styles.kicker}>결제</p>
         <h1>결제 내역</h1>
-        <p className={styles.muted}>최근 100건까지 표시돼요.</p>
+        <p className={styles.muted}>
+          참여한 모임의 결제와 환불 기록이에요. 최근 100건까지 표시돼요.
+        </p>
       </header>
 
       {items.length === 0 ? (
-        <EmptyState
-          emoji="🧾"
-          title="아직 결제 내역이 없어요"
-          description="파티에 참여하면 결제 기록이 여기에 모여요."
-          action={
-            <Link to="/discover">
-              <Button variant="primary">모임 둘러보기</Button>
-            </Link>
-          }
-        />
+        <div className={styles.empty}>
+          <span className={styles.emptyIcon} aria-hidden="true">
+            <Icon name="archive" size={1.6} />
+          </span>
+          <h2 className={styles.emptyTitle}>아직 결제 내역이 없어요</h2>
+          <p className={styles.emptyDesc}>파티에 참여하면 결제 기록이 여기에 모여요.</p>
+          <Link to="/discover" className={styles.emptyAction}>
+            <Button variant="primary">모임 둘러보기</Button>
+          </Link>
+        </div>
       ) : (
         <>
-          <Card padding="lg" className={styles.summary}>
+          <dl className={styles.summary} aria-label="결제 요약">
             <div className={styles.summaryStat}>
-              <span>누적 결제</span>
-              <strong>{paidTotal.toLocaleString()}원</strong>
+              <dt>누적 결제</dt>
+              <dd>{won(paidTotal)}</dd>
             </div>
+            <div className={styles.summaryDivider} aria-hidden="true" />
             <div className={styles.summaryStat}>
-              <span>환불</span>
-              <strong>{refundedTotal.toLocaleString()}원</strong>
+              <dt>환불</dt>
+              <dd>{won(refundedTotal)}</dd>
             </div>
+            <div className={styles.summaryDivider} aria-hidden="true" />
             <div className={styles.summaryStat}>
-              <span>건수</span>
-              <strong>{items.length}건</strong>
+              <dt>전체 건수</dt>
+              <dd>{items.length}건</dd>
             </div>
-          </Card>
+          </dl>
 
-          <div className={styles.filterRow}>
-            <Chip selected={filterStatus === 'all'} onClick={() => setFilterStatus('all')}>
-              전체
-            </Chip>
-            <Chip selected={filterStatus === 'paid'} onClick={() => setFilterStatus('paid')}>
-              결제 완료
-            </Chip>
-            <Chip selected={filterStatus === 'pending'} onClick={() => setFilterStatus('pending')}>
-              결제 대기
-            </Chip>
-            <Chip
-              selected={filterStatus === 'refunded'}
-              onClick={() => setFilterStatus('refunded')}
-            >
-              환불됨
-            </Chip>
-            <Chip
-              selected={filterStatus === 'cancelled'}
-              onClick={() => setFilterStatus('cancelled')}
-            >
-              취소됨
-            </Chip>
+          <div className={styles.filterRow} role="group" aria-label="상태로 거르기">
+            {FILTERS.map((f) => (
+              <Chip
+                key={f.value}
+                selected={filterStatus === f.value}
+                onClick={() => setFilterStatus(f.value)}
+              >
+                {f.label}
+              </Chip>
+            ))}
           </div>
 
-          {filtered.length === 0 && items.length > 0 ? (
+          {filtered.length === 0 ? (
             <p className={styles.filterEmpty}>이 상태의 결제가 없어요.</p>
           ) : (
             <ul className={styles.list}>
@@ -148,12 +161,13 @@ export default function PaymentsHistoryPage() {
                 const cat = p.party
                   ? CATEGORY_META[p.party.category as keyof typeof CATEGORY_META]
                   : null
+                const isRefund = p.status === 'refunded'
                 const when = p.paidAt ?? p.createdAt
                 return (
                   <li key={p.id} className={styles.row}>
                     <div
                       className={styles.rowCover}
-                      style={{ background: cat?.bgGradient ?? '#7A1F3D' }}
+                      style={{ background: cat?.bgGradient ?? 'var(--color-primary)' }}
                     >
                       {p.party?.coverImageUrl ? (
                         <img src={p.party.coverImageUrl} alt="" loading="lazy" />
@@ -161,6 +175,7 @@ export default function PaymentsHistoryPage() {
                         <span aria-hidden="true">{cat?.emoji ?? '🍷'}</span>
                       )}
                     </div>
+
                     <div className={styles.rowBody}>
                       <div className={styles.rowTitleRow}>
                         {p.party ? (
@@ -176,22 +191,18 @@ export default function PaymentsHistoryPage() {
                       </div>
                       <p className={styles.rowMeta}>
                         <span>{METHOD_LABEL[p.method]}</span>
-                        <span aria-hidden="true">·</span>
-                        <time>
-                          {new Date(when).toLocaleString('ko-KR', {
-                            year: 'numeric',
-                            month: 'numeric',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </time>
+                        <span className={styles.dot} aria-hidden="true" />
+                        <time dateTime={new Date(when).toISOString()}>{formatWhen(when)}</time>
                       </p>
                     </div>
+
                     <div className={styles.rowAside}>
-                      <strong className={styles.rowAmount}>
-                        {p.status === 'refunded' && '-'}
-                        {p.amountKRW.toLocaleString()}원
+                      <strong
+                        className={`${styles.rowAmount} ${isRefund ? styles.rowAmountRefund : ''}`}
+                      >
+                        {isRefund && <span aria-hidden="true">-</span>}
+                        <span className="sr-only">{isRefund ? '환불 ' : ''}</span>
+                        {won(p.amountKRW)}
                       </strong>
                       {p.status === 'paid' && (
                         <button

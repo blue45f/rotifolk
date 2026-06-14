@@ -1,6 +1,7 @@
-import { useRef, type ReactNode } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { Icon } from '@components/ui/Icon/Icon'
 import styles from './Sheet.module.css'
 
 interface SheetProps {
@@ -15,9 +16,8 @@ interface SheetProps {
 }
 
 /**
- * 브랜드 모달/바텀시트. Radix Dialog 헤드리스 프리미티브에 포커스 트랩·Esc·
- * 포커스 복원·스크롤 락·바깥 클릭 닫기를 위임하고, 표면은 기존 CSS 모듈
- * 클래스(+토큰/애니메이션)로 그대로 스타일링한다.
+ * Radix Dialog 기반 바텀 시트 / 모달. 포커스 트랩·Esc·스크롤 락·포커스 복원·
+ * aria-modal 은 Radix 가 보장한다. 공개 API 는 기존과 동일하게 유지한다.
  */
 export function Sheet({
   open,
@@ -29,62 +29,43 @@ export function Sheet({
   size = 'md',
   variant = 'sheet',
 }: SheetProps) {
-  // 열기 직전 포커스를 기억했다가 닫힐 때 그 자리로 되돌린다. (포털 타이밍에
-  // 무관하게 복원을 보장 — 기존 Sheet의 previousFocusRef 동작을 유지.)
-  const previousFocusRef = useRef<HTMLElement | null>(null)
+  // Controlled dialog (no Radix Trigger), so capture the opener ourselves and
+  // restore focus to it on close — Radix only restores to its own Trigger.
+  const openerRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    if (open) openerRef.current = document.activeElement as HTMLElement | null
+  }, [open])
 
   return (
-    <Dialog.Root
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) onClose()
-      }}
-    >
+    <Dialog.Root open={open} onOpenChange={(next) => !next && onClose()}>
       <Dialog.Portal>
-        {/* 스크림: 바깥 클릭/스크롤 락은 Radix가 처리한다. */}
         <Dialog.Overlay className={styles.backdrop} />
         <Dialog.Content
           className={`${styles.panel} ${styles[`v_${variant}`]} ${styles[`s_${size}`]}`}
-          onOpenAutoFocus={() => {
-            const active = document.activeElement
-            previousFocusRef.current = active instanceof HTMLElement ? active : null
-          }}
           onCloseAutoFocus={(event) => {
-            const restoreTarget = previousFocusRef.current
-            if (restoreTarget?.isConnected) {
+            const opener = openerRef.current
+            if (opener && opener.isConnected) {
               event.preventDefault()
-              restoreTarget.focus()
+              opener.focus()
             }
           }}
         >
-          {title || description ? (
+          {title ? (
             <header className={styles.header}>
-              {title ? (
-                <Dialog.Title asChild>
-                  <h2 className={styles.title}>{title}</h2>
-                </Dialog.Title>
-              ) : (
-                <VisuallyHidden asChild>
-                  <Dialog.Title>대화 상자</Dialog.Title>
-                </VisuallyHidden>
-              )}
+              <Dialog.Title className={styles.title}>{title}</Dialog.Title>
               {description && (
-                <Dialog.Description asChild>
-                  <p className={styles.desc}>{description}</p>
-                </Dialog.Description>
+                <Dialog.Description className={styles.desc}>{description}</Dialog.Description>
               )}
             </header>
           ) : (
-            <VisuallyHidden asChild>
+            <VisuallyHidden>
               <Dialog.Title>대화 상자</Dialog.Title>
             </VisuallyHidden>
           )}
           <div className={styles.body}>{children}</div>
           {footer && <footer className={styles.footer}>{footer}</footer>}
-          <Dialog.Close asChild>
-            <button type="button" aria-label="닫기" className={styles.close}>
-              ✕
-            </button>
+          <Dialog.Close className={styles.close} aria-label="닫기">
+            <Icon name="close" />
           </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>

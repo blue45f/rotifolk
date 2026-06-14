@@ -8,6 +8,7 @@ import { PartyCard } from '@features/parties/PartyCard'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import styles from './Category.module.css'
@@ -109,77 +110,82 @@ export default function CategoryPage() {
 
   if (!validCategory) {
     return (
-      <div className={styles.page}>
-        <section className={styles.section}>
+      <main className={styles.page}>
+        <section className={styles.section} aria-labelledby="cat-invalid-title">
+          <h1 id="cat-invalid-title" className={styles.srOnly}>
+            카테고리를 찾을 수 없어요
+          </h1>
           <EmptyState
-            emoji="🤔"
+            emoji="✨"
             title="존재하지 않는 카테고리예요"
             description="다른 카테고리를 둘러보거나, 전체 목록에서 골라보세요."
             action={
-              <Link to="/discover">
+              <Link to="/discover" className={styles.bareLink}>
                 <Button variant="primary">전체 모임 보기</Button>
               </Link>
             }
           />
         </section>
-      </div>
+      </main>
     )
   }
 
   const meta = CATEGORY_META[validCategory]
   const topVenues = venues.slice(0, 3)
   const otherCategories = ALL_CATEGORIES.filter((c) => c.value !== validCategory)
+  const partiesLoaded = !partiesQuery.isLoading
+  const hasParties = parties.length > 0
 
-  const heroStyle = { ['--cat-bg' as never]: meta.bgGradient } as never
+  const moodStyle = {
+    ['--cat-bg' as never]: meta.bgGradient,
+    ['--cat-accent' as never]: meta.accentHex,
+  } as never
 
   return (
-    <div className={styles.page}>
-      {/* —— Hero —— */}
-      <section className={styles.hero} style={heroStyle} aria-labelledby="cat-hero-title">
-        <div className={styles.heroInner}>
-          <div className={styles.heroEmoji} aria-hidden="true">
+    <main className={styles.page}>
+      {/* —— Category mood header —— */}
+      <header className={styles.mood} style={moodStyle} aria-labelledby="cat-mood-title">
+        <div className={styles.moodInner}>
+          <div className={styles.moodEmoji} aria-hidden="true">
             {meta.emoji}
           </div>
-          <Badge tone="gold" size="md">
-            {meta.shortLabel} 로테이션
-          </Badge>
-          <h1 id="cat-hero-title" className={styles.heroLabel}>
+          <p className={styles.kicker}>{meta.shortLabel} 로테이션</p>
+          <h1 id="cat-mood-title" className={styles.moodTitle}>
             {meta.label}
           </h1>
-          <p className={styles.heroDesc}>{meta.description}</p>
-          <div className={styles.heroCta}>
-            <Link to={`/discover?category=${validCategory}`}>
+          <p className={styles.moodDesc}>{meta.description}</p>
+
+          <dl className={styles.moodStats} aria-label="카테고리 요약">
+            <div className={styles.moodStat}>
+              <dt>이번 주 모임</dt>
+              <dd>{stats.weeklyCount}개</dd>
+            </div>
+            <div className={styles.moodStat}>
+              <dt>평균 평점</dt>
+              <dd>{stats.rating}</dd>
+            </div>
+            <div className={styles.moodStat}>
+              <dt>만난 사람</dt>
+              <dd>{stats.estimatedMet.toLocaleString()}+</dd>
+            </div>
+          </dl>
+
+          <div className={styles.moodCta}>
+            <Link to={`/discover?category=${validCategory}`} className={styles.bareLink}>
               <Button variant="primary" size="lg">
                 이 카테고리 모임 보기
               </Button>
             </Link>
-            <Link to={`/quick?category=${validCategory}`}>
+            <Link to={`/quick?category=${validCategory}`} className={styles.bareLink}>
               <Button variant="outline" size="lg">
-                ⚡ 즉석 모임 열기
+                <Icon name="bolt" aria-hidden /> 즉석 모임 열기
               </Button>
             </Link>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* —— Stats bar —— */}
-      <div className={styles.statsBar}>
-        <div className={styles.statsInner} aria-label="카테고리 통계">
-          <span className={styles.statsItem}>
-            이번 주 <strong>{stats.weeklyCount}</strong>개 모임
-          </span>
-          <span className={styles.statsDivider} aria-hidden="true" />
-          <span className={styles.statsItem}>
-            평균 평점 <strong>{stats.rating}</strong>
-          </span>
-          <span className={styles.statsDivider} aria-hidden="true" />
-          <span className={styles.statsItem}>
-            만난 사람 <strong>{stats.estimatedMet.toLocaleString()}+</strong>
-          </span>
-        </div>
-      </div>
-
-      {/* —— Now recruiting —— */}
+      {/* —— Now recruiting (primary content) —— */}
       <section className={styles.section} aria-labelledby="open-title">
         <header className={styles.sectionHead}>
           <div>
@@ -191,16 +197,17 @@ export default function CategoryPage() {
             </p>
           </div>
           <Link to={`/discover?category=${validCategory}`} className={styles.sectionAction}>
-            전체 보기 →
+            전체 보기
+            <Icon name="chevron-right" aria-hidden />
           </Link>
         </header>
 
-        {(partiesQuery.data?.items?.length ?? 0) > 0 && (
+        {hasParties && (
           <div className={styles.sortRow} role="group" aria-label="정렬 기준">
             <Chip
               selected={sort === 'soonest'}
               onClick={() => setSort('soonest')}
-              leadingEmoji="⏰"
+              leadingIcon={<Icon name="clock" aria-hidden />}
             >
               빠른 시작순
             </Chip>
@@ -212,16 +219,19 @@ export default function CategoryPage() {
             </Chip>
           </div>
         )}
-        {partiesQuery.isLoading ? (
+
+        {!partiesLoaded ? (
           <Loading />
-        ) : parties.length === 0 ? (
+        ) : !hasParties ? (
           <EmptyState
             emoji={meta.emoji}
             title="아직 모집 중인 모임이 없어요"
             description="가장 먼저 한 잔을 열어보는 건 어때요?"
             action={
-              <Link to={`/quick?category=${validCategory}`}>
-                <Button variant="primary">⚡ 즉석 모임 열기</Button>
+              <Link to={`/quick?category=${validCategory}`} className={styles.bareLink}>
+                <Button variant="primary">
+                  <Icon name="bolt" aria-hidden /> 즉석 모임 열기
+                </Button>
               </Link>
             }
           />
@@ -245,21 +255,22 @@ export default function CategoryPage() {
               <p className={styles.sectionSub}>이 카테고리로 자주 모임을 여는 장소들.</p>
             </div>
           </header>
-          <div className={styles.hostList}>
+          <ul className={styles.hostList}>
             {hosts.map((h) => (
-              <div key={h.id} className={styles.hostCard}>
+              <li key={h.id} className={styles.hostCard}>
                 <span className={styles.hostAvatar} aria-hidden="true">
                   {h.venueName.charAt(0)}
                 </span>
                 <div className={styles.hostBody}>
                   <span className={styles.hostName}>{h.venueName}</span>
                   <span className={styles.hostMeta}>
-                    📍 {h.venueArea} · {formatHostFallback(h.id)}
+                    <Icon name="pin" aria-hidden />
+                    {h.venueArea} · {formatHostFallback(h.id)}
                   </span>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
 
@@ -276,7 +287,8 @@ export default function CategoryPage() {
             </p>
           </div>
           <Link to="/venues" className={styles.sectionAction}>
-            장소 더 보기 →
+            장소 더 보기
+            <Icon name="chevron-right" aria-hidden />
           </Link>
         </header>
 
@@ -284,34 +296,41 @@ export default function CategoryPage() {
           <Loading />
         ) : topVenues.length === 0 ? (
           <EmptyState
-            emoji="🏛️"
+            emoji="✨"
             title="제휴 장소가 곧 추가됩니다"
             description="원하는 장소가 있다면 호스트로 직접 모임을 열 수 있어요."
           />
         ) : (
-          <div className={styles.venueGrid}>
+          <ul className={styles.venueGrid}>
             {topVenues.map((v) => (
-              <Link key={v.id} to={`/venues/${v.id}`} className={styles.venueCard}>
-                <span className={styles.venueName}>{v.name}</span>
-                <span className={styles.venueMeta}>
-                  <span>📍 {v.area}</span>
-                  <span className={styles.venueMetaDot} aria-hidden="true" />
-                  <span>{VENUE_KIND_LABEL[v.kind]}</span>
-                  {v.partnered && (
-                    <>
-                      <span className={styles.venueMetaDot} aria-hidden="true" />
-                      <span>제휴</span>
-                    </>
-                  )}
-                </span>
-                {v.description && <p className={styles.venueDesc}>{v.description}</p>}
-                <span className={styles.venueRating}>
-                  ⭐ {v.rating.toFixed(1)}
-                  <em>({v.reviewCount.toLocaleString()})</em>
-                </span>
-              </Link>
+              <li key={v.id}>
+                <Link to={`/venues/${v.id}`} className={styles.venueCard}>
+                  <span className={styles.venueName}>{v.name}</span>
+                  <span className={styles.venueMeta}>
+                    <span className={styles.venueMetaItem}>
+                      <Icon name="pin" aria-hidden />
+                      {v.area}
+                    </span>
+                    <span className={styles.venueMetaDot} aria-hidden="true" />
+                    <span>{VENUE_KIND_LABEL[v.kind]}</span>
+                    {v.partnered && (
+                      <>
+                        <span className={styles.venueMetaDot} aria-hidden="true" />
+                        <Badge tone="primary" size="sm">
+                          제휴
+                        </Badge>
+                      </>
+                    )}
+                  </span>
+                  {v.description && <p className={styles.venueDesc}>{v.description}</p>}
+                  <span className={styles.venueRating}>
+                    ⭐ {v.rating.toFixed(1)}
+                    <em>({v.reviewCount.toLocaleString()})</em>
+                  </span>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </section>
 
@@ -325,23 +344,24 @@ export default function CategoryPage() {
             <p className={styles.sectionSub}>오늘은 다른 잔으로 시작해보는 것도 좋아요.</p>
           </div>
         </header>
-        <div className={styles.otherGrid}>
+        <ul className={styles.otherGrid}>
           {otherCategories.map((c) => (
-            <Link
-              key={c.value}
-              to={`/category/${c.value}`}
-              className={styles.otherCard}
-              style={{ ['--tile-bg' as never]: c.bgGradient } as never}
-              aria-label={`${c.label} 카테고리`}
-            >
-              <span className={styles.otherEmoji} aria-hidden="true">
-                {c.emoji}
-              </span>
-              <span className={styles.otherLabel}>{c.label}</span>
-            </Link>
+            <li key={c.value}>
+              <Link
+                to={`/category/${c.value}`}
+                className={styles.otherCard}
+                style={{ ['--tile-bg' as never]: c.bgGradient } as never}
+                aria-label={`${c.label} 카테고리`}
+              >
+                <span className={styles.otherEmoji} aria-hidden="true">
+                  {c.emoji}
+                </span>
+                <span className={styles.otherLabel}>{c.label}</span>
+              </Link>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
-    </div>
+    </main>
   )
 }

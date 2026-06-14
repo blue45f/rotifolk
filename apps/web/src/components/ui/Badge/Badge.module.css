@@ -18,12 +18,12 @@
 }
 
 .t_neutral {
-  background: rgba(20, 16, 29, 0.06);
+  background: color-mix(in oklab, var(--brand-clay-900) 6%, transparent);
   color: var(--color-text-muted);
 }
 .t_primary {
   background: var(--color-primary-soft);
-  color: var(--brand-burgundy-800);
+  color: var(--brand-apricot-800);
 }
 .t_success {
   background: var(--color-success-bg);
@@ -42,12 +42,12 @@
   color: var(--color-info);
 }
 .t_gold {
-  background: var(--brand-gold-100);
-  color: var(--brand-gold-700);
+  background: var(--brand-amber-100);
+  color: var(--brand-amber-700);
 }
 .t_wine {
-  background: rgba(122, 31, 61, 0.1);
-  color: #7a1f3d;
+  background: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
 }
 .t_coffee {
   background: rgba(107, 66, 38, 0.1);

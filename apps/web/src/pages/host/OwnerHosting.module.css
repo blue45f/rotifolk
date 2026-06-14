@@ -2,7 +2,12 @@
   padding-bottom: calc(var(--space-16) + env(safe-area-inset-bottom));
 }
 
-/* ── header ─────────────────────────────────────────── */
+/* shared dot separator */
+.dot {
+  color: color-mix(in oklab, var(--color-text) 32%, transparent);
+}
+
+/* header */
 .head {
   position: relative;
   display: flex;
@@ -19,8 +24,8 @@
   border-radius: var(--radius-2xl);
   background: radial-gradient(
     120% 140% at 0% 0%,
-    color-mix(in oklab, var(--brand-burgundy-700) 9%, transparent),
-    transparent 58%
+    color-mix(in oklab, var(--brand-apricot-400) 22%, transparent),
+    transparent 60%
   );
   pointer-events: none;
   z-index: 0;
@@ -35,7 +40,7 @@
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
   letter-spacing: var(--tracking-uppercase);
-  color: var(--brand-gold-600);
+  color: var(--brand-apricot-700);
   font-weight: var(--fw-semibold);
 }
 .title {
@@ -51,13 +56,32 @@
   max-width: 42ch;
   line-height: var(--lh-normal);
 }
+
+/* quiet editorial summary line — NOT a dashboard grid */
+.editorial {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px var(--space-2);
+  margin-top: var(--space-4);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+.editorial strong {
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.editorial svg {
+  color: var(--brand-apricot-600);
+}
 .headCta {
   position: relative;
   z-index: 1;
   flex: 0 0 auto;
 }
 
-/* ── section rhythm ─────────────────────────────────── */
+/* section rhythm */
 .section {
   margin-bottom: var(--space-10);
 }
@@ -69,6 +93,7 @@
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-tight);
   margin-bottom: var(--space-4);
+  color: var(--color-text);
 }
 .h2 .count {
   font-family: var(--font-mono);
@@ -78,8 +103,11 @@
   letter-spacing: 0.02em;
 }
 
-/* ── 섭외 요청 인박스 ───────────────────────────────── */
+/* 섭외 요청 인박스 */
 .inbox {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -93,7 +121,7 @@
   padding: var(--space-4) var(--space-5);
   border-radius: var(--radius-lg);
   background: var(--grad-cream-rose);
-  border: 1px solid color-mix(in oklab, var(--brand-burgundy-400) 22%, transparent);
+  border: 1px solid color-mix(in oklab, var(--brand-apricot-400) 26%, transparent);
   box-shadow: var(--shadow-xs);
   overflow: hidden;
   transition:
@@ -116,7 +144,7 @@
 .reqInfo strong {
   font-size: var(--fs-md);
   font-weight: var(--fw-bold);
-  color: var(--brand-burgundy-900);
+  color: var(--brand-apricot-800);
 }
 .reqNew {
   display: inline-flex;
@@ -126,26 +154,26 @@
   font-size: var(--fs-3xs);
   font-weight: var(--fw-semibold);
   letter-spacing: 0.14em;
-  color: var(--brand-gold-700);
+  color: var(--brand-teal-600);
 }
 .reqNew::before {
   content: '';
   width: 6px;
   height: 6px;
   border-radius: var(--radius-pill);
-  background: var(--brand-gold-500);
-  box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-gold-500) 60%, transparent);
+  background: var(--brand-teal-500);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-teal-500) 60%, transparent);
   animation: reqPulse 2.4s var(--ease-out) infinite;
 }
 @keyframes reqPulse {
   0% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-gold-500) 55%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-teal-500) 55%, transparent);
   }
   70% {
-    box-shadow: 0 0 0 6px color-mix(in oklab, var(--brand-gold-500) 0%, transparent);
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--brand-teal-500) 0%, transparent);
   }
   100% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-gold-500) 0%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-teal-500) 0%, transparent);
   }
 }
 .reqMeta {
@@ -154,23 +182,27 @@
   flex-wrap: wrap;
   gap: 4px var(--space-2);
   font-size: var(--fs-sm);
-  color: color-mix(in oklab, var(--brand-burgundy-900) 72%, transparent);
+  color: var(--color-text-muted);
   margin-top: 6px;
-}
-.reqMeta .dot {
-  color: color-mix(in oklab, var(--brand-burgundy-900) 32%, transparent);
 }
 .reqMeta .price {
   font-weight: var(--fw-bold);
-  color: var(--brand-burgundy-800);
+  color: var(--brand-apricot-700);
 }
 .reqNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-sm);
-  color: color-mix(in oklab, var(--brand-burgundy-900) 78%, transparent);
+  color: var(--color-text-muted);
   margin-top: var(--space-2);
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  background: color-mix(in oklab, var(--color-surface) 60%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 70%, transparent);
+}
+.reqNote svg {
+  flex: 0 0 auto;
+  color: var(--color-text-subtle);
 }
 .reqActions {
   display: flex;
@@ -179,8 +211,11 @@
   flex: 0 0 auto;
 }
 
-/* ── 내 공간 ────────────────────────────────────────── */
+/* 내 공간 */
 .venues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: var(--space-4);
@@ -188,6 +223,7 @@
 .vCard {
   display: flex;
   flex-direction: column;
+  height: 100%;
   padding: var(--space-4);
   border-radius: var(--radius-xl);
   background: var(--color-surface);
@@ -201,7 +237,7 @@
 .vCard:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
-  border-color: var(--brand-burgundy-200);
+  border-color: color-mix(in oklab, var(--brand-apricot-400) 45%, transparent);
 }
 .vMain {
   display: flex;
@@ -215,9 +251,9 @@
   overflow: hidden;
   display: grid;
   place-items: center;
-  font-size: 1.9rem;
+  font-size: 1.6rem;
   background: var(--grad-cream-rose);
-  color: var(--brand-burgundy-700);
+  color: var(--brand-apricot-700);
   box-shadow: inset 0 0 0 1px var(--color-border);
 }
 .vThumb img {
@@ -244,46 +280,35 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--color-text);
 }
 .vMeta {
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
 }
 
-/* stat treatment: label over value, two warm tiles */
+/* quiet inline stats — editorial, not a metric grid */
 .vStats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
-  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px var(--space-2);
+  margin-top: var(--space-3);
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
 }
 .stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-soft);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
 }
-.statLabel {
-  font-family: var(--font-mono);
-  font-size: var(--fs-3xs);
-  letter-spacing: 0.1em;
-  font-weight: var(--fw-semibold);
-  color: var(--color-text-subtle);
-  text-transform: uppercase;
-}
-.statValue {
-  font-size: var(--fs-lg);
+.stat strong {
   font-weight: var(--fw-bold);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
-  letter-spacing: var(--tracking-tight);
 }
-.statHot {
-  background: color-mix(in oklab, var(--brand-gold-500) 12%, var(--color-surface));
-}
-.statHot .statValue {
-  color: var(--brand-gold-700);
+.statHot strong {
+  color: var(--brand-amber-700);
 }
 
 .vActions {
@@ -298,13 +323,13 @@
   flex: 1;
 }
 
-/* ── 유휴 시간 → 파티 (opportunity) ─────────────────── */
+/* 유휴 시간 → 파티 (opportunity) */
 .offHours {
   margin-top: var(--space-4);
   padding: var(--space-4);
   border-radius: var(--radius-lg);
-  background: color-mix(in oklab, var(--brand-gold-500) 7%, var(--color-surface-soft));
-  border: 1px solid color-mix(in oklab, var(--brand-gold-500) 24%, transparent);
+  background: color-mix(in oklab, var(--brand-amber-500) 8%, var(--color-surface-soft));
+  border: 1px solid color-mix(in oklab, var(--brand-amber-500) 26%, transparent);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -325,7 +350,7 @@
   align-items: center;
   gap: 6px;
   font-size: var(--fs-xs);
-  color: var(--brand-gold-700);
+  color: var(--brand-amber-700);
   font-weight: var(--fw-medium);
   margin-bottom: 2px;
 }
@@ -353,6 +378,7 @@
   display: block;
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
+  color: var(--color-text);
 }
 .ohWhen {
   display: block;
@@ -363,7 +389,7 @@
 }
 .ohPrice {
   font-weight: var(--fw-semibold);
-  color: var(--brand-gold-700);
+  color: var(--brand-amber-700);
 }
 .loadingMini {
   font-size: var(--fs-sm);
@@ -391,6 +417,9 @@
   }
   .reqActions > * {
     flex: 1;
+  }
+  .venues {
+    grid-template-columns: 1fr;
   }
 }
 

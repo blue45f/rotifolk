@@ -2,10 +2,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useParty, usePartyLifecycleActions } from '@features/parties/queries'
 import { getSocket } from '@features/live/socket'
 import { Button } from '@components/ui/Button/Button'
-import { Card } from '@components/ui/Card/Card'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Tabs } from '@components/ui/Tabs/Tabs'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -124,6 +124,7 @@ export default function HostManagePage() {
   if (!data) return <EmptyState emoji="🌙" title="파티를 찾을 수 없어요" />
   const { party, participants } = data
   const cat = CATEGORY_META[party.config.category]
+  const isLive = party.status === 'live'
 
   const handleCheckIn = async (userId: string) => {
     try {
@@ -157,82 +158,93 @@ export default function HostManagePage() {
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
-        <div>
-          <div className={styles.crumb}>
-            <Link to="/host">← 호스트 콘솔</Link>
-          </div>
-          <h1 className={styles.title}>
-            <span style={{ marginRight: 8 }}>{cat.emoji}</span>
-            {party.title}
-          </h1>
-          <div className={styles.heroMeta}>
-            <Badge tone="primary">{cat.label}</Badge>
-            <Badge tone={party.status === 'live' ? 'danger' : 'success'}>
-              {party.status.toUpperCase()}
-            </Badge>
-            <span className={styles.metaDim}>
-              {new Date(party.startAt).toLocaleString('ko-KR', {
-                month: 'long',
-                day: 'numeric',
-                weekday: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </span>
-          </div>
-        </div>
+        <Link to="/host" className={styles.crumb}>
+          <Icon name="chevron-right" size={1} className={styles.crumbArrow} aria-hidden />
+          호스트 콘솔
+        </Link>
 
-        <div className={styles.heroActions}>
-          {party.status === 'open' && (
-            <>
-              <Button
-                variant="ghost"
-                size="lg"
-                onClick={handlePlan}
-                isLoading={lifecycle.plan.isPending}
-              >
-                라운드 짜기
-              </Button>
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleStart}
-                isLoading={lifecycle.start.isPending}
-              >
-                ▶ 파티 시작
-              </Button>
-            </>
-          )}
-          {party.status === 'live' && (
-            <Link to={`/live/${party.id}`}>
-              <Button variant="gold" size="lg">
-                🔴 라이브로 이동
-              </Button>
-            </Link>
-          )}
+        <div className={styles.headBar}>
+          <div className={styles.headMain}>
+            <h1 className={styles.title}>
+              <span className={styles.titleEmoji} aria-hidden>
+                {cat.emoji}
+              </span>
+              {party.title}
+            </h1>
+            <div className={styles.heroMeta}>
+              <Badge tone="primary">{cat.label}</Badge>
+              <Badge tone={isLive ? 'danger' : 'success'}>{party.status.toUpperCase()}</Badge>
+              <span className={styles.metaDim}>
+                <Icon name="clock" size={1} aria-hidden />
+                {new Date(party.startAt).toLocaleString('ko-KR', {
+                  month: 'long',
+                  day: 'numeric',
+                  weekday: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.heroActions}>
+            {party.status === 'open' && (
+              <>
+                <Button
+                  variant="soft"
+                  size="lg"
+                  onClick={handlePlan}
+                  isLoading={lifecycle.plan.isPending}
+                >
+                  라운드 짜기
+                </Button>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  leftIcon={<Icon name="bolt" aria-hidden />}
+                  onClick={handleStart}
+                  isLoading={lifecycle.start.isPending}
+                >
+                  파티 시작
+                </Button>
+              </>
+            )}
+            {isLive && (
+              <Link to={`/live/${party.id}`}>
+                <Button variant="gold" size="lg" leftIcon={<Icon name="live" aria-hidden />}>
+                  라이브로 이동
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
       <div className={`container ${styles.tabs}`}>
         <Tabs
           tabs={[
-            { value: 'participants', label: `참가자 (${participants.length})`, icon: '🎟️' },
-            { value: 'rounds', label: '라운드', icon: '🔄' },
-            { value: 'cards', label: '질문 카드', icon: '🃏' },
-            { value: 'orders', label: '주문', icon: '🍷' },
-            { value: 'analytics', label: '분석', icon: '📊' },
-            { value: 'encore', label: '앵콜 초대', icon: '✉️' },
+            { value: 'participants', label: `참가자 (${participants.length})` },
+            { value: 'rounds', label: '라운드' },
+            { value: 'cards', label: '질문 카드' },
+            { value: 'orders', label: '주문' },
+            { value: 'analytics', label: '분석' },
+            { value: 'encore', label: '앵콜 초대' },
           ]}
           value={tab}
           onChange={setTab}
+          label="파티 관리 섹션"
         />
       </div>
 
-      <div className={`container ${styles.body}`}>
+      <main className={`container ${styles.body}`}>
         {tab === 'participants' && (
-          <Card padding="lg">
-            <h2 className={styles.h2}>참가자 관리</h2>
-            <p className={styles.muted}>도착한 사람부터 체크인해 주세요.</p>
+          <section className={styles.panel} aria-labelledby="sec-participants">
+            <div className={styles.panelHead}>
+              <h2 id="sec-participants" className={styles.h2}>
+                참가자 관리
+              </h2>
+              <p className={styles.muted}>도착한 사람부터 체크인해 주세요.</p>
+            </div>
             <div className={styles.partList}>
               {participants.map((p, i) => (
                 <GuestRow
@@ -249,17 +261,21 @@ export default function HostManagePage() {
                 />
               ))}
             </div>
-          </Card>
+          </section>
         )}
 
         {tab === 'rounds' && (
-          <Card padding="lg">
-            <h2 className={styles.h2}>라운드 시뮬레이션</h2>
-            <p className={styles.muted}>
-              {party.config.totalRounds}라운드 × {Math.round(party.config.roundDurationSec / 60)}분
-              ({party.config.rotationMode})
-            </p>
-            <p className={styles.muted}>
+          <section className={styles.panel} aria-labelledby="sec-rounds">
+            <div className={styles.panelHead}>
+              <h2 id="sec-rounds" className={styles.h2}>
+                라운드 시뮬레이션
+              </h2>
+              <p className={styles.muted}>
+                {party.config.totalRounds}라운드 × {Math.round(party.config.roundDurationSec / 60)}
+                분 ({party.config.rotationMode})
+              </p>
+            </div>
+            <p className={styles.note}>
               참가자 확정 후 “라운드 짜기”를 누르면 자동으로 모든 라운드의 좌석이 배치돼요. 파티
               시작 후 라이브에서 “다음 라운드 시작” 버튼을 사용하세요.
             </p>
@@ -268,16 +284,20 @@ export default function HostManagePage() {
                 라운드 다시 짜기
               </Button>
             </div>
-          </Card>
+          </section>
         )}
 
         {tab === 'cards' && (
-          <Card padding="lg">
-            <h2 className={styles.h2}>질문 카드 풀</h2>
-            <p className={styles.muted}>
-              파티에서 순서대로 뽑히는 대화 카드예요. 글로벌 풀에서 자동 선택되거나, 아래에서 직접
-              추가할 수 있어요.
-            </p>
+          <section className={styles.panel} aria-labelledby="sec-cards">
+            <div className={styles.panelHead}>
+              <h2 id="sec-cards" className={styles.h2}>
+                질문 카드 풀
+              </h2>
+              <p className={styles.muted}>
+                파티에서 순서대로 뽑히는 대화 카드예요. 글로벌 풀에서 자동 선택되거나, 아래에서 직접
+                추가할 수 있어요.
+              </p>
+            </div>
 
             {cardsLoading ? (
               <Loading />
@@ -302,19 +322,24 @@ export default function HostManagePage() {
             )}
 
             <div className={styles.cardAddForm}>
-              <p className={styles.cardAddTitle}>커스텀 카드 추가</p>
+              <h3 className={styles.cardAddTitle}>커스텀 카드 추가</h3>
+              <label className={styles.srOnly} htmlFor="card-prompt">
+                질문 프롬프트
+              </label>
               <textarea
+                id="card-prompt"
                 className={styles.cardTextarea}
                 placeholder="질문 프롬프트를 입력하세요"
                 value={cardPrompt}
                 onChange={(e) => setCardPrompt(e.target.value)}
                 rows={3}
               />
-              <div className={styles.depthRow}>
+              <div className={styles.depthRow} role="group" aria-label="카드 깊이 선택">
                 {Object.entries(DEPTH_META).map(([key, { label }]) => (
                   <button
                     key={key}
                     type="button"
+                    aria-pressed={selectedDepth === key}
                     className={`${styles.depthBtn}${selectedDepth === key ? ` ${styles.depthBtnActive}` : ''}`}
                     onClick={() => setSelectedDepth(key)}
                   >
@@ -324,6 +349,7 @@ export default function HostManagePage() {
               </div>
               <Button
                 variant="primary"
+                leftIcon={<Icon name="plus" aria-hidden />}
                 isLoading={addCardMutation.isPending}
                 disabled={!cardPrompt.trim()}
                 onClick={() =>
@@ -338,14 +364,16 @@ export default function HostManagePage() {
                 카드 추가
               </Button>
             </div>
-          </Card>
+          </section>
         )}
 
         {tab === 'orders' && (
-          <Card padding="lg">
-            <div className={styles.ordersHead}>
+          <section className={styles.panel} aria-labelledby="sec-orders">
+            <div className={styles.panelHead}>
               <div>
-                <h2 className={styles.h2}>실시간 주문 현황</h2>
+                <h2 id="sec-orders" className={styles.h2}>
+                  실시간 주문 현황
+                </h2>
                 <p className={styles.muted}>15초마다 자동 새로고침돼요.</p>
               </div>
               <Button
@@ -409,22 +437,28 @@ export default function HostManagePage() {
                                 {order.totalKRW.toLocaleString()}원
                               </div>
                             )}
-                            {order.note && <p className={styles.orderNote}>📝 {order.note}</p>}
+                            {order.note && (
+                              <p className={styles.orderNote}>
+                                <Icon name="chat" size={1} aria-hidden /> {order.note}
+                              </p>
+                            )}
                             {meta.nextStatus && (
                               <div className={styles.orderActions}>
                                 <Button
                                   variant="primary"
                                   size="sm"
+                                  rightIcon={<Icon name="chevron-right" aria-hidden />}
                                   isLoading={advanceOrder.isPending}
                                   onClick={() =>
                                     advanceOrder.mutate({ id: order.id, status: meta.nextStatus! })
                                   }
                                 >
-                                  {meta.nextLabel} →
+                                  {meta.nextLabel}
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  className={styles.dangerGhost}
                                   onClick={() =>
                                     advanceOrder.mutate({ id: order.id, status: 'cancelled' })
                                   }
@@ -481,7 +515,7 @@ export default function HostManagePage() {
                 )}
               </>
             )}
-          </Card>
+          </section>
         )}
 
         {tab === 'analytics' && <HostAnalyticsTab participants={participants} />}
@@ -496,7 +530,7 @@ export default function HostManagePage() {
             originVenueArea={cat.label}
           />
         )}
-      </div>
+      </main>
     </div>
   )
 }
@@ -535,6 +569,7 @@ function GuestRow({
     }
   })
   const [open, setOpen] = useState(false)
+  const checkedIn = status === 'checked-in'
   const save = (next: string) => {
     setMemo(next)
     try {
@@ -545,46 +580,62 @@ function GuestRow({
     <div className={styles.part}>
       <Avatar
         size="lg"
-        hue={avatar?.hue ?? '#7A1F3D'}
+        hue={avatar?.hue ?? 'var(--color-primary)'}
         pattern="gradient"
         emoji={avatar?.emoji ?? nickname[0]}
         imageSrc={imageSrc ?? null}
-        ring={status === 'checked-in' ? 'glow' : 'soft'}
+        ring={checkedIn ? 'glow' : 'soft'}
       />
       <div className={styles.partInfo}>
         <strong>
           {nickname}{' '}
           {isGuest && (
             <Badge tone="gold" size="sm">
-              🎟 게스트
+              게스트
             </Badge>
           )}
         </strong>
         <span>좌석 #{seatNumber}</span>
-        {memo && !open && <span className={styles.memoPreview}>📝 {memo.slice(0, 40)}</span>}
+        {memo && !open && (
+          <span className={styles.memoPreview}>
+            <Icon name="bookmark" size={1} aria-hidden /> {memo.slice(0, 40)}
+          </span>
+        )}
         {open && (
-          <textarea
-            className={styles.memoBox}
-            placeholder="이 게스트에 대한 비공개 메모 (내 브라우저에만 저장)"
-            value={memo}
-            onChange={(e) => save(e.target.value)}
-            rows={2}
-            autoFocus
-            onBlur={() => setOpen(false)}
-          />
+          <>
+            <label className={styles.srOnly} htmlFor={`memo-${userId}`}>
+              {nickname} 비공개 메모
+            </label>
+            <textarea
+              id={`memo-${userId}`}
+              className={styles.memoBox}
+              placeholder="이 게스트에 대한 비공개 메모 (내 브라우저에만 저장)"
+              value={memo}
+              onChange={(e) => save(e.target.value)}
+              rows={2}
+              autoFocus
+              onBlur={() => setOpen(false)}
+            />
+          </>
         )}
       </div>
       <div className={styles.partActions}>
-        <Button variant="ghost" size="sm" onClick={() => setOpen((v) => !v)}>
-          {open ? '닫기' : memo ? '메모' : '+ 메모'}
+        <Button
+          variant="ghost"
+          size="sm"
+          leftIcon={memo || open ? undefined : <Icon name="plus" aria-hidden />}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? '닫기' : memo ? '메모' : '메모'}
         </Button>
         <Button
-          variant={status === 'checked-in' ? 'soft' : 'primary'}
+          variant={checkedIn ? 'soft' : 'primary'}
           size="sm"
+          leftIcon={checkedIn ? <Icon name="check" aria-hidden /> : undefined}
           onClick={onCheckIn}
-          disabled={status === 'checked-in'}
+          disabled={checkedIn}
         >
-          {status === 'checked-in' ? '✓ 체크인됨' : '체크인'}
+          {checkedIn ? '체크인됨' : '체크인'}
         </Button>
       </div>
     </div>

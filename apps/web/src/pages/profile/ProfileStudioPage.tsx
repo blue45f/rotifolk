@@ -23,6 +23,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -80,23 +81,24 @@ export default function ProfileStudioPage() {
         <p className={styles.lede}>나를 더 잘 보여주고, 신뢰는 더하고, 불편한 만남은 피해요.</p>
       </header>
 
-      <div className={`container ${styles.tabsWrap}`}>
+      <nav className={`container ${styles.tabsWrap}`} aria-label="프로필 스튜디오 섹션">
         <Tabs
+          label="프로필 스튜디오 섹션"
           tabs={[
-            { value: 'profile', label: '사전 프로필', icon: '🪞' },
-            { value: 'trust', label: '신상 인증', icon: '🛡️' },
-            { value: 'avoid', label: '지인 회피', icon: '🙈' },
+            { value: 'profile', label: '사전 프로필', icon: <Icon name="user" /> },
+            { value: 'trust', label: '신상 인증', icon: <Icon name="shield" /> },
+            { value: 'avoid', label: '지인 회피', icon: <Icon name="moon" /> },
           ]}
           value={tab}
           onChange={(v) => setTab(v as typeof tab)}
         />
-      </div>
+      </nav>
 
-      <div className={`container ${styles.body}`} key={tab}>
+      <main className={`container ${styles.body}`} key={tab}>
         {tab === 'profile' && <ProfileTab />}
         {tab === 'trust' && <TrustTab />}
         {tab === 'avoid' && <AvoidTab />}
-      </div>
+      </main>
     </div>
   )
 }
@@ -368,7 +370,7 @@ function TrustTab() {
         </div>
         <p className={styles.privacyNote}>
           <span className={styles.noteIcon} aria-hidden="true">
-            🔒
+            <Icon name="shield" />
           </span>
           <span>
             원본 서류는 저장하지 않고 <strong>인증 배지만</strong> 남깁니다. 소득은 구간만 노출돼요.
@@ -378,7 +380,9 @@ function TrustTab() {
 
       <Card padding="lg" className={styles.tabCard}>
         <div className={styles.sectionHead}>
-          <span className={styles.sectionIndex}>🛡️</span>
+          <span className={styles.sectionIndex} aria-hidden="true">
+            <Icon name="shield" />
+          </span>
           <div>
             <h2 className={styles.h2}>신상 정보 · 공개범위</h2>
             <p className={styles.muted}>
@@ -436,6 +440,7 @@ function TrustTab() {
           >
             <select
               className={styles.select}
+              aria-label="소득 구간"
               value={incomeBand}
               onChange={(e) => setIncomeBand(e.target.value as IncomeBand | '')}
             >
@@ -460,6 +465,7 @@ function TrustTab() {
           >
             <select
               className={styles.select}
+              aria-label="결혼 여부"
               value={maritalStatus}
               onChange={(e) => setMaritalStatus(e.target.value as MaritalStatus | '')}
             >
@@ -472,18 +478,12 @@ function TrustTab() {
             </select>
           </TrustRow>
 
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--space-2)',
-              marginBottom: 'var(--space-4)',
-            }}
-          >
-            <strong style={{ fontSize: 'var(--fs-sm)' }}>👶 아이 유무</strong>
+          <div className={styles.fieldBlock}>
+            <strong className={styles.fieldBlockLabel}>👶 아이 유무</strong>
             <p className={styles.muted}>돌싱 모임 등 대상 조건 매칭에 쓰여요.</p>
             <select
               className={styles.select}
+              aria-label="아이 유무"
               value={hasChildren === null ? '' : hasChildren ? 'yes' : 'no'}
               onChange={(e) => {
                 const v = e.target.value
@@ -508,6 +508,7 @@ function TrustTab() {
           >
             <select
               className={styles.select}
+              aria-label="학력"
               value={education}
               onChange={(e) => setEducation(e.target.value as Education | '')}
             >
@@ -524,7 +525,7 @@ function TrustTab() {
             className={`${styles.identityRow} ${verified.has('identity') ? styles.identityDone : ''}`}
           >
             <span className={styles.identityIcon} aria-hidden="true">
-              {verified.has('identity') ? '✓' : '🪪'}
+              {verified.has('identity') ? <Icon name="check" /> : '🪪'}
             </span>
             <div className={styles.identityCopy}>
               <strong>본인(성인) 인증</strong>
@@ -532,7 +533,7 @@ function TrustTab() {
             </div>
             {verified.has('identity') ? (
               <Badge tone="gold" size="md">
-                ✓ {VERIFICATION_FIELD_LABEL.identity}
+                <Icon name="check" /> {VERIFICATION_FIELD_LABEL.identity}
               </Badge>
             ) : (
               <Button
@@ -581,11 +582,17 @@ function TrustRow({
   children,
 }: TrustRowProps) {
   return (
-    <div className={`${styles.trustRow} ${verified ? styles.trustRowDone : ''}`}>
+    <div
+      role="group"
+      aria-label={label}
+      className={`${styles.trustRow} ${verified ? styles.trustRowDone : ''}`}
+    >
       <div className={styles.trustHead}>
         <span className={styles.trustLabel}>{label}</span>
         {verified ? (
-          <Badge tone="gold">✓ {VERIFICATION_FIELD_LABEL[field]}</Badge>
+          <Badge tone="gold">
+            <Icon name="check" /> {VERIFICATION_FIELD_LABEL[field]}
+          </Badge>
         ) : (
           <Button variant="soft" size="sm" onClick={onVerify} isLoading={verifying}>
             인증하기
@@ -602,6 +609,7 @@ function TrustRow({
         </span>
         <select
           className={styles.selectSm}
+          aria-label={`${label} 공개범위`}
           value={visibility[visKey] ?? 'matched'}
           onChange={(e) => onVis(visKey, e.target.value as FieldVisibility)}
         >
@@ -696,7 +704,7 @@ function AvoidTab() {
         </div>
         <p className={styles.privacyNote}>
           <span className={styles.noteIcon} aria-hidden="true">
-            🔒
+            <Icon name="shield" />
           </span>
           <span>
             원본 번호는 저장하지 않고 <strong>해시로만</strong> 대조해요. 같은 모임에 등록한 사람이
@@ -837,15 +845,7 @@ function AvoidTab() {
         ).map((ch) => {
           const meta = CONNECTION_CHANNELS[ch.key]
           return (
-            <div
-              key={ch.key}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--space-2)',
-                marginBottom: 'var(--space-4)',
-              }}
-            >
+            <div key={ch.key} className={styles.fieldBlock}>
               <Input
                 label={`${meta.icon} ${meta.label}`}
                 placeholder={ch.placeholder}

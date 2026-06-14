@@ -1,43 +1,56 @@
 .page {
   padding-block: var(--space-8) var(--space-16);
 }
+
+/* ---- Identity header ---- */
 .head {
   display: flex;
   gap: var(--space-5);
   align-items: center;
   flex-wrap: wrap;
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 .headBody {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 .name {
   font-size: var(--fs-3xl);
   font-weight: var(--fw-black);
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
   display: flex;
   gap: var(--space-2);
   align-items: center;
+  flex-wrap: wrap;
 }
 .bio {
   color: var(--color-text-muted);
+  line-height: var(--lh-normal);
 }
 .statRow {
   display: flex;
-  gap: var(--space-4);
+  gap: var(--space-5);
   flex-wrap: wrap;
-  margin-top: var(--space-2);
+  margin: var(--space-2) 0 0;
 }
-.statRow span {
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.stat dt {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
 }
-.statRow strong {
+.stat dd {
+  margin: 0;
   color: var(--color-text);
   font-weight: var(--fw-bold);
+  font-size: var(--fs-lg);
 }
 .actions {
   display: flex;
@@ -46,6 +59,68 @@
   flex-wrap: wrap;
 }
 
+/* ---- Verify nudge ---- */
+.nudge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-6);
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklab, var(--brand-amber-500) 9%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--brand-amber-500) 26%, transparent);
+}
+.nudgeIcon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--brand-amber-500) 20%, var(--color-surface));
+  color: var(--brand-amber-700);
+  font-size: var(--fs-lg);
+}
+.nudgeBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nudgeBody strong {
+  font-weight: var(--fw-bold);
+}
+.nudgeBody span {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  line-height: var(--lh-normal);
+}
+.nudgeCta {
+  flex-shrink: 0;
+  text-decoration: none;
+}
+.nudgeClose {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: calc(-1 * var(--space-2));
+  border: none;
+  background: none;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-lg);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out-quart);
+}
+.nudgeClose:hover {
+  background: color-mix(in oklab, var(--brand-amber-500) 14%, transparent);
+  color: var(--color-text);
+}
+
+/* ---- Tabs + content ---- */
 .tabsRow {
   margin-bottom: var(--space-6);
 }
@@ -60,15 +135,24 @@
   gap: var(--space-5);
 }
 
-.h3 {
+/* ---- Settings ---- */
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: var(--max-prose);
+}
+.settingsGroup {
+  display: flex;
+  flex-direction: column;
+}
+.groupTitle {
   font-size: var(--fs-lg);
   font-weight: var(--fw-bold);
-  margin-bottom: var(--space-3);
-}
-.themeRow {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
 }
 .divider {
   height: 1px;
@@ -76,6 +160,13 @@
   margin: var(--space-4) 0;
 }
 
+.themeRow {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ---- Avatar builder ---- */
 .avatarPreview {
   display: grid;
   place-items: center;
@@ -112,13 +203,15 @@
 .swatchRow {
   display: flex;
   gap: var(--space-2);
+  flex-wrap: wrap;
 }
 .swatch {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 2px solid transparent;
-  transition: all var(--dur-fast) var(--ease-spring);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-spring);
 }
 .swatch:hover {
   transform: scale(1.1);
@@ -138,16 +231,20 @@
   border-radius: 50%;
   background: var(--color-surface-soft);
   font-size: 22px;
-  transition: all var(--dur-fast);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart);
 }
 .emojiBtn:hover {
   background: var(--color-primary-soft);
 }
 .emojiActive {
   background: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(122, 31, 61, 0.35);
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--color-primary) 35%, transparent);
 }
 
+/* ---- Profile edit fields ---- */
 .editField {
   display: flex;
   flex-direction: column;
@@ -171,15 +268,17 @@
   line-height: var(--lh-relaxed);
 }
 .textarea:focus {
-  outline: 2px solid color-mix(in oklab, var(--color-primary) 35%, transparent);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
   border-color: var(--color-primary);
 }
 
+/* ---- Referral ---- */
 .referralLead {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
   margin-bottom: var(--space-4);
-  line-height: 1.5;
+  line-height: var(--lh-normal);
 }
 .referralLead strong {
   color: var(--color-text);
@@ -190,14 +289,14 @@
   align-items: center;
   gap: var(--space-3);
   background: var(--color-surface-soft);
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--color-border-strong);
   border-radius: var(--radius-lg);
   padding: var(--space-4) var(--space-5);
   margin-bottom: var(--space-4);
   flex-wrap: wrap;
 }
 .referralCodeText {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-mono);
   font-size: var(--fs-lg);
   font-weight: var(--fw-bold);
   letter-spacing: 0.06em;
@@ -214,7 +313,7 @@
 .referralStat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
   background: var(--color-surface-soft);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
@@ -229,6 +328,11 @@
   color: var(--color-text);
 }
 
+/* ---- Reviews ---- */
+.reviews {
+  display: flex;
+  flex-direction: column;
+}
 .reviewSummary {
   display: flex;
   align-items: baseline;
@@ -243,15 +347,14 @@
   letter-spacing: var(--tracking-tight);
 }
 .reviewStars {
-  color: var(--brand-gold-500);
+  color: var(--brand-amber-500);
   font-size: var(--fs-lg);
 }
-.reviewSummary span:last-child {
+.reviewCount {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
   margin-left: auto;
 }
-
 .reviewList {
   display: flex;
   flex-direction: column;
@@ -269,7 +372,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-2);
 }
 .reviewHead time {
   color: var(--color-text-subtle);
@@ -282,26 +385,30 @@
   margin-top: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  background: color-mix(in oklab, var(--brand-gold-100) 60%, var(--color-surface-soft));
-  border-left: 3px solid var(--brand-gold-500);
+  background: color-mix(in oklab, var(--brand-amber-100) 60%, var(--color-surface-soft));
+  border-left: 3px solid var(--brand-amber-500);
 }
 .reviewReply strong {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   font-size: var(--fs-xs);
-  color: var(--brand-burgundy-800);
-  margin-bottom: 4px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
 }
 .reviewReply p {
   font-size: var(--fs-sm);
-  color: var(--brand-burgundy-900);
+  color: var(--color-text);
 }
 
+/* ---- Saved foot ---- */
 .savedFoot {
   display: flex;
   justify-content: center;
   margin-top: var(--space-6);
 }
 
+/* ---- Achievements ---- */
 .achievementGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -323,10 +430,10 @@
 }
 .achievementEarned {
   opacity: 1;
-  border-color: color-mix(in oklab, var(--brand-gold-500, #d6a84e) 50%, var(--color-border));
+  border-color: color-mix(in oklab, var(--brand-amber-500) 50%, var(--color-border));
   background: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--brand-gold-500, #d6a84e) 6%, var(--color-surface)) 0%,
+    color-mix(in oklab, var(--brand-amber-500) 6%, var(--color-surface)) 0%,
     var(--color-surface) 100%
   );
 }
@@ -343,8 +450,8 @@
 .achievementEarned .achievementEmoji {
   background: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--brand-gold-500, #d6a84e) 25%, var(--color-surface-soft)),
-    color-mix(in oklab, var(--brand-burgundy-500, #c9627f) 18%, var(--color-surface-soft))
+    color-mix(in oklab, var(--brand-amber-500) 25%, var(--color-surface-soft)),
+    color-mix(in oklab, var(--brand-apricot-400) 18%, var(--color-surface-soft))
   );
 }
 .achievementBody {
@@ -370,37 +477,56 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--brand-gold-500, #d6a84e);
-  color: var(--brand-ink-900, #14101d);
-  font-size: 12px;
-  font-weight: var(--fw-black);
+  background: var(--brand-amber-500);
+  color: var(--brand-clay-900);
   display: grid;
   place-items: center;
 }
 
+/* ---- Settings links ---- */
 .settingsLinks {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin: var(--space-2) 0;
+  gap: var(--space-1);
 }
 .settingsLink {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-3);
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   text-decoration: none;
   color: var(--color-text);
   font-weight: var(--fw-medium);
-  transition: background var(--dur-fast) var(--ease-out-quart);
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    color var(--dur-fast) var(--ease-out-quart);
 }
 .settingsLink:hover {
   background: var(--color-surface-soft);
   color: var(--color-primary);
 }
+.settingsLinkIcon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-soft);
+  color: var(--color-primary);
+  font-size: var(--fs-md);
+}
+.settingsLink:hover .settingsLinkIcon {
+  background: var(--color-primary-soft);
+}
+.settingsLinkLabel {
+  flex: 1;
+  min-width: 0;
+}
 
-/* Account deletion */
+/* ---- Account deletion ---- */
 .settingsDanger {
   font-size: var(--fs-sm);
   color: var(--color-text-muted);
@@ -420,4 +546,28 @@
 .deleteConfirmActions {
   display: flex;
   gap: var(--space-2);
+}
+
+@media (max-width: 600px) {
+  .nudge {
+    flex-wrap: wrap;
+  }
+  .nudgeBody {
+    flex-basis: 100%;
+    order: 3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swatch,
+  .emojiBtn,
+  .nudgeClose,
+  .settingsLink,
+  .settingsLinkIcon,
+  .achievement {
+    transition: none;
+  }
+  .swatch:hover {
+    transform: none;
+  }
 }

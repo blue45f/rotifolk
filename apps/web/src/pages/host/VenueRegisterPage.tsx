@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CreateVenueSchema, SEOUL_AREAS, type VenueKind } from '@rotifolk/shared'
 import { useCreateVenue } from '@features/venueBooking/queries'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
 import { Chip } from '@components/ui/Chip/Chip'
-import { Card } from '@components/ui/Card/Card'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useToast } from '@components/feedback/Toast/useToast'
 import styles from './VenueRegister.module.css'
 
@@ -67,7 +67,19 @@ export default function VenueRegisterPage() {
     wifiPassword: '',
   })
   const [closedWeekdays, setClosed] = useState<number[]>([])
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }))
+  const touch = (k: string) => setTouched((p) => ({ ...p, [k]: true }))
+
+  // Lightweight inline guidance for the two free-text essentials. The
+  // authoritative gate is still CreateVenueSchema in submit(); this only
+  // surfaces a hint once a field has been visited.
+  const errors = useMemo(() => {
+    const e: Record<string, string> = {}
+    if (!f.name.trim()) e.name = '공간 이름을 입력해주세요.'
+    if (!f.address.trim()) e.address = '주소를 입력해주세요.'
+    return e
+  }, [f.name, f.address])
 
   const submit = async () => {
     const coords = SEOUL_AREAS[f.area]
@@ -103,13 +115,15 @@ export default function VenueRegisterPage() {
     }
     const parsed = CreateVenueSchema.safeParse(dto)
     if (!parsed.success) {
+      // Reveal inline hints on a failed submit so the host can see what's missing.
+      setTouched((p) => ({ ...p, name: true, address: true }))
       const first = parsed.error.issues[0]
       toast.show(`입력을 확인해주세요: ${first.path.join('.')} ${first.message}`, 'error')
       return
     }
     try {
       await create.mutateAsync(parsed.data)
-      toast.show('공간이 등록됐어요! 🏠', 'success')
+      toast.show('공간이 등록됐어요!', 'success')
       navigate('/host/space')
     } catch (e) {
       toast.show((e as Error).message, 'error')
@@ -126,20 +140,33 @@ export default function VenueRegisterPage() {
         </p>
       </header>
 
-      <div className={`container ${styles.body}`}>
-        <Card padding="lg" className={styles.card}>
-          <h2 className={styles.h2}>
-            <span className={styles.h2idx}>01</span>기본 정보
-          </h2>
+      <form
+        className={`container ${styles.body}`}
+        noValidate
+        onSubmit={(e) => {
+          e.preventDefault()
+          void submit()
+        }}
+      >
+        <fieldset className={styles.section}>
+          <legend className={styles.legend}>
+            <span className={styles.idx}>01</span>
+            <span className={styles.legendText}>기본 정보</span>
+          </legend>
           <Input
             label="공간 이름"
             placeholder="루즈 셀러"
             value={f.name}
             onChange={(e) => set('name', e.target.value)}
+            onBlur={() => touch('name')}
+            error={touched.name ? errors.name : undefined}
+            required
           />
           <div className={styles.field}>
-            <label className={styles.fl}>종류</label>
-            <div className={styles.chips}>
+            <span className={styles.fl} id="venue-kind-label">
+              종류
+            </span>
+            <div className={styles.chips} role="group" aria-labelledby="venue-kind-label">
               {KINDS.map((k) => (
                 <Chip
                   key={k.value}
@@ -153,8 +180,10 @@ export default function VenueRegisterPage() {
             </div>
           </div>
           <div className={styles.field}>
-            <label className={styles.fl}>동네</label>
-            <div className={styles.chips}>
+            <span className={styles.fl} id="venue-area-label">
+              동네
+            </span>
+            <div className={styles.chips} role="group" aria-labelledby="venue-area-label">
               {AREAS.map((a) => (
                 <Chip key={a} selected={f.area === a} onClick={() => set('area', a)}>
                   {a}
@@ -167,34 +196,46 @@ export default function VenueRegisterPage() {
             placeholder="서울 용산구 한남대로 1"
             value={f.address}
             onChange={(e) => set('address', e.target.value)}
+            onBlur={() => touch('address')}
+            error={touched.address ? errors.address : undefined}
+            required
           />
-        </Card>
+        </fieldset>
 
-        <Card padding="lg" className={styles.card}>
-          <h2 className={styles.h2}>
-            <span className={styles.h2idx}>02</span>정원 & 가격
-          </h2>
+        <fieldset className={styles.section}>
+          <legend className={styles.legend}>
+            <span className={styles.idx}>02</span>
+            <span className={styles.legendText}>정원 & 가격</span>
+          </legend>
           <div className={styles.grid2}>
             <Input
               type="number"
+              inputMode="numeric"
+              min={1}
               label="최대 정원"
               value={f.capacity}
               onChange={(e) => set('capacity', Number(e.target.value))}
             />
             <Input
               type="number"
+              inputMode="numeric"
+              min={0}
               label="시간당 대관료(원)"
               value={f.pricePerHourKRW}
               onChange={(e) => set('pricePerHourKRW', Number(e.target.value))}
             />
             <Input
               type="number"
+              inputMode="numeric"
+              min={0}
               label="청소비(원)"
               value={f.cleaningFeeKRW}
               onChange={(e) => set('cleaningFeeKRW', Number(e.target.value))}
             />
             <Input
               type="number"
+              inputMode="numeric"
+              min={1}
               label="최소 대관 시간"
               value={f.minHours}
               onChange={(e) => set('minHours', Number(e.target.value))}
@@ -202,41 +243,50 @@ export default function VenueRegisterPage() {
             <Input
               type="number"
               step="0.1"
+              min={1}
               label="주말 배수"
+              hint="평일 대비 주말 단가"
               value={f.weekendMultiplier}
               onChange={(e) => set('weekendMultiplier', Number(e.target.value))}
             />
             <Input
               type="number"
               step="0.1"
+              min={1}
               label="피크 배수"
+              hint="성수기·황금시간 단가"
               value={f.peakMultiplier}
               onChange={(e) => set('peakMultiplier', Number(e.target.value))}
             />
           </div>
-        </Card>
+        </fieldset>
 
-        <Card padding="lg" className={styles.card}>
-          <h2 className={styles.h2}>
-            <span className={styles.h2idx}>03</span>영업 시간 & 휴무
-          </h2>
+        <fieldset className={styles.section}>
+          <legend className={styles.legend}>
+            <span className={styles.idx}>03</span>
+            <span className={styles.legendText}>영업 시간 & 휴무</span>
+          </legend>
           <div className={styles.grid2}>
             <Input
               type="time"
               label="영업 시작"
+              leftIcon={<Icon name="clock" />}
               value={f.open}
               onChange={(e) => set('open', e.target.value)}
             />
             <Input
               type="time"
               label="영업 종료"
+              leftIcon={<Icon name="clock" />}
               value={f.close}
               onChange={(e) => set('close', e.target.value)}
             />
           </div>
           <div className={styles.field}>
-            <label className={styles.fl}>정기 휴무</label>
-            <div className={styles.chips}>
+            <span className={styles.fl} id="venue-closed-label">
+              정기 휴무
+            </span>
+            <div className={styles.chips} role="group" aria-labelledby="venue-closed-label">
               {WEEKDAYS.map((w, i) => (
                 <Chip
                   key={i}
@@ -253,12 +303,13 @@ export default function VenueRegisterPage() {
           <p className={styles.hint}>
             휴무일·마감 후 시간이 자동으로 “유휴 시간 → 파티” 후보가 돼요.
           </p>
-        </Card>
+        </fieldset>
 
-        <Card padding="lg" className={styles.card}>
-          <h2 className={styles.h2}>
-            <span className={styles.h2idx}>04</span>예약 정책 & 무드
-          </h2>
+        <fieldset className={styles.section}>
+          <legend className={styles.legend}>
+            <span className={styles.idx}>04</span>
+            <span className={styles.legendText}>예약 정책 & 무드</span>
+          </legend>
           <div className={styles.toggles}>
             <Toggle
               label="즉시 예약 허용"
@@ -280,32 +331,39 @@ export default function VenueRegisterPage() {
             onChange={(e) => set('amenities', e.target.value)}
           />
           <Input
-            label="무드 태그"
+            label="무드 태그 (쉼표로 구분)"
             placeholder="루프뷰, 감성조명, 조용한"
             value={f.vibeTags}
             onChange={(e) => set('vibeTags', e.target.value)}
           />
           <Input
-            label="추천 용도"
+            label="추천 용도 (쉼표로 구분)"
             placeholder="와인모임, 소개팅, 북토크"
             value={f.useCases}
             onChange={(e) => set('useCases', e.target.value)}
           />
-          <Input
-            label="대표 사진 URL"
-            placeholder="https://…"
-            value={f.photo1}
-            onChange={(e) => set('photo1', e.target.value)}
-          />
-          <Input
-            label="추가 사진 URL"
-            placeholder="https://…"
-            value={f.photo2}
-            onChange={(e) => set('photo2', e.target.value)}
-          />
+          <div className={styles.grid2}>
+            <Input
+              type="url"
+              label="대표 사진 URL"
+              placeholder="https://…"
+              value={f.photo1}
+              onChange={(e) => set('photo1', e.target.value)}
+            />
+            <Input
+              type="url"
+              label="추가 사진 URL"
+              placeholder="https://…"
+              value={f.photo2}
+              onChange={(e) => set('photo2', e.target.value)}
+            />
+          </div>
           <div className={styles.field}>
-            <label className={styles.fl}>사장님 한마디</label>
+            <label className={styles.fl} htmlFor="venue-host-blurb">
+              사장님 한마디
+            </label>
             <textarea
+              id="venue-host-blurb"
               className={styles.textarea}
               rows={2}
               placeholder="직접 셀렉한 와인으로 라운드를 채워요."
@@ -313,20 +371,26 @@ export default function VenueRegisterPage() {
               onChange={(e) => set('hostBlurb', e.target.value)}
             />
           </div>
-        </Card>
+        </fieldset>
 
-        <Card padding="lg" className={styles.card}>
-          <h2 className={styles.h2}>
-            <span className={styles.h2idx}>05</span>도착 가이드
-            <span className={styles.h2sub}>확정 후에만 게스트에게 공개</span>
-          </h2>
+        <fieldset className={styles.section}>
+          <legend className={styles.legend}>
+            <span className={styles.idx}>05</span>
+            <span className={styles.legendText}>도착 가이드</span>
+            <span className={styles.legendSub}>
+              <Icon name="shield" />
+              확정 후에만 게스트에게 공개
+            </span>
+          </legend>
           <Input
             label="주차 안내"
+            leftIcon={<Icon name="pin" />}
             value={f.parkingNote}
             onChange={(e) => set('parkingNote', e.target.value)}
           />
           <Input
             label="출입 안내"
+            leftIcon={<Icon name="home" />}
             value={f.entryInfo}
             onChange={(e) => set('entryInfo', e.target.value)}
           />
@@ -342,17 +406,23 @@ export default function VenueRegisterPage() {
               onChange={(e) => set('wifiPassword', e.target.value)}
             />
           </div>
-        </Card>
+        </fieldset>
 
         <div className={styles.actions}>
-          <Button variant="ghost" size="lg" onClick={() => navigate('/host/space')}>
+          <Button type="button" variant="ghost" size="lg" onClick={() => navigate('/host/space')}>
             취소
           </Button>
-          <Button variant="gold" size="lg" isLoading={create.isPending} onClick={submit}>
-            🏠 공간 등록하기
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            isLoading={create.isPending}
+            leftIcon={<Icon name="home" />}
+          >
+            공간 등록하기
           </Button>
         </div>
-      </div>
+      </form>
     </div>
   )
 }
@@ -371,10 +441,12 @@ function Toggle({
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={checked}
       className={`${styles.toggle} ${checked ? styles.toggleOn : ''}`}
       onClick={() => onChange(!checked)}
     >
-      <span className={styles.toggleDot} />
+      <span className={styles.toggleDot}>{checked && <Icon name="check" size={0.8} />}</span>
       <span>
         <strong>{label}</strong>
         {desc && <small>{desc}</small>}

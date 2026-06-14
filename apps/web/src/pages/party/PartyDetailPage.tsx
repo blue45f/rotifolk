@@ -38,6 +38,7 @@ import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
 import { Sheet } from '@components/ui/Sheet/Sheet'
+import { Icon } from '@components/ui/Icon/Icon'
 import { AfterPartyManager } from '@features/parties/AfterPartyManager'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
@@ -376,21 +377,30 @@ export default function PartyDetailPage() {
       )}
       {conflict && !joinedMe && (
         <div className={styles.clashBar} role="alert">
-          ⚠️ 같은 시간대에 이미 신청한 모임이 있어요 — <strong>{conflict.party.title}</strong>
+          <Icon name="clock" aria-hidden />
+          <span>
+            같은 시간대에 이미 신청한 모임이 있어요 · <strong>{conflict.party.title}</strong>
+          </span>
         </div>
       )}
       {avoidOverlaps && avoidOverlaps.length > 0 && !isHost && !joinedMe && (
         <div className={styles.avoidBar} role="alert">
-          🛡️ <strong>{avoidOverlaps.length}명</strong>이 회피·차단 목록과 일치해요 (
-          {[...new Set(avoidOverlaps.flatMap((o) => o.reasons))]
-            .map((r) => AVOID_REASON_LABEL[r])
-            .join(' · ')}
-          ). 신중히 결정하세요.
+          <Icon name="shield" aria-hidden />
+          <span>
+            <strong>{avoidOverlaps.length}명</strong>이 회피·차단 목록과 일치해요 (
+            {[...new Set(avoidOverlaps.flatMap((o) => o.reasons))]
+              .map((r) => AVOID_REASON_LABEL[r])
+              .join(' · ')}
+            ). 신중히 결정하세요.
+          </span>
         </div>
       )}
       {avoidOverlaps && avoidOverlaps.length === 0 && !isHost && (
         <div className={styles.safeBar} role="status">
-          🛡️ <strong>지인 회피 안심 모임</strong> (등록된 회피 연락처/회원이 이 모임에 없습니다.)
+          <Icon name="shield" aria-hidden />
+          <span>
+            <strong>지인 회피 안심 모임</strong> · 등록된 회피 연락처/회원이 이 모임에 없습니다.
+          </span>
         </div>
       )}
       <motion.section
@@ -400,11 +410,11 @@ export default function PartyDetailPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
+        {party.coverImageUrl && (
+          <img className={styles.coverImg} src={party.coverImageUrl} alt="" />
+        )}
         <div className={`container ${styles.heroInner}`}>
-          {party.coverImageUrl && (
-            <img className={styles.coverImg} src={party.coverImageUrl} alt="" />
-          )}
-          <div className={styles.heroBody}>
+          <div className={styles.heroTop}>
             <div className={styles.heroChips}>
               <Badge tone={tone} size="md">
                 {cat.emoji} {cat.label}
@@ -421,12 +431,47 @@ export default function PartyDetailPage() {
               )}
               {status === 'live' && (
                 <Badge tone="danger" size="md">
-                  🔴 LIVE
+                  <Icon name="live" aria-hidden /> LIVE
                 </Badge>
               )}
             </div>
-            <h1 className={styles.heroTitle}>{party.title}</h1>
-            <div className={styles.heroMeta}>
+            <div className={styles.heroActions}>
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={handleShare}
+                aria-label="공유"
+              >
+                <Icon name="chevron-right" aria-hidden />
+                <span>공유</span>
+              </button>
+              <button
+                type="button"
+                className={styles.iconBtn}
+                onClick={handleAddToCalendar}
+                aria-label="내 캘린더에 추가"
+              >
+                <Icon name="clock" aria-hidden />
+                <span>캘린더</span>
+              </button>
+              {me && (
+                <button
+                  type="button"
+                  className={`${styles.iconBtn} ${isSaved ? styles.iconBtnActive : ''}`}
+                  onClick={() => toggleSave.mutate()}
+                  aria-pressed={isSaved}
+                  aria-label="북마크"
+                >
+                  <Icon name="bookmark" aria-hidden />
+                  <span>{isSaved ? '저장됨' : '저장'}</span>
+                </button>
+              )}
+            </div>
+          </div>
+          <h1 className={styles.heroTitle}>{party.title}</h1>
+          <ul className={styles.heroFacts}>
+            <li>
+              <Icon name="clock" aria-hidden />
               <span>
                 {start.toLocaleString('ko-KR', {
                   month: 'long',
@@ -436,66 +481,50 @@ export default function PartyDetailPage() {
                   minute: '2-digit',
                 })}
               </span>
-              <div className={styles.heroActions}>
-                <button
-                  type="button"
-                  className={styles.iconBtn}
-                  onClick={handleShare}
-                  aria-label="공유"
-                >
-                  ↗ 공유
-                </button>
-                <button
-                  type="button"
-                  className={styles.iconBtn}
-                  onClick={handleAddToCalendar}
-                  aria-label="내 캘린더에 추가"
-                >
-                  📅 캘린더
-                </button>
-                {me && (
-                  <button
-                    type="button"
-                    className={`${styles.iconBtn} ${isSaved ? styles.iconBtnActive : ''}`}
-                    onClick={() => toggleSave.mutate()}
-                    aria-pressed={isSaved}
-                    aria-label="북마크"
-                  >
-                    {isSaved ? '★ 저장됨' : '☆ 저장'}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+            </li>
+            <li>
+              <Icon name="sparkle" aria-hidden />
+              <span>
+                {party.config.totalRounds}라운드 · 한 라운드{' '}
+                {Math.round(party.config.roundDurationSec / 60)}분
+              </span>
+            </li>
+            <li>
+              <Icon name="user" aria-hidden />
+              <span>
+                {party.currentParticipants}/{party.maxParticipants}명 참여
+              </span>
+            </li>
+          </ul>
         </div>
       </motion.section>
 
       <div className={`container ${styles.body}`}>
-        <div className={styles.main}>
-          <Card padding="lg">
+        <main className={styles.main}>
+          <section className={styles.section}>
             <h2 className={styles.h2}>이 파티는요</h2>
             <p className={styles.desc}>{party.description}</p>
 
-            <div className={styles.specs}>
+            <dl className={styles.specs}>
               <div className={styles.spec}>
-                <span>라운드</span>
-                <strong>{party.config.totalRounds}라운드</strong>
+                <dt>라운드</dt>
+                <dd>{party.config.totalRounds}라운드</dd>
               </div>
               <div className={styles.spec}>
-                <span>한 라운드</span>
-                <strong>{Math.round(party.config.roundDurationSec / 60)}분</strong>
+                <dt>한 라운드</dt>
+                <dd>{Math.round(party.config.roundDurationSec / 60)}분</dd>
               </div>
               <div className={styles.spec}>
-                <span>매칭 방식</span>
-                <strong>{ROTATION_LABEL[party.config.rotationMode]}</strong>
+                <dt>매칭 방식</dt>
+                <dd>{ROTATION_LABEL[party.config.rotationMode]}</dd>
               </div>
               <div className={styles.spec}>
-                <span>정원</span>
-                <strong>
+                <dt>정원</dt>
+                <dd>
                   {party.minParticipants} ~ {party.maxParticipants}명
-                </strong>
+                </dd>
               </div>
-            </div>
+            </dl>
 
             <div className={styles.featChips}>
               {party.config.enableQuiz && <Badge tone="primary">🎯 라이브 퀴즈</Badge>}
@@ -519,9 +548,9 @@ export default function PartyDetailPage() {
                 ))}
               </div>
             )}
-          </Card>
+          </section>
 
-          <Card padding="lg">
+          <section className={styles.section}>
             <h2 className={styles.h2}>참가 전에 확인해요</h2>
             <div className={styles.signalGrid}>
               <div className={styles.signal}>
@@ -626,11 +655,11 @@ export default function PartyDetailPage() {
                 fullWidth
               />
             </div>
-          </Card>
+          </section>
 
           <EligibilityPriceCard party={party} />
 
-          <Card padding="lg">
+          <section className={styles.section}>
             <h2 className={styles.h2}>참가자 ({participants.length})</h2>
             {participants.length === 0 ? (
               <p className={styles.muted}>아직 첫 참가자를 기다리고 있어요.</p>
@@ -640,7 +669,7 @@ export default function PartyDetailPage() {
                   <div key={p.id} className={styles.part}>
                     <Avatar
                       size="lg"
-                      hue={p.guestAvatar?.hue ?? '#7A1F3D'}
+                      hue={p.guestAvatar?.hue ?? 'var(--color-primary)'}
                       pattern="gradient"
                       emoji={p.guestAvatar?.emoji ?? (p.user?.nickname ?? p.guestName ?? '익')[0]}
                       imageSrc={
@@ -664,7 +693,7 @@ export default function PartyDetailPage() {
                         {p.user?.mbti && <span>{p.user.mbti}</span>}
                         {p.user?.verifiedFields?.includes('identity') && (
                           <Badge tone="info" size="sm">
-                            ✓ 본인인증
+                            <Icon name="check" aria-hidden /> 본인인증
                           </Badge>
                         )}
                         {p.status === 'checked-in' && (
@@ -678,7 +707,7 @@ export default function PartyDetailPage() {
                 ))}
               </div>
             )}
-          </Card>
+          </section>
 
           {(() => {
             const canPostPhoto =
@@ -688,7 +717,7 @@ export default function PartyDetailPage() {
             const showPhotosSection = (photos && photos.length > 0) || canPostPhoto
             if (!showPhotosSection) return null
             return (
-              <Card padding="lg">
+              <section className={styles.section}>
                 <h2 className={styles.h2}>사진 ({photos?.length ?? 0})</h2>
                 {canPostPhoto && (
                   <form
@@ -752,7 +781,7 @@ export default function PartyDetailPage() {
                 ) : (
                   <p className={styles.muted}>아직 사진이 없어요. 참가자만 추가할 수 있어요.</p>
                 )}
-              </Card>
+              </section>
             )
           })()}
 
@@ -761,7 +790,7 @@ export default function PartyDetailPage() {
           )}
 
           {(reviews && reviews.length > 0) || (status === 'ended' && joinedMe) ? (
-            <Card padding="lg">
+            <section className={styles.section}>
               <h2 className={styles.h2}>후기</h2>
               {status === 'ended' && joinedMe && (
                 <div className={styles.reviewForm}>
@@ -859,7 +888,7 @@ export default function PartyDetailPage() {
                       {r.hostReply ? (
                         <div className={styles.reply}>
                           <div className={styles.replyHead}>
-                            <strong>🎙️ 호스트 답글</strong>
+                            <strong>호스트 답글</strong>
                             {r.hostRepliedAt && (
                               <time className={styles.muted}>
                                 {new Date(r.hostRepliedAt).toLocaleDateString('ko-KR')}
@@ -911,7 +940,7 @@ export default function PartyDetailPage() {
                                   setReplyBody('')
                                 }}
                               >
-                                🎙️ 답글 작성
+                                <Icon name="chat" aria-hidden /> 답글 작성
                               </button>
                             )}
                           </div>
@@ -921,30 +950,40 @@ export default function PartyDetailPage() {
                   ))}
                 </ul>
               )}
-            </Card>
+            </section>
           ) : null}
-        </div>
+        </main>
 
-        <aside className={styles.aside}>
-          <Card padding="lg" variant="glass" className={styles.bookCard}>
+        <aside className={styles.aside} aria-label="참가 신청">
+          <Card padding="lg" className={styles.bookCard}>
             <div className={styles.priceRow}>
               <span className={styles.priceLabel}>참가비</span>
               <strong className={styles.priceVal}>
-                {party.pricing.basePriceKRW.toLocaleString()}원
+                {isFree ? '무료' : `${party.pricing.basePriceKRW.toLocaleString()}원`}
               </strong>
             </div>
             <ul className={styles.included}>
-              <li>🍷 {DRINK_PACKAGE_LABEL[party.pricing.drinkPackage]}</li>
-              <li>🍴 {SNACK_PACKAGE_LABEL[party.pricing.snackPackage]}</li>
-              <li>🔄 환불: 시작 {party.pricing.refundDeadlineHours}시간 전까지 전액</li>
+              <li>
+                <Icon name="sparkle" aria-hidden />
+                <span>{DRINK_PACKAGE_LABEL[party.pricing.drinkPackage]}</span>
+              </li>
+              <li>
+                <Icon name="sparkle" aria-hidden />
+                <span>{SNACK_PACKAGE_LABEL[party.pricing.snackPackage]}</span>
+              </li>
+              <li>
+                <Icon name="shield" aria-hidden />
+                <span>환불: 시작 {party.pricing.refundDeadlineHours}시간 전까지 전액</span>
+              </li>
             </ul>
             <Link to={policyHref} className={styles.policyLink}>
-              환불·취소·노쇼 정책 자세히 보기 →
+              환불·취소·노쇼 정책 자세히 보기
+              <Icon name="chevron-right" aria-hidden />
             </Link>
 
             {isHost ? (
               <div className={styles.stack}>
-                <Link to={`/host/parties/${party.id}`}>
+                <Link to={`/host/parties/${party.id}`} className={styles.stackLink}>
                   <Button variant="primary" size="lg" fullWidth>
                     호스트 콘솔로 가기
                   </Button>
@@ -953,36 +992,40 @@ export default function PartyDetailPage() {
                   variant="soft"
                   size="lg"
                   fullWidth
+                  leftIcon={<Icon name="chat" aria-hidden />}
                   onClick={handleOpenGroupChat}
                   isLoading={ensureRoom.isPending}
                 >
-                  💬 단톡방 입장
+                  단톡방 입장
                 </Button>
-                <Button variant="ghost" size="md" fullWidth onClick={() => setShowAddGuest(true)}>
-                  🎟 게스트 추가 (현장 합류)
+                <Button
+                  variant="ghost"
+                  size="md"
+                  fullWidth
+                  leftIcon={<Icon name="plus" aria-hidden />}
+                  onClick={() => setShowAddGuest(true)}
+                >
+                  게스트 추가 (현장 합류)
                 </Button>
               </div>
             ) : joinedMe ? (
               <div className={styles.stack}>
                 <div className={styles.joinedBadges}>
                   <Badge tone="success">
-                    ✅ 신청 완료 — {joinedMe.status === 'waitlist' ? '대기' : '확정'}
+                    <Icon name="check" aria-hidden /> 신청 완료 ·{' '}
+                    {joinedMe.status === 'waitlist' ? '대기' : '확정'}
                   </Badge>
-                  {paidPayment && <Badge tone="gold">💳 결제 완료</Badge>}
+                  {paidPayment && <Badge tone="gold">결제 완료</Badge>}
                 </div>
-                <Button
-                  variant="soft"
-                  size="lg"
-                  fullWidth
-                  onClick={handleOpenGroupChat}
-                  isLoading={ensureRoom.isPending}
-                >
-                  💬 단톡방 입장
-                </Button>
                 {status === 'live' && (
-                  <Link to={`/live/${party.id}`}>
-                    <Button variant="gold" size="lg" fullWidth>
-                      🔴 라이브 입장
+                  <Link to={`/live/${party.id}`} className={styles.stackLink}>
+                    <Button
+                      variant="gold"
+                      size="lg"
+                      fullWidth
+                      leftIcon={<Icon name="live" aria-hidden />}
+                    >
+                      라이브 입장
                     </Button>
                   </Link>
                 )}
@@ -999,6 +1042,16 @@ export default function PartyDetailPage() {
                     결제하기 ({party.pricing.basePriceKRW.toLocaleString()}원)
                   </Button>
                 )}
+                <Button
+                  variant="soft"
+                  size="lg"
+                  fullWidth
+                  leftIcon={<Icon name="chat" aria-hidden />}
+                  onClick={handleOpenGroupChat}
+                  isLoading={ensureRoom.isPending}
+                >
+                  단톡방 입장
+                </Button>
                 {paidPayment && canRefund && (
                   <Button
                     variant="ghost"
@@ -1051,7 +1104,7 @@ export default function PartyDetailPage() {
             <Link to={`/hosts/${party.hostId}`} className={styles.hostBlock}>
               <Avatar
                 size="lg"
-                hue="#7A1F3D"
+                hue="var(--color-primary)"
                 pattern="gradient"
                 emoji={party.host?.nickname?.[0]}
                 imageSrc={party.host?.avatarImage ?? null}
@@ -1060,10 +1113,17 @@ export default function PartyDetailPage() {
               <div>
                 <div className={styles.partName}>
                   {party.host?.nickname ?? '호스트'}
-                  {party.host?.isVerified && <Badge tone="info">✓ 인증</Badge>}
+                  {party.host?.isVerified && (
+                    <Badge tone="info">
+                      <Icon name="check" aria-hidden /> 인증
+                    </Badge>
+                  )}
                 </div>
                 {party.host?.bio && <p className={styles.muted}>{party.host.bio}</p>}
-                <p className={styles.hostLink}>프로필 보기 →</p>
+                <p className={styles.hostLink}>
+                  프로필 보기
+                  <Icon name="chevron-right" aria-hidden />
+                </p>
               </div>
             </Link>
 
@@ -1260,16 +1320,9 @@ function EligibilityPriceCard({ party }: { party: Party }) {
   if (!m && !f && common) ageParts.push(common)
 
   return (
-    <Card padding="lg">
+    <section className={styles.section}>
       <h2 className={styles.h2}>참가 자격{showMyPrice ? ' · 내 참가비' : ''}</h2>
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 'var(--space-2)',
-          margin: 'var(--space-3) 0',
-        }}
-      >
+      <div className={styles.eligBadges}>
         {ageParts.length > 0 && (
           <Badge tone="wine" outlined>
             🎂 {ageParts.join(' · ')}
@@ -1287,31 +1340,24 @@ function EligibilityPriceCard({ party }: { party: Party }) {
         )}
         {reqV.map((v) => (
           <Badge key={v} tone="gold" outlined>
-            ✓ {VERIFICATION_FIELD_LABEL[v]} 인증
+            <Icon name="check" aria-hidden /> {VERIFICATION_FIELD_LABEL[v]} 인증
           </Badge>
         ))}
       </div>
       {showMyPrice && (
         <p className={styles.muted}>
-          내 참가비{' '}
-          <strong style={{ color: 'var(--color-primary)' }}>{formatKRW(myPrice ?? 0)}</strong> (기본{' '}
+          내 참가비 <strong className={styles.myPrice}>{formatKRW(myPrice ?? 0)}</strong> (기본{' '}
           {formatKRW(party.pricing.basePriceKRW)})
         </p>
       )}
       {elig && !elig.ok && (
-        <p
-          style={{
-            marginTop: 'var(--space-2)',
-            fontSize: 'var(--fs-sm)',
-            color: 'var(--brand-burgundy-700)',
-          }}
-        >
-          ⚠️ 지금은 참가 조건을 충족하지 않아요 (
+        <p className={styles.eligWarn}>
+          <Icon name="shield" aria-hidden /> 지금은 참가 조건을 충족하지 않아요 (
           {elig.reasons.map((r) => ELIGIBILITY_REASON_LABEL[r]).join(', ')}). 프로필·인증을 채우면
           참가할 수 있어요.
         </p>
       )}
-    </Card>
+    </section>
   )
 }
 
@@ -1329,7 +1375,8 @@ function AutoCancelNote({ deadlineISO, met }: { deadlineISO: string; met: boolea
   const fmt = h > 0 ? `${h}시간 ${m}분` : `${m}분 ${s}초`
   return (
     <p className={`${styles.autoCancel} ${met ? '' : styles.autoCancelRisk}`}>
-      {met ? '⏳' : '⚠️'} 마감까지 {fmt} · 이때까지 인원·성비가 차지 않으면 자동 취소돼요
+      <Icon name="clock" aria-hidden /> 마감까지 {fmt} · 이때까지 인원·성비가 차지 않으면 자동
+      취소돼요
     </p>
   )
 }

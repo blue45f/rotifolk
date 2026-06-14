@@ -14,7 +14,8 @@ export interface PartyShareCardProps {
   gradient?: string
 }
 
-const FALLBACK_GRADIENT = 'linear-gradient(135deg, #4A0E25 0%, #7A1F3D 50%, #C9627F 100%)'
+const FALLBACK_GRADIENT =
+  'linear-gradient(135deg, color-mix(in oklab, var(--cat-wine) 60%, var(--brand-clay-900)) 0%, var(--cat-wine) 52%, color-mix(in oklab, var(--cat-wine) 42%, var(--brand-paper-100)) 100%)'
 
 function metaFor(category: string) {
   return CATEGORY_META[category as PartyCategory] as

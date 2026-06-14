@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
+import { Tooltip } from '@components/ui/Tooltip/Tooltip'
 import { useLocale, useT } from '@features/i18n/useI18n'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
@@ -17,13 +19,13 @@ interface HeaderProps {
 type ThemeOption = {
   value: 'light' | 'dark' | 'system'
   labelKey: 'theme.light' | 'theme.dark' | 'theme.system'
-  emoji: string
+  icon: IconName
 }
 
 const THEME_OPTIONS: ThemeOption[] = [
-  { value: 'light', labelKey: 'theme.light', emoji: '☀️' },
-  { value: 'dark', labelKey: 'theme.dark', emoji: '🌙' },
-  { value: 'system', labelKey: 'theme.system', emoji: '🖥️' },
+  { value: 'light', labelKey: 'theme.light', icon: 'sun' },
+  { value: 'dark', labelKey: 'theme.dark', icon: 'moon' },
+  { value: 'system', labelKey: 'theme.system', icon: 'monitor' },
 ]
 
 export function Header({ onOpenCommand }: HeaderProps) {
@@ -77,32 +79,34 @@ export function Header({ onOpenCommand }: HeaderProps) {
         <div className={styles.actions}>
           {!user && (
             <Link to={demoLoginHref} className={styles.commandBtn} aria-label="데모 계정 빠른 시작">
-              <span aria-hidden="true">🎁</span>
+              <Icon name="sparkle" aria-hidden />
               <span className={styles.commandBtnHint}>데모</span>
             </Link>
           )}
-          <button
-            type="button"
-            className={styles.langBtn}
-            onClick={() => setLocale(nextLocale)}
-            aria-label={`Switch language to ${nextLocale.toUpperCase()}`}
-            title={nextLocale.toUpperCase()}
-          >
-            {langLabel}
-          </button>
-          {onOpenCommand && (
+          <Tooltip label={`Switch language to ${nextLocale.toUpperCase()}`}>
             <button
               type="button"
-              className={styles.commandBtn}
-              onClick={() => onOpenCommand()}
-              aria-label={`${t('command.openLabel')} (⌘K / /)`}
-              title={`${t('command.openLabel')} (⌘K / /)`}
+              className={styles.langBtn}
+              onClick={() => setLocale(nextLocale)}
+              aria-label={`Switch language to ${nextLocale.toUpperCase()}`}
             >
-              <span aria-hidden="true">⌘K</span>
-              <span className={styles.commandBtnHint} aria-hidden="true">
-                /
-              </span>
+              {langLabel}
             </button>
+          </Tooltip>
+          {onOpenCommand && (
+            <Tooltip label={`${t('command.openLabel')} (⌘K / /)`}>
+              <button
+                type="button"
+                className={styles.commandBtn}
+                onClick={() => onOpenCommand()}
+                aria-label={`${t('command.openLabel')} (⌘K / /)`}
+              >
+                <span aria-hidden="true">⌘K</span>
+                <span className={styles.commandBtnHint} aria-hidden="true">
+                  /
+                </span>
+              </button>
+            </Tooltip>
           )}
           <div className={styles.themeWrap}>
             <DropdownMenu.Root>
@@ -112,7 +116,7 @@ export function Header({ onOpenCommand }: HeaderProps) {
                   className={styles.themeBtn}
                   aria-label={t('theme.switchLabel')}
                 >
-                  {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '🖥️'}
+                  <Icon name={theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'monitor'} />
                 </button>
               </DropdownMenu.Trigger>
               <span className={styles.themeModeText}>{themeModeLabel}</span>
@@ -125,10 +129,7 @@ export function Header({ onOpenCommand }: HeaderProps) {
                 >
                   <DropdownMenu.RadioGroup
                     value={theme}
-                    onValueChange={(value) => {
-                      const next = THEME_OPTIONS.find((option) => option.value === value)
-                      if (next) setTheme(next.value)
-                    }}
+                    onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
                   >
                     {THEME_OPTIONS.map((item) => (
                       <DropdownMenu.RadioItem
@@ -136,7 +137,7 @@ export function Header({ onOpenCommand }: HeaderProps) {
                         value={item.value}
                         className={styles.themeOption}
                       >
-                        <span aria-hidden="true">{item.emoji}</span>
+                        <Icon name={item.icon} aria-hidden />
                         <span>{t(item.labelKey)}</span>
                       </DropdownMenu.RadioItem>
                     ))}
@@ -146,21 +147,23 @@ export function Header({ onOpenCommand }: HeaderProps) {
             </DropdownMenu.Root>
           </div>
           {user && (
-            <Link to="/notifications" className={styles.bell} aria-label="알림">
-              <span aria-hidden="true">🔔</span>
-              {(unread?.count ?? 0) > 0 && (
-                <span className={styles.bellDot} aria-hidden="true">
-                  {unread!.count > 9 ? '9+' : unread!.count}
-                </span>
-              )}
-            </Link>
+            <Tooltip label="알림">
+              <Link to="/notifications" className={styles.bell} aria-label="알림">
+                <Icon name="bell" aria-hidden />
+                {(unread?.count ?? 0) > 0 && (
+                  <span className={styles.bellDot} aria-hidden="true">
+                    {unread!.count > 9 ? '9+' : unread!.count}
+                  </span>
+                )}
+              </Link>
+            </Tooltip>
           )}
           {user ? (
             <Link to="/me" aria-label="내 프로필">
               <Avatar
                 size="sm"
                 emoji={user.nickname[0]}
-                hue="#7A1F3D"
+                hue="var(--color-primary)"
                 pattern="gradient"
                 imageSrc={user.avatarImage ?? null}
               />

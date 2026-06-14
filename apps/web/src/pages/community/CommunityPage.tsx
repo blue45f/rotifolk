@@ -9,6 +9,7 @@ import {
 } from '@rotifolk/shared'
 import { Button } from '@components/ui/Button/Button'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -875,7 +876,10 @@ export default function CommunityPage() {
         <section className={styles.mainColumn}>
           {!isTermsReady && me ? (
             <section className={styles.policyGatePanel} role="note" aria-live="polite">
-              <h3>🔒 커뮤니티 기능은 필수 조항 동의가 필요해요.</h3>
+              <h3>
+                <Icon name="shield" aria-hidden />
+                커뮤니티 기능은 필수 조항 동의가 필요해요.
+              </h3>
               <p>현재 미동의 항목: {missingRequiredTermNames.join(', ') || '없음'}</p>
               <div className={styles.policyGatePanelActions}>
                 <Link to={policyGateHref}>필수 약관 동의로 진행</Link>
@@ -885,7 +889,10 @@ export default function CommunityPage() {
           ) : null}
           {isGuideMode && (
             <section className={styles.guidePanel} aria-label="커뮤니티 시작 가이드">
-              <h3>💬 커뮤니티 첫 질문 가이드</h3>
+              <h3>
+                <Icon name="chat" aria-hidden />
+                커뮤니티 첫 질문 가이드
+              </h3>
               <p>처음 쓰는 글을 빠르게 완성할 수 있도록 템플릿을 제공합니다.</p>
               <div className={styles.guideTemplateGrid}>
                 {GUIDE_TEMPLATES.map((template) => (
@@ -937,39 +944,11 @@ export default function CommunityPage() {
                 확인합니다.
               </p>
               <div className={styles.missionList}>
-                <div className={termsMissionDone ? styles.missionDone : styles.missionPending}>
-                  필수 약관 동의: {termsMissionDone ? '완료' : '대기중'}
-                </div>
-                <div
-                  className={
-                    effectiveMissionState.templateUsed ? styles.missionDone : styles.missionPending
-                  }
-                >
-                  템플릿 적용: {effectiveMissionState.templateUsed ? '완료' : '대기중'}
-                </div>
-                <div
-                  className={
-                    effectiveMissionState.postCreated ? styles.missionDone : styles.missionPending
-                  }
-                >
-                  첫 글 등록: {effectiveMissionState.postCreated ? '완료' : '대기중'}
-                </div>
-                <div
-                  className={
-                    effectiveMissionState.commentPosted ? styles.missionDone : styles.missionPending
-                  }
-                >
-                  댓글/답글 등록: {effectiveMissionState.commentPosted ? '완료' : '대기중'}
-                </div>
-                <div
-                  className={
-                    effectiveMissionState.reportSubmitted
-                      ? styles.missionDone
-                      : styles.missionPending
-                  }
-                >
-                  신고 접수: {effectiveMissionState.reportSubmitted ? '완료' : '대기중'}
-                </div>
+                <MissionItem label="필수 약관 동의" done={termsMissionDone} />
+                <MissionItem label="템플릿 적용" done={effectiveMissionState.templateUsed} />
+                <MissionItem label="첫 글 등록" done={effectiveMissionState.postCreated} />
+                <MissionItem label="댓글/답글 등록" done={effectiveMissionState.commentPosted} />
+                <MissionItem label="신고 접수" done={effectiveMissionState.reportSubmitted} />
               </div>
               <p className={styles.missionProgress}>
                 미션 진행: {missionDoneCount} / {missionTotalCount}
@@ -1124,24 +1103,29 @@ export default function CommunityPage() {
                 disabled={!me || !isTermsReady}
                 title={isTermsReady ? undefined : '필수 약관 동의 후 글 작성 가능'}
               >
-                글 올리기
+                <Icon name="plus" aria-hidden />글 올리기
               </Button>
             </div>
           </form>
 
-          <div className={styles.filters} aria-label="커뮤니티 글 필터">
-            {CATEGORIES.map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                className={`${styles.filter} ${category === item.value ? styles.filterActive : ''}`}
-                onClick={() => syncCategoryFilter(item.value)}
-                aria-pressed={category === item.value}
-              >
-                <strong>{item.label}</strong>
-                <span>{item.hint}</span>
-              </button>
-            ))}
+          <div className={styles.filterGroup}>
+            <p className={styles.filterLabel} id="community-filter-label">
+              카테고리 선택
+            </p>
+            <div className={styles.filters} role="group" aria-labelledby="community-filter-label">
+              {CATEGORIES.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  className={`${styles.filter} ${category === item.value ? styles.filterActive : ''}`}
+                  onClick={() => syncCategoryFilter(item.value)}
+                  aria-pressed={category === item.value}
+                >
+                  <strong>{item.label}</strong>
+                  <span>{item.hint}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <form className={styles.searchPanel} onSubmit={handleSearchSubmit}>
@@ -1155,6 +1139,7 @@ export default function CommunityPage() {
                   disabled={posts.isLoading}
                 />
                 <Button type="submit" size="sm" variant="soft">
+                  <Icon name="search" aria-hidden />
                   검색
                 </Button>
                 {searchText.trim() && (
@@ -1166,17 +1151,21 @@ export default function CommunityPage() {
             </label>
           </form>
 
-          <section className={styles.threadList} aria-label="커뮤니티 글 목록">
-            {posts.isLoading ? (
+          {posts.isLoading ? (
+            <div className={styles.threadList} aria-label="커뮤니티 글 목록" aria-busy="true">
               <Loading />
-            ) : posts.isError ? (
+            </div>
+          ) : posts.isError ? (
+            <section className={styles.threadList} aria-label="커뮤니티 글 목록">
               <div className={styles.stateBox} role="alert">
                 <strong>커뮤니티 글을 불러오지 못했어요</strong>
                 <Button variant="soft" onClick={() => posts.refetch()}>
                   다시 불러오기
                 </Button>
               </div>
-            ) : !posts.data || posts.data.items.length === 0 ? (
+            </section>
+          ) : !posts.data || posts.data.items.length === 0 ? (
+            <section className={styles.threadList} aria-label="커뮤니티 글 목록">
               <EmptyState
                 emoji="💬"
                 title="아직 올라온 이야기가 없어요"
@@ -1186,34 +1175,69 @@ export default function CommunityPage() {
                     : '첫 질문을 남기면 같은 모임을 고민하는 사람들이 답을 이어갈 수 있어요.'
                 }
               />
-            ) : (
-              posts.data.items.map((post) => (
-                <article
-                  key={post.id}
-                  className={`${styles.postRow} ${activePostId === post.id ? styles.postRowActive : ''}`}
-                >
-                  <button type="button" onClick={() => setActivePostId(post.id)}>
-                    <span className={styles.rowTop}>
-                      <span>{COMMUNITY_POST_CATEGORY_LABEL[post.category]}</span>
-                      <span>{formatDate(post.lastCommentAt ?? post.createdAt)}</span>
-                    </span>
-                    <strong>{post.title}</strong>
-                    <p>{post.body}</p>
-                    <span className={styles.rowMeta}>
-                      <span>{post.area ?? '전체 동네'}</span>
-                      <span>댓글 {post.commentCount}</span>
-                      <span>{post.author.nickname}</span>
-                    </span>
-                  </button>
-                </article>
-              ))
-            )}
-          </section>
+            </section>
+          ) : (
+            <section aria-label="커뮤니티 글 목록">
+              <p className={styles.feedCount} aria-live="polite">
+                {category === 'all'
+                  ? `전체 이야기 ${posts.data.items.length}개`
+                  : `${COMMUNITY_POST_CATEGORY_LABEL[category]} ${posts.data.items.length}개`}
+              </p>
+              <ul className={styles.threadList}>
+                {posts.data.items.map((post) => (
+                  <li key={post.id} className={styles.threadItem}>
+                    <article
+                      className={`${styles.postRow} ${activePostId === post.id ? styles.postRowActive : ''}`}
+                      data-category={post.category}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setActivePostId(post.id)}
+                        aria-pressed={activePostId === post.id}
+                      >
+                        <span className={styles.rowTop}>
+                          <span className={styles.rowCategory}>
+                            {COMMUNITY_POST_CATEGORY_LABEL[post.category]}
+                          </span>
+                          <span className={styles.rowTime}>
+                            <Icon name="clock" aria-hidden />
+                            {formatDate(post.lastCommentAt ?? post.createdAt)}
+                          </span>
+                        </span>
+                        <strong>{post.title}</strong>
+                        <p>{post.body}</p>
+                        <span className={styles.rowMeta}>
+                          <span className={styles.rowAuthor}>
+                            <Icon name="user" aria-hidden />
+                            {post.author.nickname}
+                          </span>
+                          <span className={styles.rowDot} aria-hidden>
+                            ·
+                          </span>
+                          <span className={styles.rowArea}>
+                            <Icon name="pin" aria-hidden />
+                            {post.area ?? '전체 동네'}
+                          </span>
+                          <span className={styles.rowEngagement}>
+                            <Icon name="chat" aria-hidden />
+                            {post.commentCount}
+                          </span>
+                        </span>
+                      </button>
+                    </article>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </section>
 
         <aside className={styles.detailColumn} aria-label="선택한 커뮤니티 글">
           {!activePostId ? (
-            <div className={styles.stateBox}>
+            <div className={`${styles.stateBox} ${styles.detailHint}`}>
+              <span className={styles.detailHintIcon} aria-hidden>
+                <Icon name="chat" />
+              </span>
               <strong>글을 선택하면 댓글이 보여요</strong>
               <p>대댓글은 한 단계만 열어 읽기 흐름을 유지합니다.</p>
             </div>
@@ -1985,6 +2009,17 @@ function CommentItem({
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function MissionItem({ label, done }: { label: string; done: boolean }) {
+  return (
+    <div className={done ? styles.missionDone : styles.missionPending}>
+      <Icon name={done ? 'check' : 'clock'} aria-hidden />
+      <span>
+        {label}: {done ? '완료' : '대기중'}
+      </span>
     </div>
   )
 }

@@ -186,8 +186,8 @@
   padding-block: 2px;
 }
 .blockLongBreak {
-  background: color-mix(in oklab, var(--brand-gold-500) 14%, var(--color-surface));
-  border: 1px dashed color-mix(in oklab, var(--brand-gold-500) 45%, transparent);
+  background: color-mix(in oklab, var(--brand-amber-500) 14%, var(--color-surface));
+  border: 1px dashed color-mix(in oklab, var(--brand-amber-500) 45%, transparent);
   color: var(--color-text);
 }
 .blockTime {

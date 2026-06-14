@@ -13,6 +13,7 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Input } from '@components/ui/Input/Input'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { useToast } from '@components/feedback/Toast/useToast'
@@ -55,12 +56,14 @@ export default function InvitePage() {
   const [guestImage, setGuestImage] = useState<string | null>(null)
   const [imageBusy, setImageBusy] = useState(false)
   const [nowMs] = useState(() => Date.now())
+  // 스크린리더용 라이브 안내 ("복사했어요" 등) — 토스트와 함께 또렷이 읽어 준다.
+  const [liveMessage, setLiveMessage] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   if (isLoading) return <Loading label="초대장을 여는 중" />
   if (isError || !data) {
     return (
-      <div className={styles.page}>
+      <main className={styles.page}>
         <div className={`container ${styles.empty}`}>
           <EmptyState
             emoji="🌙"
@@ -68,7 +71,7 @@ export default function InvitePage() {
             description="호스트에게 새 링크를 받아보세요."
           />
         </div>
-      </div>
+      </main>
     )
   }
 
@@ -163,8 +166,10 @@ export default function InvitePage() {
     try {
       await navigator.clipboard.writeText(data.quickCode)
       toast.show('초대 코드를 복사했어요', 'success')
+      setLiveMessage(`초대 코드 ${data.quickCode}를 복사했어요`)
     } catch {
       toast.show('복사에 실패했어요', 'error')
+      setLiveMessage('복사에 실패했어요')
     }
   }
 
@@ -181,6 +186,7 @@ export default function InvitePage() {
       } else {
         await navigator.clipboard.writeText(`${shareText}\n${url}`)
         toast.show('초대 링크를 복사했어요', 'success')
+        setLiveMessage('초대 링크를 복사했어요')
       }
     } catch {
       // user cancelled
@@ -188,22 +194,33 @@ export default function InvitePage() {
   }
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
+      {/* 스크린리더 전용 라이브 안내 영역 */}
+      <p className={styles.srOnly} role="status" aria-live="polite">
+        {liveMessage}
+      </p>
+
       <div className={`container ${styles.wrap}`}>
         {!me && guestParticipation && <GuestConversionBanner from={`/invite/${code}`} />}
 
         <Card padding="none" className={styles.card}>
-          <div className={styles.banner} style={{ background: cat.bgGradient }}>
+          <header className={styles.banner} style={{ background: cat.bgGradient }}>
             <div className={styles.bannerInner}>
               <div className={styles.emoji} aria-hidden="true">
                 {cat.emoji}
               </div>
               <div className={styles.kickerRow}>
-                <p className={styles.kicker}>친구가 모임에 초대했어요</p>
-                <span className={styles.countdown}>{countdownLabel}</span>
+                <p className={styles.kicker}>
+                  <Icon name="mail" aria-hidden="true" className={styles.kickerIcon} />
+                  친구가 모임에 초대했어요
+                </p>
+                <span className={styles.countdown}>
+                  <Icon name="clock" aria-hidden="true" />
+                  {countdownLabel}
+                </span>
               </div>
               <h1 className={styles.title}>{data.title}</h1>
-              <div className={styles.metaRow}>
+              <p className={styles.metaRow}>
                 <span className={styles.metaItem}>
                   <span className={styles.metaIcon} aria-hidden="true">
                     🗓
@@ -211,67 +228,79 @@ export default function InvitePage() {
                   {startLabel}
                 </span>
                 <span className={styles.metaItem}>
-                  <span className={styles.metaIcon} aria-hidden="true">
-                    📍
-                  </span>
+                  <Icon name="pin" aria-hidden="true" className={styles.metaIcon} />
                   {data.venueArea}
                 </span>
-              </div>
+              </p>
             </div>
-          </div>
+          </header>
 
           <div className={styles.body}>
-            <button
-              type="button"
-              className={styles.codeBlock}
-              onClick={handleCopyCode}
-              aria-label={`초대 코드 ${data.quickCode} 복사`}
-            >
-              <span className={styles.codeLabel}>초대 코드</span>
-              <span className={styles.codeValue}>{data.quickCode}</span>
-              <span className={styles.codeHint}>탭하면 복사돼요</span>
-            </button>
+            <section className={styles.codeSection} aria-labelledby="invite-code-label">
+              <button
+                type="button"
+                className={styles.codeBlock}
+                onClick={handleCopyCode}
+                aria-label={`초대 코드 ${data.quickCode} 복사하기`}
+              >
+                <span id="invite-code-label" className={styles.codeLabel}>
+                  초대 코드
+                </span>
+                <span className={styles.codeValue}>{data.quickCode}</span>
+                <span className={styles.codeHint}>
+                  <Icon name="bookmark" aria-hidden="true" />
+                  탭하면 복사돼요
+                </span>
+              </button>
+            </section>
 
-            {guestParticipation && !me ? (
-              <div className={styles.guestJoined} role="status">
-                <Avatar
-                  size="md"
-                  hue={guestParticipation.guestAvatar?.hue ?? '#7A1F3D'}
-                  pattern="gradient"
-                  emoji={guestParticipation.guestAvatar?.emoji ?? '🎟'}
-                  imageSrc={guestParticipation.guestAvatar?.imageData ?? null}
-                  ring="gold"
-                  label={`${guestParticipation.guestName ?? '게스트'}님의 아바타`}
-                />
-                <div className={styles.guestJoinedBody}>
-                  <strong>
-                    {guestParticipation.guestName}님, 게스트로 참여 중이에요{' '}
-                    <Badge tone="gold" size="sm">
-                      게스트
-                    </Badge>
-                  </strong>
-                  <span>당일 현장에서 호스트에게 닉네임을 알려주면 바로 체크인할 수 있어요.</span>
-                  <Button variant="ghost" size="sm" onClick={openGuestAvatarEditor}>
-                    🖼 아바타 변경
-                  </Button>
+            <div className={styles.actions}>
+              {guestParticipation && !me ? (
+                <div className={styles.guestJoined} role="status">
+                  <Avatar
+                    size="md"
+                    hue={guestParticipation.guestAvatar?.hue ?? 'var(--color-primary)'}
+                    pattern="gradient"
+                    emoji={guestParticipation.guestAvatar?.emoji ?? '🎟'}
+                    imageSrc={guestParticipation.guestAvatar?.imageData ?? null}
+                    ring="gold"
+                    label={`${guestParticipation.guestName ?? '게스트'}님의 아바타`}
+                  />
+                  <div className={styles.guestJoinedBody}>
+                    <strong>
+                      {guestParticipation.guestName}님, 게스트로 참여 중이에요{' '}
+                      <Badge tone="gold" size="sm">
+                        게스트
+                      </Badge>
+                    </strong>
+                    <span>당일 현장에서 호스트에게 닉네임을 알려주면 바로 체크인할 수 있어요.</span>
+                    <Button variant="ghost" size="sm" onClick={openGuestAvatarEditor}>
+                      <Icon name="user" aria-hidden="true" /> 아바타 변경
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <>
-                <Button variant="gold" size="xl" fullWidth onClick={handleJoin}>
-                  ✨ 참여하기
-                </Button>
-                {!me && (
-                  <Button variant="soft" size="md" fullWidth onClick={() => setShowGuestForm(true)}>
-                    🎟 가입 없이 게스트로 참여
+              ) : (
+                <>
+                  <Button variant="gold" size="xl" fullWidth onClick={handleJoin}>
+                    ✨ 참여하기
                   </Button>
-                )}
-              </>
-            )}
+                  {!me && (
+                    <Button
+                      variant="soft"
+                      size="md"
+                      fullWidth
+                      onClick={() => setShowGuestForm(true)}
+                    >
+                      🎟 가입 없이 게스트로 참여
+                    </Button>
+                  )}
+                </>
+              )}
 
-            <Button variant="ghost" size="md" fullWidth onClick={handleShare}>
-              ↗ 친구에게 공유
-            </Button>
+              <Button variant="ghost" size="md" fullWidth onClick={handleShare}>
+                <Icon name="chevron-right" aria-hidden="true" /> 친구에게 공유
+              </Button>
+            </div>
 
             {!me && !guestParticipation && (
               <p className={styles.notice}>
@@ -386,6 +415,6 @@ export default function InvitePage() {
           </fieldset>
         </div>
       </Sheet>
-    </div>
+    </main>
   )
 }

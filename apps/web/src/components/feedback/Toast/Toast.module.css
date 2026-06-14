@@ -1,3 +1,4 @@
+/* Radix Toast: .layer = Viewport (<ol>), .toast = Root (<li>). */
 .layer {
   position: fixed;
   inset-inline: 0;
@@ -9,41 +10,95 @@
   pointer-events: none;
   z-index: var(--z-toast);
   padding: 0 var(--space-4);
+  margin: 0;
+  list-style: none;
 }
 .toast {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 12px 18px;
-  background: var(--brand-ink-900);
-  color: #fcfaf5;
+  background: var(--brand-clay-900);
+  color: var(--brand-paper-50);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-lg);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
-  animation: fade-up var(--dur-base) var(--ease-out);
   max-width: 480px;
   width: max-content;
+  pointer-events: auto;
+  touch-action: pan-y;
+}
+.toast[data-state='open'] {
+  animation: toast-in var(--dur-base) var(--ease-out);
+}
+.toast[data-state='closed'] {
+  animation: toast-out var(--dur-fast) var(--ease-out);
+}
+.toast[data-swipe='move'] {
+  transform: translateX(var(--radix-toast-swipe-move-x));
+}
+.toast[data-swipe='cancel'] {
+  transform: translateX(0);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.toast[data-swipe='end'] {
+  animation: toast-swipe-out var(--dur-base) var(--ease-out);
 }
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: currentColor;
+  flex: none;
 }
 .k_info {
-  background: #14101d;
-  color: #fcfaf5;
+  background: var(--brand-clay-900);
+  color: var(--brand-paper-50);
 }
 .k_success {
-  background: #2f8f66;
-  color: #fff;
+  background: var(--color-success);
+  color: var(--color-text-inverse);
 }
 .k_warning {
-  background: #c9871f;
-  color: #2a1f0c;
+  background: var(--brand-amber-600);
+  color: var(--brand-clay-800);
 }
 .k_error {
-  background: #c13f4e;
-  color: #fff;
+  background: var(--brand-apricot-500);
+  color: var(--color-text-inverse);
+}
+
+@keyframes toast-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes toast-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes toast-swipe-out {
+  from {
+    transform: translateX(var(--radix-toast-swipe-end-x));
+  }
+  to {
+    transform: translateX(calc(100% + var(--space-4)));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation-duration: 1ms !important;
+  }
 }

@@ -1,0 +1,73 @@
+/* ============================================================
+   Tailwind v4 — additive integration.
+   기존 CSS Modules + 디자인 토큰을 깨지 않도록 preflight(base reset) 없이
+   theme + utilities 레이어만 가져오고, @theme 토큰을 Aperitivo 디자인
+   토큰(tokens.css)에 매핑한다. 유틸리티는 기존 색을 그대로 공유하며,
+   semantic 별칭(canvas/card/ink/brand …)은 다크 모드에서도 자동으로 따라간다.
+
+   주의: 충돌을 피하려고 :root에 이미 존재하는 --color-* 시맨틱 이름
+   (primary/surface/bg/accent/text …)은 @theme에서 재사용하지 않는다.
+   ============================================================ */
+
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@theme {
+  /* —— Brand · Apricot (primary) —— */
+  --color-apricot-50: var(--brand-apricot-50);
+  --color-apricot-100: var(--brand-apricot-100);
+  --color-apricot-200: var(--brand-apricot-200);
+  --color-apricot-300: var(--brand-apricot-300);
+  --color-apricot-400: var(--brand-apricot-400);
+  --color-apricot-500: var(--brand-apricot-500);
+  --color-apricot-600: var(--brand-apricot-600);
+  --color-apricot-700: var(--brand-apricot-700);
+  --color-apricot-800: var(--brand-apricot-800);
+  --color-apricot-900: var(--brand-apricot-900);
+
+  /* —— Brand · Teal (accent) —— */
+  --color-teal-100: var(--brand-teal-100);
+  --color-teal-300: var(--brand-teal-300);
+  --color-teal-400: var(--brand-teal-400);
+  --color-teal-500: var(--brand-teal-500);
+  --color-teal-600: var(--brand-teal-600);
+  --color-teal-700: var(--brand-teal-700);
+
+  /* —— Brand · Amber (warm highlight) —— */
+  --color-amber-100: var(--brand-amber-100);
+  --color-amber-300: var(--brand-amber-300);
+  --color-amber-400: var(--brand-amber-400);
+  --color-amber-500: var(--brand-amber-500);
+  --color-amber-600: var(--brand-amber-600);
+  --color-amber-700: var(--brand-amber-700);
+
+  /* —— Neutrals —— */
+  --color-paper: var(--brand-paper-100);
+  --color-clay-700: var(--brand-clay-700);
+  --color-clay-800: var(--brand-clay-800);
+  --color-clay-900: var(--brand-clay-900);
+}
+
+/* Dark-aware aliases: values flip in dark mode, so `inline` substitutes the
+   referenced variable directly into utilities (Tailwind v4 docs recommend
+   `@theme inline` for var() values that change per theme/scope). */
+@theme inline {
+  --color-canvas: var(--color-bg);
+  --color-card: var(--color-surface);
+  --color-card-soft: var(--color-surface-soft);
+  --color-ink: var(--color-text);
+  --color-ink-muted: var(--color-text-muted);
+  --color-ink-subtle: var(--color-text-subtle);
+  --color-line: var(--color-border);
+  --color-line-strong: var(--color-border-strong);
+  --color-brand: var(--color-primary);
+  --color-brand-strong: var(--color-primary-hover);
+  --color-pop: var(--color-accent);
+
+  /* —— Status —— */
+  --color-ok: var(--color-success);
+  --color-warn: var(--color-warning);
+  --color-bad: var(--color-danger);
+}

@@ -1,4 +1,7 @@
-/* Radix Dialog.Overlay — 흐려진 스크림. 바깥 클릭/스크롤 락은 Radix가 담당. */
+/* Radix Dialog parts. Overlay = dimmed scrim, Content = the sheet/modal panel.
+   Both carry [data-state=open|closed]; Radix keeps Content mounted during the
+   closing animation, so enter/exit are driven purely by these states. */
+
 .backdrop {
   position: fixed;
   inset: 0;
@@ -6,40 +9,48 @@
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   z-index: var(--z-modal);
-  animation: fade-up var(--dur-base) var(--ease-out);
+}
+.backdrop[data-state='open'] {
+  animation: scrim-in var(--dur-base) var(--ease-out);
+}
+.backdrop[data-state='closed'] {
+  animation: scrim-out var(--dur-base) var(--ease-out);
 }
 
-/* Radix Dialog.Content — 패널. Overlay 위에 고정 배치한다. */
 .panel {
   position: fixed;
-  z-index: calc(var(--z-modal) + 1);
+  z-index: var(--z-modal);
   background: var(--color-surface);
-  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-xl);
-  animation: slide-up var(--dur-slow) var(--ease-out);
+  max-height: 90dvh;
 }
 
-/* sheet: 화면 하단에 붙고 가로 중앙 정렬 (transform은 slide-up 애니메이션 전용으로 비워둔다) */
+/* Bottom sheet: pinned to the bottom edge, centered horizontally. */
 .v_sheet {
-  left: 0;
-  right: 0;
+  inset-inline: 0;
   bottom: 0;
   margin-inline: auto;
-  width: 100%;
   max-width: 560px;
+  width: 100%;
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+}
+.v_sheet[data-state='open'] {
+  animation: sheet-up var(--dur-slow) var(--ease-out);
+}
+.v_sheet[data-state='closed'] {
+  animation: sheet-down var(--dur-base) var(--ease-out);
 }
 
-/* modal: 화면 정중앙 (inset:0 + margin:auto 로 양축 중앙 — transform은 애니메이션 전용) */
+/* Centered modal. */
 .v_modal {
   inset: 0;
   margin: auto;
-  height: max-content;
-  border-radius: var(--radius-2xl);
+  height: fit-content;
   max-height: 86dvh;
   width: calc(100% - var(--space-6));
+  border-radius: var(--radius-xl);
 }
 .v_modal.s_sm {
   max-width: 360px;
@@ -49,6 +60,12 @@
 }
 .v_modal.s_lg {
   max-width: 720px;
+}
+.v_modal[data-state='open'] {
+  animation: modal-in var(--dur-slow) var(--ease-spring);
+}
+.v_modal[data-state='closed'] {
+  animation: modal-out var(--dur-base) var(--ease-out);
 }
 
 .header {
@@ -87,8 +104,9 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: color-mix(in oklab, var(--brand-ink-900) 4%, transparent);
-  font-size: 14px;
+  border: 0;
+  background: color-mix(in oklab, var(--brand-clay-900) 5%, transparent);
+  font-size: var(--fs-sm);
   color: var(--color-text-muted);
   transition:
     background var(--dur-fast) var(--ease-out),
@@ -96,20 +114,70 @@
   cursor: pointer;
 }
 .close:hover {
-  background: color-mix(in oklab, var(--brand-ink-900) 8%, transparent);
+  background: color-mix(in oklab, var(--brand-clay-900) 9%, transparent);
+  color: var(--color-text);
   transform: scale(1.05);
 }
 .close:active {
   transform: scale(0.95);
 }
 
-@keyframes slide-up {
+@keyframes scrim-in {
   from {
-    transform: translateY(20%);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
     opacity: 1;
+  }
+}
+@keyframes scrim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes sheet-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+@keyframes modal-in {
+  from {
+    transform: translateY(12px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes modal-out {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.97);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .panel {
+    animation-duration: 1ms !important;
   }
 }

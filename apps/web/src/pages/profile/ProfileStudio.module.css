@@ -94,13 +94,22 @@
 }
 /* a quiet mono index gives the form a composed, editorial rhythm */
 .sectionIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
-  color: color-mix(in oklab, var(--brand-burgundy-400) 80%, var(--color-text-subtle));
+  color: color-mix(in oklab, var(--brand-apricot-400) 80%, var(--color-text-subtle));
   font-feature-settings: 'tnum';
   line-height: var(--lh-snug);
+}
+/* when the index hosts an Icon (chrome glyph) give it a touch more presence */
+.sectionIndex svg {
+  width: 1.15em;
+  height: 1.15em;
+  color: var(--color-primary);
 }
 .sectionHead .muted {
   margin-top: 2px;
@@ -190,6 +199,18 @@
   display: flex;
   justify-content: flex-end;
   margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+/* on narrow screens the save action spans full width so it reads as
+   the unmistakable commit for the section */
+@media (max-width: 560px) {
+  .saveBar {
+    justify-content: stretch;
+  }
+  .saveBar > * {
+    flex: 1;
+  }
 }
 
 /* ════════════════════════════════════════════
@@ -201,7 +222,7 @@
   background:
     radial-gradient(
       120% 100% at 100% 0%,
-      color-mix(in oklab, var(--brand-gold-100) 55%, transparent),
+      color-mix(in oklab, var(--brand-amber-100) 55%, transparent),
       transparent 60%
     ),
     var(--color-surface);
@@ -220,7 +241,7 @@
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-uppercase);
   text-transform: uppercase;
-  color: var(--brand-gold-700);
+  color: var(--brand-amber-700);
 }
 .shelfCount {
   flex-shrink: 0;
@@ -230,7 +251,7 @@
 }
 .shelfCount strong {
   font-weight: var(--fw-bold);
-  color: var(--brand-gold-700);
+  color: var(--brand-amber-700);
 }
 .badgeArea {
   margin-block: var(--space-4) var(--space-4);
@@ -243,10 +264,10 @@
   gap: var(--space-2);
   margin-top: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background: color-mix(in oklab, var(--brand-gold-100) 55%, var(--color-surface-soft));
-  border: 1px solid color-mix(in oklab, var(--brand-gold-500) 22%, transparent);
+  background: color-mix(in oklab, var(--brand-amber-100) 55%, var(--color-surface-soft));
+  border: 1px solid color-mix(in oklab, var(--brand-amber-500) 22%, transparent);
   border-radius: var(--radius-md);
-  color: var(--brand-burgundy-800);
+  color: var(--brand-apricot-800);
   font-size: var(--fs-sm);
   line-height: var(--lh-normal);
 }
@@ -254,9 +275,11 @@
   font-weight: var(--fw-bold);
 }
 .noteIcon {
+  display: inline-flex;
   flex-shrink: 0;
   font-size: var(--fs-md);
   line-height: 1.4;
+  color: var(--brand-amber-700);
 }
 
 .trustList {
@@ -279,8 +302,8 @@
 }
 /* verified field gets a faint gold tint + ring, reading as "sealed" */
 .trustRowDone {
-  background: color-mix(in oklab, var(--brand-gold-500) 6%, var(--color-surface-soft));
-  border-color: color-mix(in oklab, var(--brand-gold-500) 28%, transparent);
+  background: color-mix(in oklab, var(--brand-amber-500) 6%, var(--color-surface-soft));
+  border-color: color-mix(in oklab, var(--brand-amber-500) 28%, transparent);
 }
 .trustHead {
   display: flex;
@@ -330,25 +353,38 @@
     background var(--dur-base) var(--ease-out);
 }
 .identityDone {
-  background: color-mix(in oklab, var(--brand-gold-500) 7%, var(--color-surface-soft));
-  border-color: color-mix(in oklab, var(--brand-gold-500) 30%, transparent);
+  background: color-mix(in oklab, var(--brand-amber-500) 7%, var(--color-surface-soft));
+  border-color: color-mix(in oklab, var(--brand-amber-500) 30%, transparent);
 }
 .identityIcon {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
   border-radius: var(--radius-pill);
-  background: color-mix(in oklab, var(--brand-gold-300) 36%, var(--color-surface));
+  background: color-mix(in oklab, var(--brand-amber-300) 36%, var(--color-surface));
   font-size: var(--fs-lg);
-  color: var(--brand-gold-700);
+  color: var(--brand-amber-700);
 }
 .identityCopy {
   flex: 1;
   min-width: 0;
 }
 .identityRow strong {
+  font-weight: var(--fw-semibold);
+}
+
+/* a labelled field block (child count, connection channels): a plain
+   stacked group, not a card — divider rhythm stays the same as TrustRow */
+.fieldBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.fieldBlockLabel {
+  font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
 }
 
@@ -374,6 +410,7 @@
 }
 .select {
   width: 100%;
+  min-height: 44px;
   padding: 11px 36px 11px 12px;
   background-position:
     calc(100% - 18px) 50%,
@@ -394,7 +431,7 @@
 }
 .select:hover,
 .selectSm:hover {
-  border-color: var(--brand-burgundy-300);
+  border-color: var(--brand-apricot-300);
 }
 .select:focus,
 .selectSm:focus {
@@ -447,7 +484,7 @@
   transition: background var(--dur-base) var(--ease-out);
 }
 .avoidItem:hover {
-  background: color-mix(in oklab, var(--brand-burgundy-100) 50%, var(--color-surface-soft));
+  background: color-mix(in oklab, var(--brand-apricot-100) 50%, var(--color-surface-soft));
 }
 /* monogram disc stands in for the hidden contact (privacy-forward) */
 .avoidAvatar {
@@ -458,7 +495,7 @@
   flex-shrink: 0;
   border-radius: var(--radius-pill);
   background: var(--color-primary-soft);
-  color: var(--brand-burgundy-800);
+  color: var(--brand-apricot-800);
   font-weight: var(--fw-bold);
   font-size: var(--fs-sm);
 }
@@ -501,7 +538,7 @@
 }
 .avoidEmptyIcon {
   font-size: 2.5rem;
-  filter: drop-shadow(0 6px 12px color-mix(in oklab, var(--brand-burgundy-900) 14%, transparent));
+  filter: drop-shadow(0 6px 12px color-mix(in oklab, var(--brand-apricot-900) 14%, transparent));
 }
 
 /* ── 토글 행 ── */
