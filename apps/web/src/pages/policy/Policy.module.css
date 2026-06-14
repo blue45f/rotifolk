@@ -3,18 +3,74 @@
   max-width: var(--max-prose);
   margin-inline: auto;
   padding-inline: clamp(var(--space-3), 4vw, var(--space-8));
-  padding-block: var(--space-10) var(--space-16);
+  padding-block: var(--space-8) var(--space-16);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
 }
 
+/* —— 헤더(뒤로 · 키커 · 제목 · 시행일) —— */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  align-self: flex-start;
+  min-height: 44px;
+  margin-left: calc(-1 * var(--space-2));
+  padding-inline: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+  transition: color 160ms var(--ease-out);
+}
+
+.back:hover {
+  color: var(--color-primary);
+}
+
+.backIcon {
+  transform: rotate(180deg);
+  color: var(--color-text-subtle);
+}
+
+.kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
 .title {
+  margin: 0;
   font-size: var(--fs-3xl);
   font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
   line-height: var(--lh-tight);
   text-wrap: balance;
+}
+
+.effective {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+
+.effectiveIcon {
+  color: var(--color-accent);
 }
 
 /* —— 로딩 스켈레톤 —— */
@@ -57,14 +113,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  color: var(--color-text);
+  font-size: var(--fs-md);
+  line-height: var(--lh-relaxed);
 }
 
 .bodyHeading {
-  margin-top: var(--space-5);
-  font-size: var(--fs-lg);
+  margin-top: var(--space-6);
+  font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
   letter-spacing: var(--tracking-tight);
   line-height: var(--lh-snug);
+  text-wrap: balance;
 }
 
 .body .bodyHeading:first-child {
@@ -72,13 +132,16 @@
 }
 
 .bodyParagraph {
+  margin: 0;
   color: var(--color-text);
   line-height: var(--lh-relaxed);
   white-space: pre-line;
+  text-wrap: pretty;
 }
 
 .bodyList {
   list-style: disc;
+  margin: 0;
   padding-left: var(--space-6);
   display: flex;
   flex-direction: column;
@@ -91,10 +154,17 @@ ol.bodyList {
 
 .bodyList li {
   color: var(--color-text);
-  line-height: var(--lh-normal);
+  line-height: var(--lh-relaxed);
+  padding-left: var(--space-1);
+}
+
+.bodyList li::marker {
+  color: var(--color-primary);
 }
 
 .divider {
+  width: 100%;
+  margin-block: var(--space-2);
   border: none;
   border-top: 1px dashed var(--color-border);
 }
@@ -103,42 +173,49 @@ ol.bodyList {
 .trust {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-5);
+  gap: var(--space-4);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+  padding: var(--space-5) var(--space-6);
+  box-shadow: var(--shadow-xs);
 }
 
 .trustList {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2) var(--space-6);
+  gap: var(--space-3) var(--space-6);
   margin: 0;
 }
 
 .trustItem {
   display: flex;
-  gap: var(--space-2);
-  align-items: baseline;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
 .trustItem dt {
+  font-family: var(--font-mono);
   font-size: var(--fs-2xs);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-semibold);
   letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
   color: var(--color-text-subtle);
 }
 
 .trustItem dd {
   margin: 0;
   font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
 .hash {
+  display: inline-block;
   font-family: var(--font-mono);
   font-size: var(--fs-2xs);
-  background: var(--color-surface-soft);
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xs);
   padding: 0.1rem 0.4rem;
@@ -158,6 +235,9 @@ ol.bodyList {
 }
 
 .externalLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--color-primary);
   font-weight: var(--fw-semibold);
   text-decoration: none;
@@ -170,19 +250,85 @@ ol.bodyList {
 /* —— 문서 간 이동 —— */
 .docNav {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
+  flex-direction: column;
+  gap: var(--space-3);
   border-top: 1px solid var(--color-border);
-  padding-top: var(--space-5);
+  padding-top: var(--space-6);
+}
+
+.docNavLabel {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.docNavList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .docNavLink {
-  color: var(--color-primary);
-  font-size: var(--fs-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  margin-inline: calc(-1 * var(--space-3));
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: var(--fs-md);
   font-weight: var(--fw-semibold);
   text-decoration: none;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
 }
 
 .docNavLink:hover {
-  text-decoration: underline;
+  background: var(--color-surface-soft);
+  color: var(--color-primary);
+}
+
+.docNavIcon {
+  flex: none;
+  color: var(--color-text-subtle);
+  transition: transform 160ms var(--ease-out);
+}
+
+.docNavLink:hover .docNavIcon {
+  color: var(--color-primary);
+  transform: translateX(2px);
+}
+
+/* —— 포커스 가시성 —— */
+.back:focus-visible,
+.externalLink:focus-visible,
+.docNavLink:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonLine {
+    animation: none;
+  }
+
+  .back,
+  .docNavLink,
+  .docNavIcon {
+    transition: none;
+  }
+
+  .docNavLink:hover .docNavIcon {
+    transform: none;
+  }
 }

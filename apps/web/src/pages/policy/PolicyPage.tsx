@@ -1,6 +1,7 @@
 import { createElement } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import EmptyState from '@components/feedback/EmptyState'
 import {
   parsePolicyBody,
@@ -100,8 +101,23 @@ export default function PolicyPage() {
 
   return (
     <article className={styles.page}>
-      <header>
+      <header className={styles.header}>
+        <Link to="/policies" className={styles.back}>
+          <Icon name="chevron-right" className={styles.backIcon} />
+          <span>약관·정책</span>
+        </Link>
+
+        <p className={styles.kicker}>법적 고지</p>
         <h1 className={styles.title}>{data?.name ?? doc.fallbackName}</h1>
+
+        {data?.effectiveAt && (
+          <p className={styles.effective}>
+            <Icon name="clock" className={styles.effectiveIcon} />
+            <span>
+              시행일 <time dateTime={data.effectiveAt}>{formatPolicyDate(data.effectiveAt)}</time>
+            </span>
+          </p>
+        )}
       </header>
 
       {isPending && (
@@ -150,12 +166,6 @@ export default function PolicyPage() {
                 <dt>버전</dt>
                 <dd>{data.versionLabel}</dd>
               </div>
-              {data.effectiveAt && (
-                <div className={styles.trustItem}>
-                  <dt>시행일</dt>
-                  <dd>{formatPolicyDate(data.effectiveAt)}</dd>
-                </div>
-              )}
               <div className={styles.trustItem}>
                 <dt>해시</dt>
                 <dd>
@@ -180,14 +190,23 @@ export default function PolicyPage() {
       )}
 
       <nav className={styles.docNav} aria-label="다른 약관 문서">
-        {otherDocs.map(([path, other]) => (
-          <Link key={path} to={path} className={styles.docNavLink}>
-            {other.fallbackName}
-          </Link>
-        ))}
-        <Link to="/policies" className={styles.docNavLink}>
-          약관·정책 안내
-        </Link>
+        <p className={styles.docNavLabel}>다른 문서 보기</p>
+        <ul className={styles.docNavList}>
+          {otherDocs.map(([path, other]) => (
+            <li key={path}>
+              <Link to={path} className={styles.docNavLink}>
+                <span>{other.fallbackName}</span>
+                <Icon name="chevron-right" className={styles.docNavIcon} />
+              </Link>
+            </li>
+          ))}
+          <li>
+            <Link to="/policies" className={styles.docNavLink}>
+              <span>약관·정책 안내</span>
+              <Icon name="chevron-right" className={styles.docNavIcon} />
+            </Link>
+          </li>
+        </ul>
       </nav>
     </article>
   )

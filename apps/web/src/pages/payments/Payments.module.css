@@ -1,64 +1,104 @@
 .page {
   padding-block: var(--space-8) var(--space-16);
 }
+
+/* —— Header —— */
 .head {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   margin-bottom: var(--space-6);
 }
+.kicker {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-uppercase);
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
 .head h1 {
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   font-weight: var(--fw-black);
-  letter-spacing: -0.03em;
+  letter-spacing: var(--tracking-tight);
 }
 .muted {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
+  max-width: var(--max-prose);
 }
 
+/* —— Summary rail (text + dividers, not a card) —— */
 .summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--space-4) var(--space-6);
+  margin: 0 0 var(--space-6);
+  padding: var(--space-5) var(--space-6);
+  background: var(--color-surface-soft);
+  border-radius: var(--radius-xl);
 }
 .summaryStat {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
+  min-width: 0;
 }
-.summaryStat span {
+.summaryStat dt {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
 }
-.summaryStat strong {
+.summaryStat dd {
+  margin: 0;
   font-size: var(--fs-2xl);
   font-weight: var(--fw-black);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+}
+.summaryDivider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--color-border);
 }
 
+/* —— Filters —— */
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+/* —— List —— */
 .list {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+.row:hover {
+  box-shadow: var(--shadow-sm);
 }
 .rowCover {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   border-radius: var(--radius-md);
   display: grid;
   place-items: center;
-  font-size: 28px;
+  font-size: 26px;
   color: var(--brand-paper-50);
   flex-shrink: 0;
   overflow: hidden;
@@ -73,7 +113,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .rowTitleRow {
   display: flex;
@@ -91,9 +131,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  border-radius: var(--radius-xs);
 }
 .rowTitle:hover {
   color: var(--color-primary);
+}
+.rowTitle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 .rowTitleOrphan {
   color: var(--color-text-muted);
@@ -102,52 +147,138 @@
 .rowMeta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
+}
+.rowMeta time {
+  font-variant-numeric: tabular-nums;
+}
+.dot {
+  width: 3px;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  flex-shrink: 0;
 }
 .rowAside {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
+  gap: var(--space-2);
   flex-shrink: 0;
 }
 .rowAmount {
   font-size: var(--fs-lg);
   font-weight: var(--fw-bold);
   letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
+.rowAmountRefund {
+  color: var(--color-danger);
+}
+
+/* —— Refund action (≥44px target) —— */
 .refundBtn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   background: transparent;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  padding: 4px 12px;
+  padding: 0 var(--space-4);
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
   cursor: pointer;
   transition:
     background var(--dur-fast) var(--ease-out-quart),
-    color var(--dur-fast) var(--ease-out-quart);
+    color var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart);
 }
 .refundBtn:hover:not(:disabled) {
   background: var(--color-warning-bg);
+  border-color: var(--color-warning);
   color: var(--color-warning);
+}
+.refundBtn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 .refundBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.filterRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-}
+/* —— Filter empty / Empty state —— */
 .filterEmpty {
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
-  padding: var(--space-4) 0;
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-16) var(--space-4);
+}
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.emptyTitle {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+}
+.emptyDesc {
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  max-width: 38ch;
+}
+.emptyAction {
+  margin-top: var(--space-2);
+  text-decoration: none;
+}
+
+/* —— Responsive —— */
+@media (max-width: 560px) {
+  .summary {
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+  }
+  .summaryDivider {
+    display: none;
+  }
+  .summaryStat {
+    flex: 1 1 40%;
+  }
+  .row {
+    gap: var(--space-3);
+    padding: var(--space-3);
+  }
+  .rowCover {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+  }
+  .rowTitle {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .refundBtn {
+    transition: none;
+  }
 }
