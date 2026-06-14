@@ -3,16 +3,17 @@ import Loading from '@components/feedback/Loading'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
-import { CATEGORY_META, ALL_CATEGORIES } from '@features/categories/meta'
-import { PartyCard } from '@features/parties/PartyCard'
-import { useParties } from '@features/parties/queries'
-import { useVenues } from '@features/venues/queries'
 import { useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 
 import styles from './Category.module.css'
 
 import type { PartyCategory, VenueKind } from '@rotifolk/shared'
+
+import { CATEGORY_META, ALL_CATEGORIES } from '@/domains/categories/meta'
+import { PartyCard } from '@/domains/parties/PartyCard'
+import { useParties } from '@/domains/parties/queries'
+import { useVenues } from '@/domains/venues/queries'
 
 type SortKey = 'soonest' | 'seats' | 'price'
 

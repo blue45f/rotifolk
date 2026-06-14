@@ -4,13 +4,14 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { useParams, Link } from 'react-router-dom'
 
 import styles from './MatchCard.module.css'
+
+import { api } from '@/infrastructure/api'
 
 interface HostProfileLite {
   user: {

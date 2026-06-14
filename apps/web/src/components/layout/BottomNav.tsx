@@ -1,10 +1,11 @@
-import { chatKeys } from '@features/chat/queries'
-import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useQuery } from '@tanstack/react-query'
 import { NavLink } from 'react-router-dom'
 
 import styles from './BottomNav.module.css'
+
+import { chatKeys } from '@/domains/chat/queries'
+import { api } from '@/infrastructure/api'
 
 // 4 tabs + center action — the convergent mobile pattern (Hinge/Tinder/Munto/Frip).
 // 즉석(quick)이 중앙 강조 액션. 나머지 면(커뮤니티·튜토리얼 등)은 footer·⌘K·홈에서 도달.

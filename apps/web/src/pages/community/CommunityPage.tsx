@@ -4,7 +4,20 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
-import { AvatarImageError, resizePostImage } from '@features/avatar/imageUpload'
+import {
+  COMMUNITY_POST_CATEGORY_LABEL,
+  type CommunityComment,
+  type CommunityPostDetail,
+  type CommunityPostCategory,
+  type CreateReportDto,
+} from '@rotifolk/shared'
+import { useCurrentUser } from '@store/authStore'
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
+
+import styles from './Community.module.css'
+
+import { AvatarImageError, resizePostImage } from '@/domains/avatar/imageUpload'
 import {
   COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT,
   COMMUNITY_DEMO_ACTIVITY_KEY,
@@ -18,7 +31,7 @@ import {
   type CommunityDemoAction,
   type CommunityDemoActionMeta,
   type CommunityDemoActivityLogEntry,
-} from '@features/community/demoTracker'
+} from '@/domains/community/demoTracker'
 import {
   useCommunityPost,
   useCommunityPosts,
@@ -29,7 +42,7 @@ import {
   useReportCommunityContent,
   useUpdateCommunityComment,
   useUpdateCommunityPost,
-} from '@features/community/queries'
+} from '@/domains/community/queries'
 import {
   hasRequiredTerms,
   readTermsConsentState,
@@ -38,20 +51,8 @@ import {
   TERMS_CONSENT_STORAGE_KEY,
   toTermsConsentState,
   type TermsConsentState,
-} from '@features/legal/termsConsent'
-import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
-import {
-  COMMUNITY_POST_CATEGORY_LABEL,
-  type CommunityComment,
-  type CommunityPostDetail,
-  type CommunityPostCategory,
-  type CreateReportDto,
-} from '@rotifolk/shared'
-import { useCurrentUser } from '@store/authStore'
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
-
-import styles from './Community.module.css'
+} from '@/domains/legal/termsConsent'
+import { addTutorialStep, normalizeTutorialStep } from '@/domains/tutorial/progress'
 
 type ReportTargetType = 'post' | 'comment'
 

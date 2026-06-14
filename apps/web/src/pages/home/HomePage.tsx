@@ -3,13 +3,8 @@ import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Icon } from '@components/ui/Icon/Icon'
-import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
-import { PartyCard } from '@features/parties/PartyCard'
-import { useParties } from '@features/parties/queries'
-import { useRecents } from '@features/recents/useRecents'
 import { usePageMeta } from '@hooks/usePageMeta'
 import { recommendParties, userToContext } from '@rotifolk/shared'
-import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'motion/react'
@@ -18,6 +13,12 @@ import { Link } from 'react-router-dom'
 import styles from './HomePage.module.css'
 
 import type { PartySummary } from '@rotifolk/shared'
+
+import { ALL_CATEGORIES, CATEGORY_META } from '@/domains/categories/meta'
+import { PartyCard } from '@/domains/parties/PartyCard'
+import { useParties } from '@/domains/parties/queries'
+import { useRecents } from '@/domains/recents/useRecents'
+import { api } from '@/infrastructure/api'
 
 export default function HomePage() {
   usePageMeta({

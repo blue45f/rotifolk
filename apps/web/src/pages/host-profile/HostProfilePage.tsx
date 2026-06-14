@@ -8,9 +8,7 @@ import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
 import { Sheet } from '@components/ui/Sheet/Sheet'
-import { PartyCard } from '@features/parties/PartyCard'
 import { computeHostLevel } from '@rotifolk/shared'
-import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -19,6 +17,9 @@ import { useLocation, useParams, Link } from 'react-router-dom'
 import styles from './HostProfile.module.css'
 
 import type { PartySummary } from '@rotifolk/shared'
+
+import { PartyCard } from '@/domains/parties/PartyCard'
+import { api } from '@/infrastructure/api'
 
 interface ReviewUser {
   id: string

@@ -5,12 +5,13 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
-import { api } from '@services/api'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import styles from './MatchCards.module.css'
+
+import { api } from '@/infrastructure/api'
 
 interface MatchCardItem {
   id: string

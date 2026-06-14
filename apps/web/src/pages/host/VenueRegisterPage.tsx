@@ -3,12 +3,13 @@ import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
-import { useCreateVenue } from '@features/venueBooking/queries'
 import { CreateVenueSchema, SEOUL_AREAS, type VenueKind } from '@rotifolk/shared'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import styles from './VenueRegister.module.css'
+
+import { useCreateVenue } from '@/domains/venueBooking/queries'
 
 const KINDS: { value: VenueKind; label: string; emoji: string }[] = [
   { value: 'wine-bar', label: '와인바', emoji: '🍷' },

@@ -3,12 +3,8 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Input } from '@components/ui/Input/Input'
-import { GoogleSignInButton } from '@features/auth/GoogleSignInButton'
-import { useAuthConfig, useGoogleLogin, useLogin } from '@features/auth/queries'
-import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { LoginSchema } from '@rotifolk/shared'
-import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm, type Resolver } from 'react-hook-form'
@@ -17,6 +13,11 @@ import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-do
 import styles from './AuthPage.module.css'
 
 import type { LoginDto, User } from '@rotifolk/shared'
+
+import { GoogleSignInButton } from '@/domains/auth/GoogleSignInButton'
+import { useAuthConfig, useGoogleLogin, useLogin } from '@/domains/auth/queries'
+import { addTutorialStep, normalizeTutorialStep } from '@/domains/tutorial/progress'
+import { api } from '@/infrastructure/api'
 
 const DEMO_ACCOUNT: LoginDto = {
   email: 'host@rotifolk.dev',

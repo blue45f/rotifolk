@@ -7,18 +7,19 @@ import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Input } from '@components/ui/Input/Input'
 import { Sheet } from '@components/ui/Sheet/Sheet'
-import { resizeAvatarImage } from '@features/avatar/imageUpload'
-import { CATEGORY_META } from '@features/categories/meta'
-import { GuestConversionBanner } from '@features/guest/GuestConversionBanner'
-import { useGuestJoin, useGuestSession } from '@features/guest/queries'
 import { GUEST_AVATAR_PRESETS, pickGuestAvatar, type PartyCategory } from '@rotifolk/shared'
-import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useQuery } from '@tanstack/react-query'
 import { useRef, useState, type ChangeEvent } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 
 import styles from './Invite.module.css'
+
+import { resizeAvatarImage } from '@/domains/avatar/imageUpload'
+import { CATEGORY_META } from '@/domains/categories/meta'
+import { GuestConversionBanner } from '@/domains/guest/GuestConversionBanner'
+import { useGuestJoin, useGuestSession } from '@/domains/guest/queries'
+import { api } from '@/infrastructure/api'
 
 interface InvitePreview {
   id: string

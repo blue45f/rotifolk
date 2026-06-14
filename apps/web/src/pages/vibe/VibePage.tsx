@@ -3,14 +3,15 @@ import Loading from '@components/feedback/Loading'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
-import { PartyCard } from '@features/parties/PartyCard'
-import { useParties } from '@features/parties/queries'
 import { recommendParties } from '@rotifolk/shared'
 import { motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import styles from './Vibe.module.css'
+
+import { PartyCard } from '@/domains/parties/PartyCard'
+import { useParties } from '@/domains/parties/queries'
 
 const SUGGESTIONS = [
   '조용한 와인 한잔, 깊은 대화 좋아해요',

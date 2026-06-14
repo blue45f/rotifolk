@@ -2,8 +2,6 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
-import { CATEGORY_META } from '@features/categories/meta'
-import { useCreateClub } from '@features/clubs/queries'
 import {
   CLUB_CATEGORIES,
   CLUB_CATEGORY_LABEL,
@@ -14,6 +12,9 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import styles from './Clubs.module.css'
+
+import { CATEGORY_META } from '@/domains/categories/meta'
+import { useCreateClub } from '@/domains/clubs/queries'
 
 const NAME_MIN = 2
 const NAME_MAX = 40

@@ -6,13 +6,14 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
-import { CATEGORY_META } from '@features/categories/meta'
-import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import styles from './Payments.module.css'
+
+import { CATEGORY_META } from '@/domains/categories/meta'
+import { api } from '@/infrastructure/api'
 
 interface Payment {
   id: string

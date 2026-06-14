@@ -6,11 +6,6 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import { CATEGORY_META } from '@features/categories/meta'
-import { getSocket } from '@features/live/socket'
-import DerivedPartyManager from '@features/parties/DerivedPartyManager'
-import { useParty, usePartyLifecycleActions } from '@features/parties/queries'
-import { api } from '@services/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
@@ -19,6 +14,12 @@ import HostAnalyticsTab from './HostAnalyticsTab'
 import styles from './HostManage.module.css'
 
 import type { QuestionCard } from '@rotifolk/shared'
+
+import { CATEGORY_META } from '@/domains/categories/meta'
+import { getSocket } from '@/domains/live/socket'
+import DerivedPartyManager from '@/domains/parties/DerivedPartyManager'
+import { useParty, usePartyLifecycleActions } from '@/domains/parties/queries'
+import { api } from '@/infrastructure/api'
 
 interface OrderRow {
   id: string

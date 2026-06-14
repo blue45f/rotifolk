@@ -5,12 +5,13 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
-import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import styles from './BlockedUsers.module.css'
+
+import { api } from '@/infrastructure/api'
 
 interface BlockedUser {
   id: string

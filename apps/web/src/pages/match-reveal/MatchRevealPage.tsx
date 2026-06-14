@@ -4,18 +4,6 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import {
-  useDecideContactExchangeRequest,
-  useMyPartyMatches,
-  usePartyPopular,
-  useRequestContactExchange,
-  type MatchChannel,
-  type MatchResult,
-  type PartyMatch,
-  type PopularPerson,
-} from '@features/matching/queries'
-import { AfterPartyManager } from '@features/parties/AfterPartyManager'
-import { useParty } from '@features/parties/queries'
-import {
   CONNECTION_CHANNELS,
   CONTACT_EXCHANGE_POLICY_LABEL,
   type ConnectionChannel,
@@ -29,6 +17,19 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import styles from './MatchReveal.module.css'
+
+import {
+  useDecideContactExchangeRequest,
+  useMyPartyMatches,
+  usePartyPopular,
+  useRequestContactExchange,
+  type MatchChannel,
+  type MatchResult,
+  type PartyMatch,
+  type PopularPerson,
+} from '@/domains/matching/queries'
+import { AfterPartyManager } from '@/domains/parties/AfterPartyManager'
+import { useParty } from '@/domains/parties/queries'
 
 const EASE = [0.19, 1, 0.22, 1] as const
 

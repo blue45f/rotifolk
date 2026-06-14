@@ -3,9 +3,6 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Icon } from '@components/ui/Icon/Icon'
-import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
-import { useVenues } from '@features/venues/queries'
-import { api } from '@services/api'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -13,6 +10,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import styles from './QuickCreate.module.css'
 
 import type { PartyCategory } from '@rotifolk/shared'
+
+import { ALL_CATEGORIES, CATEGORY_META } from '@/domains/categories/meta'
+import { useVenues } from '@/domains/venues/queries'
+import { api } from '@/infrastructure/api'
 
 const TIME_PRESETS = [30, 60, 90, 120, 180] as const
 

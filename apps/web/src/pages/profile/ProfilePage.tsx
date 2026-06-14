@@ -10,14 +10,8 @@ import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
 import { Input } from '@components/ui/Input/Input'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import { computeAchievements, summarizeAchievements } from '@features/achievements/achievements'
-import { useLogout, useMe } from '@features/auth/queries'
-import { resizeAvatarImage } from '@features/avatar/imageUpload'
-import { PartyCard } from '@features/parties/PartyCard'
-import { useMyParties } from '@features/parties/queries'
 import { usePageMeta } from '@hooks/usePageMeta'
 import { computeHostLevel } from '@rotifolk/shared'
-import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -27,6 +21,13 @@ import { Link } from 'react-router-dom'
 import styles from './Profile.module.css'
 
 import type { AvatarMood, PartySummary, User } from '@rotifolk/shared'
+
+import { computeAchievements, summarizeAchievements } from '@/domains/achievements/achievements'
+import { useLogout, useMe } from '@/domains/auth/queries'
+import { resizeAvatarImage } from '@/domains/avatar/imageUpload'
+import { PartyCard } from '@/domains/parties/PartyCard'
+import { useMyParties } from '@/domains/parties/queries'
+import { api } from '@/infrastructure/api'
 
 const MOODS: { value: AvatarMood; label: string; emoji: string }[] = [
   { value: 'chill', label: '여유로운', emoji: '🌙' },

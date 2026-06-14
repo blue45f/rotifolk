@@ -3,12 +3,13 @@ import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Input } from '@components/ui/Input/Input'
-import { useMyChatRooms } from '@features/chat/queries'
 import { useAuthStore } from '@store/authStore'
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
 import styles from './Chat.module.css'
+
+import { useMyChatRooms } from '@/domains/chat/queries'
 
 export default function ChatListPage() {
   const me = useAuthStore((s) => s.user)

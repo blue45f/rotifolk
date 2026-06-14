@@ -10,12 +10,13 @@ import {
   computeRevenueHealthScore,
   type RevenueHealthAlertThreshold,
 } from '@rotifolk/shared'
-import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 import styles from './Admin.module.css'
+
+import { api } from '@/infrastructure/api'
 
 interface AdminReport {
   id: string
