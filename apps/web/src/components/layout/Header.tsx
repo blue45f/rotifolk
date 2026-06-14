@@ -4,6 +4,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
+import { Tooltip } from '@components/ui/Tooltip/Tooltip'
 import { useLocale, useT } from '@features/i18n/useI18n'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
@@ -110,16 +111,17 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
 
         <div className={styles.actions}>
           {onOpenCommand && onOpenOnboarding && (
-            <button
-              type="button"
-              className={styles.commandBtn}
-              onClick={() => onOpenOnboarding()}
-              aria-label={t('command.quick.onboarding')}
-              title={t('command.quick.onboarding')}
-            >
-              <Icon name="compass" />
-              <span className={styles.commandBtnHint}>튜토리얼</span>
-            </button>
+            <Tooltip label={t('command.quick.onboarding')}>
+              <button
+                type="button"
+                className={styles.commandBtn}
+                onClick={() => onOpenOnboarding()}
+                aria-label={t('command.quick.onboarding')}
+              >
+                <Icon name="compass" />
+                <span className={styles.commandBtnHint}>튜토리얼</span>
+              </button>
+            </Tooltip>
           )}
           {!user && (
             <Link to={demoLoginHref} className={styles.commandBtn} aria-label="데모 계정 빠른 시작">
@@ -127,28 +129,30 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
               <span className={styles.commandBtnHint}>데모</span>
             </Link>
           )}
-          <button
-            type="button"
-            className={styles.langBtn}
-            onClick={() => setLocale(nextLocale)}
-            aria-label={`Switch language to ${nextLocale.toUpperCase()}`}
-            title={nextLocale.toUpperCase()}
-          >
-            {langLabel}
-          </button>
-          {onOpenCommand && (
+          <Tooltip label={`Switch language to ${nextLocale.toUpperCase()}`}>
             <button
               type="button"
-              className={styles.commandBtn}
-              onClick={() => onOpenCommand()}
-              aria-label={`${t('command.openLabel')} (⌘K / /)`}
-              title={`${t('command.openLabel')} (⌘K / /)`}
+              className={styles.langBtn}
+              onClick={() => setLocale(nextLocale)}
+              aria-label={`Switch language to ${nextLocale.toUpperCase()}`}
             >
-              <span aria-hidden="true">⌘K</span>
-              <span className={styles.commandBtnHint} aria-hidden="true">
-                /
-              </span>
+              {langLabel}
             </button>
+          </Tooltip>
+          {onOpenCommand && (
+            <Tooltip label={`${t('command.openLabel')} (⌘K / /)`}>
+              <button
+                type="button"
+                className={styles.commandBtn}
+                onClick={() => onOpenCommand()}
+                aria-label={`${t('command.openLabel')} (⌘K / /)`}
+              >
+                <span aria-hidden="true">⌘K</span>
+                <span className={styles.commandBtnHint} aria-hidden="true">
+                  /
+                </span>
+              </button>
+            </Tooltip>
           )}
           <div className={styles.themeWrap}>
             <DropdownMenu.Root>
@@ -189,14 +193,16 @@ export function Header({ onOpenCommand, onOpenOnboarding }: HeaderProps) {
             </DropdownMenu.Root>
           </div>
           {user && (
-            <Link to="/notifications" className={styles.bell} aria-label="알림">
-              <Icon name="bell" aria-hidden />
-              {(unread?.count ?? 0) > 0 && (
-                <span className={styles.bellDot} aria-hidden="true">
-                  {unread!.count > 9 ? '9+' : unread!.count}
-                </span>
-              )}
-            </Link>
+            <Tooltip label="알림">
+              <Link to="/notifications" className={styles.bell} aria-label="알림">
+                <Icon name="bell" aria-hidden />
+                {(unread?.count ?? 0) > 0 && (
+                  <span className={styles.bellDot} aria-hidden="true">
+                    {unread!.count > 9 ? '9+' : unread!.count}
+                  </span>
+                )}
+              </Link>
+            </Tooltip>
           )}
           {user ? (
             <Link to="/me" aria-label="내 프로필">
