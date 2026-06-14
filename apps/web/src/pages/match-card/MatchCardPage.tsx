@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { Avatar } from '@components/ui/Avatar/Avatar'

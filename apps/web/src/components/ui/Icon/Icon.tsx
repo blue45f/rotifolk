@@ -22,6 +22,7 @@ export type IconName =
   | 'moon' // 모집 중 (was 🌙)
   | 'live' // 진행 중 (was 🔴)
   | 'archive' // 지난 모임 (was 📜)
+  | 'sliders' // 필터 더보기
   | 'music' // BGM (was 🎵)
   | 'close' // 닫기 (was ✕)
   | 'home' // 홈 (was 🏠)
@@ -124,6 +125,15 @@ const GLYPHS: Record<IconName, ReactNode> = {
       <path d="M7 4h8a2.5 2.5 0 0 1 2.5 2.5V18a2 2 0 0 1-2 2H7" />
       <path d="M7 4a2.5 2.5 0 0 0-2.5 2.5V7H7" />
       <path d="M9.5 9.5h5M9.5 13h5M9.5 16.5h3" />
+    </>
+  ),
+  // Sliders: three rails with knobs — the "more filters" control.
+  sliders: (
+    <>
+      <path d="M4 7h16M4 12h16M4 17h16" />
+      <circle cx="9" cy="7" r="2.4" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="2.4" fill="currentColor" stroke="none" />
+      <circle cx="8" cy="17" r="2.4" fill="currentColor" stroke="none" />
     </>
   ),
   // Lounge BGM Double Note

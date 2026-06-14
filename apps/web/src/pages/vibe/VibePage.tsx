@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import { recommendParties } from '@rotifolk/shared'
 import { useParties } from '@features/parties/queries'
 import { PartyCard } from '@features/parties/PartyCard'

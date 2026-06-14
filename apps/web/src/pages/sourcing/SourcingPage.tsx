@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'motion/react'
 import type { PartyCategory, VenueBooking, VenueRecommendation } from '@rotifolk/shared'
 import { formatKRW, VENUE_BOOKING_STATUS_LABEL } from '@rotifolk/shared'
 import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'

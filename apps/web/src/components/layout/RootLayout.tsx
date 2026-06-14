@@ -74,7 +74,7 @@ export default function RootLayout() {
       <a href="#main-content" className="skip-link">
         본문 바로가기
       </a>
-      {!isLive && <Header onOpenCommand={openCommand} onOpenOnboarding={openOnboarding} />}
+      {!isLive && <Header onOpenCommand={openCommand} />}
       {!isLive && <PwaInstallBanner />}
       <main id="main-content" role="main" tabIndex={-1} className={styles.main}>
         <Outlet />

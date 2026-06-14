@@ -17,16 +17,19 @@ export function SiteFooter() {
           <span>{t('footer.tagline')}</span>
         </p>
         <nav className={styles.links} aria-label={t('footer.navLabel')}>
+          <Link to="/venues">{t('nav.venues')}</Link>
+          <Link to={`/community?from=${encodedCurrentPath}`}>{t('nav.community')}</Link>
+          <Link to="/clubs">{t('nav.clubs')}</Link>
+          <Link to="/digest">{t('nav.digest')}</Link>
+          <Link to={`/tutorial?from=${encodedCurrentPath}`}>{t('nav.tutorial')}</Link>
+          <Link to={`/help?from=${encodedCurrentPath}`}>{t('nav.help')}</Link>
+          <Link to={`/policies?from=${encodedCurrentPath}`}>{t('nav.policies')}</Link>
+          <Link to="/support">{t('footer.support')}</Link>
           <Link to="/terms">{t('footer.terms')}</Link>
           <Link to="/privacy" className={styles.privacy}>
             {t('footer.privacy')}
           </Link>
           <Link to="/cancel-policy">{t('footer.refund')}</Link>
-          <Link to={`/policies?from=${encodedCurrentPath}`}>{t('nav.policies')}</Link>
-          <Link to={`/help?from=${encodedCurrentPath}`}>{t('nav.help')}</Link>
-          <Link to={`/community?from=${encodedCurrentPath}`}>{t('nav.community')}</Link>
-          <Link to="/clubs">{t('nav.clubs')}</Link>
-          <Link to="/support">{t('footer.support')}</Link>
         </nav>
         <p className={styles.copyright}>© {year} rotifolk</p>
       </div>

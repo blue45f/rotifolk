@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion } from 'motion/react'
 import type { PartyCategory } from '@rotifolk/shared'
 import { api } from '@services/api'
 import { useVenues } from '@features/venues/queries'

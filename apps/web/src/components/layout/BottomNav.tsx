@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@store/authStore'
 import { api } from '@services/api'
@@ -6,10 +6,11 @@ import { chatKeys } from '@features/chat/queries'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import styles from './BottomNav.module.css'
 
+// 4 tabs + center action — the convergent mobile pattern (Hinge/Tinder/Munto/Frip).
+// 즉석(quick)이 중앙 강조 액션. 나머지 면(커뮤니티·튜토리얼 등)은 footer·⌘K·홈에서 도달.
 const BASE_ITEMS = [
   { to: '/', label: '홈', icon: 'home', end: true, key: 'home' },
-  { to: '/tutorial', label: '튜토리얼', icon: 'compass', key: 'tutorial' },
-  { to: '/community', label: '커뮤니티', icon: 'chat', key: 'community' },
+  { to: '/discover', label: '탐색', icon: 'compass', key: 'discover' },
   { to: '/quick', label: '즉석', icon: 'bolt', emphasize: true, key: 'quick' },
   { to: '/chats', label: '채팅', icon: 'mail', key: 'chats' },
   { to: '/me', label: '나', icon: 'user', key: 'me' },
@@ -25,7 +26,6 @@ const BASE_ITEMS = [
 const ADMIN_ITEM = { to: '/admin', label: '관리', icon: 'shield', key: 'admin' } as const
 
 export function BottomNav() {
-  const location = useLocation()
   const me = useAuthStore((s) => s.user)
   const isAdmin = me?.role === 'admin'
   const { data: chatUnread } = useQuery({
@@ -34,19 +34,10 @@ export function BottomNav() {
     enabled: !!me,
   })
   const items = isAdmin ? [...BASE_ITEMS, ADMIN_ITEM] : BASE_ITEMS
-  const encodedCurrentPath = encodeURIComponent(
-    `${location.pathname}${location.search}${location.hash}` || '/',
-  )
-  const itemsWithReturn = items.map((it) => {
-    if (it.to === '/tutorial' || it.to === '/community') {
-      return { ...it, to: `${it.to}?from=${encodedCurrentPath}` }
-    }
-    return it
-  })
 
   return (
     <nav className={styles.nav} aria-label="하단 메뉴">
-      {itemsWithReturn.map((it) => {
+      {items.map((it) => {
         const showBadge = it.key === 'chats' && (chatUnread?.rooms ?? 0) > 0
         return (
           <NavLink
