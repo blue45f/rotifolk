@@ -28,3 +28,6 @@ minimumReleaseAgeExclude:
   - react-hook-form@7.78.0
   - '@heejun/eslint-config@5.0.0'
   - '@heejun/prettier-config@3.0.0'
+  - '@heejun/auth@0.3.1'
+  - '@heejun/contracts@0.1.0'
+  - '@heejun/core-server@0.1.0'

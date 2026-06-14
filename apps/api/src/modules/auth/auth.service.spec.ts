@@ -3,6 +3,7 @@ import * as argon2 from 'argon2'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import { AuthService } from './auth.service'
+import { Argon2Hasher } from './heejun/argon2-hasher'
 
 /**
  * Critical-path security tests for the auth flow.
@@ -110,12 +111,22 @@ function makePrismaMock(opts: {
   const tx = {
     user: {
       create: vi.fn(
-        async ({ data }: { data: { passwordHash: string; email: string; nickname: string } }) =>
+        async ({
+          data,
+        }: {
+          data: {
+            passwordHash?: string
+            email: string
+            nickname: string
+            provider?: string
+            googleSub?: string
+          }
+        }) =>
           makeUserRow({
             id: 'u_new',
             email: data.email,
             nickname: data.nickname,
-            passwordHash: data.passwordHash,
+            passwordHash: data.passwordHash ?? 'PLACEHOLDER',
             avatarId: null,
           })
       ),
@@ -145,20 +156,26 @@ function makePrismaMock(opts: {
   }
 }
 
-const jwtMock = { sign: vi.fn(() => 'signed.jwt.token') }
+const tokensMock = { sign: vi.fn(() => 'signed.jwt.token') }
 // AuthService now also takes ConfigService (for GOOGLE_CLIENT_ID); the
 // password-path tests don't touch Google, so an empty config is sufficient.
 const configMock = { get: vi.fn(() => undefined) }
 
 describe('AuthService (critical auth path)', () => {
   beforeEach(() => {
-    jwtMock.sign.mockClear()
+    tokensMock.sign.mockClear()
   })
 
   describe('signUp', () => {
     it('hashes the password with argon2 and never returns it in the user object', async () => {
       const prisma = makePrismaMock({ existingByEmail: null })
-      const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
+      const service = new AuthService(
+        prisma as never,
+        tokensMock as never,
+        new Argon2Hasher(),
+        configMock as never,
+        null
+      )
 
       const result = await service.signUp({
         email: 'new@example.com',
@@ -168,7 +185,7 @@ describe('AuthService (critical auth path)', () => {
 
       // The hash written to the DB must be a real argon2 hash, not the plaintext.
       const createArgs = prisma.__tx.user.create.mock.calls[0][0]
-      const storedHash: string = createArgs.data.passwordHash
+      const storedHash = createArgs.data.passwordHash as string
       expect(storedHash).not.toBe('Sup3rSecret!')
       expect(storedHash.startsWith('$argon2')).toBe(true)
       expect(await argon2.verify(storedHash, 'Sup3rSecret!')).toBe(true)
@@ -182,7 +199,13 @@ describe('AuthService (critical auth path)', () => {
 
     it('rejects a duplicate email with the email_taken code', async () => {
       const prisma = makePrismaMock({ existingByEmail: makeUserRow() })
-      const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
+      const service = new AuthService(
+        prisma as never,
+        tokensMock as never,
+        new Argon2Hasher(),
+        configMock as never,
+        null
+      )
 
       await expect(
         service.signUp({
@@ -201,7 +224,13 @@ describe('AuthService (critical auth path)', () => {
     it('issues a session for valid credentials', async () => {
       const passwordHash = await argon2.hash('correct-horse')
       const prisma = makePrismaMock({ existingByEmail: makeUserRow({ passwordHash }) })
-      const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
+      const service = new AuthService(
+        prisma as never,
+        tokensMock as never,
+        new Argon2Hasher(),
+        configMock as never,
+        null
+      )
 
       const result = await service.login({
         email: 'alice@example.com',
@@ -216,8 +245,10 @@ describe('AuthService (critical auth path)', () => {
       // Unknown email.
       const noUser = new AuthService(
         makePrismaMock({ existingByEmail: null }) as never,
-        jwtMock as never,
-        configMock as never
+        tokensMock as never,
+        new Argon2Hasher(),
+        configMock as never,
+        null
       )
       const unknownErr = await noUser
         .login({ email: 'ghost@example.com', password: 'whatever' } as never)
@@ -227,8 +258,10 @@ describe('AuthService (critical auth path)', () => {
       const passwordHash = await argon2.hash('the-real-password')
       const wrongPw = new AuthService(
         makePrismaMock({ existingByEmail: makeUserRow({ passwordHash }) }) as never,
-        jwtMock as never,
-        configMock as never
+        tokensMock as never,
+        new Argon2Hasher(),
+        configMock as never,
+        null
       )
       const wrongErr = await wrongPw
         .login({ email: 'alice@example.com', password: 'not-it' } as never)
@@ -246,7 +279,13 @@ describe('AuthService (critical auth path)', () => {
       const prisma = makePrismaMock({
         existingByEmail: makeUserRow({ passwordHash, accountStatus: 'withdrawn' }),
       })
-      const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
+      const service = new AuthService(
+        prisma as never,
+        tokensMock as never,
+        new Argon2Hasher(),
+        configMock as never,
+        null
+      )
 
       const err = await service
         .login({ email: 'alice@example.com', password: 'correct-horse' } as never)
@@ -254,7 +293,64 @@ describe('AuthService (critical auth path)', () => {
 
       expect(err).toBeInstanceOf(UnauthorizedException)
       expect((err.getResponse() as { code: string }).code).toBe('account_inactive')
-      expect(jwtMock.sign).not.toHaveBeenCalled()
+      expect(tokensMock.sign).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('googleAuth (via @heejun/auth OAuthVerifier port)', () => {
+    it('rejects with google_not_configured when no verifier is provided', async () => {
+      const service = new AuthService(
+        makePrismaMock({ existingByEmail: null }) as never,
+        tokensMock as never,
+        new Argon2Hasher(),
+        configMock as never,
+        null
+      )
+      const err = await service.googleAuth('cred').catch((e) => e)
+      expect(err).toBeInstanceOf(UnauthorizedException)
+      expect((err.getResponse() as { code: string }).code).toBe('google_not_configured')
+    })
+
+    it('creates a new user from the verified profile (name → nickname seed)', async () => {
+      const oauth = {
+        verify: vi.fn(async () => ({
+          sub: 'g-sub',
+          email: 'New@Gmail.com',
+          emailVerified: true,
+          name: 'Google Display',
+        })),
+      }
+      const prisma = makePrismaMock({ existingByEmail: null })
+      const service = new AuthService(
+        prisma as never,
+        tokensMock as never,
+        new Argon2Hasher(),
+        configMock as never,
+        oauth as never
+      )
+      const result = await service.googleAuth('cred')
+      expect(result.token).toBe('signed.jwt.token')
+      const createArgs = prisma.__tx.user.create.mock.calls[0][0]
+      expect(createArgs.data.provider).toBe('google')
+      expect(createArgs.data.googleSub).toBe('g-sub')
+      expect(createArgs.data.email).toBe('new@gmail.com')
+      expect(createArgs.data.nickname).toBe('Google Display')
+    })
+
+    it('rejects an unverified-email profile with google_invalid_token', async () => {
+      const oauth = {
+        verify: vi.fn(async () => ({ sub: 'g1', email: 'x@gmail.com', emailVerified: false })),
+      }
+      const service = new AuthService(
+        makePrismaMock({ existingByEmail: null }) as never,
+        tokensMock as never,
+        new Argon2Hasher(),
+        configMock as never,
+        oauth as never
+      )
+      const err = await service.googleAuth('cred').catch((e) => e)
+      expect(err).toBeInstanceOf(UnauthorizedException)
+      expect((err.getResponse() as { code: string }).code).toBe('google_invalid_token')
     })
   })
 })
