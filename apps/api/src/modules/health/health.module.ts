@@ -1,8 +1,9 @@
 import { Controller, Get, HttpStatus, Module, Res } from '@nestjs/common'
 import { SkipThrottle } from '@nestjs/throttler'
-import type { Response } from 'express'
 
 import { PrismaService } from '../../prisma/prisma.service'
+
+import type { Response } from 'express'
 
 /**
  * Health probes for hosted deploys (Docker / Fly / k8s).

@@ -8,9 +8,11 @@ import {
   type ContactExchangeRequestDto,
   type FinalMatchVoteDto,
 } from '@rotifolk/shared'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
-import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+
 import { MatchingService } from './matching.service'
+
+import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 
 @Controller('parties/:partyId/matching')
 @UseGuards(AuthGuard('jwt'))
@@ -36,7 +38,7 @@ export class MatchingController {
   midLike(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body(new ZodValidationPipe(FinalMatchVoteSchema)) body: FinalMatchVoteDto,
+    @Body(new ZodValidationPipe(FinalMatchVoteSchema)) body: FinalMatchVoteDto
   ) {
     return this.matching.midMatchLike(me.sub, partyId, body.toUserId)
   }
@@ -45,7 +47,7 @@ export class MatchingController {
   finalVote(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body(new ZodValidationPipe(FinalMatchVoteSchema)) body: FinalMatchVoteDto,
+    @Body(new ZodValidationPipe(FinalMatchVoteSchema)) body: FinalMatchVoteDto
   ) {
     return this.matching.finalMatchVote(me.sub, partyId, body.toUserId)
   }
@@ -70,7 +72,7 @@ export class MatchingController {
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
     @Param('partnerId') partnerId: string,
-    @Body(new ZodValidationPipe(ContactExchangeRequestSchema)) body: ContactExchangeRequestDto,
+    @Body(new ZodValidationPipe(ContactExchangeRequestSchema)) body: ContactExchangeRequestDto
   ) {
     return this.matching.requestContactExchange(me.sub, partyId, partnerId, body.channel)
   }
@@ -80,7 +82,7 @@ export class MatchingController {
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
     @Param('requestId') requestId: string,
-    @Body(new ZodValidationPipe(ContactExchangeDecisionSchema)) body: ContactExchangeDecisionDto,
+    @Body(new ZodValidationPipe(ContactExchangeDecisionSchema)) body: ContactExchangeDecisionDto
   ) {
     return this.matching.decideContactExchangeRequest(me.sub, partyId, requestId, body.action)
   }

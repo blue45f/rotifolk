@@ -1,7 +1,9 @@
 import { UnauthorizedException } from '@nestjs/common'
 import { describe, expect, it, vi } from 'vitest'
-import type { JwtUserPayload } from '@/common/current-user.decorator'
+
 import { JwtStrategy } from './jwt.strategy'
+
+import type { JwtUserPayload } from '@/common/current-user.decorator'
 
 const cfgMock = {
   get: vi.fn((_key: string, fallback: string) => fallback),

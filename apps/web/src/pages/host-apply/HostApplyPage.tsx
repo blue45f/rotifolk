@@ -1,19 +1,20 @@
-import { useMemo } from 'react'
-import { useForm, Controller, useWatch, type Resolver } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '@services/api'
-import { useAuthStore } from '@store/authStore'
-import { ALL_CATEGORIES } from '@features/categories/meta'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import { useToast } from '@components/feedback/Toast/useToast'
+import { ALL_CATEGORIES } from '@domains/categories/meta'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { api } from '@infrastructure/api'
+import { useAuthStore } from '@store/authStore'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
+import { useForm, Controller, useWatch, type Resolver } from 'react-hook-form'
+import { Link } from 'react-router-dom'
+import { z } from 'zod'
+
 import styles from './HostApply.module.css'
 
 type ApplicationStatus = 'pending' | 'approved' | 'rejected'
@@ -108,7 +109,7 @@ export default function HostApplyPage() {
     formState: { errors, isSubmitted },
   } = useForm<HostApplyFormValues>({
     resolver: zodResolver(
-      HostApplyFormSchema as unknown as Parameters<typeof zodResolver>[0],
+      HostApplyFormSchema as unknown as Parameters<typeof zodResolver>[0]
     ) as unknown as Resolver<HostApplyFormValues>,
     defaultValues: HOST_APPLY_DEFAULTS,
     mode: 'onSubmit',
@@ -409,7 +410,7 @@ export default function HostApplyPage() {
                               field.onChange(
                                 selected
                                   ? field.value.filter((x) => x !== c.value)
-                                  : [...field.value, c.value],
+                                  : [...field.value, c.value]
                               )
                             }
                           >

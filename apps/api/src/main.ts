@@ -1,11 +1,13 @@
 import 'reflect-metadata'
-import { NestFactory } from '@nestjs/core'
 import { ConfigService } from '@nestjs/config'
-import type { NestExpressApplication } from '@nestjs/platform-express'
+import { NestFactory } from '@nestjs/core'
 import compression from 'compression'
 import helmet from 'helmet'
 import { Logger } from 'nestjs-pino'
+
 import { AppModule } from './app.module'
+
+import type { NestExpressApplication } from '@nestjs/platform-express'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -27,7 +29,7 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
-    }),
+    })
   )
   app.enableCors({
     origin: config.get<string>('CORS_ORIGIN', 'http://localhost:5173').split(','),

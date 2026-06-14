@@ -10,7 +10,7 @@ export function parseJsonArray<T = unknown>(raw: string | null | undefined): T[]
 }
 
 export function parseJsonObject<T extends Record<string, unknown> = Record<string, unknown>>(
-  raw: string | null | undefined,
+  raw: string | null | undefined
 ): T {
   if (!raw) return {} as T
   try {

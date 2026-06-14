@@ -1,7 +1,9 @@
-import type { HTMLAttributes } from 'react'
-import type { HostLevel } from '@rotifolk/shared'
 import { HOST_LEVELS } from '@rotifolk/shared'
+
 import styles from './HostLevelBadge.module.css'
+
+import type { HostLevel } from '@rotifolk/shared'
+import type { HTMLAttributes } from 'react'
 
 interface HostLevelBadgeProps extends HTMLAttributes<HTMLSpanElement> {
   level: HostLevel

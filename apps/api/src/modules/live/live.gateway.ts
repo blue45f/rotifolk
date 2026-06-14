@@ -10,22 +10,26 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets'
-import type { Server, Socket } from 'socket.io'
 import {
   PARTY_ROOM,
   USER_ROOM,
   type ClientToServerEvents,
   type ServerToClientEvents,
 } from '@rotifolk/shared'
-import type { JwtUserPayload } from '@/common/current-user.decorator'
-import { PrismaService } from '@/prisma/prisma.service'
-import { parseJsonArray, parseJsonObject } from '@/common/json-utils'
-import { MatchingService } from '../matching/matching.service'
-import { QuizService } from '../quiz/quiz.service'
-import { OrdersService } from '../orders/orders.service'
-import { NotificationsEmitter } from '../notifications/notifications.emitter'
+
 import { ChatEventsEmitter } from '../chat/chat-events.emitter'
+import { MatchingService } from '../matching/matching.service'
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
+import { OrdersService } from '../orders/orders.service'
+import { QuizService } from '../quiz/quiz.service'
+
 import { LiveOrchestrator } from './live.orchestrator'
+
+import type { JwtUserPayload } from '@/common/current-user.decorator'
+import type { Server, Socket } from 'socket.io'
+
+import { parseJsonArray, parseJsonObject } from '@/common/json-utils'
+import { PrismaService } from '@/prisma/prisma.service'
 
 type AuthedSocket = Socket<ClientToServerEvents, ServerToClientEvents> & {
   data: { user?: JwtUserPayload }
@@ -49,7 +53,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private readonly orders: OrdersService,
     private readonly notifEmitter: NotificationsEmitter,
     private readonly chatEvents: ChatEventsEmitter,
-    private readonly orchestrator: LiveOrchestrator,
+    private readonly orchestrator: LiveOrchestrator
   ) {}
 
   afterInit(server: Server<ClientToServerEvents, ServerToClientEvents>) {
@@ -105,7 +109,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('host:round:start')
   async onRoundStart(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string },
+    @MessageBody() data: { partyId: string }
   ) {
     if (!(await this.assertHost(client, data.partyId))) return
     const room = PARTY_ROOM(data.partyId)
@@ -116,7 +120,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       },
       (roundIndex) => {
         this.server.to(room).emit('round:ended', { roundIndex })
-      },
+      }
     )
     if (!started) {
       client.emit('toast', { kind: 'warning', message: '더 진행할 라운드가 없어요.' })
@@ -149,19 +153,19 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('host:round:end')
   async onRoundEnd(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string },
+    @MessageBody() data: { partyId: string }
   ) {
     if (!(await this.assertHost(client, data.partyId))) return
     const room = PARTY_ROOM(data.partyId)
     await this.orchestrator.finishCurrent(data.partyId, (roundIndex) =>
-      this.server.to(room).emit('round:ended', { roundIndex }),
+      this.server.to(room).emit('round:ended', { roundIndex })
     )
   }
 
   @SubscribeMessage('host:event:fire')
   async onEventFire(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string; kind: string; payload?: Record<string, unknown> },
+    @MessageBody() data: { partyId: string; kind: string; payload?: Record<string, unknown> }
   ) {
     if (!(await this.assertHost(client, data.partyId))) return
     const ev = await this.prisma.liveEvent.create({
@@ -191,7 +195,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('host:quiz:launch')
   async onQuizLaunch(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string; questionId: string },
+    @MessageBody() data: { partyId: string; questionId: string }
   ) {
     if (!(await this.assertHost(client, data.partyId))) return
     const q = await this.quiz.launch(client.data.user!.sub, data.questionId)
@@ -217,7 +221,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         const board = await this.quiz.leaderboard(data.partyId)
         this.server.to(PARTY_ROOM(data.partyId)).emit('quiz:leaderboard', { entries: board })
       },
-      q.durationSec * 1000 + 1000,
+      q.durationSec * 1000 + 1000
     )
   }
 
@@ -230,7 +234,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       questionId: string
       selectedOptionIndex?: number | null
       freeText?: string | null
-    },
+    }
   ) {
     if (!client.data.user) return
     await this.quiz.answer(client.data.user.sub, {
@@ -243,7 +247,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('participant:mid-match:like')
   async onMidLike(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string; targetUserId: string },
+    @MessageBody() data: { partyId: string; targetUserId: string }
   ) {
     if (!client.data.user) return
     await this.matching.midMatchLike(client.data.user.sub, data.partyId, data.targetUserId)
@@ -253,7 +257,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('participant:final-match:vote')
   async onFinalVote(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string; targetUserId: string },
+    @MessageBody() data: { partyId: string; targetUserId: string }
   ) {
     if (!client.data.user) return
     await this.matching.finalMatchVote(client.data.user.sub, data.partyId, data.targetUserId)
@@ -268,7 +272,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       partyId: string
       items: Array<{ menuItemId: string; quantity: number; note?: string | null }>
       note?: string | null
-    },
+    }
   ) {
     if (!client.data.user) return
     const order = await this.orders.create(client.data.user.sub, {
@@ -282,7 +286,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('card:draw')
   async onCardDraw(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string; pairId?: string | null },
+    @MessageBody() data: { partyId: string; pairId?: string | null }
   ) {
     if (!client.data.user) return
     // 이 파티의 확정/체크인 참가자만 카드 draw 가능 (비참가자 usedCount·draw 오염 차단)
@@ -333,7 +337,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('host:party:end')
   async onPartyEnd(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string },
+    @MessageBody() data: { partyId: string }
   ) {
     if (!(await this.assertHost(client, data.partyId))) return
     const matches = await this.matching.revealFinalMatches(client.data.user!.sub, data.partyId)
@@ -346,7 +350,7 @@ export class LiveGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   @SubscribeMessage('host:party:lock')
   async onPartyLock(
     @ConnectedSocket() client: AuthedSocket,
-    @MessageBody() data: { partyId: string },
+    @MessageBody() data: { partyId: string }
   ) {
     if (!(await this.assertHost(client, data.partyId))) return
     await this.prisma.party.update({ where: { id: data.partyId }, data: { status: 'locked' } })

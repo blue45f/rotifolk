@@ -25,7 +25,7 @@ describe('ConfirmProvider', () => {
     render(
       <ConfirmProvider>
         <Harness onResult={onResult} />
-      </ConfirmProvider>,
+      </ConfirmProvider>
     )
 
     await user.click(screen.getByText('trigger'))
@@ -41,7 +41,7 @@ describe('ConfirmProvider', () => {
     render(
       <ConfirmProvider>
         <Harness onResult={onResult} />
-      </ConfirmProvider>,
+      </ConfirmProvider>
     )
 
     await user.click(screen.getByText('trigger'))

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { resolveTheme, THEME_STORAGE_KEY } from './themeStore'
 
 /**

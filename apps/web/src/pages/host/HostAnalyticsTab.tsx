@@ -1,7 +1,9 @@
-import { useMemo } from 'react'
-import type { Participation } from '@rotifolk/shared'
 import EmptyState from '@components/feedback/EmptyState'
+import { useMemo } from 'react'
+
 import styles from './HostAnalytics.module.css'
+
+import type { Participation } from '@rotifolk/shared'
 
 interface Props {
   participants: Participation[]
@@ -35,7 +37,7 @@ export default function HostAnalyticsTab({ participants }: Props) {
   const stats = useMemo(() => {
     const total = participants.length
     const confirmed = participants.filter(
-      (p) => p.status === 'confirmed' || p.status === 'checked-in',
+      (p) => p.status === 'confirmed' || p.status === 'checked-in'
     ).length
     const checkedIn = participants.filter((p) => p.status === 'checked-in').length
 

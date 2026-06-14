@@ -1,13 +1,14 @@
-import { Link } from 'react-router-dom'
-import { useState, useMemo } from 'react'
-import { useMyChatRooms } from '@features/chat/queries'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { Input } from '@components/ui/Input/Input'
 import { Icon } from '@components/ui/Icon/Icon'
+import { Input } from '@components/ui/Input/Input'
+import { useMyChatRooms } from '@domains/chat/queries'
 import { useAuthStore } from '@store/authStore'
+import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './Chat.module.css'
 
 export default function ChatListPage() {

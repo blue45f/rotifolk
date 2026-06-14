@@ -12,10 +12,13 @@ import {
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { CreateReportSchema, UpdateReportStatusSchema } from '@rotifolk/shared'
+
+import { SafetyService } from './safety.service'
+
 import type { CreateReportDto, UpdateReportStatusDto } from '@rotifolk/shared'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 import { ZodValidationPipe } from '@/common/zod-validation.pipe'
-import { SafetyService } from './safety.service'
 
 @Controller()
 export class SafetyController {
@@ -26,7 +29,7 @@ export class SafetyController {
   block(
     @CurrentUser() me: JwtUserPayload,
     @Param('userId') userId: string,
-    @Body() body: { reason?: string },
+    @Body() body: { reason?: string }
   ) {
     return this.safety.block(me.sub, userId, body?.reason)
   }
@@ -85,7 +88,7 @@ export class SafetyController {
       body: string
       anonymous?: boolean
       tags?: string[]
-    },
+    }
   ) {
     return this.safety.createReview({ fromUserId: me.sub, ...body })
   }
@@ -110,7 +113,7 @@ export class SafetyController {
   hostReply(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') id: string,
-    @Body() body: { body: string },
+    @Body() body: { body: string }
   ) {
     return this.safety.addHostReply(me.sub, id, body.body)
   }
@@ -119,7 +122,7 @@ export class SafetyController {
   @UseGuards(AuthGuard('jwt'))
   report(
     @CurrentUser() me: JwtUserPayload,
-    @Body(new ZodValidationPipe(CreateReportSchema)) body: CreateReportDto,
+    @Body(new ZodValidationPipe(CreateReportSchema)) body: CreateReportDto
   ) {
     return this.safety.report({ reporterId: me.sub, ...body })
   }
@@ -128,7 +131,7 @@ export class SafetyController {
   @UseGuards(AuthGuard('jwt'))
   adminReports(
     @CurrentUser() me: JwtUserPayload,
-    @Query('status') status?: 'open' | 'reviewing' | 'resolved' | 'dismissed',
+    @Query('status') status?: 'open' | 'reviewing' | 'resolved' | 'dismissed'
   ) {
     if (me.role !== 'admin')
       throw new ForbiddenException({ code: 'admin_only', message: '관리자 전용' })
@@ -140,7 +143,7 @@ export class SafetyController {
   resolve(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(UpdateReportStatusSchema)) body: UpdateReportStatusDto,
+    @Body(new ZodValidationPipe(UpdateReportStatusSchema)) body: UpdateReportStatusDto
   ) {
     if (me.role !== 'admin')
       throw new ForbiddenException({ code: 'admin_only', message: '관리자 전용' })

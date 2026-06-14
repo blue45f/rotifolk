@@ -1,5 +1,6 @@
-import type { HTMLAttributes, ReactNode } from 'react'
 import styles from './Card.module.css'
+
+import type { HTMLAttributes, ReactNode } from 'react'
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: 'none' | 'sm' | 'md' | 'lg'

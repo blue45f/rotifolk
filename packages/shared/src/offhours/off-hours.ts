@@ -1,6 +1,7 @@
+import { quoteVenueBooking } from '../pricing/venue-pricing'
+
 import type { Venue } from '../domain/venue'
 import type { OffHoursKind, OffHoursSlot, VenueBusyRange } from '../domain/venue-booking'
-import { quoteVenueBooking } from '../pricing/venue-pricing'
 
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
 const MS_PER_HOUR = 3_600_000
@@ -29,8 +30,7 @@ function atMinuteOfDay(kstMidnightInstant: Date, minute: number): Date {
 function overlapsBusy(start: Date, end: Date, busy: VenueBusyRange[]): boolean {
   return busy.some(
     (b) =>
-      new Date(b.startAt).getTime() < end.getTime() &&
-      new Date(b.endAt).getTime() > start.getTime(),
+      new Date(b.startAt).getTime() < end.getTime() && new Date(b.endAt).getTime() > start.getTime()
   )
 }
 

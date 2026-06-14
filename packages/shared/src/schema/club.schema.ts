@@ -1,5 +1,7 @@
 import { z } from 'zod'
+
 import { CLUB_CATEGORIES } from '../domain/club'
+
 import { PostImageDataSchema } from './community.schema'
 
 export const ClubCategoryEnum = z.enum(CLUB_CATEGORIES)

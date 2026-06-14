@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { detectAvoidOverlaps, normalizePhoneKR } from './avoidance'
 
 describe('normalizePhoneKR', () => {
@@ -40,10 +41,10 @@ describe('detectAvoidOverlaps', () => {
   it('같은 회사 회피는 옵션 on일 때만, 대소문자/공백 무시', () => {
     const attendees = [{ userId: 'u1', company: '  Toss  ' }]
     expect(
-      detectAvoidOverlaps({ myCompany: 'toss', avoidSameCompany: true }, attendees)[0]?.reasons,
+      detectAvoidOverlaps({ myCompany: 'toss', avoidSameCompany: true }, attendees)[0]?.reasons
     ).toContain('same-company')
     expect(detectAvoidOverlaps({ myCompany: 'toss', avoidSameCompany: false }, attendees)).toEqual(
-      [],
+      []
     )
   })
 

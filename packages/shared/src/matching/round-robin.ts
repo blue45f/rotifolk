@@ -55,7 +55,7 @@ export interface TrioRoundPairing {
 export function buildTrioRotation(
   userIds: readonly string[],
   rounds: number,
-  seed = 1,
+  seed = 1
 ): TrioRoundPairing[] {
   if (userIds.length < 3) return []
 

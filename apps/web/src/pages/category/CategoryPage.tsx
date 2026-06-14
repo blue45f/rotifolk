@@ -1,17 +1,19 @@
-import { useParams, Link } from 'react-router-dom'
-import { useMemo, useState } from 'react'
-import type { PartyCategory, VenueKind } from '@rotifolk/shared'
-import { CATEGORY_META, ALL_CATEGORIES } from '@features/categories/meta'
-import { useParties } from '@features/parties/queries'
-import { useVenues } from '@features/venues/queries'
-import { PartyCard } from '@features/parties/PartyCard'
-import { Button } from '@components/ui/Button/Button'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
 import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
+import { CATEGORY_META, ALL_CATEGORIES } from '@domains/categories/meta'
+import { PartyCard } from '@domains/parties/PartyCard'
+import { useParties } from '@domains/parties/queries'
+import { useVenues } from '@domains/venues/queries'
+import { useMemo, useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
+
 import styles from './Category.module.css'
+
+import type { PartyCategory, VenueKind } from '@rotifolk/shared'
 
 type SortKey = 'soonest' | 'seats' | 'price'
 
@@ -63,10 +65,10 @@ export default function CategoryPage() {
 
   // 훅 순서 보존을 위해 항상 호출하되, 유효하지 않으면 enabled-effect 처럼 의미 없는 카테고리를 전달
   const partiesQuery = useParties(
-    validCategory ? { category: validCategory, status: 'open' } : { status: 'open' },
+    validCategory ? { category: validCategory, status: 'open' } : { status: 'open' }
   )
   const venuesQuery = useVenues(
-    validCategory ? { kind: VENUE_KIND_BY_CATEGORY[validCategory] } : {},
+    validCategory ? { kind: VENUE_KIND_BY_CATEGORY[validCategory] } : {}
   )
 
   const parties = useMemo(() => {
@@ -77,7 +79,7 @@ export default function CategoryPage() {
     else if (sort === 'seats')
       copy.sort(
         (a, b) =>
-          a.maxParticipants - a.currentParticipants - (b.maxParticipants - b.currentParticipants),
+          a.maxParticipants - a.currentParticipants - (b.maxParticipants - b.currentParticipants)
       )
     else if (sort === 'price') copy.sort((a, b) => a.basePriceKRW - b.basePriceKRW)
     return copy

@@ -150,7 +150,7 @@ async function handleRequest(event, requestId, requestInterceptedAt) {
           },
         },
       },
-      responseClone.body ? [serializedRequest.body, responseClone.body] : [],
+      responseClone.body ? [serializedRequest.body, responseClone.body] : []
     )
   }
 
@@ -252,7 +252,7 @@ async function getResponse(event, client, requestId, requestInterceptedAt) {
         ...serializedRequest,
       },
     },
-    [serializedRequest.body],
+    [serializedRequest.body]
   )
 
   switch (clientMessage.type) {

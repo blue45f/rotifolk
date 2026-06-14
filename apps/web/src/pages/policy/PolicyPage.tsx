@@ -1,16 +1,17 @@
-import { createElement } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import EmptyState from '@components/feedback/EmptyState'
 import { Button } from '@components/ui/Button/Button'
 import { Icon } from '@components/ui/Icon/Icon'
-import EmptyState from '@components/feedback/EmptyState'
 import {
   parsePolicyBody,
   policyPublicUrl,
   usePolicy,
   type PolicyBlock,
   type PolicySlug,
-} from '@features/policies'
+} from '@domains/policies'
 import { usePageMeta } from '@hooks/usePageMeta'
+import { createElement } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+
 import styles from './Policy.module.css'
 
 /** 신뢰 표면에 노출하는 content hash 축약 길이(앞 12자). */
@@ -58,7 +59,7 @@ function PolicyBody({ blocks }: { blocks: PolicyBlock[] }) {
           return createElement(
             `h${block.level}`,
             { key: index, className: styles.bodyHeading },
-            block.text,
+            block.text
           )
         }
         if (block.kind === 'list') {

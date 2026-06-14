@@ -1,7 +1,13 @@
-import type { ConnectionChannel, ContactExchangeChannelState, MatchScope } from '../domain/party'
-import type { ContactExchangePolicy } from '../domain/party'
 import { CONNECTION_CHANNEL_ORDER } from '../domain/party'
+
 import { findMutualMatches, type RawVote } from './final-match'
+
+import type {
+  ConnectionChannel,
+  ContactExchangeChannelState,
+  MatchScope,
+  ContactExchangePolicy,
+} from '../domain/party'
 
 export type ConnectionResult = 'mutual' | 'top-pick' | 'all'
 
@@ -146,7 +152,7 @@ function bothConsent(channel: ConnectionChannel, me: UserContact, them: UserCont
 export function resolveSharedChannels(
   offered: readonly ConnectionChannel[],
   me: UserContact,
-  them: UserContact,
+  them: UserContact
 ): RevealedChannel[] {
   const offeredSet = new Set(offered)
   const out: RevealedChannel[] = []
@@ -164,7 +170,7 @@ export function resolveChannelsByPolicy(
   policy: ContactExchangePolicy,
   offered: readonly ConnectionChannel[],
   me: UserContact,
-  them: UserContact,
+  them: UserContact
 ): RevealedChannel[] {
   switch (policy) {
     case 'chat-only': {
@@ -204,7 +210,7 @@ function pairKeyOf(a: string, b: string): string {
 /** 마주치면 안 되는 쌍(forbidden pairs)을 최종 연결에서 제거 — 회피 하드 보장. */
 export function filterConnectionsExcluding(
   connections: readonly Connection[],
-  forbiddenPairs: readonly (readonly [string, string])[],
+  forbiddenPairs: readonly (readonly [string, string])[]
 ): Connection[] {
   if (forbiddenPairs.length === 0) return [...connections]
   const blocked = new Set(forbiddenPairs.map(([a, b]) => pairKeyOf(a, b)))

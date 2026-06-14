@@ -1,8 +1,10 @@
 import { Controller, Get, Module, Param, Post, Query, UseGuards } from '@nestjs/common'
-import { NotificationsEmitter } from './notifications.emitter'
 import { AuthGuard } from '@nestjs/passport'
-import { PrismaService } from '@/prisma/prisma.service'
+
+import { NotificationsEmitter } from './notifications.emitter'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { PrismaService } from '@/prisma/prisma.service'
 
 @Controller('notifications')
 @UseGuards(AuthGuard('jwt'))

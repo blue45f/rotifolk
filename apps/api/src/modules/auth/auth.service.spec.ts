@@ -1,6 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { BadRequestException, UnauthorizedException } from '@nestjs/common'
 import * as argon2 from 'argon2'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+
 import { AuthService } from './auth.service'
 
 /**
@@ -116,14 +117,14 @@ function makePrismaMock(opts: {
             nickname: data.nickname,
             passwordHash: data.passwordHash,
             avatarId: null,
-          }),
+          })
       ),
       update: vi.fn(async ({ data }: { data: { avatarId?: string } }) =>
         makeUserRow({
           id: 'u_new',
           avatarId: data.avatarId ?? 'av_new',
           passwordHash: created.passwordHash,
-        }),
+        })
       ),
     },
     avatar: { create: vi.fn(async () => ({ id: 'av_new' })) },
@@ -136,7 +137,7 @@ function makePrismaMock(opts: {
           if (where.email) return opts.existingByEmail ?? null
           if (where.id) return opts.existingById ?? null
           return null // referralCode lookups -> no referrer
-        },
+        }
       ),
     },
     $transaction: vi.fn(async (cb: (t: typeof tx) => unknown) => cb(tx)),
@@ -188,7 +189,7 @@ describe('AuthService (critical auth path)', () => {
           email: 'alice@example.com',
           password: 'whatever12',
           nickname: 'a',
-        } as never),
+        } as never)
       ).rejects.toBeInstanceOf(BadRequestException)
 
       // Must not attempt to create a user when the email is taken.
@@ -216,7 +217,7 @@ describe('AuthService (critical auth path)', () => {
       const noUser = new AuthService(
         makePrismaMock({ existingByEmail: null }) as never,
         jwtMock as never,
-        configMock as never,
+        configMock as never
       )
       const unknownErr = await noUser
         .login({ email: 'ghost@example.com', password: 'whatever' } as never)
@@ -227,7 +228,7 @@ describe('AuthService (critical auth path)', () => {
       const wrongPw = new AuthService(
         makePrismaMock({ existingByEmail: makeUserRow({ passwordHash }) }) as never,
         jwtMock as never,
-        configMock as never,
+        configMock as never
       )
       const wrongErr = await wrongPw
         .login({ email: 'alice@example.com', password: 'not-it' } as never)

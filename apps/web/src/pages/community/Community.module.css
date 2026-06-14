@@ -566,7 +566,11 @@
 
 .postRow:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--row-accent, var(--color-primary)) 28%, var(--color-border));
+  border-color: color-mix(
+    in oklab,
+    var(--row-accent, var(--color-primary)) 28%,
+    var(--color-border)
+  );
   box-shadow: var(--shadow-md);
 }
 
@@ -621,7 +625,11 @@
   align-items: center;
   padding: 2px var(--space-2);
   border-radius: var(--radius-pill);
-  background: color-mix(in oklab, var(--row-accent, var(--color-primary)) 14%, var(--color-surface));
+  background: color-mix(
+    in oklab,
+    var(--row-accent, var(--color-primary)) 14%,
+    var(--color-surface)
+  );
   color: var(--row-accent, var(--color-primary));
   font-weight: var(--fw-bold);
   font-size: var(--fs-xs);

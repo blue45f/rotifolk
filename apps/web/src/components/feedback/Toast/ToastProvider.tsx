@@ -1,7 +1,8 @@
 import * as Toast from '@radix-ui/react-toast'
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react'
-import { ToastContext, type ToastItem, type ToastKind } from './ToastContext'
+
 import styles from './Toast.module.css'
+import { ToastContext, type ToastItem, type ToastKind } from './ToastContext'
 
 /**
  * Toaster on top of Radix Toast. The public `show()` API is unchanged; Radix

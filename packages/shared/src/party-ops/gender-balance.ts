@@ -68,7 +68,7 @@ export function canAcceptGender(
   gender: GenderKey,
   counts: GenderCounts,
   target: string,
-  opts: AcceptGenderOptions = {},
+  opts: AcceptGenderOptions = {}
 ): boolean {
   const cap = gender === 'male' ? opts.caps?.male : opts.caps?.female
   if (cap != null && counts[gender] >= cap) return false

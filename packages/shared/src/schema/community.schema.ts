@@ -83,12 +83,12 @@ export const CreateReportSchema = z
   .refine(
     (value) =>
       Boolean(
-        value.targetUserId || value.partyId || value.communityPostId || value.communityCommentId,
+        value.targetUserId || value.partyId || value.communityPostId || value.communityCommentId
       ),
     {
       message: '신고 대상을 선택해 주세요.',
       path: ['targetUserId'],
-    },
+    }
   )
 export type CreateReportDto = z.infer<typeof CreateReportSchema>
 

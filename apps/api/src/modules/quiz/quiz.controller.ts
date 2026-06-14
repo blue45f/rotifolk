@@ -1,10 +1,13 @@
 import { Body, Controller, Get, Param, Post, UseGuards, UsePipes } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { CreateQuizSchema, SubmitQuizAnswerSchema } from '@rotifolk/shared'
-import type { CreateQuizDto, SubmitQuizAnswerDto } from '@rotifolk/shared'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
-import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+
 import { QuizService } from './quiz.service'
+
+import type { CreateQuizDto, SubmitQuizAnswerDto } from '@rotifolk/shared'
+
+import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 
 @Controller('parties/:partyId/quiz')
 export class QuizController {
@@ -28,7 +31,7 @@ export class QuizController {
   create(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body() dto: CreateQuizDto,
+    @Body() dto: CreateQuizDto
   ) {
     return this.quiz.create(me.sub, { ...dto, partyId })
   }

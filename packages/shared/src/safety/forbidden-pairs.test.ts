@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { computeForbiddenPairs } from './avoidance'
+
 import { repairForbiddenPairs } from '../matching/group-rotation'
+
+import { computeForbiddenPairs } from './avoidance'
 
 describe('computeForbiddenPairs', () => {
   it('차단(양방향)으로 금지쌍 산출', () => {

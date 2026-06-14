@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
+
 import { PrismaService } from '@/prisma/prisma.service'
 
 /**
@@ -15,7 +16,7 @@ export class LiveOrchestrator {
   async startNextRound(
     partyId: string,
     onTick: (remainingSec: number, roundIndex: number) => void,
-    onFinish: (roundIndex: number) => void,
+    onFinish: (roundIndex: number) => void
   ) {
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!party) return null

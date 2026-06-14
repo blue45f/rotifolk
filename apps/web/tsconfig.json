@@ -22,10 +22,10 @@
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
-      "@features/*": ["./src/features/*"],
+      "@domains/*": ["./src/domains/*"],
       "@pages/*": ["./src/pages/*"],
       "@hooks/*": ["./src/hooks/*"],
-      "@services/*": ["./src/services/*"],
+      "@infrastructure/*": ["./src/infrastructure/*"],
       "@store/*": ["./src/store/*"],
       "@router/*": ["./src/router/*"],
       "@styles/*": ["./src/styles/*"],

@@ -1,6 +1,6 @@
 import type { ID, ISODateString, Timestamps } from './common'
-import type { PublicUser } from './user'
 import type { MaritalStatus, VerificationField } from './profile'
+import type { PublicUser } from './user'
 
 /** 아이 유무 대상 정책. */
 export type ChildrenPolicy = 'any' | 'has' | 'none'

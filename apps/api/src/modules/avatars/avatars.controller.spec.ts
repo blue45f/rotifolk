@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
 import { AVATAR_IMAGE_MAX_LENGTH } from '@rotifolk/shared'
+import { describe, expect, it, vi } from 'vitest'
+
 import { AvatarsController, UpdateAvatarSchema } from './avatars.module'
 
 /**
@@ -25,7 +26,7 @@ function makePrismaMock(existing: Record<string, unknown> | null) {
         async ({ where, data }: { where: { id: string }; data: Record<string, unknown> }) => ({
           id: where.id,
           ...data,
-        }),
+        })
       ),
     },
   }
@@ -44,10 +45,10 @@ describe('UpdateAvatarSchema — imageData 검증', () => {
 
   it('data URL 프리픽스가 아니면 거부한다', () => {
     expect(UpdateAvatarSchema.safeParse({ imageData: 'https://evil.example/x.png' }).success).toBe(
-      false,
+      false
     )
     expect(UpdateAvatarSchema.safeParse({ imageData: 'data:text/html;base64,PGI+' }).success).toBe(
-      false,
+      false
     )
   })
 

@@ -1,6 +1,8 @@
 import * as RTooltip from '@radix-ui/react-tooltip'
-import type { ReactNode } from 'react'
+
 import styles from './Tooltip.module.css'
+
+import type { ReactNode } from 'react'
 
 /**
  * App-level tooltip provider. Mount once near the root so every <Tooltip>

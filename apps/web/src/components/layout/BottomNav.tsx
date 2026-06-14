@@ -1,9 +1,10 @@
-import { NavLink } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { useAuthStore } from '@store/authStore'
-import { api } from '@services/api'
-import { chatKeys } from '@features/chat/queries'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
+import { chatKeys } from '@domains/chat/queries'
+import { api } from '@infrastructure/api'
+import { useAuthStore } from '@store/authStore'
+import { useQuery } from '@tanstack/react-query'
+import { NavLink } from 'react-router-dom'
+
 import styles from './BottomNav.module.css'
 
 // 4 tabs + center action — the convergent mobile pattern (Hinge/Tinder/Munto/Frip).

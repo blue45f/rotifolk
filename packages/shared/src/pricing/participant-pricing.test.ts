@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import {
   ageFromBirthYear,
   ageRangeForGender,
@@ -34,7 +35,7 @@ describe('resolveParticipantPrice', () => {
   it('매칭 없으면 base, 나이 모르면 나이 규칙 건너뜀', () => {
     expect(resolveParticipantPrice(40000, [], {})).toBe(40000)
     expect(
-      resolveParticipantPrice(40000, [{ ageMin: 20, ageMax: 29, priceKRW: 30000 }], { age: null }),
+      resolveParticipantPrice(40000, [{ ageMin: 20, ageMax: 29, priceKRW: 30000 }], { age: null })
     ).toBe(40000)
   })
 })

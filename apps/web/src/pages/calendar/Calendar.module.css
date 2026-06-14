@@ -268,7 +268,11 @@
   padding: 3px 6px;
   border-radius: var(--radius-sm);
   border-left: 3px solid var(--cat-accent, var(--color-primary));
-  background: color-mix(in oklab, var(--cat-accent, var(--color-primary)) 12%, var(--color-surface));
+  background: color-mix(
+    in oklab,
+    var(--cat-accent, var(--color-primary)) 12%,
+    var(--color-surface)
+  );
   color: var(--color-text);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-medium);

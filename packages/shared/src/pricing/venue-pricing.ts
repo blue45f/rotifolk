@@ -9,7 +9,7 @@ const MS_PER_HOUR = 3_600_000
 /** 라스트미닛 할인율 — 시작 6h내 5%, 3h내 10%, 1h내 15% (offhours 참고). */
 export function lastMinuteDiscountRate(
   startAt: Date | string,
-  now: Date | string = new Date(),
+  now: Date | string = new Date()
 ): number {
   const diffH = (new Date(startAt).getTime() - new Date(now).getTime()) / MS_PER_HOUR
   if (diffH <= 0 || diffH > 6) return 0
@@ -64,7 +64,7 @@ export function quoteVenueBooking(
   venue: PriceableVenue,
   startAt: Date | string,
   endAt: Date | string,
-  opts: QuoteVenueOptions = {},
+  opts: QuoteVenueOptions = {}
 ): VenueQuote {
   const start = new Date(startAt)
   const end = new Date(endAt)

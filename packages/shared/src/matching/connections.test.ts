@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import {
   computeConnections,
   filterConnectionsExcluding,
@@ -50,7 +51,7 @@ describe('computeConnections', () => {
     expect(out).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ result: 'mutual', userAId: 'a', userBId: 'b' }),
-      ]),
+      ])
     )
     expect(out.length).toBeGreaterThanOrEqual(2)
   })
@@ -89,7 +90,7 @@ describe('resolveSharedChannels', () => {
     const out = resolveSharedChannels(
       ['chat'],
       { shareContact: true },
-      { shareContact: true, phone: '01012345678' },
+      { shareContact: true, phone: '01012345678' }
     )
     expect(out).toEqual([{ channel: 'chat', handle: null }])
   })

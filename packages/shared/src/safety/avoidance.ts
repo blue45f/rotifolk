@@ -44,7 +44,7 @@ export interface AvoidOverlap {
 /** 같은 모임 참가자들 중 회피 대상 감지 (해시 대조 기반, 양방향). */
 export function detectAvoidOverlaps(
   viewer: AvoidanceViewer,
-  attendees: readonly AvoidanceAttendee[],
+  attendees: readonly AvoidanceAttendee[]
 ): AvoidOverlap[] {
   const myAvoid = new Set(viewer.myAvoidHashes ?? [])
   const blocked = new Set(viewer.myBlockedUserIds ?? [])
@@ -99,7 +99,7 @@ function isForbidden(a: ForbiddenParticipant, b: ForbiddenParticipant): boolean 
  * 로테이션 스케줄러의 금지 제약 + 최종 매칭/리빌 제외에 사용.
  */
 export function computeForbiddenPairs(
-  participants: readonly ForbiddenParticipant[],
+  participants: readonly ForbiddenParticipant[]
 ): Array<[string, string]> {
   const out: Array<[string, string]> = []
   for (let i = 0; i < participants.length; i++) {

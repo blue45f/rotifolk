@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { computeCompatibility } from './compatibility'
 
 describe('computeCompatibility', () => {
@@ -20,7 +21,7 @@ describe('computeCompatibility', () => {
     const lots = computeCompatibility(
       { interests: ['a', 'b', 'c'] },
       { interests: ['a', 'b', 'c'] },
-      's',
+      's'
     )
     const none = computeCompatibility({ interests: ['a'] }, { interests: ['z'] }, 's')
     expect(lots.score).toBeGreaterThan(none.score)

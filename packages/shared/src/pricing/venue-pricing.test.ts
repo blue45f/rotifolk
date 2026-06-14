@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { lastMinuteDiscountRate, quoteVenueBooking, venueRefundRate } from './venue-pricing'
 
 const baseVenue = {
@@ -17,7 +18,7 @@ describe('quoteVenueBooking', () => {
       '2026-06-02T17:00:00+09:00',
       {
         now: '2026-05-01T00:00:00+09:00',
-      },
+      }
     )
     expect(q.hours).toBe(3)
     expect(q.multiplier).toBe(1)
@@ -35,7 +36,7 @@ describe('quoteVenueBooking', () => {
       '2026-06-06T22:00:00+09:00',
       {
         now: '2026-05-01T00:00:00+09:00',
-      },
+      }
     )
     expect(q.peakApplied).toBe(true)
     expect(q.weekendApplied).toBe(true)
@@ -50,7 +51,7 @@ describe('quoteVenueBooking', () => {
       '2026-06-02T16:00:00+09:00',
       {
         now: '2026-06-02T11:30:00+09:00', // 2.5h 전 → 10%
-      },
+      }
     )
     expect(q.lastMinuteRate).toBe(0.1)
     expect(q.discountKRW).toBe(20_000) // 200,000 * 0.1

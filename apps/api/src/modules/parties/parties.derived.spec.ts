@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
 import { ForbiddenException } from '@nestjs/common'
+import { describe, expect, it, vi } from 'vitest'
+
 import { PartiesService } from './parties.service'
 
 const notifMock = { toUser: vi.fn() }
@@ -96,7 +97,7 @@ describe('PartiesService derived party campaigns', () => {
     }
 
     await expect(
-      makeService(prisma).listDerivedCandidates('u_other', 'p_1'),
+      makeService(prisma).listDerivedCandidates('u_other', 'p_1')
     ).rejects.toBeInstanceOf(ForbiddenException)
   })
 

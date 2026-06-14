@@ -30,7 +30,7 @@ const STATIC_ROUTES = [
 ] as const
 
 // 카테고리는 유한·고정 집합이라 항상 유효한 공개 페이지다(/category/:value).
-// apps/web/src/features/categories/meta.ts 의 CATEGORY_META 키와 일치한다.
+// apps/web/src/domains/categories/meta.ts 의 CATEGORY_META 키와 일치한다.
 const CATEGORY_VALUES = [
   'wine',
   'natural-wine',

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { participantRefundRate, quoteRefund } from './refund-policy'
 
 const start = '2026-06-01T19:00:00.000Z'
@@ -22,20 +23,20 @@ describe('participantRefundRate', () => {
         startAt: start,
         now: '2026-06-01T20:00:00.000Z',
         reason: 'host-cancelled',
-      }),
+      })
     ).toBe(1)
     expect(
       participantRefundRate({
         startAt: start,
         now: '2026-06-01T20:00:00.000Z',
         reason: 'auto-cancelled',
-      }),
+      })
     ).toBe(1)
   })
 
   it('노쇼는 환불 불가', () => {
     expect(
-      participantRefundRate({ startAt: start, now: '2026-05-01T00:00:00.000Z', reason: 'no-show' }),
+      participantRefundRate({ startAt: start, now: '2026-05-01T00:00:00.000Z', reason: 'no-show' })
     ).toBe(0)
   })
 
@@ -46,7 +47,7 @@ describe('participantRefundRate', () => {
         startAt: start,
         now: '2026-05-30T19:00:00.000Z',
         refundDeadlineHours: 72,
-      }),
+      })
     ).toBe(0.5)
   })
 })

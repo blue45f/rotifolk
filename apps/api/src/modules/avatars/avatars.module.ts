@@ -1,10 +1,11 @@
 import { Module, Controller, Get, Param, Patch, Body, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { z } from 'zod'
 import { AvatarImageDataSchema } from '@rotifolk/shared'
-import { PrismaService } from '@/prisma/prisma.service'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+import { z } from 'zod'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+import { PrismaService } from '@/prisma/prisma.service'
 
 export const UpdateAvatarSchema = z.object({
   mood: z.enum(['chill', 'sparkling', 'curious', 'witty', 'cozy', 'mystery']).optional(),
@@ -37,7 +38,7 @@ export class AvatarsController {
   @Patch('me')
   async updateMine(
     @CurrentUser() me: JwtUserPayload,
-    @Body(new ZodValidationPipe(UpdateAvatarSchema)) dto: z.infer<typeof UpdateAvatarSchema>,
+    @Body(new ZodValidationPipe(UpdateAvatarSchema)) dto: z.infer<typeof UpdateAvatarSchema>
   ) {
     const existing = await this.prisma.avatar.findFirst({ where: { ownerId: me.sub } })
     if (!existing) {

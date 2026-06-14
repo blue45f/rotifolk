@@ -1,30 +1,32 @@
-import { useRef, useState, type ChangeEvent } from 'react'
-import { Link } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import type { AvatarMood, PartySummary, User } from '@rotifolk/shared'
-import { computeHostLevel } from '@rotifolk/shared'
-import { useMyParties } from '@features/parties/queries'
-import { useLogout, useMe } from '@features/auth/queries'
-import { useAuthStore } from '@store/authStore'
-import { useThemeStore } from '@store/themeStore'
-import { Avatar } from '@components/ui/Avatar/Avatar'
-import { Button } from '@components/ui/Button/Button'
-import { Badge } from '@components/ui/Badge/Badge'
-import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
-import { Tabs } from '@components/ui/Tabs/Tabs'
-import { Sheet } from '@components/ui/Sheet/Sheet'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Input } from '@components/ui/Input/Input'
-import { Icon, type IconName } from '@components/ui/Icon/Icon'
-import { PartyCard } from '@features/parties/PartyCard'
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
-import { computeAchievements, summarizeAchievements } from '@features/achievements/achievements'
-import { resizeAvatarImage } from '@features/avatar/imageUpload'
+import { Avatar } from '@components/ui/Avatar/Avatar'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Chip } from '@components/ui/Chip/Chip'
+import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
+import { Input } from '@components/ui/Input/Input'
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { Tabs } from '@components/ui/Tabs/Tabs'
+import { computeAchievements, summarizeAchievements } from '@domains/achievements/achievements'
+import { useLogout, useMe } from '@domains/auth/queries'
+import { resizeAvatarImage } from '@domains/avatar/imageUpload'
+import { PartyCard } from '@domains/parties/PartyCard'
+import { useMyParties } from '@domains/parties/queries'
 import { usePageMeta } from '@hooks/usePageMeta'
-import { api } from '@services/api'
+import { api } from '@infrastructure/api'
+import { computeHostLevel } from '@rotifolk/shared'
+import { useAuthStore } from '@store/authStore'
+import { useThemeStore } from '@store/themeStore'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useRef, useState, type ChangeEvent } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './Profile.module.css'
+
+import type { AvatarMood, PartySummary, User } from '@rotifolk/shared'
 
 const MOODS: { value: AvatarMood; label: string; emoji: string }[] = [
   { value: 'chill', label: '여유로운', emoji: '🌙' },
@@ -63,7 +65,7 @@ export default function ProfilePage() {
   })
   const updateLocal = useAuthStore((s) => s.updateUser)
   const [verifyNudgeOff, setVerifyNudgeOff] = useState(
-    () => localStorage.getItem('rotifolk-verify-nudge') === 'off',
+    () => localStorage.getItem('rotifolk-verify-nudge') === 'off'
   )
   const logout = useLogout()
   const { data: mine, isLoading } = useMyParties()
@@ -105,7 +107,7 @@ export default function ProfilePage() {
     queryKey: ['users', 'me', 'referral'],
     queryFn: () =>
       api.get<{ referralCode: string; pointsKRW: number; referredCount: number }>(
-        'users/me/referral',
+        'users/me/referral'
       ),
     enabled: !!user,
   })
@@ -139,7 +141,7 @@ export default function ProfilePage() {
     summarizeAchievements(achievements)
 
   const upcoming = mine?.filter((m) =>
-    ['confirmed', 'waitlist', 'checked-in'].includes(m.participation.status),
+    ['confirmed', 'waitlist', 'checked-in'].includes(m.participation.status)
   )
   const past = mine?.filter((m) => ['cancelled', 'no-show'].includes(m.participation.status))
 
@@ -701,7 +703,7 @@ function ReceivedReviews({ userId }: { userId: string }) {
     queryKey: ['user-reviews', userId],
     queryFn: () =>
       api.get<{ averageRating: number; count: number; reviews: HostReview[] }>(
-        `users/${userId}/reviews`,
+        `users/${userId}/reviews`
       ),
   })
   if (isLoading) return <Loading />

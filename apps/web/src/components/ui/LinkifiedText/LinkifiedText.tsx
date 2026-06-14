@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+
 import { tokenizeUserText } from './linkify'
 
 /**
@@ -17,7 +18,7 @@ export function LinkifiedText({ text }: { text: string }) {
           </a>
         ) : (
           <Fragment key={index}>{token.value}</Fragment>
-        ),
+        )
       )}
     </>
   )

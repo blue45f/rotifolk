@@ -12,15 +12,17 @@ import {
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ModeratePostSchema, ModerationPostQuerySchema } from '@rotifolk/shared'
+
 import type {
   ModeratePostDto,
   ModerationPostItem,
   ModerationPostQueryDto,
   Paginated,
 } from '@rotifolk/shared'
-import { PrismaService } from '@/prisma/prisma.service'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+import { PrismaService } from '@/prisma/prisma.service'
 
 /**
  * 어드민 콘텐츠 모더레이션 — 커뮤니티/클럽 게시글의 숨김·복구·삭제·첨부 제거.
@@ -35,7 +37,7 @@ class ModerationController {
   @UseGuards(AuthGuard('jwt'))
   async listPosts(
     @CurrentUser() me: JwtUserPayload,
-    @Query(new ZodValidationPipe(ModerationPostQuerySchema)) query: ModerationPostQueryDto,
+    @Query(new ZodValidationPipe(ModerationPostQuerySchema)) query: ModerationPostQueryDto
   ): Promise<Paginated<ModerationPostItem>> {
     assertAdmin(me)
     return query.scope === 'club' ? this.listClubPosts(query) : this.listCommunityPosts(query)
@@ -46,7 +48,7 @@ class ModerationController {
   async moderatePost(
     @CurrentUser() me: JwtUserPayload,
     @Param('postId') postId: string,
-    @Body(new ZodValidationPipe(ModeratePostSchema)) dto: ModeratePostDto,
+    @Body(new ZodValidationPipe(ModeratePostSchema)) dto: ModeratePostDto
   ): Promise<{ ok: true; status: string }> {
     assertAdmin(me)
 
@@ -88,7 +90,7 @@ class ModerationController {
   }
 
   private async listCommunityPosts(
-    query: ModerationPostQueryDto,
+    query: ModerationPostQueryDto
   ): Promise<Paginated<ModerationPostItem>> {
     const where = {
       ...(query.status ? { status: query.status } : {}),
@@ -131,7 +133,7 @@ class ModerationController {
   }
 
   private async listClubPosts(
-    query: ModerationPostQueryDto,
+    query: ModerationPostQueryDto
   ): Promise<Paginated<ModerationPostItem>> {
     const where = {
       ...(query.status ? { status: query.status } : {}),
@@ -190,7 +192,7 @@ function excerpt(body: string, max = 120): string {
 /** 액션 → 상태 전이. 복구는 hidden/removed 모두 open으로 되돌린다. */
 function buildModerationUpdate(
   action: ModeratePostDto['action'],
-  currentStatus: string,
+  currentStatus: string
 ): { status?: string; imageData?: null } {
   switch (action) {
     case 'hide':

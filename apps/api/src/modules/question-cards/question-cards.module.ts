@@ -11,8 +11,9 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { PrismaService } from '@/prisma/prisma.service'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { PrismaService } from '@/prisma/prisma.service'
 
 const DEPTHS = ['icebreaker', 'casual', 'deeper', 'spicy'] as const
 
@@ -35,7 +36,7 @@ class QuestionCardsController {
     @CurrentUser() me: JwtUserPayload,
     @Query('partyId') partyId?: string,
     @Query('depth') depth?: string,
-    @Query('pairId') pairId?: string,
+    @Query('pairId') pairId?: string
   ) {
     // 파티 지정 시 그 파티의 참가자만 뽑을 수 있음(usedCount·draw 기록 오염 방지)
     if (partyId) await this.assertParticipant(partyId, me.sub)
@@ -79,7 +80,7 @@ class QuestionCardsController {
       prompt: string
       category?: string
       language?: 'ko' | 'en'
-    },
+    }
   ) {
     // 파티 전용 카드는 그 파티 호스트만 추가 가능(임의 파티에 질문 주입 방지)
     if (body.partyId) {

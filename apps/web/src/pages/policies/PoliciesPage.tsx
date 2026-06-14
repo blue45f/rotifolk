@@ -1,9 +1,6 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { Button } from '@components/ui/Button/Button'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
-import { refundSchedule } from '@rotifolk/shared'
 import {
   buildTermsEvidence,
   TERMS_REQUIRED_SECTION_IDS,
@@ -18,8 +15,12 @@ import {
   saveTermsAction,
   saveTermsAgreement,
   type TermsSectionId,
-} from '@features/legal/termsConsent'
-import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
+} from '@domains/legal/termsConsent'
+import { addTutorialStep, normalizeTutorialStep } from '@domains/tutorial/progress'
+import { refundSchedule } from '@rotifolk/shared'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
+
 import styles from './Policies.module.css'
 
 type FilterMode = 'all' | 'required' | 'optional'
@@ -205,7 +206,7 @@ export default function PoliciesPage() {
   const [actionLogs, setActionLogs] = useState(() => readTermsActionLog())
   const focusedSection = useMemo(
     () => normalizeSection(searchParams.get('section')),
-    [searchParams],
+    [searchParams]
   )
 
   const refreshActionLogs = useCallback(() => {
@@ -216,7 +217,7 @@ export default function PoliciesPage() {
       saveTermsAction(action, label)
       refreshActionLogs()
     },
-    [refreshActionLogs],
+    [refreshActionLogs]
   )
 
   const currentPath = `${location.pathname}${location.search}${location.hash}`
@@ -246,15 +247,15 @@ export default function PoliciesPage() {
 
   const sectionLinkVisited = useMemo(
     () => actionLogs.some((entry) => entry.action === 'section-jump'),
-    [actionLogs],
+    [actionLogs]
   )
   const searchActionUsed = useMemo(
     () => actionLogs.some((entry) => entry.action === 'search' || entry.action === 'search-reset'),
-    [actionLogs],
+    [actionLogs]
   )
   const filterActionUsed = useMemo(
     () => actionLogs.some((entry) => entry.action === 'filter'),
-    [actionLogs],
+    [actionLogs]
   )
 
   const policyReadinessChecks = useMemo(
@@ -303,7 +304,7 @@ export default function PoliciesPage() {
       isReady,
       searchActionUsed,
       sectionLinkVisited,
-    ],
+    ]
   )
 
   const sectionLink = (sectionId: TermsSectionId) => {
@@ -321,7 +322,7 @@ export default function PoliciesPage() {
     (sectionId: TermsSectionId) => {
       recordTermsAction('section-jump', `조항 항목 이동: ${sectionId}`)
     },
-    [recordTermsAction],
+    [recordTermsAction]
   )
 
   useEffect(() => {
@@ -370,7 +371,7 @@ export default function PoliciesPage() {
 
   const applyAgreement = (next: TermsSectionId[]) => {
     const normalized = Array.from(new Set(next)).filter((item): item is TermsSectionId =>
-      [...TERMS_REQUIRED_SECTION_IDS, 'cancel', 'noshow'].includes(item),
+      [...TERMS_REQUIRED_SECTION_IDS, 'cancel', 'noshow'].includes(item)
     )
     const nextState = saveTermsAgreement(normalized)
     setAgreedIds(nextState.agreedIds)

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { buildGroupRotation, buildHubRotation } from './group-rotation'
 
 const ids = ['a', 'b', 'c', 'd', 'e', 'f']

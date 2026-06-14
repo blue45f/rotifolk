@@ -11,10 +11,13 @@ import {
 } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { CreateOrderSchema, UpdateOrderStatusSchema } from '@rotifolk/shared'
-import type { CreateOrderDto, UpdateOrderStatusDto } from '@rotifolk/shared'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
-import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+
 import { OrdersService } from './orders.service'
+
+import type { CreateOrderDto, UpdateOrderStatusDto } from '@rotifolk/shared'
+
+import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 
 @Controller('orders')
 @UseGuards(AuthGuard('jwt'))
@@ -41,7 +44,7 @@ export class OrdersController {
   updateStatus(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(UpdateOrderStatusSchema)) dto: UpdateOrderStatusDto,
+    @Body(new ZodValidationPipe(UpdateOrderStatusSchema)) dto: UpdateOrderStatusDto
   ) {
     return this.orders.updateStatus(me.sub, id, dto)
   }
@@ -51,7 +54,7 @@ export class OrdersController {
   splitBill(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Query('mode') mode: 'equal' | 'pay-yours' = 'equal',
+    @Query('mode') mode: 'equal' | 'pay-yours' = 'equal'
   ) {
     return this.orders.splitBill(me.sub, partyId, mode === 'pay-yours' ? 'pay-yours' : 'equal')
   }

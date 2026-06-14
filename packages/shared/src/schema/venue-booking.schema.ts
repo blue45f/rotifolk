@@ -1,4 +1,5 @@
 import { z } from 'zod'
+
 import { PartyCategoryEnum } from './party.schema'
 
 export const CreateVenueBookingSchema = z
@@ -40,7 +41,7 @@ export const VenueRecommendQuerySchema = z
     {
       message: '종료 시각은 시작 시각 이후여야 해요',
       path: ['endAt'],
-    },
+    }
   )
   .refine((v) => (v.lat == null && v.lng == null) || (v.lat != null && v.lng != null), {
     message: '위치 기반 추천은 위도·경도 둘 다 필요해요',

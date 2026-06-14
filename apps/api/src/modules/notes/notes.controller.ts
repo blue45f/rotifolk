@@ -1,10 +1,13 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { CreateNoteSchema } from '@rotifolk/shared'
-import type { CreateNoteDto } from '@rotifolk/shared'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
-import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+
 import { NotesService } from './notes.service'
+
+import type { CreateNoteDto } from '@rotifolk/shared'
+
+import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 
 @Controller('notes')
 @UseGuards(AuthGuard('jwt'))
@@ -14,7 +17,7 @@ export class NotesController {
   @Post()
   create(
     @CurrentUser() me: JwtUserPayload,
-    @Body(new ZodValidationPipe(CreateNoteSchema)) dto: CreateNoteDto,
+    @Body(new ZodValidationPipe(CreateNoteSchema)) dto: CreateNoteDto
   ) {
     return this.notes.create(me.sub, dto)
   }

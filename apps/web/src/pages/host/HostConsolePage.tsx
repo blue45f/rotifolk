@@ -1,17 +1,18 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { useHostedParties } from '@features/parties/queries'
-import { useAuthStore } from '@store/authStore'
-import { PartyCard } from '@features/parties/PartyCard'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
-import { api } from '@services/api'
+import { PartyCard } from '@domains/parties/PartyCard'
+import { useHostedParties } from '@domains/parties/queries'
+import { api } from '@infrastructure/api'
 import { REVENUE_MONITORING_POLICY } from '@rotifolk/shared'
+import { useAuthStore } from '@store/authStore'
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './HostConsole.module.css'
 
 type StatusFilter = 'all' | 'live' | 'open' | 'ended'
@@ -308,7 +309,7 @@ export default function HostConsolePage() {
   const targetFeeForPayout =
     revenue?.totalKRW && parsedTargetPayoutAmount !== null && revenue.totalKRW > 0
       ? clampPercentToRange(
-          ((revenue.totalKRW - parsedTargetPayoutAmount) / revenue.totalKRW) * 100,
+          ((revenue.totalKRW - parsedTargetPayoutAmount) / revenue.totalKRW) * 100
         )
       : null
   const targetFeeReachable =
@@ -390,7 +391,7 @@ export default function HostConsolePage() {
       revenue?.totalKRW,
       totalPayout,
       totalTickets,
-    ],
+    ]
   )
 
   if (isLoading) return <Loading />
