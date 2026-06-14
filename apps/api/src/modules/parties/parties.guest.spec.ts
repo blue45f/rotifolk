@@ -270,7 +270,13 @@ describe('AuthService.claimGuestParticipations (시나리오 C — 가입 전환
   it('토큰의 게스트 행을 내 계정에 연결하고 토큰을 소진한다', async () => {
     const rows = [makeGuestRow({ id: 'pt_a', partyId: 'p_1' })]
     const prisma = makeClaimPrisma(rows)
-    const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
+    const service = new AuthService(
+      prisma as never,
+      jwtMock as never,
+      {} as never,
+      configMock as never,
+      null
+    )
 
     const result = await service.claimGuestParticipations('u_me', 'tok_abcdefgh')
 
@@ -286,7 +292,13 @@ describe('AuthService.claimGuestParticipations (시나리오 C — 가입 전환
   it('이미 회원으로 참여한 파티의 게스트 행은 취소 처리해 로스터 중복을 막는다', async () => {
     const rows = [makeGuestRow({ id: 'pt_dup', partyId: 'p_joined' })]
     const prisma = makeClaimPrisma(rows, ['p_joined'])
-    const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
+    const service = new AuthService(
+      prisma as never,
+      jwtMock as never,
+      {} as never,
+      configMock as never,
+      null
+    )
 
     const result = await service.claimGuestParticipations('u_me', 'tok_abcdefgh')
 
@@ -298,7 +310,13 @@ describe('AuthService.claimGuestParticipations (시나리오 C — 가입 전환
 
   it('해당 토큰의 게스트 행이 없으면 0건으로 끝난다', async () => {
     const prisma = makeClaimPrisma([])
-    const service = new AuthService(prisma as never, jwtMock as never, configMock as never)
+    const service = new AuthService(
+      prisma as never,
+      jwtMock as never,
+      {} as never,
+      configMock as never,
+      null
+    )
     await expect(service.claimGuestParticipations('u_me', 'tok_none')).resolves.toEqual({
       claimed: 0,
     })

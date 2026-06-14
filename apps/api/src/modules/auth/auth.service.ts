@@ -1,10 +1,13 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { JwtService } from '@nestjs/jwt'
-import * as argon2 from 'argon2'
 
 import { toPublicUser } from '../users/user.mapper'
 
+import { Argon2Hasher } from './heejun/argon2-hasher'
+import { OAUTH_VERIFIER } from './heejun/oauth.provider'
+import { TokenService } from './heejun/token.service'
+
+import type { OAuthVerifier } from '@heejun/auth'
 import type { LoginDto, SignUpDto } from '@rotifolk/shared'
 
 import { inactiveAccountException, isAccountActive } from '@/common/account-status'
@@ -14,8 +17,10 @@ import { PrismaService } from '@/prisma/prisma.service'
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwt: JwtService,
-    private readonly config: ConfigService
+    private readonly tokens: TokenService,
+    private readonly hasher: Argon2Hasher,
+    private readonly config: ConfigService,
+    @Inject(OAUTH_VERIFIER) private readonly oauth: OAuthVerifier | null
   ) {}
 
   /** 클라이언트가 Google 버튼 노출 여부를 판단하도록 공개 설정만 내려준다. */
@@ -29,7 +34,7 @@ export class AuthService {
     if (existing)
       throw new BadRequestException({ code: 'email_taken', message: '이미 가입된 이메일이에요' })
 
-    const passwordHash = await argon2.hash(dto.password)
+    const passwordHash = await this.hasher.hash(dto.password)
 
     const trimmedCode = referralCode?.trim()
     const referrer = trimmedCode
@@ -91,7 +96,7 @@ export class AuthService {
     if (existing) return this.issueSession(existing)
 
     const randomPassword = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
-    const passwordHash = await argon2.hash(randomPassword)
+    const passwordHash = await this.hasher.hash(randomPassword)
 
     const user = await this.prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
@@ -120,19 +125,15 @@ export class AuthService {
    * - email_verified 가 아니면 거부한다(토큰 자체는 로깅하지 않는다).
    */
   async googleAuth(credential: string) {
-    const clientId = this.config.get<string>('GOOGLE_CLIENT_ID')?.trim()
-    if (!clientId)
+    if (!this.oauth)
       throw new UnauthorizedException({
         code: 'google_not_configured',
         message: 'Google 로그인이 설정되지 않았어요',
       })
 
-    const { OAuth2Client } = await import('google-auth-library')
-    const client = new OAuth2Client(clientId)
-    let payload: import('google-auth-library').TokenPayload | undefined
+    let profile: import('@heejun/auth').OAuthProfile
     try {
-      const ticket = await client.verifyIdToken({ idToken: credential, audience: clientId })
-      payload = ticket.getPayload()
+      profile = await this.oauth.verify(credential)
     } catch {
       throw new UnauthorizedException({
         code: 'google_invalid_token',
@@ -140,15 +141,15 @@ export class AuthService {
       })
     }
 
-    if (!payload?.sub || !payload.email || !payload.email_verified)
+    if (!profile.sub || !profile.email || !profile.emailVerified)
       throw new UnauthorizedException({
         code: 'google_invalid_token',
         message: 'Google 인증에 실패했어요',
       })
 
-    const sub = payload.sub
-    const email = payload.email.toLowerCase()
-    const name = payload.name?.trim() || email.split('@')[0] || '게스트'
+    const sub = profile.sub
+    const email = profile.email.toLowerCase()
+    const name = profile.name?.trim() || email.split('@')[0] || '게스트'
 
     const existing = await this.prisma.user.findUnique({
       where: { email },
@@ -203,7 +204,7 @@ export class AuthService {
         message: '이메일 또는 비밀번호가 일치하지 않아요',
       })
 
-    const ok = await argon2.verify(user.passwordHash, dto.password)
+    const ok = await this.hasher.verify(dto.password, user.passwordHash)
     if (!ok)
       throw new UnauthorizedException({
         code: 'invalid_credentials',
@@ -276,7 +277,7 @@ export class AuthService {
     accountStatus: string
   }) {
     this.assertActiveAccount(user.accountStatus)
-    const token = this.jwt.sign({
+    const token = this.tokens.sign({
       sub: user.id,
       email: user.email,
       role: user.role,
