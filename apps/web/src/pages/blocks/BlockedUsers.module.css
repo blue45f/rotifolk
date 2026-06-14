@@ -1,6 +1,6 @@
 .page {
   padding-block: var(--space-8) var(--space-16);
-  max-width: 720px;
+  max-width: 680px;
   margin-inline: auto;
 }
 
@@ -9,6 +9,18 @@
   flex-direction: column;
   gap: var(--space-2);
   margin-bottom: var(--space-8);
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-primary);
 }
 
 .head h1 {
@@ -22,40 +34,59 @@
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
   line-height: var(--lh-relaxed);
+  max-width: var(--max-prose, 680px);
 }
 
 .count {
-  font-size: var(--fs-sm);
-  color: var(--color-text-muted);
-  font-weight: var(--fw-normal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+  color: var(--color-primary);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  vertical-align: middle;
 }
 
 /* Tabs */
 .tabs {
   display: flex;
   gap: var(--space-1);
-  border-bottom: 2px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   margin-bottom: var(--space-6);
-  padding-bottom: 2px;
 }
 
 .tabButton {
   flex: 1;
+  min-height: 44px;
   padding: var(--space-3) var(--space-4);
   background: none;
   border: none;
-  border-bottom: 3px solid transparent;
+  border-bottom: 2px solid transparent;
   color: var(--color-text-muted);
   font-size: var(--fs-md);
   font-weight: var(--fw-semibold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    color var(--dur-fast, 0.15s) var(--ease-out, ease),
+    background var(--dur-fast, 0.15s) var(--ease-out, ease),
+    border-color var(--dur-fast, 0.15s) var(--ease-out, ease);
   text-align: center;
 }
 
 .tabButton:hover {
   color: var(--color-text);
   background: color-mix(in oklab, var(--color-primary) 6%, transparent);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.tabButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
   border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
@@ -74,20 +105,22 @@
 
 .searchWrapper {
   flex: 1;
+  min-width: 0;
 }
 
-/* User lists */
+/* User list: text + divider, no card-in-card */
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .emptyFilter {
   padding: var(--space-5);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  background: var(--color-surface-soft);
   color: var(--color-text-muted);
   font-size: var(--fs-sm);
   line-height: var(--lh-relaxed);
@@ -97,18 +130,12 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.row:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+.row:last-child {
+  border-bottom: none;
 }
 
 .identity {
@@ -117,14 +144,27 @@
   gap: var(--space-3);
   flex: 1;
   min-width: 0;
+  padding: var(--space-2);
+  margin: calc(-1 * var(--space-2));
+  border-radius: var(--radius-md);
   text-decoration: none;
   color: inherit;
+  transition: background var(--dur-fast, 0.15s) var(--ease-out, ease);
+}
+
+.identity:hover {
+  background: color-mix(in oklab, var(--color-primary) 5%, transparent);
+}
+
+.identity:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: var(--space-1);
   min-width: 0;
 }
 
@@ -135,66 +175,52 @@
   color: var(--color-text);
 }
 
-.body small {
-  color: var(--color-text-muted);
-  font-size: var(--fs-sm);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
 .reasonBadge {
+  align-self: flex-start;
   background: color-mix(in oklab, var(--color-primary) 10%, transparent);
   color: var(--color-primary);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
   font-size: var(--fs-xs);
   font-weight: var(--fw-medium);
-  display: inline-block;
-  max-width: 250px;
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.body time {
-  color: var(--color-text-subtle, var(--color-text-muted));
+.rowMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-subtle);
   font-size: var(--fs-xs);
 }
 
-/* Phone Block Area */
-.phoneBlockForm {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  margin-bottom: var(--space-6);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.formTitle {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  margin-bottom: -2px;
-}
-
-.listTitle {
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  margin-bottom: var(--space-3);
-}
-
+/* Phone tab */
 .privacyNote {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+  border-radius: var(--radius-lg);
+  background: color-mix(in oklab, var(--color-primary-soft) 58%, var(--color-surface));
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-relaxed);
+}
+
+.privacyNote > :global(svg) {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-primary);
+}
+
+.privacyNote span {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-4);
-  margin-bottom: var(--space-4);
-  border: 1px solid color-mix(in oklab, var(--color-primary) 16%, transparent);
-  border-radius: var(--radius-lg);
-  background: color-mix(in oklab, var(--color-primary-soft) 58%, var(--color-surface));
 }
 
 .privacyNote strong {
@@ -202,49 +228,33 @@
   font-size: var(--fs-sm);
 }
 
-.privacyNote span {
-  color: var(--color-text-muted);
-  font-size: var(--fs-sm);
-  line-height: var(--lh-relaxed);
+.phoneBlockForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.formTitle {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+.listTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
-}
-
-@media (max-width: 576px) {
-  .page {
-    padding-block: var(--space-6) calc(var(--bottom-nav-h) + var(--space-20));
-  }
-
-  .head {
-    margin-bottom: var(--space-6);
-  }
-
-  .head h1 {
-    font-size: var(--fs-3xl);
-    line-height: var(--lh-tight);
-  }
-
-  .tabs {
-    margin-bottom: var(--space-4);
-  }
-
-  .privacyNote {
-    padding: var(--space-3);
-    margin-bottom: var(--space-3);
-  }
-
-  .phoneBlockForm {
-    padding: var(--space-4);
-    gap: var(--space-3);
-  }
-
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .btnGroup {
@@ -256,18 +266,22 @@
 .phoneList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .phoneRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc((var(--space-3) + var(--space-4)) / 2) var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
   gap: var(--space-3);
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.phoneRow:last-child {
+  border-bottom: none;
 }
 
 .phoneInfo {
@@ -327,7 +341,7 @@
   height: 100%;
   cursor: default;
   z-index: 1;
-  animation: fadeIn 0.2s ease-out;
+  animation: fadeIn 0.2s var(--ease-out, ease-out);
   padding: 0;
   margin: 0;
 }
@@ -342,7 +356,7 @@
   overflow: hidden;
   z-index: 2;
   position: relative;
-  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideUp 0.25s var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
 }
 
 .modalHead {
@@ -357,22 +371,47 @@
   font-size: var(--fs-xl);
   font-weight: var(--fw-bold);
   letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .fieldLabel {
-  display: block;
-  margin-bottom: var(--space-2);
   color: var(--color-text);
   font-size: var(--fs-sm);
   font-weight: var(--fw-bold);
 }
 
 .closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: calc(-1 * var(--space-2));
   background: none;
   border: none;
-  font-size: var(--fs-xl);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-lg);
   cursor: pointer;
   color: var(--color-text-muted);
+  transition:
+    color var(--dur-fast, 0.15s) var(--ease-out, ease),
+    background var(--dur-fast, 0.15s) var(--ease-out, ease);
+}
+
+.closeButton:hover {
+  color: var(--color-text);
+  background: var(--color-surface-soft);
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .modalBody {
@@ -384,12 +423,18 @@
 
 .selectInput {
   width: 100%;
+  min-height: 44px;
   padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
   font-size: var(--fs-md);
+}
+
+.selectInput:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .bulkTextarea {
@@ -403,6 +448,11 @@
   font-size: var(--fs-sm);
   resize: vertical;
   line-height: var(--lh-normal);
+}
+
+.bulkTextarea:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .modalHint {
@@ -435,5 +485,53 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .page {
+    padding-block: var(--space-6) calc(var(--bottom-nav-h) + var(--space-20));
+  }
+
+  .head {
+    margin-bottom: var(--space-6);
+  }
+
+  .head h1 {
+    font-size: var(--fs-3xl);
+    line-height: var(--lh-tight);
+  }
+
+  .tabs {
+    margin-bottom: var(--space-4);
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .privacyNote {
+    padding: var(--space-3);
+    margin-bottom: var(--space-4);
+  }
+
+  .phoneBlockForm {
+    gap: var(--space-3);
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabButton,
+  .identity,
+  .closeButton,
+  .modalOverlay,
+  .modal {
+    transition: none;
+    animation: none;
   }
 }

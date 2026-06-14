@@ -6,6 +6,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
 import { Input } from '@components/ui/Input/Input'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useAuthStore } from '@store/authStore'
 import styles from './Chat.module.css'
 
@@ -32,7 +33,15 @@ export default function ChatListPage() {
     })
   }, [data, q, me?.id])
 
-  if (isLoading) return <Loading />
+  if (isLoading) {
+    return (
+      <div className={`container ${styles.page}`}>
+        <h1 className={styles.title}>채팅</h1>
+        <Loading />
+      </div>
+    )
+  }
+
   if (!data || data.length === 0) {
     return (
       <div className={`container ${styles.page}`}>
@@ -53,11 +62,16 @@ export default function ChatListPage() {
         <Input
           type="search"
           placeholder="채팅 검색"
-          leftIcon={<span aria-hidden>🔍</span>}
+          aria-label="채팅 검색"
+          leftIcon={<Icon name="search" />}
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
-        {q && <p className={styles.count}>{filtered.length}개의 채팅방</p>}
+        {q && (
+          <p className={styles.count} role="status">
+            {filtered.length}개의 채팅방
+          </p>
+        )}
       </div>
       {filtered.length === 0 ? (
         <EmptyState emoji="🔎" title="검색 결과가 없어요" />
@@ -68,10 +82,8 @@ export default function ChatListPage() {
               room.kind === 'pair'
                 ? (room.members.find((m) => m.userId !== me?.id) ?? room.members[0])
                 : null
-            const displayTitle =
-              room.kind === 'pair'
-                ? `💌 ${counterpart?.nickname ?? '매칭'}`
-                : `🍷 ${room.title ?? '파티'}`
+            const name =
+              room.kind === 'pair' ? (counterpart?.nickname ?? '매칭') : (room.title ?? '파티')
             const last = room.lastMessage
             const lastAt = last ? new Date(last.createdAt) : null
             const readAt = room.lastReadAt ? new Date(room.lastReadAt) : null
@@ -93,13 +105,12 @@ export default function ChatListPage() {
                   />
                   <div className={styles.rowBody}>
                     <div className={styles.rowHead}>
-                      <strong>{displayTitle}</strong>
+                      <strong className={styles.rowName}>{name}</strong>
                       {room.partyTitle && room.kind === 'pair' && (
                         <Badge tone="primary" size="sm">
                           {room.partyTitle}
                         </Badge>
                       )}
-                      {isUnread && <span className={styles.unreadDot} aria-label="안 읽음" />}
                     </div>
                     <p className={`${styles.rowLast} ${isUnread ? styles.rowLastUnread : ''}`}>
                       {last
@@ -109,16 +120,22 @@ export default function ChatListPage() {
                         : '아직 메시지가 없어요'}
                     </p>
                   </div>
-                  {last && (
-                    <time className={styles.rowTime}>
-                      {new Date(last.createdAt).toLocaleString('ko-KR', {
-                        month: 'numeric',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </time>
-                  )}
+                  <div className={styles.rowMeta}>
+                    {last && (
+                      <time
+                        className={styles.rowTime}
+                        dateTime={new Date(last.createdAt).toISOString()}
+                      >
+                        {new Date(last.createdAt).toLocaleString('ko-KR', {
+                          month: 'numeric',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </time>
+                    )}
+                    {isUnread && <span className={styles.unreadDot} aria-label="안 읽음" />}
+                  </div>
                 </Link>
               </li>
             )

@@ -9,6 +9,7 @@ import {
 import { useAuthStore } from '@store/authStore'
 import { Button } from '@components/ui/Button/Button'
 import { Avatar } from '@components/ui/Avatar/Avatar'
+import { Icon } from '@components/ui/Icon/Icon'
 import Loading from '@components/feedback/Loading'
 import styles from './Chat.module.css'
 
@@ -56,7 +57,7 @@ function MessageBody({ body }: { body: string }) {
             rel="noreferrer noopener"
             className={styles.msgLink}
           >
-            🔗 {url.length > 50 ? url.slice(0, 50) + '…' : url}
+            {url.length > 50 ? url.slice(0, 50) + '…' : url}
           </a>
         ))}
     </>
@@ -92,10 +93,8 @@ export default function ChatRoomPage() {
   const counterpart = room.kind === 'pair' ? room.members.find((m) => m.userId !== me?.id) : null
   // 멤버별 업로드 사진 조회용 — 메시지 행 아바타가 프리셋 대신 사진을 보여줄 수 있게.
   const memberImageById = new Map(room.members.map((m) => [m.userId, m.avatarImage ?? null]))
-  const title =
-    room.kind === 'pair'
-      ? `💌 ${counterpart?.nickname ?? '매칭'}`
-      : `🍷 ${room.title ?? '파티 단톡방'}`
+  const isPair = room.kind === 'pair'
+  const name = isPair ? (counterpart?.nickname ?? '매칭') : (room.title ?? '파티 단톡방')
 
   const handleSend = async () => {
     const body = text.trim()
@@ -107,62 +106,89 @@ export default function ChatRoomPage() {
   return (
     <div className={styles.roomWrap}>
       <header className={styles.roomHeader}>
-        <button className={styles.roomBack} onClick={() => navigate('/chats')} aria-label="뒤로">
-          ←
+        <button
+          className={styles.roomBack}
+          onClick={() => navigate('/chats')}
+          aria-label="채팅 목록으로"
+        >
+          <Icon name="chevron-right" className={styles.roomBackIcon} />
         </button>
+        <Avatar
+          size="sm"
+          hue={isPair ? 'var(--brand-apricot-400)' : 'var(--color-primary)'}
+          pattern="gradient"
+          emoji={isPair ? '💌' : '🍷'}
+          imageSrc={isPair ? (counterpart?.avatarImage ?? null) : null}
+          ring="soft"
+        />
         <div className={styles.roomHeaderBody}>
-          <h1 className={styles.roomTitle}>{title}</h1>
-          {room.partyId && room.kind !== 'pair' && (
+          <h1 className={styles.roomTitle}>{name}</h1>
+          {room.partyId && !isPair ? (
             <Link to={`/parties/${room.partyId}`} className={styles.roomPartyLink}>
-              파티 보기 →
+              파티 보기
+              <Icon name="chevron-right" size={0.85} />
             </Link>
+          ) : (
+            <span className={styles.roomSub}>{room.members.length}명</span>
           )}
         </div>
-        <span className={styles.roomSub}>{room.members.length}명</span>
       </header>
 
-      <main className={styles.roomMain}>
-        {(messages ?? []).map((m) => {
-          const mine = m.userId === me?.id
-          if (m.kind === 'split-bill') {
-            return <SplitBillCard key={m.id} meta={m.meta} />
-          }
-          if (m.kind === 'system') {
+      <main className={styles.roomMain} aria-label={`${name} 대화`}>
+        <ol className={styles.msgLog}>
+          {(messages ?? []).map((m) => {
+            const mine = m.userId === me?.id
+            if (m.kind === 'split-bill') {
+              return (
+                <li key={m.id} className={styles.logItem}>
+                  <SplitBillCard meta={m.meta} />
+                </li>
+              )
+            }
+            if (m.kind === 'system') {
+              return (
+                <li key={m.id} className={`${styles.logItem} ${styles.systemMsg}`}>
+                  <span>{m.body}</span>
+                </li>
+              )
+            }
             return (
-              <div key={m.id} className={styles.systemMsg}>
-                <span>{m.body}</span>
-              </div>
+              <li
+                key={m.id}
+                className={`${styles.logItem} ${styles.msgRow} ${mine ? styles.msgMine : ''}`}
+              >
+                {!mine && (
+                  <Avatar
+                    size="sm"
+                    hue="var(--color-primary)"
+                    pattern="gradient"
+                    emoji={m.nickname[0]}
+                    imageSrc={memberImageById.get(m.userId) ?? null}
+                  />
+                )}
+                <div className={styles.msgBubble}>
+                  {!mine && <div className={styles.msgName}>{m.nickname}</div>}
+                  <MessageBody body={m.body} />
+                  <time dateTime={new Date(m.createdAt).toISOString()}>
+                    {new Date(m.createdAt).toLocaleTimeString('ko-KR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </time>
+                </div>
+              </li>
             )
-          }
-          return (
-            <div key={m.id} className={`${styles.msgRow} ${mine ? styles.msgMine : ''}`}>
-              {!mine && (
-                <Avatar
-                  size="sm"
-                  hue="var(--color-primary)"
-                  pattern="gradient"
-                  emoji={m.nickname[0]}
-                  imageSrc={memberImageById.get(m.userId) ?? null}
-                />
-              )}
-              <div className={styles.msgBubble}>
-                {!mine && <div className={styles.msgName}>{m.nickname}</div>}
-                <MessageBody body={m.body} />
-                <time>
-                  {new Date(m.createdAt).toLocaleTimeString('ko-KR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </time>
-              </div>
-            </div>
-          )
-        })}
+          })}
+        </ol>
         <div ref={endRef} />
       </main>
 
       <footer className={styles.roomFooter}>
+        <label htmlFor="chat-composer" className="sr-only">
+          메시지 입력
+        </label>
         <textarea
+          id="chat-composer"
           className={styles.composer}
           placeholder="메시지 입력 (Enter 전송, Shift+Enter 줄바꿈)"
           value={text}
@@ -175,7 +201,13 @@ export default function ChatRoomPage() {
             }
           }}
         />
-        <Button onClick={handleSend} disabled={!text.trim() || send.isPending}>
+        <Button
+          className={styles.sendBtn}
+          onClick={handleSend}
+          disabled={!text.trim() || send.isPending}
+          aria-label="전송"
+          leftIcon={<Icon name="chevron-right" />}
+        >
           전송
         </Button>
       </footer>
@@ -190,7 +222,7 @@ function SplitBillCard({ meta }: { meta?: Record<string, unknown> | null }) {
   return (
     <div className={styles.splitCard}>
       <div className={styles.splitHead}>
-        <span>💰</span>
+        <span aria-hidden>💰</span>
         <strong>엔빵 정산 안내</strong>
       </div>
       <ul>
