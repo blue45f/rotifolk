@@ -7,7 +7,7 @@ NestJS 11 + Prisma + Socket.IO 기반 Rotifolk 백엔드.
 ```bash
 cp .env.example .env       # JWT_SECRET 등 채우기
 pnpm prisma:generate
-pnpm prisma:push           # SQLite로 즉시 부트
+pnpm prisma:push           # Neon Postgres로 스키마 동기화
 pnpm seed                  # 카테고리·장소·예시 파티 시드
 pnpm dev
 ```
@@ -27,4 +27,4 @@ pnpm dev
 
 ## Prisma 모델
 
-`prisma/schema.prisma` 참고. dev 기본은 SQLite, 운영은 PostgreSQL.
+`prisma/schema.prisma` 참고. DB는 Neon Postgres(dev/운영 공통).
