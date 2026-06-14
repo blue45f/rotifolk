@@ -1,6 +1,5 @@
 import 'reflect-metadata'
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import compression from 'compression'
@@ -34,13 +33,8 @@ async function bootstrap() {
     origin: config.get<string>('CORS_ORIGIN', 'http://localhost:5173').split(','),
     credentials: true,
   })
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: false,
-    }),
-  )
+  // 검증은 라우트별 zod 파이프(@Body(new ZodValidationPipe(schema)))로 수행한다.
+  // 데코레이터 기반 class-validator DTO가 없어 전역 ValidationPipe는 무동작이라 제거했다.
 
   // Let Nest run PrismaService.onModuleDestroy ($disconnect) on SIGTERM/SIGINT
   // so container shutdowns close the DB pool cleanly instead of leaking it.
