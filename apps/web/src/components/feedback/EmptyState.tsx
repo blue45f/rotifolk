@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
 import styles from './EmptyState.module.css'
+
+import type { ReactNode } from 'react'
 
 interface Props {
   emoji?: string

@@ -1,26 +1,28 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'motion/react'
-import type { PartyCategory, VenueBooking, VenueRecommendation } from '@rotifolk/shared'
-import { formatKRW, VENUE_BOOKING_STATUS_LABEL } from '@rotifolk/shared'
-import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
-import { useGeolocation } from '@features/geo/useGeolocation'
-import { useVenueAreas } from '@features/venues/queries'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
+import { ALL_CATEGORIES, CATEGORY_META } from '@domains/categories/meta'
+import { useGeolocation } from '@domains/geo/useGeolocation'
 import {
   useCancelBooking,
   useCreateVenueBooking,
   useMyVenueBookings,
   useRecommendVenues,
   type VenueBrief,
-} from '@features/venueBooking/queries'
-import { Button } from '@components/ui/Button/Button'
-import { Badge } from '@components/ui/Badge/Badge'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
+} from '@domains/venueBooking/queries'
+import { useVenueAreas } from '@domains/venues/queries'
+import { formatKRW, VENUE_BOOKING_STATUS_LABEL } from '@rotifolk/shared'
+import { motion, useReducedMotion } from 'motion/react'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './Sourcing.module.css'
+
+import type { PartyCategory, VenueBooking, VenueRecommendation } from '@rotifolk/shared'
 
 function isoAt(date: string, time: string): string | undefined {
   if (!date || !time) return undefined
@@ -67,11 +69,11 @@ export default function SourcingPage() {
       lng: geo.coords?.lng ?? null,
       maxBudgetKRW: budgetFilter,
     }),
-    [category, area, partySize, startAt, endAt, geo.coords, budgetFilter],
+    [category, area, partySize, startAt, endAt, geo.coords, budgetFilter]
   )
 
   const { data: recs, isLoading } = useRecommendVenues(
-    tab === 'find' && hasValidTimeRange ? brief : null,
+    tab === 'find' && hasValidTimeRange ? brief : null
   )
 
   return (

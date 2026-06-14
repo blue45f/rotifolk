@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import type { PartySummary } from '@rotifolk/shared'
+
 import { buildHomePulse } from './home-pulse'
+
+import type { PartySummary } from '@rotifolk/shared'
 
 const base: PartySummary = {
   id: 'p1',

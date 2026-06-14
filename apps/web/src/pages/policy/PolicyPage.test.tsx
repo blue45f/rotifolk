@@ -51,7 +51,7 @@ function renderPolicyPage(path: '/terms' | '/privacy' | '/cancel-policy') {
       <MemoryRouter initialEntries={[path]}>
         <PolicyPage />
       </MemoryRouter>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   )
 }
 
@@ -78,11 +78,11 @@ describe('PolicyPage', () => {
 
     // 본문: 조문 헤딩 + 문단 + 불릿 리스트
     expect(
-      await screen.findByRole('heading', { level: 2, name: '제1조 (목적)' }),
+      await screen.findByRole('heading', { level: 2, name: '제1조 (목적)' })
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: '이용약관' })).toBeInTheDocument()
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://termsdesk.vercel.app/api/public/rotifolk/policies/terms-of-service',
+      'https://termsdesk.vercel.app/api/public/rotifolk/policies/terms-of-service'
     )
     expect(screen.getByText('이 약관은 이용 조건을 정합니다.')).toBeInTheDocument()
     expect(screen.getByText('로테이션 모임')).toBeInTheDocument()
@@ -98,7 +98,7 @@ describe('PolicyPage', () => {
     expect(screen.getByText('2026년 6월 8일')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '원문 보기 ↗' })).toHaveAttribute(
       'href',
-      'https://termsdesk.vercel.app/p/rotifolk/terms-of-service',
+      'https://termsdesk.vercel.app/p/rotifolk/terms-of-service'
     )
   })
 
@@ -107,10 +107,10 @@ describe('PolicyPage', () => {
     renderPolicyPage('/privacy')
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: '개인정보처리방침' }),
+      await screen.findByRole('heading', { level: 1, name: '개인정보처리방침' })
     ).toBeInTheDocument()
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://termsdesk.vercel.app/api/public/rotifolk/policies/privacy-policy',
+      'https://termsdesk.vercel.app/api/public/rotifolk/policies/privacy-policy'
     )
   })
 
@@ -120,15 +120,15 @@ describe('PolicyPage', () => {
 
     // h1은 폴백 문서명과 게시명이 같으므로, 본문 헤딩으로 데이터 로드를 기다린다.
     expect(
-      await screen.findByRole('heading', { level: 2, name: '제1조 (목적)' }),
+      await screen.findByRole('heading', { level: 2, name: '제1조 (목적)' })
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 1, name: '이용·환불 정책' })).toBeInTheDocument()
     expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://termsdesk.vercel.app/api/public/rotifolk/policies/refund-policy',
+      'https://termsdesk.vercel.app/api/public/rotifolk/policies/refund-policy'
     )
     expect(screen.getByRole('link', { name: '원문 보기 ↗' })).toHaveAttribute(
       'href',
-      'https://termsdesk.vercel.app/p/rotifolk/refund-policy',
+      'https://termsdesk.vercel.app/p/rotifolk/refund-policy'
     )
   })
 
@@ -141,14 +141,14 @@ describe('PolicyPage', () => {
 
     expect(screen.getByRole('link', { name: '원문 페이지에서 보기 ↗' })).toHaveAttribute(
       'href',
-      'https://termsdesk.vercel.app/p/rotifolk/terms-of-service',
+      'https://termsdesk.vercel.app/p/rotifolk/terms-of-service'
     )
 
     fetchMock.mockImplementation(() => mockOk(termsPayload))
     await user.click(screen.getByRole('button', { name: '다시 시도' }))
 
     await waitFor(() =>
-      expect(screen.getByRole('heading', { level: 2, name: '제1조 (목적)' })).toBeInTheDocument(),
+      expect(screen.getByRole('heading', { level: 2, name: '제1조 (목적)' })).toBeInTheDocument()
     )
   })
 
@@ -161,15 +161,15 @@ describe('PolicyPage', () => {
     const docNav = screen.getByRole('navigation', { name: '다른 약관 문서' })
     expect(screen.getByRole('link', { name: '개인정보처리방침' })).toHaveAttribute(
       'href',
-      '/privacy',
+      '/privacy'
     )
     expect(screen.getByRole('link', { name: '이용·환불 정책' })).toHaveAttribute(
       'href',
-      '/cancel-policy',
+      '/cancel-policy'
     )
     expect(screen.getByRole('link', { name: '약관·정책 안내' })).toHaveAttribute(
       'href',
-      '/policies',
+      '/policies'
     )
     expect(docNav).toContainElement(screen.getByRole('link', { name: '개인정보처리방침' }))
   })

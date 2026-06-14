@@ -1,6 +1,8 @@
-import { BadRequestException } from '@nestjs/common'
 import { createHash } from 'node:crypto'
+
+import { BadRequestException } from '@nestjs/common'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { SafetyService } from './safety.service'
 
 const createdAt = new Date('2026-06-01T09:00:00.000Z')
@@ -84,7 +86,7 @@ describe('SafetyService phone blocks', () => {
     const { prisma, service } = makeService()
 
     await expect(service.blockPhone('u_1', '123', '메모')).rejects.toBeInstanceOf(
-      BadRequestException,
+      BadRequestException
     )
     expect(prisma.avoidContact.upsert).not.toHaveBeenCalled()
   })

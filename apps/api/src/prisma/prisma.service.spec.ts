@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { PrismaService } from './prisma.service'
+
 const mocks = vi.hoisted(() => ({
   adapterConstructor: vi.fn(),
   connect: vi.fn(),
@@ -25,8 +27,6 @@ vi.mock('@prisma/client', () => ({
     $disconnect = mocks.disconnect
   },
 }))
-
-import { PrismaService } from './prisma.service'
 
 describe('PrismaService', () => {
   const originalDatabaseUrl = process.env.DATABASE_URL

@@ -1,4 +1,5 @@
 import { forwardRef, useId, type InputHTMLAttributes, type ReactNode } from 'react'
+
 import styles from './Input.module.css'
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -11,7 +12,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { label, hint, error, leftIcon, rightSlot, id, className, ...props },
-  ref,
+  ref
 ) {
   const reactId = useId()
   const inputId = id ?? `input-${reactId}`

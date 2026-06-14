@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { buildCommunityCommentTree, type CommunityComment } from './community'
 
 const baseComment = {

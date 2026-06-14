@@ -1,4 +1,5 @@
 import { useContext } from 'react'
+
 import { PromptContext, type PromptFn } from './PromptContext'
 
 export function usePrompt(): PromptFn {

@@ -1,5 +1,6 @@
-import type { HTMLAttributes, ReactNode } from 'react'
 import styles from './Badge.module.css'
+
+import type { HTMLAttributes, ReactNode } from 'react'
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   tone?:

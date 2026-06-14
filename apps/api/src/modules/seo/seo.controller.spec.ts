@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { PrismaService } from '@/prisma/prisma.service'
 import { SeoController } from './seo.controller'
+
+import { PrismaService } from '@/prisma/prisma.service'
 
 type PartyRow = { id: string; updatedAt: Date }
 
@@ -61,7 +62,7 @@ describe('SeoController', () => {
       expect(findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { status: { in: ['open', 'full', 'live'] } },
-        }),
+        })
       )
     })
 

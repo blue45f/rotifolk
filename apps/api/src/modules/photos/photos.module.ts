@@ -12,18 +12,18 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common'
-import { AuthGuard } from '@nestjs/passport'
-import { JwtService } from '@nestjs/jwt'
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { JwtModule } from '@nestjs/jwt'
-import { PrismaService } from '@/prisma/prisma.service'
+import { JwtService, JwtModule } from '@nestjs/jwt'
+import { AuthGuard } from '@nestjs/passport'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
+import { PrismaService } from '@/prisma/prisma.service'
 
 @Controller()
 class PhotosController {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwt: JwtService,
+    private readonly jwt: JwtService
   ) {}
 
   private viewerIdFromHeader(authHeader?: string): string | null {
@@ -39,7 +39,7 @@ class PhotosController {
   @Get('parties/:partyId/photos')
   async list(
     @Param('partyId') partyId: string,
-    @Req() req: { headers: { authorization?: string } },
+    @Req() req: { headers: { authorization?: string } }
   ) {
     const viewerId = this.viewerIdFromHeader(req.headers.authorization)
     const photos = await this.prisma.partyPhoto.findMany({
@@ -88,7 +88,7 @@ class PhotosController {
   async create(
     @CurrentUser() me: JwtUserPayload,
     @Param('partyId') partyId: string,
-    @Body() body: { url?: string; caption?: string },
+    @Body() body: { url?: string; caption?: string }
   ) {
     const url = body?.url?.trim()
     if (!url) {

@@ -1,21 +1,23 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import type { OffHoursSlot, VenueBooking } from '@rotifolk/shared'
-import { formatKRW } from '@rotifolk/shared'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import {
   useDecideBooking,
   useMyVenueBookings,
   useMyVenues,
   useVenueAvailability,
   type OwnedVenue,
-} from '@features/venueBooking/queries'
-import { Button } from '@components/ui/Button/Button'
-import { Badge } from '@components/ui/Badge/Badge'
-import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
+} from '@domains/venueBooking/queries'
+import { formatKRW } from '@rotifolk/shared'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './OwnerHosting.module.css'
+
+import type { OffHoursSlot, VenueBooking } from '@rotifolk/shared'
 
 export default function OwnerHostingPage() {
   const { data: venues, isLoading } = useMyVenues()

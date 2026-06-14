@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { buildHeteroRotation } from './hetero-rotation'
 
 describe('buildHeteroRotation', () => {
@@ -42,7 +43,7 @@ describe('buildHeteroRotation', () => {
         const aIsW = a.startsWith('w')
         const bIsW = b.startsWith('w')
         expect(aIsW).not.toBe(bIsW)
-      }),
+      })
     )
   })
 

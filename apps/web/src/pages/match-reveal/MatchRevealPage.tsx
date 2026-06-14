@@ -1,15 +1,9 @@
-import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { motion, useReducedMotion } from 'motion/react'
-import {
-  CONNECTION_CHANNELS,
-  CONTACT_EXCHANGE_POLICY_LABEL,
-  type ConnectionChannel,
-  type ContactExchangeChannelState,
-  type ContactExchangePolicy,
-  type MatchScope,
-} from '@rotifolk/shared'
-import { useParty } from '@features/parties/queries'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { Avatar } from '@components/ui/Avatar/Avatar'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import {
   useDecideContactExchangeRequest,
   useMyPartyMatches,
@@ -19,15 +13,22 @@ import {
   type MatchResult,
   type PartyMatch,
   type PopularPerson,
-} from '@features/matching/queries'
-import { Avatar } from '@components/ui/Avatar/Avatar'
-import { Badge } from '@components/ui/Badge/Badge'
-import { Button } from '@components/ui/Button/Button'
-import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import { useToast } from '@components/feedback/Toast/useToast'
+} from '@domains/matching/queries'
+import { AfterPartyManager } from '@domains/parties/AfterPartyManager'
+import { useParty } from '@domains/parties/queries'
+import {
+  CONNECTION_CHANNELS,
+  CONTACT_EXCHANGE_POLICY_LABEL,
+  type ConnectionChannel,
+  type ContactExchangeChannelState,
+  type ContactExchangePolicy,
+  type MatchScope,
+} from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
-import { AfterPartyManager } from '@features/parties/AfterPartyManager'
+import { motion, useReducedMotion } from 'motion/react'
+import { useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+
 import styles from './MatchReveal.module.css'
 
 const EASE = [0.19, 1, 0.22, 1] as const
@@ -117,7 +118,7 @@ export default function MatchRevealPage() {
     requestId: string,
     action: 'approve' | 'reject',
     partnerId: string,
-    channel: ConnectionChannel,
+    channel: ConnectionChannel
   ) => {
     const key = `${partnerId}:${channel}:${action}`
     setBusyKey(key)
@@ -125,7 +126,7 @@ export default function MatchRevealPage() {
       await decideContact.mutateAsync({ requestId, action })
       toast.show(
         action === 'approve' ? '승인했어요' : '거절했어요',
-        action === 'approve' ? 'success' : 'info',
+        action === 'approve' ? 'success' : 'info'
       )
     } catch (e) {
       toast.show((e as Error).message, 'error')
@@ -265,7 +266,7 @@ function SpotlightMatch({
     requestId: string,
     action: 'approve' | 'reject',
     partnerId: string,
-    channel: ConnectionChannel,
+    channel: ConnectionChannel
   ) => void
 }) {
   const chat = match.channels.find((channel) => channel.channel === 'chat')
@@ -433,7 +434,7 @@ function MatchCard({
     requestId: string,
     action: 'approve' | 'reject',
     partnerId: string,
-    channel: ConnectionChannel,
+    channel: ConnectionChannel
   ) => void
 }) {
   const chat = match.channels.find((channel) => channel.channel === 'chat')
@@ -540,7 +541,7 @@ function ChannelRow({
     requestId: string,
     action: 'approve' | 'reject',
     partnerId: string,
-    channel: ConnectionChannel,
+    channel: ConnectionChannel
   ) => void
 }) {
   const meta = CONNECTION_CHANNELS[channel.channel]

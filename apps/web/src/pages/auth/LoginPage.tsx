@@ -1,21 +1,23 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useForm, type Resolver } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { LoginSchema } from '@rotifolk/shared'
-import type { LoginDto, User } from '@rotifolk/shared'
-import { useAuthConfig, useGoogleLogin, useLogin } from '@features/auth/queries'
-import { GoogleSignInButton } from '@features/auth/GoogleSignInButton'
+import { usePrompt } from '@components/feedback/Prompt/usePrompt'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
-import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
 import { Icon } from '@components/ui/Icon/Icon'
-import { useToast } from '@components/feedback/Toast/useToast'
-import { usePrompt } from '@components/feedback/Prompt/usePrompt'
-import { api } from '@services/api'
+import { Input } from '@components/ui/Input/Input'
+import { GoogleSignInButton } from '@domains/auth/GoogleSignInButton'
+import { useAuthConfig, useGoogleLogin, useLogin } from '@domains/auth/queries'
+import { addTutorialStep, normalizeTutorialStep } from '@domains/tutorial/progress'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { api } from '@infrastructure/api'
+import { LoginSchema } from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
-import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useForm, type Resolver } from 'react-hook-form'
+import { useLocation, useNavigate, useSearchParams, Link } from 'react-router-dom'
+
 import styles from './AuthPage.module.css'
+
+import type { LoginDto, User } from '@rotifolk/shared'
 
 const DEMO_ACCOUNT: LoginDto = {
   email: 'host@rotifolk.dev',
@@ -49,7 +51,7 @@ export default function LoginPage() {
   const stateFrom = (location.state as { from?: string } | null)?.from
   const from = useMemo(
     () => resolveReturnPath(searchParams.get('from') ?? stateFrom ?? null, window.location),
-    [searchParams, stateFrom],
+    [searchParams, stateFrom]
   )
   const isDemoMode = searchParams.get('demo') === '1'
   const fromTutorial = normalizeTutorialStep(searchParams.get('fromTutorial'))
@@ -78,7 +80,7 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginDto>({
     resolver: zodResolver(
-      LoginSchema as unknown as Parameters<typeof zodResolver>[0],
+      LoginSchema as unknown as Parameters<typeof zodResolver>[0]
     ) as unknown as Resolver<LoginDto>,
     defaultValues: isDemoMode
       ? {

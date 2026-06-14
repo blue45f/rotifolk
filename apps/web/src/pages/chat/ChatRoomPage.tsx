@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
+import Loading from '@components/feedback/Loading'
+import { Avatar } from '@components/ui/Avatar/Avatar'
+import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import {
   useChatMessages,
   useSendMessage,
   useMyChatRooms,
   useMarkChatRead,
-} from '@features/chat/queries'
+} from '@domains/chat/queries'
 import { useAuthStore } from '@store/authStore'
-import { Button } from '@components/ui/Button/Button'
-import { Avatar } from '@components/ui/Avatar/Avatar'
-import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate, useParams, Link } from 'react-router-dom'
+
 import styles from './Chat.module.css'
 
 const IMAGE_EXT = /\.(jpe?g|png|gif|webp|avif|svg)(\?.*)?$/i

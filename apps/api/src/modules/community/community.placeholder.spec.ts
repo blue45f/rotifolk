@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+
 import { threadCommentsWithPlaceholders } from './community.module'
 
 const AUTHOR = {
@@ -13,7 +14,7 @@ function comment(
   id: string,
   status: string,
   parentId: string | null = null,
-  body = '본문',
+  body = '본문'
 ): Parameters<typeof threadCommentsWithPlaceholders>[0][number] {
   return {
     id,

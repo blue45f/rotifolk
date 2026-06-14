@@ -1,9 +1,10 @@
 import { HttpStatus } from '@nestjs/common'
-import type { Response } from 'express'
 import { describe, expect, it, vi } from 'vitest'
 
 import { HealthController } from './health.module'
+
 import type { PrismaService } from '../../prisma/prisma.service'
+import type { Response } from 'express'
 
 const makePrisma = (queryImpl: () => Promise<unknown>) =>
   ({ $queryRaw: vi.fn(queryImpl) }) as unknown as PrismaService

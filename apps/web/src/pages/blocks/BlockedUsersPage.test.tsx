@@ -1,14 +1,15 @@
+import { ConfirmProvider } from '@components/feedback/Confirm/ConfirmProvider'
+import { ToastProvider } from '@components/feedback/Toast/ToastProvider'
+import { api } from '@infrastructure/api'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ConfirmProvider } from '@components/feedback/Confirm/ConfirmProvider'
-import { ToastProvider } from '@components/feedback/Toast/ToastProvider'
-import { api } from '@services/api'
+
 import BlockedUsersPage from './BlockedUsersPage'
 
-vi.mock('@services/api', () => ({
+vi.mock('@infrastructure/api', () => ({
   api: {
     get: vi.fn(),
     post: vi.fn(),
@@ -35,7 +36,7 @@ function renderPage() {
           </MemoryRouter>
         </ConfirmProvider>
       </ToastProvider>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   )
 }
 
@@ -48,7 +49,7 @@ function mockBlockApis(
       blockedAt?: string
       reason?: string | null
     }>
-  } = {},
+  } = {}
 ) {
   mockedApi.get.mockImplementation((path: string) => {
     if (path === 'blocks') return Promise.resolve(overrides.blocks ?? [])
@@ -100,7 +101,7 @@ describe('BlockedUsersPage', () => {
     const dialog = screen.getByRole('dialog', { name: '연락처 일괄 대량 차단' })
     await user.type(
       within(dialog).getByRole('textbox', { name: '전화번호 목록' }),
-      '010-1111-2222\n+82 10-1111-2222\nnot-a-phone\n010-3333-4444',
+      '010-1111-2222\n+82 10-1111-2222\nnot-a-phone\n010-3333-4444'
     )
     await user.click(within(dialog).getByRole('button', { name: '일괄 등록' }))
 

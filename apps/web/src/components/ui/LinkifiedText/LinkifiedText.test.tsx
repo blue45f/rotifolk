@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+
 import { LinkifiedText } from './LinkifiedText'
 import { tokenizeUserText } from './linkify'
 
@@ -29,7 +30,7 @@ describe('LinkifiedText', () => {
     render(
       <p>
         <LinkifiedText text={'<img src=x onerror=alert(1)> 안녕'} />
-      </p>,
+      </p>
     )
     expect(screen.getByText(/onerror=alert\(1\)/)).toBeInTheDocument()
     expect(document.querySelector('img')).toBeNull()
@@ -39,7 +40,7 @@ describe('LinkifiedText', () => {
     render(
       <p>
         <LinkifiedText text="공지 https://rotifolk.example/notice 확인" />
-      </p>,
+      </p>
     )
     const anchor = screen.getByRole('link', { name: 'https://rotifolk.example/notice' })
     expect(anchor).toHaveAttribute('target', '_blank')

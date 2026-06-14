@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+
 import { Avatar } from './Avatar'
 
 describe('Avatar 렌더 분기', () => {

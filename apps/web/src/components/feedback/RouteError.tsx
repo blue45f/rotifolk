@@ -1,5 +1,5 @@
-import { useRouteError, Link } from 'react-router-dom'
 import { Button } from '@components/ui/Button/Button'
+import { useRouteError, Link } from 'react-router-dom'
 
 export default function RouteError() {
   const error = useRouteError() as { message?: string; status?: number } | null

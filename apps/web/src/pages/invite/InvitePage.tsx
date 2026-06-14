@@ -1,23 +1,24 @@
-import { useRef, useState, type ChangeEvent } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { GUEST_AVATAR_PRESETS, pickGuestAvatar, type PartyCategory } from '@rotifolk/shared'
-import { api } from '@services/api'
-import { CATEGORY_META } from '@features/categories/meta'
-import { resizeAvatarImage } from '@features/avatar/imageUpload'
-import { useGuestJoin, useGuestSession } from '@features/guest/queries'
-import { GuestConversionBanner } from '@features/guest/GuestConversionBanner'
-import { Button } from '@components/ui/Button/Button'
-import { Card } from '@components/ui/Card/Card'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
-import { Sheet } from '@components/ui/Sheet/Sheet'
-import { Input } from '@components/ui/Input/Input'
+import { Button } from '@components/ui/Button/Button'
+import { Card } from '@components/ui/Card/Card'
 import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
+import { Input } from '@components/ui/Input/Input'
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { resizeAvatarImage } from '@domains/avatar/imageUpload'
+import { CATEGORY_META } from '@domains/categories/meta'
+import { GuestConversionBanner } from '@domains/guest/GuestConversionBanner'
+import { useGuestJoin, useGuestSession } from '@domains/guest/queries'
+import { api } from '@infrastructure/api'
+import { GUEST_AVATAR_PRESETS, pickGuestAvatar, type PartyCategory } from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
+import { useQuery } from '@tanstack/react-query'
+import { useRef, useState, type ChangeEvent } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+
 import styles from './Invite.module.css'
 
 interface InvitePreview {
@@ -127,7 +128,7 @@ export default function InvitePage() {
       await guestJoin.mutateAsync({ nickname, avatar: guestAvatarPreview })
       toast.show(
         isEditingGuestAvatar ? '아바타를 업데이트했어요 ✨' : '게스트로 합류했어요 🎟',
-        'success',
+        'success'
       )
       setShowGuestForm(false)
     } catch (e) {

@@ -20,6 +20,9 @@ import {
   CreateClubPostSchema,
   CreateClubSchema,
 } from '@rotifolk/shared'
+
+import { threadCommentsWithPlaceholders } from '../community/community.module'
+
 import type {
   ClubComment,
   ClubDetail,
@@ -33,11 +36,11 @@ import type {
   CreateClubPostDto,
   Paginated,
 } from '@rotifolk/shared'
-import { PrismaService } from '@/prisma/prisma.service'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 import { OptionalJwtGuard } from '@/common/optional-jwt.guard'
-import { threadCommentsWithPlaceholders } from '../community/community.module'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+import { PrismaService } from '@/prisma/prisma.service'
 
 const AUTHOR_SELECT = {
   select: { id: true, nickname: true, avatarId: true, role: true, isVerified: true },
@@ -51,7 +54,7 @@ class ClubsController {
   @UseGuards(OptionalJwtGuard)
   async listClubs(
     @CurrentUser() me: JwtUserPayload | null,
-    @Query(new ZodValidationPipe(ClubQuerySchema)) query: ClubQueryDto,
+    @Query(new ZodValidationPipe(ClubQuerySchema)) query: ClubQueryDto
   ): Promise<Paginated<ClubSummary>> {
     const where = {
       ...(query.category ? { category: query.category } : {}),
@@ -95,7 +98,7 @@ class ClubsController {
   @UseGuards(AuthGuard('jwt'))
   async createClub(
     @CurrentUser() me: JwtUserPayload,
-    @Body(new ZodValidationPipe(CreateClubSchema)) dto: CreateClubDto,
+    @Body(new ZodValidationPipe(CreateClubSchema)) dto: CreateClubDto
   ): Promise<ClubSummary> {
     const club = await this.prisma.club.create({
       data: {
@@ -118,7 +121,7 @@ class ClubsController {
   @UseGuards(OptionalJwtGuard)
   async getClub(
     @CurrentUser() me: JwtUserPayload | null,
-    @Param('clubId') clubId: string,
+    @Param('clubId') clubId: string
   ): Promise<ClubDetail> {
     const club = await this.prisma.club.findUnique({
       where: { id: clubId },
@@ -193,7 +196,7 @@ class ClubsController {
   async listClubPosts(
     @CurrentUser() me: JwtUserPayload | null,
     @Param('clubId') clubId: string,
-    @Query(new ZodValidationPipe(ClubPostQuerySchema)) query: ClubPostQueryDto,
+    @Query(new ZodValidationPipe(ClubPostQuerySchema)) query: ClubPostQueryDto
   ): Promise<Paginated<ClubPost>> {
     await this.assertBoardReadable(clubId, me)
     const where = { clubId, status: 'open' }
@@ -221,7 +224,7 @@ class ClubsController {
   async createClubPost(
     @CurrentUser() me: JwtUserPayload,
     @Param('clubId') clubId: string,
-    @Body(new ZodValidationPipe(CreateClubPostSchema)) dto: CreateClubPostDto,
+    @Body(new ZodValidationPipe(CreateClubPostSchema)) dto: CreateClubPostDto
   ): Promise<ClubPost> {
     await this.assertMember(clubId, me.sub, '클럽에 가입해야 글을 쓸 수 있어요')
     const post = await this.prisma.clubPost.create({
@@ -242,7 +245,7 @@ class ClubsController {
   async getClubPost(
     @CurrentUser() me: JwtUserPayload | null,
     @Param('clubId') clubId: string,
-    @Param('postId') postId: string,
+    @Param('postId') postId: string
   ): Promise<ClubPostDetail> {
     await this.assertBoardReadable(clubId, me)
     const post = await this.prisma.clubPost.findFirst({
@@ -272,7 +275,7 @@ class ClubsController {
   async deleteClubPost(
     @CurrentUser() me: JwtUserPayload,
     @Param('clubId') clubId: string,
-    @Param('postId') postId: string,
+    @Param('postId') postId: string
   ) {
     const post = await this.prisma.clubPost.findFirst({
       where: { id: postId, clubId, status: 'open' },
@@ -298,7 +301,7 @@ class ClubsController {
     @CurrentUser() me: JwtUserPayload,
     @Param('clubId') clubId: string,
     @Param('postId') postId: string,
-    @Body(new ZodValidationPipe(CreateClubCommentSchema)) dto: CreateClubCommentDto,
+    @Body(new ZodValidationPipe(CreateClubCommentSchema)) dto: CreateClubCommentDto
   ): Promise<ClubComment> {
     await this.assertMember(clubId, me.sub, '클럽에 가입해야 댓글을 쓸 수 있어요')
     const [post, parent] = await Promise.all([
@@ -340,7 +343,7 @@ class ClubsController {
     @CurrentUser() me: JwtUserPayload,
     @Param('clubId') clubId: string,
     @Param('postId') postId: string,
-    @Param('commentId') commentId: string,
+    @Param('commentId') commentId: string
   ) {
     const comment = await this.prisma.clubComment.findFirst({
       where: { id: commentId, postId, status: 'visible', post: { clubId } },

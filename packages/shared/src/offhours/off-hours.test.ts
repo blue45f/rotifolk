@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import type { Venue } from '../domain/venue'
+
 import { suggestOffHoursSlots } from './off-hours'
+
+import type { Venue } from '../domain/venue'
 
 const venue: Venue = {
   id: 'v1',

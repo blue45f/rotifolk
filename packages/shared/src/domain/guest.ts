@@ -1,5 +1,6 @@
-import type { ID } from './common'
 import { AVATAR_MOODS } from './avatar'
+
+import type { ID } from './common'
 
 /**
  * 게스트(비로그인) 참가자 식별 — 참가 행(Participation)에 userId가 없으므로

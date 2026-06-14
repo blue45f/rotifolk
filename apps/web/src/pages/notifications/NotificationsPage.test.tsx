@@ -1,11 +1,12 @@
+import { api } from '@infrastructure/api'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { api } from '@services/api'
+
 import NotificationsPage from './NotificationsPage'
 
-vi.mock('@services/api', () => ({
+vi.mock('@infrastructure/api', () => ({
   api: {
     get: vi.fn(),
     post: vi.fn(),
@@ -27,7 +28,7 @@ function renderPage() {
       <MemoryRouter>
         <NotificationsPage />
       </MemoryRouter>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   )
 }
 

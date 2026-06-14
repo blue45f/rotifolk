@@ -21,6 +21,10 @@ import {
   UpdateCommunityCommentSchema,
   UpdateCommunityPostSchema,
 } from '@rotifolk/shared'
+
+import { NotificationsEmitter } from '../notifications/notifications.emitter'
+import { NotificationsModule } from '../notifications/notifications.module'
+
 import type {
   CommunityComment,
   CommunityPost,
@@ -32,22 +36,21 @@ import type {
   UpdateCommunityCommentDto,
   UpdateCommunityPostDto,
 } from '@rotifolk/shared'
-import { PrismaService } from '@/prisma/prisma.service'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
-import { NotificationsEmitter } from '../notifications/notifications.emitter'
-import { NotificationsModule } from '../notifications/notifications.module'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+import { PrismaService } from '@/prisma/prisma.service'
 
 @Controller()
 class CommunityController {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly notifEmitter: NotificationsEmitter,
+    private readonly notifEmitter: NotificationsEmitter
   ) {}
 
   @Get('community/posts')
   async listCommunityPosts(
-    @Query(new ZodValidationPipe(CommunityPostQuerySchema)) query: CommunityPostQueryDto,
+    @Query(new ZodValidationPipe(CommunityPostQuerySchema)) query: CommunityPostQueryDto
   ): Promise<Paginated<CommunityPost>> {
     const where = {
       status: 'open',
@@ -122,7 +125,7 @@ class CommunityController {
   @UseGuards(AuthGuard('jwt'))
   async createCommunityPost(
     @CurrentUser() me: JwtUserPayload,
-    @Body(new ZodValidationPipe(CreateCommunityPostSchema)) dto: CreateCommunityPostDto,
+    @Body(new ZodValidationPipe(CreateCommunityPostSchema)) dto: CreateCommunityPostDto
   ): Promise<CommunityPost> {
     const post = await this.prisma.communityPost.create({
       data: {
@@ -150,7 +153,7 @@ class CommunityController {
   async updateCommunityPost(
     @CurrentUser() me: JwtUserPayload,
     @Param('postId') postId: string,
-    @Body(new ZodValidationPipe(UpdateCommunityPostSchema)) dto: UpdateCommunityPostDto,
+    @Body(new ZodValidationPipe(UpdateCommunityPostSchema)) dto: UpdateCommunityPostDto
   ): Promise<CommunityPost> {
     const current = await this.prisma.communityPost.findFirst({
       where: { id: postId, status: 'open' },
@@ -217,7 +220,7 @@ class CommunityController {
   async createCommunityComment(
     @CurrentUser() me: JwtUserPayload,
     @Param('postId') postId: string,
-    @Body(new ZodValidationPipe(CreateCommunityCommentSchema)) dto: CreateCommunityCommentDto,
+    @Body(new ZodValidationPipe(CreateCommunityCommentSchema)) dto: CreateCommunityCommentDto
   ): Promise<CommunityComment> {
     const [post, parent] = await Promise.all([
       this.prisma.communityPost.findFirst({ where: { id: postId, status: 'open' } }),
@@ -272,7 +275,7 @@ class CommunityController {
     @CurrentUser() me: JwtUserPayload,
     @Param('postId') postId: string,
     @Param('commentId') commentId: string,
-    @Body(new ZodValidationPipe(UpdateCommunityCommentSchema)) dto: UpdateCommunityCommentDto,
+    @Body(new ZodValidationPipe(UpdateCommunityCommentSchema)) dto: UpdateCommunityCommentDto
   ): Promise<CommunityComment> {
     const current = await this.prisma.communityComment.findFirst({
       where: { id: commentId, postId, status: 'visible' },
@@ -306,7 +309,7 @@ class CommunityController {
   async deleteCommunityComment(
     @CurrentUser() me: JwtUserPayload,
     @Param('postId') postId: string,
-    @Param('commentId') commentId: string,
+    @Param('commentId') commentId: string
   ) {
     const current = await this.prisma.communityComment.findFirst({
       where: { id: commentId, postId, status: 'visible' },

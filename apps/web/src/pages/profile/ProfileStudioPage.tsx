@@ -1,5 +1,25 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { useForm, useFieldArray, Controller, type Resolver } from 'react-hook-form'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
+import { VerifiedBadges } from '@components/profile/VerifiedBadges'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Card } from '@components/ui/Card/Card'
+import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
+import { Input } from '@components/ui/Input/Input'
+import { Tabs } from '@components/ui/Tabs/Tabs'
+import {
+  useAddAvoidContacts,
+  useAvoidContacts,
+  useRemoveAvoidContact,
+  useUpdateAvoidPrefs,
+  useUpdateContact,
+  useUpdatePrivacy,
+  useUpdateProfile,
+  useUpdateTrust,
+  useVerifyField,
+} from '@domains/me/queries'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CONNECTION_CHANNELS,
@@ -17,29 +37,10 @@ import {
   type VerificationField,
   type VerificationMethod,
 } from '@rotifolk/shared'
-import { Button } from '@components/ui/Button/Button'
-import { Card } from '@components/ui/Card/Card'
-import { Badge } from '@components/ui/Badge/Badge'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Input } from '@components/ui/Input/Input'
-import { Tabs } from '@components/ui/Tabs/Tabs'
-import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
-import { VerifiedBadges } from '@components/profile/VerifiedBadges'
 import { useAuthStore } from '@store/authStore'
-import {
-  useAddAvoidContacts,
-  useAvoidContacts,
-  useRemoveAvoidContact,
-  useUpdateAvoidPrefs,
-  useUpdateContact,
-  useUpdatePrivacy,
-  useUpdateProfile,
-  useUpdateTrust,
-  useVerifyField,
-} from '@features/me/queries'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useForm, useFieldArray, Controller, type Resolver } from 'react-hook-form'
+
 import styles from './ProfileStudio.module.css'
 
 const VISIBILITY_LABEL: Record<FieldVisibility, string> = {
@@ -123,7 +124,7 @@ function ProfileTab() {
 
   const { control, register, handleSubmit } = useForm<ProfileFormValues>({
     resolver: zodResolver(
-      PreProfileSchema as unknown as Parameters<typeof zodResolver>[0],
+      PreProfileSchema as unknown as Parameters<typeof zodResolver>[0]
     ) as unknown as Resolver<ProfileFormValues>,
     defaultValues: {
       oneLiner: initial.oneLiner ?? '',
@@ -646,7 +647,7 @@ function AvoidTab() {
   const [avoidSameCompany, setAvoidSameCompany] = useState(() => user.avoidSameCompany ?? false)
   const [showLikesReceived, setShowLikesReceived] = useState(() => user.showLikesReceived ?? true)
   const [joinPopularityRanking, setJoinPopularityRanking] = useState(
-    () => user.joinPopularityRanking ?? true,
+    () => user.joinPopularityRanking ?? true
   )
 
   useEffect(() => {
@@ -688,7 +689,7 @@ function AvoidTab() {
           setAvoidSameCompany(!next)
           toast.show((e as Error).message, 'error')
         },
-      },
+      }
     )
   }
 
@@ -878,7 +879,7 @@ function AvoidTab() {
                       {
                         onSuccess: () => toast.show('설정을 저장했어요', 'success'),
                         onError: (err) => toast.show((err as Error).message, 'error'),
-                      },
+                      }
                     )
                   }}
                 />
@@ -901,7 +902,7 @@ function AvoidTab() {
               {
                 onSuccess: () => toast.show('연결 채널을 저장했어요', 'success'),
                 onError: (err) => toast.show((err as Error).message, 'error'),
-              },
+              }
             )
           }
         >
@@ -937,7 +938,7 @@ function AvoidTab() {
                     setShowLikesReceived(!next)
                     toast.show((err as Error).message, 'error')
                   },
-                },
+                }
               )
             }}
           />
@@ -962,7 +963,7 @@ function AvoidTab() {
                     setJoinPopularityRanking(!next)
                     toast.show((err as Error).message, 'error')
                   },
-                },
+                }
               )
             }}
           />

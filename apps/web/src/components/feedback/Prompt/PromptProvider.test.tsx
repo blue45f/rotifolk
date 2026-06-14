@@ -25,7 +25,7 @@ describe('PromptProvider', () => {
     render(
       <PromptProvider>
         <Harness onResult={onResult} />
-      </PromptProvider>,
+      </PromptProvider>
     )
 
     await user.click(screen.getByText('trigger'))
@@ -42,7 +42,7 @@ describe('PromptProvider', () => {
     render(
       <PromptProvider>
         <Harness onResult={onResult} />
-      </PromptProvider>,
+      </PromptProvider>
     )
 
     await user.click(screen.getByText('trigger'))
@@ -58,7 +58,7 @@ describe('PromptProvider', () => {
     render(
       <PromptProvider>
         <Harness onResult={onResult} />
-      </PromptProvider>,
+      </PromptProvider>
     )
 
     await user.click(screen.getByText('trigger'))

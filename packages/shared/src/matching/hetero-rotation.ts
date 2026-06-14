@@ -20,7 +20,7 @@ export interface HeteroParticipant {
  */
 export function buildHeteroRotation(
   participants: readonly HeteroParticipant[],
-  maxRounds = 8,
+  maxRounds = 8
 ): RoundPairing[] {
   const women = participants.filter((p) => p.gender === 'female').map((p) => p.userId)
   const men = participants.filter((p) => p.gender === 'male').map((p) => p.userId)
@@ -55,7 +55,7 @@ export function buildHeteroRotation(
  */
 export function buildSameGenderSideGroups(
   participants: readonly HeteroParticipant[],
-  groupSize = 3,
+  groupSize = 3
 ): { female: string[][]; male: string[][] } {
   const group = (ids: readonly string[]) => {
     const out: string[][] = []

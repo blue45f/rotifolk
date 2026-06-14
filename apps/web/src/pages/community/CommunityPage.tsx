@@ -1,41 +1,11 @@
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import {
-  COMMUNITY_POST_CATEGORY_LABEL,
-  type CommunityComment,
-  type CommunityPostDetail,
-  type CommunityPostCategory,
-  type CreateReportDto,
-} from '@rotifolk/shared'
-import { Button } from '@components/ui/Button/Button'
-import { Badge } from '@components/ui/Badge/Badge'
-import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
 import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
-import { useCurrentUser } from '@store/authStore'
-import {
-  useCommunityPost,
-  useCommunityPosts,
-  useCreateCommunityComment,
-  useCreateCommunityPost,
-  useDeleteCommunityComment,
-  useDeleteCommunityPost,
-  useReportCommunityContent,
-  useUpdateCommunityComment,
-  useUpdateCommunityPost,
-} from '@features/community/queries'
-import {
-  hasRequiredTerms,
-  readTermsConsentState,
-  TERMS_REQUIRED_SECTION_IDS,
-  TERMS_CONSENT_CHANGED_EVENT,
-  TERMS_CONSENT_STORAGE_KEY,
-  toTermsConsentState,
-  type TermsConsentState,
-} from '@features/legal/termsConsent'
-import { AvatarImageError, resizePostImage } from '@features/avatar/imageUpload'
+import { Badge } from '@components/ui/Badge/Badge'
+import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
+import { AvatarImageError, resizePostImage } from '@domains/avatar/imageUpload'
 import {
   COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT,
   COMMUNITY_DEMO_ACTIVITY_KEY,
@@ -49,8 +19,39 @@ import {
   type CommunityDemoAction,
   type CommunityDemoActionMeta,
   type CommunityDemoActivityLogEntry,
-} from '@features/community/demoTracker'
-import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
+} from '@domains/community/demoTracker'
+import {
+  useCommunityPost,
+  useCommunityPosts,
+  useCreateCommunityComment,
+  useCreateCommunityPost,
+  useDeleteCommunityComment,
+  useDeleteCommunityPost,
+  useReportCommunityContent,
+  useUpdateCommunityComment,
+  useUpdateCommunityPost,
+} from '@domains/community/queries'
+import {
+  hasRequiredTerms,
+  readTermsConsentState,
+  TERMS_REQUIRED_SECTION_IDS,
+  TERMS_CONSENT_CHANGED_EVENT,
+  TERMS_CONSENT_STORAGE_KEY,
+  toTermsConsentState,
+  type TermsConsentState,
+} from '@domains/legal/termsConsent'
+import { addTutorialStep, normalizeTutorialStep } from '@domains/tutorial/progress'
+import {
+  COMMUNITY_POST_CATEGORY_LABEL,
+  type CommunityComment,
+  type CommunityPostDetail,
+  type CommunityPostCategory,
+  type CreateReportDto,
+} from '@rotifolk/shared'
+import { useCurrentUser } from '@store/authStore'
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
+
 import styles from './Community.module.css'
 
 type ReportTargetType = 'post' | 'comment'
@@ -132,7 +133,7 @@ const formatTime = (value: number) => formatCommunityDemoEventTime(value)
 
 const mergeCommunityDemoActivity = (
   prev: CommunityDemoActivityLogEntry[],
-  next: CommunityDemoActivityLogEntry,
+  next: CommunityDemoActivityLogEntry
 ): CommunityDemoActivityLogEntry[] => {
   const filtered = prev.filter((entry) => entry.id !== next.id)
   return [...filtered, next].sort((a, b) => a.at - b.at).slice(-COMMUNITY_DEMO_ACTIVITY_LIMIT)
@@ -168,7 +169,7 @@ const readMissionState = (): CommunityMissionState => {
   }
 
   return clampMissionState(
-    readJSON<CommunityMissionState>(localStorage.getItem(COMMUNITY_MISSION_STATE_KEY)),
+    readJSON<CommunityMissionState>(localStorage.getItem(COMMUNITY_MISSION_STATE_KEY))
   )
 }
 
@@ -194,8 +195,8 @@ const readReportGuards = (): CommunityReportGuard[] => {
       typeof item.targetType === 'string' &&
       typeof item.targetId === 'string' &&
       typeof item.at === 'number' &&
-      now - item.at < ONE_WEEK_MS,
-    ),
+      now - item.at < ONE_WEEK_MS
+    )
   )
 }
 
@@ -258,16 +259,16 @@ const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
 const clampMissionState = (value: unknown): CommunityMissionState => {
   return {
     templateUsed: Boolean(
-      value && typeof value === 'object' && (value as CommunityMissionState).templateUsed,
+      value && typeof value === 'object' && (value as CommunityMissionState).templateUsed
     ),
     postCreated: Boolean(
-      value && typeof value === 'object' && (value as CommunityMissionState).postCreated,
+      value && typeof value === 'object' && (value as CommunityMissionState).postCreated
     ),
     commentPosted: Boolean(
-      value && typeof value === 'object' && (value as CommunityMissionState).commentPosted,
+      value && typeof value === 'object' && (value as CommunityMissionState).commentPosted
     ),
     reportSubmitted: Boolean(
-      value && typeof value === 'object' && (value as CommunityMissionState).reportSubmitted,
+      value && typeof value === 'object' && (value as CommunityMissionState).reportSubmitted
     ),
   }
 }
@@ -323,14 +324,14 @@ export default function CommunityPage() {
     ? `/policies?filter=required&fromTutorial=community&from=${encodedReturnPath}`
     : `/policies?filter=required&from=${encodedReturnPath}`
   const [termsConsentState, setTermsConsentState] = useState<TermsConsentState>(() =>
-    readTermsConsentState(),
+    readTermsConsentState()
   )
   const isTermsReady = hasRequiredTerms(termsConsentState.agreedIds)
   const missingRequiredTerms = TERMS_REQUIRED_SECTION_IDS.filter(
-    (sectionId) => !termsConsentState.agreedIds.includes(sectionId),
+    (sectionId) => !termsConsentState.agreedIds.includes(sectionId)
   )
   const missingRequiredTermNames = missingRequiredTerms.map(
-    (sectionId) => TERMS_LABEL_BY_ID[sectionId],
+    (sectionId) => TERMS_LABEL_BY_ID[sectionId]
   )
   const termsMissionDone = isTermsReady
   const missionTotalCount = 5
@@ -347,7 +348,7 @@ export default function CommunityPage() {
   }
   const initialDraft = useMemo(() => readDraftState(), [])
   const [category, setCategory] = useState<'all' | CommunityPostCategory>(
-    () => queryCategoryToState(searchParams.get('category')) || initialDraft.category,
+    () => queryCategoryToState(searchParams.get('category')) || initialDraft.category
   )
   const [area, setArea] = useState<string>(() => searchParams.get('area') ?? initialDraft.area)
   const [searchText, setSearchText] = useState<string>(() => searchParams.get('q') ?? '')
@@ -360,7 +361,7 @@ export default function CommunityPage() {
   const composerFileRef = useRef<HTMLInputElement | null>(null)
   const [missionState, setMissionState] = useState<CommunityMissionState>(() => readMissionState())
   const [demoActivityLog, setDemoActivityLog] = useState<CommunityDemoActivityLogEntry[]>(() =>
-    readCommunityDemoActivityLog(),
+    readCommunityDemoActivityLog()
   )
   const [guideTemplateMeta, setGuideTemplateMeta] = useState<CommunityDemoActionMeta | null>(null)
   const [reportGuards, setReportGuards] = useState<CommunityReportGuard[]>(() => readReportGuards())
@@ -372,9 +373,9 @@ export default function CommunityPage() {
           item.targetType === targetType &&
           item.targetId === targetId &&
           item.kind === kind &&
-          Date.now() - item.at < ONE_WEEK_MS,
+          Date.now() - item.at < ONE_WEEK_MS
       ),
-    [reportGuards],
+    [reportGuards]
   )
 
   const updateMissionState = useCallback((next: Partial<CommunityMissionState>) => {
@@ -391,18 +392,18 @@ export default function CommunityPage() {
       const next = logCommunityDemoActivity(action, label, meta)
       setDemoActivityLog((prev) => mergeCommunityDemoActivity(prev, next))
     },
-    [],
+    []
   )
   const logBlockedDemoAction = useCallback(
     (action: CommunityDemoAction, label: string, meta?: CommunityDemoActionMeta) => {
       logDemoAction(action, `${label} (약관 미동의로 차단)`, meta)
     },
-    [logDemoAction],
+    [logDemoAction]
   )
 
   const missionFromActivity = useMemo(
     () => summarizeCommunityDemoMissionState(demoActivityLog),
-    [demoActivityLog],
+    [demoActivityLog]
   )
   const effectiveMissionState = useMemo(
     () => ({
@@ -411,15 +412,15 @@ export default function CommunityPage() {
       commentPosted: missionState.commentPosted || missionFromActivity.commentPosted,
       reportSubmitted: missionState.reportSubmitted || missionFromActivity.reportSubmitted,
     }),
-    [missionState, missionFromActivity],
+    [missionState, missionFromActivity]
   )
   const recentDemoActivities = useMemo(
     () => [...demoActivityLog].reverse().slice(0, 6),
-    [demoActivityLog],
+    [demoActivityLog]
   )
   const recentBlockedDemoActivities = useMemo(
     () => recentDemoActivities.filter((entry) => isCommunityDemoActionBlocked(entry.action)),
-    [recentDemoActivities],
+    [recentDemoActivities]
   )
 
   const markTemplateUsed = useCallback(
@@ -430,7 +431,7 @@ export default function CommunityPage() {
         addTutorialStep('community-template')
       }
     },
-    [guideTemplateMeta, isTutorialMode, logDemoAction, updateMissionState],
+    [guideTemplateMeta, isTutorialMode, logDemoAction, updateMissionState]
   )
 
   const markPostCreated = useCallback(() => {
@@ -487,7 +488,7 @@ export default function CommunityPage() {
                 item.targetId === targetId &&
                 item.kind === kind &&
                 now - item.at < ONE_WEEK_MS
-              ),
+              )
           ),
           {
             kind,
@@ -500,7 +501,7 @@ export default function CommunityPage() {
         return next
       })
     },
-    [isTutorialMode, logDemoAction, updateMissionState],
+    [isTutorialMode, logDemoAction, updateMissionState]
   )
 
   const markPostEdited = useCallback(() => {
@@ -515,14 +516,14 @@ export default function CommunityPage() {
     (commentId: string) => {
       logDemoAction('edit-comment', '댓글/답글 수정', { commentId })
     },
-    [logDemoAction],
+    [logDemoAction]
   )
 
   const markCommentDeleted = useCallback(
     (commentId: string) => {
       logDemoAction('delete-comment', '댓글/답글 삭제', { commentId })
     },
-    [logDemoAction],
+    [logDemoAction]
   )
 
   const canShowMissionPanel = showGuideFlow || showDemoFlow
@@ -530,7 +531,7 @@ export default function CommunityPage() {
     () =>
       Object.values(effectiveMissionState).reduce((acc, item) => acc + (item ? 1 : 0), 0) +
       (termsMissionDone ? 1 : 0),
-    [effectiveMissionState, termsMissionDone],
+    [effectiveMissionState, termsMissionDone]
   )
   const query = useMemo(
     () => ({
@@ -539,7 +540,7 @@ export default function CommunityPage() {
       q: searchText || undefined,
       pageSize: 16,
     }),
-    [area, category, searchText],
+    [area, category, searchText]
   )
   const posts = useCommunityPosts(query)
   const detail = useCommunityPost(activePostId)
@@ -843,7 +844,7 @@ export default function CommunityPage() {
     } catch (error) {
       toast.show(
         error instanceof AvatarImageError ? error.message : '사진을 처리하지 못했어요.',
-        'error',
+        'error'
       )
     } finally {
       setImageBusy(false)
@@ -911,21 +912,21 @@ export default function CommunityPage() {
               <div className={styles.guideLinks}>
                 <Link
                   to={withReturnPath(
-                    '/community?guide=1&category=question&template=first-question',
+                    '/community?guide=1&category=question&template=first-question'
                   )}
                 >
                   질문 모아보기
                 </Link>
                 <Link
                   to={withReturnPath(
-                    '/community?guide=1&category=after-party&template=quiet-icebreaker',
+                    '/community?guide=1&category=after-party&template=quiet-icebreaker'
                   )}
                 >
                   후기 모아보기
                 </Link>
                 <Link
                   to={withReturnPath(
-                    '/community?guide=1&category=venue-tip&template=low-cost-place',
+                    '/community?guide=1&category=venue-tip&template=low-cost-place'
                   )}
                 >
                   공간 팁 모아보기
@@ -1303,19 +1304,19 @@ function ThreadDetail({
   onReportSubmitted: (
     targetType: ReportTargetType,
     targetId: string,
-    kind: CreateReportDto['kind'],
+    kind: CreateReportDto['kind']
   ) => void
   onCommentEdited: (commentId: string) => void
   onCommentDeleted: (commentId: string) => void
   onDemoActionLog: (
     action: CommunityDemoAction,
     label: string,
-    meta?: CommunityDemoActionMeta,
+    meta?: CommunityDemoActionMeta
   ) => void
   isReportGuarded: (
     targetType: ReportTargetType,
     targetId: string,
-    kind: CreateReportDto['kind'],
+    kind: CreateReportDto['kind']
   ) => boolean
   isTermsReady: boolean
   policyGateHref: string
@@ -1338,7 +1339,7 @@ function ThreadDetail({
   const assertTermsReady = (
     action: string,
     blockedAction: CommunityDemoAction,
-    meta?: CommunityDemoActionMeta,
+    meta?: CommunityDemoActionMeta
   ) => {
     if (!isTermsReady) {
       toast.show(`${action}은(는) 필수 약관 동의 후에만 가능합니다.`, 'error')
@@ -1713,20 +1714,20 @@ function CommentItem({
     targetId: string,
     targetUserId: string,
     kind: CreateReportDto['kind'],
-    label: string,
+    label: string
   ) => void
   onCommentEdited: (commentId: string) => void
   onCommentDeleted: (commentId: string) => void
   isReportGuarded: (
     targetType: ReportTargetType,
     targetId: string,
-    kind: CreateReportDto['kind'],
+    kind: CreateReportDto['kind']
   ) => boolean
   isTermsReady: boolean
   onDemoActionLog: (
     action: CommunityDemoAction,
     label: string,
-    meta?: CommunityDemoActionMeta,
+    meta?: CommunityDemoActionMeta
   ) => void
 }) {
   const isReplying = replyTarget === comment.id

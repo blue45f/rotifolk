@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+
 import type { User } from '@rotifolk/shared'
 
 interface AuthState {
@@ -26,8 +27,8 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'rotifolk-auth',
       storage: createJSONStorage(() => localStorage),
-    },
-  ),
+    }
+  )
 )
 
 export const useIsAuthed = () => useAuthStore((s) => !!s.token && !!s.user)

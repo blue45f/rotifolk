@@ -1,10 +1,11 @@
+import Loading from '@components/feedback/Loading'
+import RouteError from '@components/feedback/RouteError'
+import RootLayout from '@components/layout/RootLayout'
 import { Suspense, lazy, type ComponentType } from 'react'
 import { createBrowserRouter, type RouteObject } from 'react-router-dom'
-import RootLayout from '@components/layout/RootLayout'
-import RouteError from '@components/feedback/RouteError'
-import Loading from '@components/feedback/Loading'
-import ProtectedRoute from './ProtectedRoute'
+
 import { AliasHelpRedirect, AliasPoliciesRedirect } from './AliasRedirects'
+import ProtectedRoute from './ProtectedRoute'
 
 const CHUNK_RETRY_KEY = 'rotifolk-chunk-retry'
 
@@ -215,7 +216,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'admin',
-        element: <ProtectedRoute role="admin" />,
+        element: <ProtectedRoute requiredRole="admin" />,
         children: [
           { index: true, element: lazyPage(() => import('@pages/admin/AdminPage')) },
           {

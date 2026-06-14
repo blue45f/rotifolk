@@ -14,7 +14,7 @@ test('finds clickable divs that should be real interactive elements', () => {
       export function Demo() {
         return <div className="row" onClick={() => {}}>Open</div>
       }
-    `,
+    `
   )
 
   assert.deepEqual(findClickableNonInteractiveElements(root), [

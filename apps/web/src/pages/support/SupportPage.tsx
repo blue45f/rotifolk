@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
+import { Input } from '@components/ui/Input/Input'
 import {
   createInquiry,
   INQUIRY_BODY_MAX,
@@ -12,10 +13,10 @@ import {
   validateInquiryInput,
   type InquiryCategory,
   type InquiryReceipt,
-} from '@features/inquiry/inquiries'
-import { Button } from '@components/ui/Button/Button'
-import { Input } from '@components/ui/Input/Input'
-import { Icon } from '@components/ui/Icon/Icon'
+} from '@domains/inquiry/inquiries'
+import { useState, type FormEvent } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+
 import styles from './Support.module.css'
 
 function formatReceiptDate(value: string) {
@@ -38,7 +39,7 @@ export default function SupportPage() {
   const [searchParams] = useSearchParams()
   const categoryParam = searchParams.get('category')
   const [category, setCategory] = useState<InquiryCategory>(
-    isInquiryCategory(categoryParam) ? categoryParam : 'contact',
+    isInquiryCategory(categoryParam) ? categoryParam : 'contact'
   )
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')

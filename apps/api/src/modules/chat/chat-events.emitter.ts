@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
-import type { Server } from 'socket.io'
 import { USER_ROOM, type ClientToServerEvents, type ServerToClientEvents } from '@rotifolk/shared'
+
+import type { Server } from 'socket.io'
 
 export interface RealtimeChatMessage {
   id: string

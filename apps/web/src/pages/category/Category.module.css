@@ -70,9 +70,7 @@
 .moodEmoji {
   font-size: clamp(3rem, 9vw, 4.5rem);
   line-height: 1;
-  filter: drop-shadow(
-    0 12px 24px color-mix(in oklab, var(--brand-clay-900) 45%, transparent)
-  );
+  filter: drop-shadow(0 12px 24px color-mix(in oklab, var(--brand-clay-900) 45%, transparent));
 }
 .kicker {
   margin: 0;
@@ -362,9 +360,7 @@
 }
 .otherEmoji {
   font-size: 1.8rem;
-  filter: drop-shadow(
-    0 8px 18px color-mix(in oklab, var(--brand-clay-900) 50%, transparent)
-  );
+  filter: drop-shadow(0 8px 18px color-mix(in oklab, var(--brand-clay-900) 50%, transparent));
 }
 .otherLabel {
   font-weight: var(--fw-bold);

@@ -66,7 +66,7 @@ export function computeRevenueHealthScore(args: RevenueHealthScoreArgs): Revenue
 
   if (refundPenalty > 0) {
     reasons.push(
-      `환불률이 경고 임계값(${warningRefundRatePercent.toFixed(1)}%)을 넘겨 추가 모니터링이 필요해요.`,
+      `환불률이 경고 임계값(${warningRefundRatePercent.toFixed(1)}%)을 넘겨 추가 모니터링이 필요해요.`
     )
   }
 
@@ -79,7 +79,7 @@ export function computeRevenueHealthScore(args: RevenueHealthScoreArgs): Revenue
 
   if (concentrationPenalty > 0) {
     reasons.push(
-      `상위 파티 매출 집중도가 ${topPartyConcentrationPercent.toFixed(1)}%로 편중이 커요.`,
+      `상위 파티 매출 집중도가 ${topPartyConcentrationPercent.toFixed(1)}%로 편중이 커요.`
     )
   }
 
@@ -87,14 +87,14 @@ export function computeRevenueHealthScore(args: RevenueHealthScoreArgs): Revenue
   const platformPenalty = platformShare > 35 ? ((platformShare - 35) / 65) * 10 : 0
   if (platformPenalty > 0) {
     reasons.push(
-      `플랫폼 수익 비중이 ${platformShare.toFixed(1)}%로 상대적으로 높아 호스트 수익이 압박될 수 있어요.`,
+      `플랫폼 수익 비중이 ${platformShare.toFixed(1)}%로 상대적으로 높아 호스트 수익이 압박될 수 있어요.`
     )
   }
 
   const hostPayoutRate = clampNumber(
     totalPaidKRW > 0 ? (hostPayoutKRW / totalPaidKRW) * 100 : 0,
     0,
-    100,
+    100
   )
   const minimumHostPayoutPenalty =
     minimumHostShare <= 0 || hostPayoutRate >= minimumHostShare
@@ -102,7 +102,7 @@ export function computeRevenueHealthScore(args: RevenueHealthScoreArgs): Revenue
       : ((minimumHostShare - hostPayoutRate) / minimumHostShare) * 20
   if (minimumHostPayoutPenalty > 0) {
     reasons.push(
-      `호스트 정산 비율이 최소 기준(${minimumHostShare.toFixed(1)}%) 아래로 떨어져 정책 조정이 필요해요.`,
+      `호스트 정산 비율이 최소 기준(${minimumHostShare.toFixed(1)}%) 아래로 떨어져 정책 조정이 필요해요.`
     )
   }
 
@@ -123,8 +123,8 @@ export function computeRevenueHealthScore(args: RevenueHealthScoreArgs): Revenue
         minimumHostPayoutPenalty -
         trendPenalty,
       0,
-      100,
-    ),
+      100
+    )
   )
 
   if (score >= 85) {

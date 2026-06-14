@@ -97,7 +97,7 @@ const DAY_PREFERENCE_KEYWORDS: Record<DayPreference, string[]> = {
 
 function takeFirstMatch<K extends string>(
   lower: string,
-  groups: Array<[K, string[]]>,
+  groups: Array<[K, string[]]>
 ): { key: K; matched: string[] } | undefined {
   for (const [key, kws] of groups) {
     const hit = kws.find((kw) => lower.includes(kw.toLowerCase()))
@@ -138,8 +138,8 @@ export function parseSmartQuery(text: string): SmartSearchParse {
   const catHit = takeFirstMatch(
     lower,
     CATEGORY_ORDER.map(
-      (c) => [c, CATEGORY_KEYWORDS[c]] as [Exclude<PartyCategory, 'custom'>, string[]],
-    ),
+      (c) => [c, CATEGORY_KEYWORDS[c]] as [Exclude<PartyCategory, 'custom'>, string[]]
+    )
   )
   if (catHit) {
     result.category = catHit.key
@@ -156,7 +156,7 @@ export function parseSmartQuery(text: string): SmartSearchParse {
   // 포맷
   const formatHit = takeFirstMatch(
     lower,
-    Object.entries(FORMAT_KEYWORDS) as Array<[PartyFormat, string[]]>,
+    Object.entries(FORMAT_KEYWORDS) as Array<[PartyFormat, string[]]>
   )
   if (formatHit) {
     result.format = formatHit.key
@@ -180,7 +180,7 @@ export function parseSmartQuery(text: string): SmartSearchParse {
   // 요일 선호 (주말/평일) — timeOfDay보다 먼저 처리(주말저녁 같은 합성어 대비)
   const dayHit = takeFirstMatch(
     lower,
-    Object.entries(DAY_PREFERENCE_KEYWORDS) as Array<[DayPreference, string[]]>,
+    Object.entries(DAY_PREFERENCE_KEYWORDS) as Array<[DayPreference, string[]]>
   )
   if (dayHit) {
     result.dayPreference = dayHit.key
@@ -190,7 +190,7 @@ export function parseSmartQuery(text: string): SmartSearchParse {
   // 시간대
   const timeHit = takeFirstMatch(
     stripAll(lower, dayHit?.matched ?? []),
-    Object.entries(TIME_OF_DAY_KEYWORDS) as Array<[TimeOfDay, string[]]>,
+    Object.entries(TIME_OF_DAY_KEYWORDS) as Array<[TimeOfDay, string[]]>
   )
   if (timeHit) {
     result.timeOfDay = timeHit.key
@@ -243,7 +243,7 @@ export interface SmartChip {
  */
 export function describeParse(
   parsed: SmartSearchParse,
-  categoryLabel?: (c: PartyCategory) => string,
+  categoryLabel?: (c: PartyCategory) => string
 ): SmartChip[] {
   const chips: SmartChip[] = []
   if (parsed.category)

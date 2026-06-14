@@ -1,13 +1,14 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '@services/api'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
-import { Tabs } from '@components/ui/Tabs/Tabs'
 import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
+import { Tabs } from '@components/ui/Tabs/Tabs'
+import { api } from '@infrastructure/api'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './Follows.module.css'
 
 interface FollowedUser {

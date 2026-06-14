@@ -1,5 +1,6 @@
 import type { User as PrismaUser, Avatar as PrismaAvatar } from '@prisma/client'
 import type { User, VerifiableDetailField } from '@rotifolk/shared'
+
 import { parseJsonArray, parseJsonObject } from '@/common/json-utils'
 
 type DbUser = PrismaUser & { avatar?: PrismaAvatar | null }

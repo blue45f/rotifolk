@@ -143,7 +143,11 @@
   display: grid;
   place-items: center;
   font-size: var(--fs-lg);
-  background: color-mix(in oklab, var(--club-accent, var(--color-primary)) 8%, var(--color-surface));
+  background: color-mix(
+    in oklab,
+    var(--club-accent, var(--color-primary)) 8%,
+    var(--color-surface)
+  );
 }
 
 .mark::after {
@@ -446,7 +450,11 @@
   display: grid;
   place-items: center;
   font-size: var(--fs-2xl);
-  background: color-mix(in oklab, var(--club-accent, var(--color-primary)) 12%, var(--color-surface));
+  background: color-mix(
+    in oklab,
+    var(--club-accent, var(--color-primary)) 12%,
+    var(--color-surface)
+  );
   border: 1px solid color-mix(in oklab, var(--club-accent, var(--color-primary)) 30%, transparent);
 }
 

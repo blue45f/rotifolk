@@ -4,10 +4,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import type { CreateNoteDto, PartyNote } from '@rotifolk/shared'
-import type { Prisma } from '@prisma/client'
-import { PrismaService } from '@/prisma/prisma.service'
+
 import { NotificationsEmitter } from '../notifications/notifications.emitter'
+
+import type { Prisma } from '@prisma/client'
+import type { CreateNoteDto, PartyNote } from '@rotifolk/shared'
+
+import { PrismaService } from '@/prisma/prisma.service'
 
 type NoteRow = Prisma.PartyNoteGetPayload<{
   include: {
@@ -28,7 +31,7 @@ const NOTE_FROM_USER_INCLUDE = {
 export class NotesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly notifEmitter: NotificationsEmitter,
+    private readonly notifEmitter: NotificationsEmitter
   ) {}
 
   async create(fromUserId: string, dto: CreateNoteDto): Promise<PartyNote> {
@@ -108,7 +111,7 @@ export class NotesService {
 
   async forParty(
     userId: string,
-    partyId: string,
+    partyId: string
   ): Promise<{ received: PartyNote[]; sent: PartyNote[] }> {
     const [received, sent] = await Promise.all([
       this.prisma.partyNote.findMany({

@@ -1,20 +1,22 @@
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import type { PartyCategory } from '@rotifolk/shared'
-import { SEOUL_AREAS, haversineKm } from '@rotifolk/shared'
-import { useParties } from '@features/parties/queries'
-import { PartyCard } from '@features/parties/PartyCard'
-import { ALL_CATEGORIES } from '@features/categories/meta'
-import { useGeolocation } from '@features/geo/useGeolocation'
-import { Button } from '@components/ui/Button/Button'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Tabs } from '@components/ui/Tabs/Tabs'
-import { Sheet } from '@components/ui/Sheet/Sheet'
-import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import EmptyState from '@components/feedback/EmptyState'
 import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
+import { Button } from '@components/ui/Button/Button'
+import { Chip } from '@components/ui/Chip/Chip'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { Tabs } from '@components/ui/Tabs/Tabs'
+import { ALL_CATEGORIES } from '@domains/categories/meta'
+import { useGeolocation } from '@domains/geo/useGeolocation'
+import { PartyCard } from '@domains/parties/PartyCard'
+import { useParties } from '@domains/parties/queries'
 import { usePageMeta } from '@hooks/usePageMeta'
+import { SEOUL_AREAS, haversineKm } from '@rotifolk/shared'
+import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
 import styles from './DiscoverPage.module.css'
+
+import type { PartyCategory } from '@rotifolk/shared'
 
 const PAGE_INCREMENT = 20
 const MAX_PAGE_SIZE = 50
@@ -92,7 +94,7 @@ export default function DiscoverPage() {
       status,
       pageSize,
     }),
-    [category, area, dateIso, tag, status, pageSize],
+    [category, area, dateIso, tag, status, pageSize]
   )
   const { data, isLoading, isFetching } = useParties(query)
   const geo = useGeolocation()
@@ -127,7 +129,7 @@ export default function DiscoverPage() {
     if (status !== 'open') return { featured: [], rest: sortedItems }
     const soonCutoff = todayBase.getTime() + 6 * 3_600_000
     const feat = sortedItems.filter(
-      (p) => p.status === 'live' || new Date(p.startAt).getTime() <= soonCutoff,
+      (p) => p.status === 'live' || new Date(p.startAt).getTime() <= soonCutoff
     )
     if (feat.length === 0 || feat.length === sortedItems.length) {
       return { featured: [], rest: sortedItems }
@@ -145,7 +147,7 @@ export default function DiscoverPage() {
 
   const areaActive = (a: string | null) => (a ?? '') === (area ?? '')
   const otherAreas = Object.keys(SEOUL_AREAS).filter(
-    (a) => !QUICK_AREAS.includes(a as (typeof QUICK_AREAS)[number]),
+    (a) => !QUICK_AREAS.includes(a as (typeof QUICK_AREAS)[number])
   )
 
   // Active secondary filters drive a small summary + reset affordance.

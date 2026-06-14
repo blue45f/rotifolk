@@ -1,17 +1,19 @@
-import { useState } from 'react'
-import { useForm, type Resolver } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useLocation, Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { SignUpSchema } from '@rotifolk/shared'
-import type { SignUpDto } from '@rotifolk/shared'
-import { useSignUp } from '@features/auth/queries'
-import { normalizeTutorialStep } from '@features/tutorial/progress'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
-import { Input } from '@components/ui/Input/Input'
 import { Card } from '@components/ui/Card/Card'
 import { Icon } from '@components/ui/Icon/Icon'
-import { useToast } from '@components/feedback/Toast/useToast'
+import { Input } from '@components/ui/Input/Input'
+import { useSignUp } from '@domains/auth/queries'
+import { normalizeTutorialStep } from '@domains/tutorial/progress'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { SignUpSchema } from '@rotifolk/shared'
+import { useState } from 'react'
+import { useForm, type Resolver } from 'react-hook-form'
+import { useLocation, Link, useNavigate, useSearchParams } from 'react-router-dom'
+
 import styles from './AuthPage.module.css'
+
+import type { SignUpDto } from '@rotifolk/shared'
 
 type StrengthLevel = 'weak' | 'medium' | 'strong'
 
@@ -56,7 +58,7 @@ export default function SignUpPage() {
     formState: { errors },
   } = useForm<SignUpDto>({
     resolver: zodResolver(
-      SignUpSchema as unknown as Parameters<typeof zodResolver>[0],
+      SignUpSchema as unknown as Parameters<typeof zodResolver>[0]
     ) as unknown as Resolver<SignUpDto>,
   })
 

@@ -4,7 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { PrismaService } from '@/prisma/prisma.service'
+
+import type { Order as PrismaOrder, OrderItem as PrismaOrderItem } from '@prisma/client'
 import type {
   CreateOrderDto,
   MenuAvailability,
@@ -12,7 +13,8 @@ import type {
   OrderItem,
   UpdateOrderStatusDto,
 } from '@rotifolk/shared'
-import type { Order as PrismaOrder, OrderItem as PrismaOrderItem } from '@prisma/client'
+
+import { PrismaService } from '@/prisma/prisma.service'
 
 @Injectable()
 export class OrdersService {
@@ -210,7 +212,7 @@ export class OrdersService {
           billable: i.billable,
           availability: i.availability as MenuAvailability,
           note: i.note,
-        }),
+        })
       ),
       createdAt: o.createdAt.toISOString(),
       updatedAt: o.updatedAt.toISOString(),

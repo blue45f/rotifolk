@@ -1,15 +1,16 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { api } from '@services/api'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
-import { Input } from '@components/ui/Input/Input'
 import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
+import { Input } from '@components/ui/Input/Input'
+import { api } from '@infrastructure/api'
+import { useQuery } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './MatchCards.module.css'
 
 interface MatchCardItem {
@@ -80,7 +81,7 @@ export default function MatchCardsPage() {
 
   const filtered = useMemo(
     () => (data ?? []).filter((c) => c.partnerNickname.includes(q) || c.partyTitle.includes(q)),
-    [data, q],
+    [data, q]
   )
 
   const sorted = useMemo(() => {

@@ -1,3 +1,6 @@
+import { formatDistanceKm, haversineKm } from '../geo'
+import { formatKRW, quoteVenueBooking } from '../pricing/venue-pricing'
+
 import type { PartyCategory } from '../domain/party'
 import type { Venue, VenueKind } from '../domain/venue'
 import type {
@@ -6,8 +9,6 @@ import type {
   VenueFitReason,
   VenueRecommendation,
 } from '../domain/venue-booking'
-import { formatDistanceKm, haversineKm } from '../geo'
-import { formatKRW, quoteVenueBooking } from '../pricing/venue-pricing'
 
 const CATEGORY_KINDS: Record<PartyCategory, VenueKind[]> = {
   wine: ['wine-bar', 'restaurant', 'rooftop', 'lounge'],
@@ -63,7 +64,7 @@ export interface ScoreVenueOptions {
 export function scoreVenueFit(
   venue: Venue,
   brief: VenueBrief,
-  opts: ScoreVenueOptions = {},
+  opts: ScoreVenueOptions = {}
 ): VenueFit {
   const reasons: VenueFitReason[] = []
   let score = 0
@@ -217,7 +218,7 @@ export interface RecommendVenuesOptions {
 export function recommendVenues(
   venues: readonly Venue[],
   brief: VenueBrief,
-  opts: RecommendVenuesOptions = {},
+  opts: RecommendVenuesOptions = {}
 ): VenueRecommendation[] {
   const viewerLat = opts.viewer?.lat ?? brief.lat
   const viewerLng = opts.viewer?.lng ?? brief.lng
@@ -227,7 +228,7 @@ export function recommendVenues(
     if (viewerLat != null && viewerLng != null && venue.lat != null && venue.lng != null) {
       distanceKm = haversineKm(
         { lat: viewerLat, lng: viewerLng },
-        { lat: venue.lat, lng: venue.lng },
+        { lat: venue.lat, lng: venue.lng }
       )
     }
     const available = opts.availabilityByVenue?.[venue.id]

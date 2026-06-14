@@ -1,15 +1,17 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
-import { ChatService } from './chat.service'
+
 import { ChatEventsEmitter } from './chat-events.emitter'
+import { ChatService } from './chat.service'
+
+import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
 
 @Controller('chat')
 @UseGuards(AuthGuard('jwt'))
 export class ChatController {
   constructor(
     private readonly chat: ChatService,
-    private readonly chatEvents: ChatEventsEmitter,
+    private readonly chatEvents: ChatEventsEmitter
   ) {}
 
   @Get('rooms')
@@ -27,7 +29,7 @@ export class ChatController {
     @CurrentUser() me: JwtUserPayload,
     @Param('roomId') roomId: string,
     @Query('before') before?: string,
-    @Query('limit') limit?: string,
+    @Query('limit') limit?: string
   ) {
     return this.chat.listMessages(me.sub, roomId, limit ? Number(limit) : 60, before)
   }
@@ -36,7 +38,7 @@ export class ChatController {
   async send(
     @CurrentUser() me: JwtUserPayload,
     @Param('roomId') roomId: string,
-    @Body() body: { body: string; kind?: 'text' | 'split-bill'; meta?: Record<string, unknown> },
+    @Body() body: { body: string; kind?: 'text' | 'split-bill'; meta?: Record<string, unknown> }
   ) {
     const message = await this.chat.postMessage({
       userId: me.sub,

@@ -1,15 +1,16 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
-import { api } from '@services/api'
+import { useConfirm } from '@components/feedback/Confirm/useConfirm'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
-import { Input } from '@components/ui/Input/Input'
 import { Icon } from '@components/ui/Icon/Icon'
-import Loading from '@components/feedback/Loading'
-import EmptyState from '@components/feedback/EmptyState'
-import { useToast } from '@components/feedback/Toast/useToast'
-import { useConfirm } from '@components/feedback/Confirm/useConfirm'
+import { Input } from '@components/ui/Input/Input'
+import { api } from '@infrastructure/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import styles from './BlockedUsers.module.css'
 
 interface BlockedUser {
@@ -167,7 +168,7 @@ export default function BlockedUsersPage() {
           setPhoneInput('')
           setPhoneReason('')
         },
-      },
+      }
     )
   }
 
@@ -175,7 +176,7 @@ export default function BlockedUsersPage() {
     e.preventDefault()
     const rawLines = bulkPhonesText.split(/[\n,;]/)
     const validPhones = Array.from(
-      new Set(rawLines.map(formatPhoneForSubmit).filter((phone): phone is string => !!phone)),
+      new Set(rawLines.map(formatPhoneForSubmit).filter((phone): phone is string => !!phone))
     )
 
     if (validPhones.length === 0) {
@@ -186,8 +187,8 @@ export default function BlockedUsersPage() {
     try {
       await Promise.all(
         validPhones.map((phone) =>
-          api.post('blocks/phones', { phone, reason: bulkReason.trim() || undefined }),
-        ),
+          api.post('blocks/phones', { phone, reason: bulkReason.trim() || undefined })
+        )
       )
       toast.show(`${validPhones.length}개의 전화번호를 차단 등록했습니다.`, 'success')
       setBulkPhonesText('')

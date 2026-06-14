@@ -17,6 +17,9 @@ import {
   VenueRecommendQuerySchema,
   VenueAvailabilityQuerySchema,
 } from '@rotifolk/shared'
+
+import { VenuesService } from './venues.service'
+
 import type {
   CreateVenueDto,
   UpdateVenueDto,
@@ -24,9 +27,9 @@ import type {
   VenueRecommendQueryDto,
   VenueAvailabilityQueryDto,
 } from '@rotifolk/shared'
-import { ZodValidationPipe } from '@/common/zod-validation.pipe'
+
 import { CurrentUser, type JwtUserPayload } from '@/common/current-user.decorator'
-import { VenuesService } from './venues.service'
+import { ZodValidationPipe } from '@/common/zod-validation.pipe'
 
 @Controller('venues')
 export class VenuesController {
@@ -67,7 +70,7 @@ export class VenuesController {
   @Get(':id/availability')
   availability(
     @Param('id') id: string,
-    @Query(new ZodValidationPipe(VenueAvailabilityQuerySchema)) q: VenueAvailabilityQueryDto,
+    @Query(new ZodValidationPipe(VenueAvailabilityQuerySchema)) q: VenueAvailabilityQueryDto
   ) {
     return this.venues.availability(id, q)
   }
@@ -84,7 +87,7 @@ export class VenuesController {
   update(
     @CurrentUser() me: JwtUserPayload,
     @Param('id') id: string,
-    @Body(new ZodValidationPipe(UpdateVenueSchema)) dto: UpdateVenueDto,
+    @Body(new ZodValidationPipe(UpdateVenueSchema)) dto: UpdateVenueDto
   ) {
     return this.venues.update(me.sub, id, dto)
   }

@@ -1,12 +1,14 @@
-import { useMemo } from 'react'
-import type { PartyNote } from '@rotifolk/shared'
-import { useMyNotes, useMarkNoteRead } from '@features/notes/queries'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Icon } from '@components/ui/Icon/Icon'
-import EmptyState from '@components/feedback/EmptyState'
-import Loading from '@components/feedback/Loading'
+import { useMyNotes, useMarkNoteRead } from '@domains/notes/queries'
+import { useMemo } from 'react'
+
 import styles from './Notes.module.css'
+
+import type { PartyNote } from '@rotifolk/shared'
 
 function initialsOf(nickname?: string): string {
   if (!nickname) return '?'

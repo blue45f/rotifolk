@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+
 import { normalizePhoneKR } from '@rotifolk/shared'
 
 const CONTACT_PEPPER = process.env.CONTACT_PEPPER ?? 'rotifolk-pepper'

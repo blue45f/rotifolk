@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { CreateVenueSchema, SEOUL_AREAS, type VenueKind } from '@rotifolk/shared'
-import { useCreateVenue } from '@features/venueBooking/queries'
+import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
-import { Input } from '@components/ui/Input/Input'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Icon } from '@components/ui/Icon/Icon'
-import { useToast } from '@components/feedback/Toast/useToast'
+import { Input } from '@components/ui/Input/Input'
+import { useCreateVenue } from '@domains/venueBooking/queries'
+import { CreateVenueSchema, SEOUL_AREAS, type VenueKind } from '@rotifolk/shared'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import styles from './VenueRegister.module.css'
 
 const KINDS: { value: VenueKind; label: string; emoji: string }[] = [

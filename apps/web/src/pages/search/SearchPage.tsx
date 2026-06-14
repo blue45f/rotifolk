@@ -1,5 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import EmptyState from '@components/feedback/EmptyState'
+import Loading from '@components/feedback/Loading'
+import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
+import { Input } from '@components/ui/Input/Input'
+import { RecognizedConditions } from '@components/ui/RecognizedConditions/RecognizedConditions'
+import { CATEGORY_META } from '@domains/categories/meta'
+import { PartyCard } from '@domains/parties/PartyCard'
+import { useParties } from '@domains/parties/queries'
+import { useRecentSearches } from '@domains/search/useRecentSearches'
 import {
   describeParse,
   hourToTimeOfDay,
@@ -7,16 +15,9 @@ import {
   weekdayToDayPreference,
   type SmartSearchParse,
 } from '@rotifolk/shared'
-import { useParties } from '@features/parties/queries'
-import { PartyCard } from '@features/parties/PartyCard'
-import { CATEGORY_META } from '@features/categories/meta'
-import { Chip } from '@components/ui/Chip/Chip'
-import { Input } from '@components/ui/Input/Input'
-import { Icon } from '@components/ui/Icon/Icon'
-import { RecognizedConditions } from '@components/ui/RecognizedConditions/RecognizedConditions'
-import EmptyState from '@components/feedback/EmptyState'
-import Loading from '@components/feedback/Loading'
-import { useRecentSearches } from '@features/search/useRecentSearches'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
 import styles from './Search.module.css'
 
 const SUGGESTED_TAGS = ['와인', '한남', '5:5', '즉석', '무료'] as const
@@ -52,7 +53,7 @@ export default function SearchPage() {
           else next.delete('q')
           return next
         },
-        { replace: true },
+        { replace: true }
       )
     }, 200)
     return () => clearTimeout(handle)
@@ -74,7 +75,7 @@ export default function SearchPage() {
 
   const parsedChips = useMemo(
     () => describeParse(parsed, (c) => CATEGORY_META[c].shortLabel),
-    [parsed],
+    [parsed]
   )
 
   const results = useMemo(() => {

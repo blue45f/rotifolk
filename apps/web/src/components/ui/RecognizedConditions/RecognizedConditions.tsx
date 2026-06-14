@@ -1,5 +1,6 @@
-import type { SmartChip } from '@rotifolk/shared'
 import styles from './RecognizedConditions.module.css'
+
+import type { SmartChip } from '@rotifolk/shared'
 
 export interface RecognizedConditionsProps {
   /** Recognized filter chips (e.g. from `describeParse()` in the smart search). */

@@ -1,6 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
-import type { SmartChip } from '@rotifolk/shared'
 import { RecognizedConditions } from './RecognizedConditions'
+
+import type { SmartChip } from '@rotifolk/shared'
+import type { Meta, StoryObj } from '@storybook/react-vite'
 
 /**
  * Read-only "recognized search conditions" chip row used on the search page to

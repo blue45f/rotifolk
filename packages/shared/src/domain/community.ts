@@ -59,7 +59,7 @@ function findTopParentId(comment: CommunityComment, byId: Map<ID, CommunityComme
 }
 
 export function buildCommunityCommentTree(
-  comments: readonly CommunityComment[],
+  comments: readonly CommunityComment[]
 ): CommunityComment[] {
   const byId = new Map<ID, CommunityComment>()
   for (const comment of comments) {

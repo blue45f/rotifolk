@@ -1,7 +1,9 @@
 import { z } from 'zod'
-import type { Party } from '../domain/party'
+
 import { AvatarImageDataSchema } from './avatar.schema'
 import { MaritalStatusEnum, VerificationFieldEnum } from './profile.schema'
+
+import type { Party } from '../domain/party'
 
 export const PartyCategoryEnum = z.enum([
   'wine',

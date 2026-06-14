@@ -1,4 +1,5 @@
 import { useContext } from 'react'
+
 import { ConfirmContext, type ConfirmFn } from './ConfirmContext'
 
 export function useConfirm(): ConfirmFn {

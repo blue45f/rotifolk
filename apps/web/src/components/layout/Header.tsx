@@ -1,15 +1,16 @@
-import { Link, NavLink, useLocation } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Tooltip } from '@components/ui/Tooltip/Tooltip'
-import { useLocale, useT } from '@features/i18n/useI18n'
+import { useLocale, useT } from '@domains/i18n/useI18n'
+import { notificationKeys } from '@domains/notifications/useNotificationsRealtime'
+import { api } from '@infrastructure/api'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
-import { api } from '@services/api'
-import { notificationKeys } from '@features/notifications/useNotificationsRealtime'
+import { useQuery } from '@tanstack/react-query'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+
 import styles from './Header.module.css'
 
 interface HeaderProps {

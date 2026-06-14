@@ -1,5 +1,6 @@
-import { VERIFICATION_FIELD_LABEL, type VerificationField } from '@rotifolk/shared'
 import { Badge } from '@components/ui/Badge/Badge'
+import { VERIFICATION_FIELD_LABEL, type VerificationField } from '@rotifolk/shared'
+
 import styles from './VerifiedBadges.module.css'
 
 interface Props {

@@ -31,7 +31,7 @@ export interface PopularityResult {
  */
 export function computePopularity(
   votes: readonly PopularityVote[],
-  candidates: readonly PopularityCandidate[],
+  candidates: readonly PopularityCandidate[]
 ): PopularityResult {
   const likes = new Map<string, number>()
   for (const v of votes) {

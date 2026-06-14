@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common'
-import { PartiesService } from './parties.service'
-import { PartiesController } from './parties.controller'
+
 import { NotificationsModule } from '../notifications/notifications.module'
+
+import { PartiesController } from './parties.controller'
+import { PartiesService } from './parties.service'
 
 @Module({
   imports: [NotificationsModule],
