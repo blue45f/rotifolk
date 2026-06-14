@@ -88,4 +88,4 @@ pnpm validate:architecture      # 아키텍처/문서/스크립트 최소 규칙
 3. 마이그레이션/환경변수 영향 검토
 4. PR 템플릿 요구 항목(영향 범위, 증거, 롤백 포인트) 충족
 5. 배포 구조·시크릿·대시보드 작업은 `docs/DEPLOYMENT.md` 참고
-   (FE=Vercel, BE=Render Docker, 영구 디스크의 SQLite 주의)
+   (FE=Vercel, BE=EC2 Docker, DB=Neon Postgres)

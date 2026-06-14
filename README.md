@@ -70,7 +70,7 @@ rotifolk/                 (pnpm workspace)
 ### 백엔드 스택
 
 - NestJS 11 (Fastify adapter)
-- Prisma ORM + PostgreSQL (SQLite fallback for dev)
+- Prisma ORM + PostgreSQL (Neon, 서비스 전용 free 프로젝트)
 - Socket.IO Gateway — 라운드 타이머/매칭/이벤트/주문 실시간
 - JWT 인증 + Passport (Local + Kakao 준비)
 - Class-validator + Zod 공유 스키마
@@ -81,7 +81,7 @@ rotifolk/                 (pnpm workspace)
 # 1. 설치
 pnpm install
 
-# 2. DB 준비 (SQLite 기본)
+# 2. DB 준비 (Neon Postgres)
 cp apps/api/.env.example apps/api/.env
 pnpm db:generate
 pnpm db:push
