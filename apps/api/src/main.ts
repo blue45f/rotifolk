@@ -6,6 +6,7 @@ import helmet from 'helmet'
 import { Logger } from 'nestjs-pino'
 
 import { AppModule } from './app.module'
+import { validateEnv } from './config/env'
 
 import type { NestExpressApplication } from '@nestjs/platform-express'
 
@@ -20,7 +21,11 @@ async function bootstrap() {
   app.useBodyParser('urlencoded', { extended: true, limit: '1mb' })
   // Structured logging via nestjs-pino (JSON in prod, pino-pretty in dev) +
   // HTTP request autoLogging. Replaces the default unstructured console logger.
-  app.useLogger(app.get(Logger))
+  const logger = app.get(Logger)
+  app.useLogger(logger)
+  // Non-fatal env validation: surfaces config mistakes + insecure prod defaults
+  // as warnings. Intentionally never throws/exits so a bad env can't break boot.
+  validateEnv(process.env, logger)
   const config = app.get(ConfigService)
 
   app.setGlobalPrefix('api')

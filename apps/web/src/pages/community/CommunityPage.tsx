@@ -49,7 +49,7 @@ import {
   type CreateReportDto,
 } from '@rotifolk/shared'
 import { useCurrentUser } from '@store/authStore'
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import styles from './Community.module.css'

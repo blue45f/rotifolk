@@ -15,6 +15,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    // NestJS DI relies on runtime value imports of types (constructor params,
+    // @Inject tokens), so verbatimModuleSyntax must stay OFF for the api app to
+    // avoid stripping those imports and breaking dependency injection.
+    "verbatimModuleSyntax": false,
     "declaration": false,
     "sourceMap": true,
     "incremental": true,
