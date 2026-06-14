@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_GUARD } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD } from '@nestjs/core'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { LoggerModule } from 'nestjs-pino'
 
+import { AllExceptionsFilter } from './common/all-exceptions.filter'
 import { AuthModule } from './modules/auth/auth.module'
 import { AvatarsModule } from './modules/avatars/avatars.module'
 import { ChatModule } from './modules/chat/chat.module'
@@ -73,6 +74,9 @@ import { PrismaModule } from './prisma/prisma.module'
     LiveModule,
     SeoModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+  ],
 })
 export class AppModule {}
