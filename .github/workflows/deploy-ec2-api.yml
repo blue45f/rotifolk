@@ -7,6 +7,7 @@ on:
       - 'apps/api/**'
       - 'packages/**'
       - 'package.json'
+      - '!**/*.md'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.dockerignore'
