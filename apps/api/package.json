@@ -27,7 +27,7 @@
     "@nestjs/platform-express": "^11.1.26",
     "@nestjs/platform-socket.io": "^11.1.24",
     "@nestjs/throttler": "^6.5.0",
-    "@nestjs/websockets": "^11.1.24",
+    "@nestjs/websockets": "^11.1.26",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@rotifolk/shared": "workspace:*",
