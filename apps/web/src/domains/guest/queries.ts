@@ -1,5 +1,5 @@
-import { partyKeys } from '@domains/parties/queries'
-import { api } from '@infrastructure/api'
+import { partyKeys } from '@features/parties/queries'
+import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { clearGuestToken, getGuestToken, setGuestToken } from './guestSession'

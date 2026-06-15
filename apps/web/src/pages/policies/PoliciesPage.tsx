@@ -15,8 +15,8 @@ import {
   saveTermsAction,
   saveTermsAgreement,
   type TermsSectionId,
-} from '@domains/legal/termsConsent'
-import { addTutorialStep, normalizeTutorialStep } from '@domains/tutorial/progress'
+} from '@features/legal/termsConsent'
+import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
 import { refundSchedule } from '@rotifolk/shared'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'

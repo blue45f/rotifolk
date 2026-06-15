@@ -2,11 +2,10 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
-import { Icon } from '@components/ui/Icon/Icon'
 import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import { AvatarImageError, resizePostImage } from '@domains/avatar/imageUpload'
-import { CATEGORY_META } from '@domains/categories/meta'
+import { AvatarImageError, resizePostImage } from '@features/avatar/imageUpload'
+import { CATEGORY_META } from '@features/categories/meta'
 import {
   useClub,
   useClubPost,
@@ -17,7 +16,7 @@ import {
   useDeleteClubPost,
   useJoinClub,
   useLeaveClub,
-} from '@domains/clubs/queries'
+} from '@features/clubs/queries'
 import {
   hasRequiredTerms,
   readTermsConsentState,
@@ -25,7 +24,7 @@ import {
   TERMS_CONSENT_STORAGE_KEY,
   toTermsConsentState,
   type TermsConsentState,
-} from '@domains/legal/termsConsent'
+} from '@features/legal/termsConsent'
 import {
   CLUB_CATEGORY_LABEL,
   CLUB_VISIBILITY_LABEL,

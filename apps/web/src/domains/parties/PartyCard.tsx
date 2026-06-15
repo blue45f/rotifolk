@@ -1,7 +1,6 @@
 import { Badge } from '@components/ui/Badge/Badge'
-import { CATEGORY_META } from '@domains/categories/meta'
-import { useGeolocation } from '@domains/geo/useGeolocation'
-import { api } from '@infrastructure/api'
+import { CATEGORY_META } from '@features/categories/meta'
+import { useGeolocation } from '@features/geo/useGeolocation'
 import {
   CHILDREN_POLICY_LABEL,
   MARITAL_STATUS_LABEL,
@@ -9,6 +8,7 @@ import {
   formatDistanceKm,
   haversineKm,
 } from '@rotifolk/shared'
+import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'

@@ -1,4 +1,4 @@
-import { CATEGORY_META } from '@domains/categories/meta'
+import { CATEGORY_META } from '@features/categories/meta'
 
 import styles from './PartyShareCard.module.css'
 

@@ -1,5 +1,4 @@
 import { Button } from '@components/ui/Button/Button'
-import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import {
   createInquiry,
@@ -13,7 +12,7 @@ import {
   validateInquiryInput,
   type InquiryCategory,
   type InquiryReceipt,
-} from '@domains/inquiry/inquiries'
+} from '@features/inquiry/inquiries'
 import { useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 

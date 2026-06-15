@@ -4,7 +4,6 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { LoggerModule } from 'nestjs-pino'
 
-import { AllExceptionsFilter } from './common/all-exceptions.filter'
 import { AuthModule } from './modules/auth/auth.module'
 import { AvatarsModule } from './modules/avatars/avatars.module'
 import { ChatModule } from './modules/chat/chat.module'

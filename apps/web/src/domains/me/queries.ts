@@ -1,4 +1,4 @@
-import { api } from '@infrastructure/api'
+import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 

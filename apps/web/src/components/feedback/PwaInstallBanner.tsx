@@ -1,4 +1,4 @@
-import { usePwaInstall } from '@domains/pwa/usePwaInstall'
+import { usePwaInstall } from '@features/pwa/usePwaInstall'
 
 import styles from './PwaInstallBanner.module.css'
 

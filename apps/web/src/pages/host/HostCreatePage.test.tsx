@@ -1,6 +1,6 @@
 import { ToastProvider } from '@components/feedback/Toast/ToastProvider'
-import { HOST_DRAFT_KEY } from '@domains/parties/hostDraft'
-import { api } from '@infrastructure/api'
+import { HOST_DRAFT_KEY } from '@features/parties/hostDraft'
+import { api } from '@services/api'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'

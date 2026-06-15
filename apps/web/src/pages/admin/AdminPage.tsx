@@ -4,14 +4,13 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
-import { Icon } from '@components/ui/Icon/Icon'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import { api } from '@infrastructure/api'
 import {
   REVENUE_MONITORING_POLICY,
   computeRevenueHealthScore,
   type RevenueHealthAlertThreshold,
 } from '@rotifolk/shared'
+import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'

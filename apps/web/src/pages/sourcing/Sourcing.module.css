@@ -453,7 +453,7 @@
     color-mix(in oklab, var(--brand-clay-900) 12%, transparent) 0
   );
   box-shadow: var(--shadow-md);
-  --ring-c: var(--brand-amber-500);
+  --ring-c: var(--brand-gold-500);
   transition:
     transform var(--dur-base) var(--ease-spring),
     box-shadow var(--dur-base) var(--ease-out-quart);

@@ -6,7 +6,6 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
-import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import {
@@ -19,7 +18,7 @@ import {
   useUpdateProfile,
   useUpdateTrust,
   useVerifyField,
-} from '@domains/me/queries'
+} from '@features/me/queries'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CONNECTION_CHANNELS,

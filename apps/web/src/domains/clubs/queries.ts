@@ -1,4 +1,4 @@
-import { ApiError, api } from '@infrastructure/api'
+import { ApiError, api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import type {

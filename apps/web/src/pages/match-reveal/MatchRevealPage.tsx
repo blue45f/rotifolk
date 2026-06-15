@@ -3,7 +3,6 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import { Icon } from '@components/ui/Icon/Icon'
 import {
   useDecideContactExchangeRequest,
   useMyPartyMatches,
@@ -13,9 +12,9 @@ import {
   type MatchResult,
   type PartyMatch,
   type PopularPerson,
-} from '@domains/matching/queries'
-import { AfterPartyManager } from '@domains/parties/AfterPartyManager'
-import { useParty } from '@domains/parties/queries'
+} from '@features/matching/queries'
+import { AfterPartyManager } from '@features/parties/AfterPartyManager'
+import { useParty } from '@features/parties/queries'
 import {
   CONNECTION_CHANNELS,
   CONTACT_EXCHANGE_POLICY_LABEL,

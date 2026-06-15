@@ -4,10 +4,9 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
-import { Icon } from '@components/ui/Icon/Icon'
-import { ALL_CATEGORIES } from '@domains/categories/meta'
+import { ALL_CATEGORIES } from '@features/categories/meta'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { api } from '@infrastructure/api'
+import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
@@ -376,6 +375,104 @@ export default function HostApplyPage() {
                     )}
                   </fieldset>
                 )}
+              </div>
+            </div>
+          </Card>
+
+          <Card padding="lg" className={styles.card}>
+            <h2 className={styles.h2}>2. 진행 스타일</h2>
+            <p className={styles.sectionLead}>가장 가까운 스타일 하나를 골라주세요.</p>
+            <Controller
+              control={control}
+              name="hostingStyle"
+              render={({ field }) => (
+                <div
+                  className={styles.styleGrid}
+                  role="radiogroup"
+                  aria-label="진행 스타일"
+                  aria-invalid={isSubmitted && !field.value}
+                >
+                  {HOSTING_STYLES.map((s) => {
+                    const active = field.value === s.value
+                    return (
+                      <button
+                        type="button"
+                        key={s.value}
+                        role="radio"
+                        aria-checked={active}
+                        className={`${styles.styleBtn} ${active ? styles.styleActive : ''}`}
+                        onClick={() => field.onChange(s.value)}
+                      >
+                        <span className={styles.styleEmoji} aria-hidden="true">
+                          {s.emoji}
+                        </span>
+                        <strong>{s.value}</strong>
+                        <span className={styles.styleDesc}>{s.desc}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            />
+            {isSubmitted && errors.hostingStyle && (
+              <p className={styles.fieldError}>{errors.hostingStyle.message}</p>
+            )}
+          </Card>
+
+          <Card padding="lg" className={styles.card}>
+            <h2 className={styles.h2}>3. 진행하고 싶은 카테고리</h2>
+            <p className={styles.sectionLead}>
+              여러 개를 골라도 좋아요. 첫 모임은 가장 자신 있는 한두 가지부터 추천드려요.
+            </p>
+            <Controller
+              control={control}
+              name="plannedCategories"
+              render={({ field }) => (
+                <div className={styles.chipRow}>
+                  {ALL_CATEGORIES.map((c) => {
+                    const selected = field.value.includes(c.value)
+                    return (
+                      <Chip
+                        key={c.value}
+                        leadingEmoji={c.emoji}
+                        selected={selected}
+                        onClick={() =>
+                          field.onChange(
+                            selected
+                              ? field.value.filter((x) => x !== c.value)
+                              : [...field.value, c.value]
+                          )
+                        }
+                      >
+                        {c.shortLabel}
+                      </Chip>
+                    )
+                  })}
+                </div>
+              )}
+            />
+            {isSubmitted && errors.plannedCategories && (
+              <p className={styles.fieldError}>{errors.plannedCategories.message}</p>
+            )}
+          </Card>
+
+          <Card padding="lg" className={styles.card}>
+            <h2 className={styles.h2}>
+              4. 진행 경험 <span className={styles.optional}>(선택)</span>
+            </h2>
+            <p className={styles.sectionLead}>
+              모임/스터디/북클럽/팝업 등 사람을 모아본 경험이 있다면 자유롭게 적어주세요.
+            </p>
+            <div className={styles.field}>
+              <label htmlFor="experience" className={styles.fieldLabel}>
+                경험
+              </label>
+              <textarea
+                id="experience"
+                className={styles.textarea}
+                rows={4}
+                placeholder="예) 분기마다 8명 규모 와인 살롱을 6회 진행했어요. 한 라운드는 약 30분, 페어링 한 잔에 한 주제로."
+                {...register('experience')}
               />
             </Card>
 

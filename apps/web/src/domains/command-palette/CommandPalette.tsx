@@ -1,6 +1,6 @@
 import { Sheet } from '@components/ui/Sheet/Sheet'
-import { useT } from '@domains/i18n/useI18n'
-import { useRecentSearches } from '@domains/search/useRecentSearches'
+import { useT } from '@features/i18n/useI18n'
+import { useRecentSearches } from '@features/search/useRecentSearches'
 import { useAuthStore } from '@store/authStore'
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'

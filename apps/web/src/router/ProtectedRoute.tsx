@@ -2,7 +2,7 @@ import { useAuthStore } from '@store/authStore'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
 interface Props {
-  // DOM 의 ARIA `role` 과 혼동되지 않도록 RBAC prop 은 requiredRole 로 명명한다.
+  // DOM 의 role 속성과 혼동되지 않도록 RBAC 권한 prop 은 requiredRole 로 명명한다.
   requiredRole?: 'host' | 'admin'
 }
 

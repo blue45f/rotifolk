@@ -191,27 +191,9 @@
   background: var(--color-primary);
   color: var(--color-primary-fg);
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
-}
-.catActive:hover,
-.venueActive:hover,
-.timeActive:hover,
-.peopleActive:hover {
-  border-color: var(--color-primary);
-}
-
-.catEmoji {
-  font-size: var(--fs-lg);
-  line-height: 1;
-}
-.chipIcon {
-  flex: none;
-  vertical-align: middle;
-}
-
-.venueChip {
-  justify-content: flex-start;
-  text-align: left;
+  box-shadow:
+    0 8px 20px color-mix(in oklab, var(--brand-burgundy-900) 20%, transparent),
+    var(--shadow-sm);
 }
 
 .timeBtn {
@@ -292,12 +274,10 @@
 }
 .codeBlock:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow-glow);
-  background: color-mix(in oklab, var(--brand-amber-100) 30%, var(--color-surface));
-}
-.codeBlock:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 3px;
+  box-shadow:
+    0 14px 28px color-mix(in oklab, var(--brand-burgundy-900) 10%, transparent),
+    var(--shadow-glow);
+  background: color-mix(in oklab, var(--brand-gold-100) 30%, var(--color-surface));
 }
 .codeLabel {
   font-family: var(--font-mono);
@@ -348,6 +328,9 @@
   }
   .previewEmoji {
     font-size: 3rem;
+  }
+  .config {
+    padding: var(--space-4);
   }
 
   /* Flex wrap items fill row responsively on mobile */

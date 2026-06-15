@@ -139,13 +139,14 @@
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  border: 1px solid color-mix(in oklab, var(--club-accent, var(--color-primary)) 36%, transparent);
+  border: 1px solid
+    color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 36%, transparent);
   display: grid;
   place-items: center;
   font-size: var(--fs-lg);
   background: color-mix(
     in oklab,
-    var(--club-accent, var(--color-primary)) 8%,
+    var(--club-accent, var(--brand-burgundy-700)) 7%,
     var(--color-surface)
   );
 }
@@ -437,7 +438,8 @@
   width: 132px;
   height: 132px;
   border-radius: 50%;
-  border: 1px dashed color-mix(in oklab, var(--club-accent, var(--color-primary)) 40%, transparent);
+  border: 1px dashed
+    color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 38%, transparent);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -452,10 +454,11 @@
   font-size: var(--fs-2xl);
   background: color-mix(
     in oklab,
-    var(--club-accent, var(--color-primary)) 12%,
+    var(--club-accent, var(--brand-burgundy-700)) 10%,
     var(--color-surface)
   );
-  border: 1px solid color-mix(in oklab, var(--club-accent, var(--color-primary)) 30%, transparent);
+  border: 1px solid
+    color-mix(in oklab, var(--club-accent, var(--brand-burgundy-700)) 30%, transparent);
 }
 
 .ringSeat {

@@ -3,14 +3,13 @@ import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import { Icon } from '@components/ui/Icon/Icon'
 import {
   useDecideBooking,
   useMyVenueBookings,
   useMyVenues,
   useVenueAvailability,
   type OwnedVenue,
-} from '@domains/venueBooking/queries'
+} from '@features/venueBooking/queries'
 import { formatKRW } from '@rotifolk/shared'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'

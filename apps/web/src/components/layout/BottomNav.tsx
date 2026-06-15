@@ -1,6 +1,5 @@
-import { Icon, type IconName } from '@components/ui/Icon/Icon'
-import { chatKeys } from '@domains/chat/queries'
-import { api } from '@infrastructure/api'
+import { chatKeys } from '@features/chat/queries'
+import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useQuery } from '@tanstack/react-query'
 import { NavLink } from 'react-router-dom'

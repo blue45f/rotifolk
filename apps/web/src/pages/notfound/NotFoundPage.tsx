@@ -1,7 +1,6 @@
 import { Button } from '@components/ui/Button/Button'
-import { Icon, type IconName } from '@components/ui/Icon/Icon'
-import { CATEGORY_META } from '@domains/categories/meta'
-import { useRecents } from '@domains/recents/useRecents'
+import { CATEGORY_META } from '@features/categories/meta'
+import { useRecents } from '@features/recents/useRecents'
 import { Link, useLocation } from 'react-router-dom'
 
 import styles from './NotFound.module.css'

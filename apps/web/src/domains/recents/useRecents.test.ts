@@ -49,7 +49,7 @@ describe('useRecents', () => {
       category: 'coffee',
     })
     expect(result.current.items.filter((item) => item.id === 'party-3')).toHaveLength(1)
-    expect(JSON.parse(globalThis.localStorage.getItem(STORAGE_KEY) ?? '[]')).toEqual(
+    expect(JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '[]')).toEqual(
       result.current.items
     )
   })

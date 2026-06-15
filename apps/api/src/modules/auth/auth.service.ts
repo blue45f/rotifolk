@@ -1,13 +1,10 @@
 import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { JwtService } from '@nestjs/jwt'
+import * as argon2 from 'argon2'
 
 import { toPublicUser } from '../users/user.mapper'
 
-import { Argon2Hasher } from './heejun/argon2-hasher'
-import { OAUTH_VERIFIER } from './heejun/oauth.provider'
-import { TokenService } from './heejun/token.service'
-
-import type { OAuthVerifier } from '@heejun/auth'
 import type { LoginDto, SignUpDto } from '@rotifolk/shared'
 
 import { inactiveAccountException, isAccountActive } from '@/common/account-status'
@@ -17,10 +14,8 @@ import { PrismaService } from '@/prisma/prisma.service'
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly tokens: TokenService,
-    private readonly hasher: Argon2Hasher,
-    private readonly config: ConfigService,
-    @Inject(OAUTH_VERIFIER) private readonly oauth: OAuthVerifier | null
+    private readonly jwt: JwtService,
+    private readonly config: ConfigService
   ) {}
 
   /** 클라이언트가 Google 버튼 노출 여부를 판단하도록 공개 설정만 내려준다. */

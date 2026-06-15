@@ -828,14 +828,3 @@
   border-radius: var(--radius-xs);
   font-family: var(--font-mono);
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .fillBarOn,
-  .photoImg,
-  .tagChip,
-  .iconBtn,
-  .feedbackTagChip,
-  .star {
-    transition: none;
-  }
-}

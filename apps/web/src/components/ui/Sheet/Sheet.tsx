@@ -1,7 +1,6 @@
-import { Icon } from '@components/ui/Icon/Icon'
 import * as Dialog from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 
 import styles from './Sheet.module.css'
 

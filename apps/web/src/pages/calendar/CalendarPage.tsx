@@ -1,10 +1,9 @@
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Button } from '@components/ui/Button/Button'
-import { Icon } from '@components/ui/Icon/Icon'
-import { CATEGORY_META } from '@domains/categories/meta'
-import { downloadIcs } from '@domains/ics/buildIcs'
-import { useMyParties } from '@domains/parties/queries'
+import { CATEGORY_META } from '@features/categories/meta'
+import { downloadIcs } from '@features/ics/buildIcs'
+import { useMyParties } from '@features/parties/queries'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -124,12 +123,6 @@ export default function CalendarPage() {
   const cells = useMemo(
     () => buildMonthGrid(cursor.getFullYear(), cursor.getMonth(), parties),
     [cursor, parties]
-  )
-
-  // The day currently revealed in the detail panel below the grid.
-  const selectedCell = useMemo(
-    () => cells.find((c) => c.key === selectedKey) ?? null,
-    [cells, selectedKey]
   )
 
   const monthLabel = cursor.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })

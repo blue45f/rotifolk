@@ -1,10 +1,9 @@
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
-import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
-import { CATEGORY_META } from '@domains/categories/meta'
-import { useCreateClub } from '@domains/clubs/queries'
+import { CATEGORY_META } from '@features/categories/meta'
+import { useCreateClub } from '@features/clubs/queries'
 import {
   CLUB_CATEGORIES,
   CLUB_CATEGORY_LABEL,

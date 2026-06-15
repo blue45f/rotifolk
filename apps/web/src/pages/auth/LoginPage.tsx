@@ -2,14 +2,13 @@ import { usePrompt } from '@components/feedback/Prompt/usePrompt'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
-import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
-import { GoogleSignInButton } from '@domains/auth/GoogleSignInButton'
-import { useAuthConfig, useGoogleLogin, useLogin } from '@domains/auth/queries'
-import { addTutorialStep, normalizeTutorialStep } from '@domains/tutorial/progress'
+import { GoogleSignInButton } from '@features/auth/GoogleSignInButton'
+import { useAuthConfig, useGoogleLogin, useLogin } from '@features/auth/queries'
+import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { api } from '@infrastructure/api'
 import { LoginSchema } from '@rotifolk/shared'
+import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useForm, type Resolver } from 'react-hook-form'
@@ -50,7 +49,7 @@ export default function LoginPage() {
   const [kakaoLoading, setKakaoLoading] = useState(false)
   const stateFrom = (location.state as { from?: string } | null)?.from
   const from = useMemo(
-    () => resolveReturnPath(searchParams.get('from') ?? stateFrom ?? null, globalThis.location),
+    () => resolveReturnPath(searchParams.get('from') ?? stateFrom ?? null, window.location),
     [searchParams, stateFrom]
   )
   const isDemoMode = searchParams.get('demo') === '1'

@@ -1,4 +1,4 @@
-import { api } from '@infrastructure/api'
+import { api } from '@services/api'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -9,7 +9,7 @@ import SearchPage from './SearchPage'
 
 import type { Paginated, PartySummary } from '@rotifolk/shared'
 
-vi.mock('@infrastructure/api', () => ({
+vi.mock('@services/api', () => ({
   api: {
     get: vi.fn(),
     post: vi.fn(),

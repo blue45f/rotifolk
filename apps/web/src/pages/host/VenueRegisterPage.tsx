@@ -1,11 +1,11 @@
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
+import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
-import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
-import { useCreateVenue } from '@domains/venueBooking/queries'
+import { useCreateVenue } from '@features/venueBooking/queries'
 import { CreateVenueSchema, SEOUL_AREAS, type VenueKind } from '@rotifolk/shared'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import styles from './VenueRegister.module.css'
@@ -164,10 +164,8 @@ export default function VenueRegisterPage() {
             required
           />
           <div className={styles.field}>
-            <span className={styles.fl} id="venue-kind-label">
-              종류
-            </span>
-            <div className={styles.chips} role="group" aria-labelledby="venue-kind-label">
+            <span className={styles.fl}>종류</span>
+            <div className={styles.chips}>
               {KINDS.map((k) => (
                 <Chip
                   key={k.value}
@@ -181,10 +179,8 @@ export default function VenueRegisterPage() {
             </div>
           </div>
           <div className={styles.field}>
-            <span className={styles.fl} id="venue-area-label">
-              동네
-            </span>
-            <div className={styles.chips} role="group" aria-labelledby="venue-area-label">
+            <span className={styles.fl}>동네</span>
+            <div className={styles.chips}>
               {AREAS.map((a) => (
                 <Chip key={a} selected={f.area === a} onClick={() => set('area', a)}>
                   {a}
@@ -284,10 +280,8 @@ export default function VenueRegisterPage() {
             />
           </div>
           <div className={styles.field}>
-            <span className={styles.fl} id="venue-closed-label">
-              정기 휴무
-            </span>
-            <div className={styles.chips} role="group" aria-labelledby="venue-closed-label">
+            <span className={styles.fl}>정기 휴무</span>
+            <div className={styles.chips}>
               {WEEKDAYS.map((w, i) => (
                 <Chip
                   key={i}

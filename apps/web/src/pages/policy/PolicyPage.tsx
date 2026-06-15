@@ -1,6 +1,5 @@
 import EmptyState from '@components/feedback/EmptyState'
 import { Button } from '@components/ui/Button/Button'
-import { Icon } from '@components/ui/Icon/Icon'
 import {
   parsePolicyBody,
   policyPublicUrl,

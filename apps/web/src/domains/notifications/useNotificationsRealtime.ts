@@ -1,4 +1,4 @@
-import { getSocket } from '@domains/live/socket'
+import { getSocket } from '@features/live/socket'
 import { useAuthStore } from '@store/authStore'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'

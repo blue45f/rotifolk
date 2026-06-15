@@ -3,7 +3,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import { addTutorialStep, normalizeTutorialStep } from '@domains/tutorial/progress'
+import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 

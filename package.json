@@ -41,6 +41,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
+    "@eslint/js": "^10.0.1",
     "@heejun/eslint-config": "^5.0.0",
     "@heejun/prettier-config": "^3.0.0",
     "eslint": "^10.4.0",
@@ -51,6 +52,7 @@
     "prettier": "^3.8.3",
     "typescript": "^6.0.3"
   },
+  "prettier": "@heejun/prettier-config",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --max-warnings=0 --no-warn-ignored --fix",

@@ -1,4 +1,4 @@
-import { disconnectSocket } from '@domains/live/socket'
+import { disconnectSocket } from '@features/live/socket'
 import { useAuthStore } from '@store/authStore'
 import ky, { HTTPError, type KyInstance, type Options } from 'ky'
 

@@ -1,6 +1,5 @@
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import {
   COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT,
   COMMUNITY_DEMO_ACTIVITY_KEY,
@@ -11,7 +10,7 @@ import {
   summarizeCommunityDemoMissionState,
   toCommunityDemoActivityEntry,
   type CommunityDemoActivityLogEntry,
-} from '@domains/community/demoTracker'
+} from '@features/community/demoTracker'
 import {
   hasRequiredTerms,
   TERMS_CONSENT_CHANGED_EVENT,
@@ -20,14 +19,14 @@ import {
   readTermsConsentState,
   TERMS_REQUIRED_SECTION_IDS,
   type TermsConsentState,
-} from '@domains/legal/termsConsent'
+} from '@features/legal/termsConsent'
 import {
   addTutorialStep,
   readTutorialProgress,
   setTutorialProgress,
   normalizeTutorialStep,
   type TutorialStepId,
-} from '@domains/tutorial/progress'
+} from '@features/tutorial/progress'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 

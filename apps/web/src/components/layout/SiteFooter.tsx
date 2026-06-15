@@ -1,4 +1,4 @@
-import { useT } from '@domains/i18n/useI18n'
+import { useT } from '@features/i18n/useI18n'
 import { Link, useLocation } from 'react-router-dom'
 
 import styles from './SiteFooter.module.css'

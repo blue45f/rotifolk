@@ -1,6 +1,6 @@
-import { claimGuestHistory } from '@domains/guest/queries'
-import { disconnectSocket } from '@domains/live/socket'
-import { api } from '@infrastructure/api'
+import { claimGuestHistory } from '@features/guest/queries'
+import { disconnectSocket } from '@features/live/socket'
+import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query'
 

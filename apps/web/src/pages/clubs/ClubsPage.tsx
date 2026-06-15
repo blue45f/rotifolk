@@ -2,10 +2,9 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
-import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
-import { CATEGORY_META } from '@domains/categories/meta'
-import { useClubs } from '@domains/clubs/queries'
+import { CATEGORY_META } from '@features/categories/meta'
+import { useClubs } from '@features/clubs/queries'
 import {
   CLUB_CATEGORIES,
   CLUB_CATEGORY_LABEL,

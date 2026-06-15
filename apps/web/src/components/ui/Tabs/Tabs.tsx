@@ -1,5 +1,4 @@
-import * as ToggleGroup from '@radix-ui/react-toggle-group'
-import { type ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 
 import styles from './Tabs.module.css'
 

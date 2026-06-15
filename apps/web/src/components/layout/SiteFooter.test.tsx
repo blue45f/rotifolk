@@ -1,4 +1,4 @@
-import { I18nProvider } from '@domains/i18n/i18n'
+import { I18nProvider } from '@features/i18n/i18n'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'

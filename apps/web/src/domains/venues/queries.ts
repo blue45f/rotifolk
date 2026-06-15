@@ -1,4 +1,4 @@
-import { api } from '@infrastructure/api'
+import { api } from '@services/api'
 import { useQuery } from '@tanstack/react-query'
 
 import type { MenuItem, Venue, VenueSearchDto } from '@rotifolk/shared'

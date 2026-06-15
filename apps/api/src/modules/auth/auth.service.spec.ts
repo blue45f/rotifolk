@@ -245,10 +245,8 @@ describe('AuthService (critical auth path)', () => {
       // Unknown email.
       const noUser = new AuthService(
         makePrismaMock({ existingByEmail: null }) as never,
-        tokensMock as never,
-        new Argon2Hasher(),
-        configMock as never,
-        null
+        jwtMock as never,
+        configMock as never
       )
       const unknownErr = await noUser
         .login({ email: 'ghost@example.com', password: 'whatever' } as never)
@@ -258,10 +256,8 @@ describe('AuthService (critical auth path)', () => {
       const passwordHash = await argon2.hash('the-real-password')
       const wrongPw = new AuthService(
         makePrismaMock({ existingByEmail: makeUserRow({ passwordHash }) }) as never,
-        tokensMock as never,
-        new Argon2Hasher(),
-        configMock as never,
-        null
+        jwtMock as never,
+        configMock as never
       )
       const wrongErr = await wrongPw
         .login({ email: 'alice@example.com', password: 'not-it' } as never)

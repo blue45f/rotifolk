@@ -8,10 +8,10 @@
   background:
     radial-gradient(
       circle at 0% 0%,
-      color-mix(in oklab, var(--brand-amber-500) 20%, transparent),
+      color-mix(in oklab, var(--brand-gold-500) 20%, transparent),
       transparent 60%
     ),
-    color-mix(in oklab, var(--brand-amber-500) 10%, var(--color-surface));
+    color-mix(in oklab, var(--brand-gold-500) 10%, var(--color-surface));
 }
 
 .icon {

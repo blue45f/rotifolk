@@ -15,7 +15,7 @@
   transform: translateY(-5px);
   border-color: color-mix(in oklab, var(--color-primary) 45%, transparent);
   box-shadow:
-    0 24px 38px color-mix(in oklab, var(--brand-apricot-900) 14%, transparent),
+    0 24px 38px color-mix(in oklab, var(--brand-burgundy-900) 14%, transparent),
     var(--shadow-lg);
 }
 
