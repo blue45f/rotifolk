@@ -1,10 +1,11 @@
-import { partyKeys } from '@features/parties/queries'
-import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { clearGuestToken, getGuestToken, setGuestToken } from './guestSession'
 
 import type { GuestJoinDto, Participation } from '@rotifolk/shared'
+
+import { partyKeys } from '@/domains/parties/queries'
+import { api } from '@/infrastructure/api'
 
 export const guestKeys = {
   session: (partyId: string, token: string | null) =>

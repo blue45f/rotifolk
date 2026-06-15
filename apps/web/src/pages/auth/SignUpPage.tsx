@@ -2,8 +2,6 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Input } from '@components/ui/Input/Input'
-import { useSignUp } from '@features/auth/queries'
-import { normalizeTutorialStep } from '@features/tutorial/progress'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SignUpSchema } from '@rotifolk/shared'
 import { useState } from 'react'
@@ -13,6 +11,9 @@ import { useLocation, Link, useNavigate, useSearchParams } from 'react-router-do
 import styles from './AuthPage.module.css'
 
 import type { SignUpDto } from '@rotifolk/shared'
+
+import { useSignUp } from '@/domains/auth/queries'
+import { normalizeTutorialStep } from '@/domains/tutorial/progress'
 
 type StrengthLevel = 'weak' | 'medium' | 'strong'
 

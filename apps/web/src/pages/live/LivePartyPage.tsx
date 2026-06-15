@@ -7,18 +7,6 @@ import { Button } from '@components/ui/Button/Button'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import { useBgmQueue, getEmbedUrl, type BgmTrack } from '@features/bgm/useBgmQueue'
-import { CATEGORY_META } from '@features/categories/meta'
-import { isLongBreakAfterRound } from '@features/live/partyTiming'
-import { notifyRoundEnded, playRoundChime } from '@features/live/roundAlarm'
-import { detectRoundMilestone, ROUND_MILESTONE_MESSAGE } from '@features/live/roundMilestones'
-import { TimingPanel } from '@features/live/TimingPanel'
-import { useLiveParty } from '@features/live/useLiveParty'
-import { usePartyTimingSettings } from '@features/live/useTimingSettings'
-import { usePartyNotes } from '@features/notes/queries'
-import { SendNoteSheet } from '@features/notes/SendNoteSheet'
-import { useParty } from '@features/parties/queries'
-import { useVenueMenu } from '@features/venues/queries'
 import {
   BALANCE_GAMES,
   IDEAL_TYPE_PROMPTS,
@@ -35,6 +23,19 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 
 import styles from './LiveParty.module.css'
+
+import { useBgmQueue, getEmbedUrl, type BgmTrack } from '@/domains/bgm/useBgmQueue'
+import { CATEGORY_META } from '@/domains/categories/meta'
+import { isLongBreakAfterRound } from '@/domains/live/partyTiming'
+import { notifyRoundEnded, playRoundChime } from '@/domains/live/roundAlarm'
+import { detectRoundMilestone, ROUND_MILESTONE_MESSAGE } from '@/domains/live/roundMilestones'
+import { TimingPanel } from '@/domains/live/TimingPanel'
+import { useLiveParty } from '@/domains/live/useLiveParty'
+import { usePartyTimingSettings } from '@/domains/live/useTimingSettings'
+import { usePartyNotes } from '@/domains/notes/queries'
+import { SendNoteSheet } from '@/domains/notes/SendNoteSheet'
+import { useParty } from '@/domains/parties/queries'
+import { useVenueMenu } from '@/domains/venues/queries'
 
 export default function LivePartyPage() {
   const { partyId } = useParams<{ partyId: string }>()

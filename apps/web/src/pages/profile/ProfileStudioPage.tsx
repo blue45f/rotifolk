@@ -8,17 +8,6 @@ import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import {
-  useAddAvoidContacts,
-  useAvoidContacts,
-  useRemoveAvoidContact,
-  useUpdateAvoidPrefs,
-  useUpdateContact,
-  useUpdatePrivacy,
-  useUpdateProfile,
-  useUpdateTrust,
-  useVerifyField,
-} from '@features/me/queries'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CONNECTION_CHANNELS,
@@ -41,6 +30,18 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useForm, useFieldArray, Controller, type Resolver } from 'react-hook-form'
 
 import styles from './ProfileStudio.module.css'
+
+import {
+  useAddAvoidContacts,
+  useAvoidContacts,
+  useRemoveAvoidContact,
+  useUpdateAvoidPrefs,
+  useUpdateContact,
+  useUpdatePrivacy,
+  useUpdateProfile,
+  useUpdateTrust,
+  useVerifyField,
+} from '@/domains/me/queries'
 
 const VISIBILITY_LABEL: Record<FieldVisibility, string> = {
   public: '전체 공개',

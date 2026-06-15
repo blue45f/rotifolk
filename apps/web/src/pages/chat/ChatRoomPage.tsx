@@ -1,17 +1,18 @@
 import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
-import {
-  useChatMessages,
-  useSendMessage,
-  useMyChatRooms,
-  useMarkChatRead,
-} from '@domains/chat/queries'
 import { useAuthStore } from '@store/authStore'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 
 import styles from './Chat.module.css'
+
+import {
+  useChatMessages,
+  useSendMessage,
+  useMyChatRooms,
+  useMarkChatRead,
+} from '@/domains/chat/queries'
 
 const IMAGE_EXT = /\.(jpe?g|png|gif|webp|avif|svg)(\?.*)?$/i
 

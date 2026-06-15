@@ -8,18 +8,6 @@ import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
 import { Sheet } from '@components/ui/Sheet/Sheet'
-import { CATEGORY_META } from '@features/categories/meta'
-import { useEnsurePartyRoom } from '@features/chat/queries'
-import { GuestConversionBanner } from '@features/guest/GuestConversionBanner'
-import { useGuestSession, useHostAddGuest } from '@features/guest/queries'
-import { downloadIcs } from '@features/ics/buildIcs'
-import { AfterPartyManager } from '@features/parties/AfterPartyManager'
-import { buildPartyEventJsonLd } from '@features/parties/partyEventJsonLd'
-import { useParty, useJoinParty, useCancelJoin, useMyParties } from '@features/parties/queries'
-import { useRecents } from '@features/recents/useRecents'
-import { ShareButton } from '@features/share/ShareButton'
-import { normalizeTutorialStep } from '@features/tutorial/progress'
-import { useVenue } from '@features/venues/queries'
 import { SITE_ORIGIN, usePageMeta } from '@hooks/usePageMeta'
 import {
   AVOID_REASON_LABEL,
@@ -41,7 +29,6 @@ import {
   type ConnectionChannel,
   type Party,
 } from '@rotifolk/shared'
-import { api } from '@services/api'
 import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
@@ -49,6 +36,20 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom'
 
 import styles from './PartyDetailPage.module.css'
+
+import { CATEGORY_META } from '@/domains/categories/meta'
+import { useEnsurePartyRoom } from '@/domains/chat/queries'
+import { GuestConversionBanner } from '@/domains/guest/GuestConversionBanner'
+import { useGuestSession, useHostAddGuest } from '@/domains/guest/queries'
+import { downloadIcs } from '@/domains/ics/buildIcs'
+import { AfterPartyManager } from '@/domains/parties/AfterPartyManager'
+import { buildPartyEventJsonLd } from '@/domains/parties/partyEventJsonLd'
+import { useParty, useJoinParty, useCancelJoin, useMyParties } from '@/domains/parties/queries'
+import { useRecents } from '@/domains/recents/useRecents'
+import { ShareButton } from '@/domains/share/ShareButton'
+import { normalizeTutorialStep } from '@/domains/tutorial/progress'
+import { useVenue } from '@/domains/venues/queries'
+import { api } from '@/infrastructure/api'
 
 interface PartyReview {
   id: string

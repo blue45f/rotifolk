@@ -4,7 +4,6 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
-import { api } from '@services/api'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -20,6 +19,8 @@ import type {
   SendPartyInvitationsDto,
   SendPartyInvitationsResponseDto,
 } from '@rotifolk/shared'
+
+import { api } from '@/infrastructure/api'
 
 interface DerivedPartyManagerProps {
   partyId: string

@@ -3,10 +3,6 @@ import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
-import { ALL_CATEGORIES } from '@features/categories/meta'
-import { useGeolocation } from '@features/geo/useGeolocation'
-import { PartyCard } from '@features/parties/PartyCard'
-import { useParties } from '@features/parties/queries'
 import { usePageMeta } from '@hooks/usePageMeta'
 import { SEOUL_AREAS, haversineKm } from '@rotifolk/shared'
 import { useMemo, useState } from 'react'
@@ -15,6 +11,11 @@ import { useSearchParams } from 'react-router-dom'
 import styles from './DiscoverPage.module.css'
 
 import type { PartyCategory } from '@rotifolk/shared'
+
+import { ALL_CATEGORIES } from '@/domains/categories/meta'
+import { useGeolocation } from '@/domains/geo/useGeolocation'
+import { PartyCard } from '@/domains/parties/PartyCard'
+import { useParties } from '@/domains/parties/queries'
 
 const PAGE_INCREMENT = 20
 const MAX_PAGE_SIZE = 50

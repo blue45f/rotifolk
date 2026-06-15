@@ -1,6 +1,12 @@
 import { Button } from '@components/ui/Button/Button'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
+import { refundSchedule } from '@rotifolk/shared'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
+
+import styles from './Policies.module.css'
+
 import {
   buildTermsEvidence,
   TERMS_REQUIRED_SECTION_IDS,
@@ -15,13 +21,8 @@ import {
   saveTermsAction,
   saveTermsAgreement,
   type TermsSectionId,
-} from '@features/legal/termsConsent'
-import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
-import { refundSchedule } from '@rotifolk/shared'
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
-
-import styles from './Policies.module.css'
+} from '@/domains/legal/termsConsent'
+import { addTutorialStep, normalizeTutorialStep } from '@/domains/tutorial/progress'
 
 type FilterMode = 'all' | 'required' | 'optional'
 

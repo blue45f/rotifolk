@@ -2,7 +2,7 @@ import { policyDocumentSchema, type PolicyDocument, type PolicySlug } from './sc
 
 /**
  * 약관·개인정보처리방침·환불 정책 본문은 TermsDesk 무인증 공개 API에서 가져온다.
- * 앱 자체 백엔드와 무관한 외부 절대 URL이라 `@infrastructure/api`(자체 API base 전제)
+ * 앱 자체 백엔드와 무관한 외부 절대 URL이라 `@/infrastructure/api`(자체 API base 전제)
  * 대신 표준 fetch를 직접 사용한다.
  */
 export const TERMSDESK_BASE_URL = 'https://termsdesk.vercel.app'

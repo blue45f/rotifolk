@@ -1,4 +1,3 @@
-import { getSocket } from '@features/live/socket'
 import { useAuthStore } from '@store/authStore'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
@@ -8,6 +7,8 @@ import {
   prependRealtimeNotification,
   type NotificationItem,
 } from './realtime-cache'
+
+import { getSocket } from '@/domains/live/socket'
 
 export const notificationKeys = {
   list: ['notifications'] as const,

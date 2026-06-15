@@ -1,13 +1,14 @@
 import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
-import { useMyNotes, useMarkNoteRead } from '@features/notes/queries'
 import { useMemo } from 'react'
 
 import styles from './Notes.module.css'
 
 import type { PartyNote } from '@rotifolk/shared'
 import type { KeyboardEvent } from 'react'
+
+import { useMyNotes, useMarkNoteRead } from '@/domains/notes/queries'
 
 function initialsOf(nickname?: string): string {
   if (!nickname) return '?'

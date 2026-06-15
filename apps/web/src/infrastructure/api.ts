@@ -1,6 +1,7 @@
-import { disconnectSocket } from '@features/live/socket'
 import { useAuthStore } from '@store/authStore'
 import ky, { HTTPError, type KyInstance, type Options } from 'ky'
+
+import { disconnectSocket } from '@/domains/live/socket'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 

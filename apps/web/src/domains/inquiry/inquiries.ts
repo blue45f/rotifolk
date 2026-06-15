@@ -1,10 +1,10 @@
-import { POLICY_ORG_SLUG, TERMSDESK_BASE_URL } from '@domains/policies/api'
+import { POLICY_ORG_SLUG, TERMSDESK_BASE_URL } from '@/domains/policies/api'
 
 /**
  * TermsDesk 중앙 문의(Inquiry) 연동 — 인앱 문의 폼의 접수 백엔드.
  * 공개 게시판(support board)과 달리 본문·연락처가 외부에 노출되지 않는 비공개 접수이며,
  * POST /api/public/:siteSlug/inquiries 한 번으로 끝나는 무인증 공개 API다.
- * 앱 자체 백엔드와 무관한 외부 절대 URL이라 `@infrastructure/api` 대신 표준 fetch를 쓴다.
+ * 앱 자체 백엔드와 무관한 외부 절대 URL이라 `@/infrastructure/api` 대신 표준 fetch를 쓴다.
  * 폼 계약(카테고리 5종, 제목 2..140, 본문 10..4000, 허니팟 website)은 서버 zod와 동일하다.
  */
 

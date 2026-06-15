@@ -4,12 +4,13 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import { api } from '@services/api'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import styles from './Follows.module.css'
+
+import { api } from '@/infrastructure/api'
 
 interface FollowedUser {
   id: string

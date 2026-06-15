@@ -1,4 +1,3 @@
-import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import type {
@@ -9,6 +8,8 @@ import type {
   PartyQueryDto,
   PartySummary,
 } from '@rotifolk/shared'
+
+import { api } from '@/infrastructure/api'
 
 export const partyKeys = {
   all: ['parties'] as const,

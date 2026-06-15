@@ -1,17 +1,18 @@
 import EmptyState from '@components/feedback/EmptyState'
 import { Button } from '@components/ui/Button/Button'
+import { usePageMeta } from '@hooks/usePageMeta'
+import { createElement } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+
+import styles from './Policy.module.css'
+
 import {
   parsePolicyBody,
   policyPublicUrl,
   usePolicy,
   type PolicyBlock,
   type PolicySlug,
-} from '@domains/policies'
-import { usePageMeta } from '@hooks/usePageMeta'
-import { createElement } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-
-import styles from './Policy.module.css'
+} from '@/domains/policies'
 
 /** 신뢰 표면에 노출하는 content hash 축약 길이(앞 12자). */
 const SHORT_HASH_LENGTH = 12

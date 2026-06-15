@@ -1,5 +1,10 @@
 import { Button } from '@components/ui/Button/Button'
 import { Input } from '@components/ui/Input/Input'
+import { useState, type FormEvent } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+
+import styles from './Support.module.css'
+
 import {
   createInquiry,
   INQUIRY_BODY_MAX,
@@ -12,11 +17,7 @@ import {
   validateInquiryInput,
   type InquiryCategory,
   type InquiryReceipt,
-} from '@features/inquiry/inquiries'
-import { useState, type FormEvent } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-
-import styles from './Support.module.css'
+} from '@/domains/inquiry/inquiries'
 
 function formatReceiptDate(value: string) {
   return new Intl.DateTimeFormat('ko-KR', {

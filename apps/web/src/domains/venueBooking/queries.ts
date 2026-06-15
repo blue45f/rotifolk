@@ -1,4 +1,3 @@
-import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import type {
@@ -10,6 +9,8 @@ import type {
   VenueBooking,
   VenueRecommendation,
 } from '@rotifolk/shared'
+
+import { api } from '@/infrastructure/api'
 
 /** 공간 추천 브리프 (UI 입력) */
 export interface VenueBrief {

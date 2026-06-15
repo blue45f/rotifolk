@@ -1,10 +1,11 @@
-import { getSocket } from '@features/live/socket'
 import { useAuthStore } from '@store/authStore'
 import { useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 
 import { chatKeys, type ChatMessage, type ChatRoomSummary } from './queries'
 import { appendRealtimeMessage, updateRoomPreviewFromMessage } from './realtime-cache'
+
+import { getSocket } from '@/domains/live/socket'
 
 export function useChatRealtime() {
   const user = useAuthStore((s) => s.user)

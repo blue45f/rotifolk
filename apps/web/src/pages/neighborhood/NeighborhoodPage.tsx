@@ -3,11 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
-import { useGeolocation } from '@features/geo/useGeolocation'
-import { PartyCard } from '@features/parties/PartyCard'
-import { useVenueAreas } from '@features/venues/queries'
 import { SEOUL_AREAS, formatDistanceKm, haversineKm } from '@rotifolk/shared'
-import { api } from '@services/api'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -15,6 +11,11 @@ import { Link } from 'react-router-dom'
 import styles from './Neighborhood.module.css'
 
 import type { PartySummary } from '@rotifolk/shared'
+
+import { useGeolocation } from '@/domains/geo/useGeolocation'
+import { PartyCard } from '@/domains/parties/PartyCard'
+import { useVenueAreas } from '@/domains/venues/queries'
+import { api } from '@/infrastructure/api'
 
 const AREA_DESC: Record<string, string> = {
   한남동: '조용한 와인바와 갤러리가 많은 한강변 골목',

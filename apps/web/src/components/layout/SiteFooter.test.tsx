@@ -1,9 +1,10 @@
-import { I18nProvider } from '@features/i18n/i18n'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { SiteFooter } from './SiteFooter'
+
+import { I18nProvider } from '@/domains/i18n/i18n'
 
 function renderFooter(initialPath = '/venues') {
   // detectInitialLocale은 jsdom의 navigator.language를 따르므로 한국어로 고정한다.

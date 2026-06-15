@@ -4,15 +4,16 @@ import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import { notificationKeys } from '@features/notifications/useNotificationsRealtime'
-import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import styles from './Notifications.module.css'
 
-import type { NotificationItem } from '@features/notifications/realtime-cache'
+import type { NotificationItem } from '@/domains/notifications/realtime-cache'
+
+import { notificationKeys } from '@/domains/notifications/useNotificationsRealtime'
+import { api } from '@/infrastructure/api'
 
 const KIND_EMOJI: Record<string, string> = {
   party_join: '🎟️',

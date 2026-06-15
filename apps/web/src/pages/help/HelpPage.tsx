@@ -3,13 +3,12 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
-import { addTutorialStep, normalizeTutorialStep } from '@features/tutorial/progress'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import styles from './Help.module.css'
 
-import type { IconName } from '@components/ui/Icon/Icon'
+import { addTutorialStep, normalizeTutorialStep } from '@/domains/tutorial/progress'
 
 function norm(s: string): string {
   return s.toLowerCase().replace(/\s+/g, '')

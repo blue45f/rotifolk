@@ -3,10 +3,6 @@ import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
-import { CATEGORY_META } from '@features/categories/meta'
-import { PartyCard } from '@features/parties/PartyCard'
-import { useParties } from '@features/parties/queries'
-import { api } from '@services/api'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -14,6 +10,11 @@ import { Link } from 'react-router-dom'
 import styles from './Digest.module.css'
 
 import type { PartyCategory, PartySummary } from '@rotifolk/shared'
+
+import { CATEGORY_META } from '@/domains/categories/meta'
+import { PartyCard } from '@/domains/parties/PartyCard'
+import { useParties } from '@/domains/parties/queries'
+import { api } from '@/infrastructure/api'
 
 /**
  * /digest — 매주 한 번 갱신되는 주간 다이제스트.

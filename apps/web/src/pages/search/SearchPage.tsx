@@ -3,10 +3,6 @@ import Loading from '@components/feedback/Loading'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Input } from '@components/ui/Input/Input'
 import { RecognizedConditions } from '@components/ui/RecognizedConditions/RecognizedConditions'
-import { CATEGORY_META } from '@features/categories/meta'
-import { PartyCard } from '@features/parties/PartyCard'
-import { useParties } from '@features/parties/queries'
-import { useRecentSearches } from '@features/search/useRecentSearches'
 import {
   describeParse,
   hourToTimeOfDay,
@@ -18,6 +14,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import styles from './Search.module.css'
+
+import { CATEGORY_META } from '@/domains/categories/meta'
+import { PartyCard } from '@/domains/parties/PartyCard'
+import { useParties } from '@/domains/parties/queries'
+import { useRecentSearches } from '@/domains/search/useRecentSearches'
 
 const SUGGESTED_TAGS = ['와인', '한남', '5:5', '즉석', '무료'] as const
 

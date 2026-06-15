@@ -3,10 +3,6 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Input } from '@components/ui/Input/Input'
-import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
-import { clearHostDraft, loadHostDraft, saveHostDraft } from '@features/parties/hostDraft'
-import { useCreateParty } from '@features/parties/queries'
-import { useVenues } from '@features/venues/queries'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   CreatePartySchema,
@@ -38,6 +34,11 @@ import type {
   ChildrenPolicy,
   NoteDelivery,
 } from '@rotifolk/shared'
+
+import { ALL_CATEGORIES, CATEGORY_META } from '@/domains/categories/meta'
+import { clearHostDraft, loadHostDraft, saveHostDraft } from '@/domains/parties/hostDraft'
+import { useCreateParty } from '@/domains/parties/queries'
+import { useVenues } from '@/domains/venues/queries'
 
 const DEFAULTS: Partial<CreatePartyDto> = {
   config: {

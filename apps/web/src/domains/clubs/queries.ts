@@ -1,4 +1,3 @@
-import { ApiError, api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import type {
@@ -13,6 +12,8 @@ import type {
   CreateClubPostDto,
   Paginated,
 } from '@rotifolk/shared'
+
+import { ApiError, api } from '@/infrastructure/api'
 
 export const clubKeys = {
   all: ['clubs'] as const,

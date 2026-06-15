@@ -4,16 +4,6 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
-import { ALL_CATEGORIES, CATEGORY_META } from '@features/categories/meta'
-import { useGeolocation } from '@features/geo/useGeolocation'
-import {
-  useCancelBooking,
-  useCreateVenueBooking,
-  useMyVenueBookings,
-  useRecommendVenues,
-  type VenueBrief,
-} from '@features/venueBooking/queries'
-import { useVenueAreas } from '@features/venues/queries'
 import { formatKRW, VENUE_BOOKING_STATUS_LABEL } from '@rotifolk/shared'
 import { motion, useReducedMotion } from 'motion/react'
 import { useMemo, useState } from 'react'
@@ -22,6 +12,17 @@ import { Link } from 'react-router-dom'
 import styles from './Sourcing.module.css'
 
 import type { PartyCategory, VenueBooking, VenueRecommendation } from '@rotifolk/shared'
+
+import { ALL_CATEGORIES, CATEGORY_META } from '@/domains/categories/meta'
+import { useGeolocation } from '@/domains/geo/useGeolocation'
+import {
+  useCancelBooking,
+  useCreateVenueBooking,
+  useMyVenueBookings,
+  useRecommendVenues,
+  type VenueBrief,
+} from '@/domains/venueBooking/queries'
+import { useVenueAreas } from '@/domains/venues/queries'
 
 function isoAt(date: string, time: string): string | undefined {
   if (!date || !time) return undefined

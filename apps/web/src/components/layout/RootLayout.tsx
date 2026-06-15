@@ -1,8 +1,4 @@
 import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
-import { useChatRealtime } from '@features/chat/useChatRealtime'
-import CommandPalette from '@features/command-palette/CommandPalette'
-import { useNotificationsRealtime } from '@features/notifications/useNotificationsRealtime'
-import OnboardingSheet from '@features/onboard/OnboardingSheet'
 import { useDocumentTitle } from '@hooks/useDocumentTitle'
 import { useApplyTheme } from '@store/themeStore'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -12,6 +8,11 @@ import { BottomNav } from './BottomNav'
 import { Header } from './Header'
 import styles from './RootLayout.module.css'
 import { SiteFooter } from './SiteFooter'
+
+import { useChatRealtime } from '@/domains/chat/useChatRealtime'
+import CommandPalette from '@/domains/command-palette/CommandPalette'
+import { useNotificationsRealtime } from '@/domains/notifications/useNotificationsRealtime'
+import OnboardingSheet from '@/domains/onboard/OnboardingSheet'
 
 export default function RootLayout() {
   useApplyTheme()

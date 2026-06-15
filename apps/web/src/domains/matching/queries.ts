@@ -1,4 +1,3 @@
-import { api } from '@services/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import type {
@@ -8,6 +7,8 @@ import type {
   ContactExchangeRequestStatus,
   MatchScope,
 } from '@rotifolk/shared'
+
+import { api } from '@/infrastructure/api'
 
 export type MatchResult = 'mutual' | 'top-pick' | 'all'
 
