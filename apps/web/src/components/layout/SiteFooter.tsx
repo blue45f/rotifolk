@@ -32,7 +32,12 @@ export function SiteFooter() {
           </Link>
           <Link to="/cancel-policy">{t('footer.refund')}</Link>
         </nav>
-        <p className={styles.copyright}>© {year} rotifolk</p>
+        <p className={styles.copyright}>
+          © {year} rotifolk
+          <Link to="/design" className={styles.meta}>
+            디자인 시스템
+          </Link>
+        </p>
       </div>
     </footer>
   )

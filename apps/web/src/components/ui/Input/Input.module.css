@@ -35,7 +35,9 @@
   font-size: var(--fs-md);
 }
 .input::placeholder {
-  color: var(--color-text-subtle);
+  /* 본문/플레이스홀더 대비 ≥4.5:1을 위해 subtle(62%L)이 아닌 muted(46%L)로. */
+  color: var(--color-text-muted);
+  opacity: 1;
 }
 .leftIcon,
 .rightSlot {

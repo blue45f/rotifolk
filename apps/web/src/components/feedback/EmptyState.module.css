@@ -7,7 +7,8 @@
 .emoji {
   font-size: 4rem;
   margin-bottom: var(--space-3);
-  filter: drop-shadow(0 8px 16px rgba(122, 31, 61, 0.15));
+  /* 구 burgundy 잔재(rgba 122,31,61) 제거 — apricot 토큰으로 팔레트 정합. */
+  filter: drop-shadow(0 8px 16px color-mix(in oklab, var(--brand-apricot-700) 18%, transparent));
 }
 .title {
   font-size: var(--fs-xl);
