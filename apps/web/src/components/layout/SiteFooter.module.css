@@ -37,7 +37,10 @@
 
 .links a {
   padding-block: var(--space-1);
-  color: var(--color-text-subtle);
+  /* subtle(62%L)는 본문 대비 4.5:1 미달 — 푸터 링크는 muted(46%L)로 또렷하게. */
+  color: var(--color-text-muted);
+  /* 인라인 링크에도 포커스 링이 깔끔하게 감싸지도록 작은 반경 부여. */
+  border-radius: var(--radius-xs);
   transition: color var(--dur-fast) var(--ease-out-quart);
 }
 
@@ -52,7 +55,21 @@
 }
 
 .copyright {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
   font-size: var(--fs-2xs);
+}
+
+/* 비-법적(메타) 링크 — 1차 내비가 아닌 은은한 디자인 시스템 진입점. */
+.meta {
+  color: var(--color-text-subtle);
+  border-radius: var(--radius-xs);
+  transition: color var(--dur-fast) var(--ease-out-quart);
+}
+.meta:hover {
+  color: var(--color-text);
 }
 
 @media (min-width: 1024px) {
