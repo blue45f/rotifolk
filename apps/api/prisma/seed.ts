@@ -1324,12 +1324,446 @@ async function main() {
       update: {},
     })
 
+  // ============ 소셜 브레드스 (클럽·팔로우·후기·알림·저장·호스트지원·추천·채팅·쪽지·사진·완성매칭) ============
+  // 종료된 approvalParty를 과거 모임 데이터(후기/매칭/쪽지/사진)의 기준으로 사용한다.
+  const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000)
+  const daysAgo = (d: number) => new Date(Date.now() - d * 24 * 3600_000)
+
+  // ── 클럽 (정기 모임 커뮤니티) ──
+  const wineClub = await prisma.club.create({
+    data: {
+      ownerId: host.id,
+      name: '한남 와인 라운지',
+      category: 'wine',
+      description: '매달 둘째 주 금요일, 한남동에서 만나는 와인 애호가 모임. 초보 환영.',
+      visibility: 'public',
+    },
+  })
+  const coffeeClub = await prisma.club.create({
+    data: {
+      ownerId: M[4].id,
+      name: '연남 스페셜티 클럽',
+      category: 'coffee',
+      description: '핸드드립부터 에스프레소까지, 원두 노트를 함께 나눠요.',
+      visibility: 'public',
+    },
+  })
+  const teaClub = await prisma.club.create({
+    data: {
+      ownerId: W[2].id,
+      name: '북촌 다실 모임',
+      category: 'tea',
+      description: '한옥에서 차 한 잔. 조용하고 깊은 대화를 좋아하는 분들.',
+      visibility: 'private',
+    },
+  })
+
+  // 클럽 멤버십 (owner는 member 행도 추가해 _count가 자연스럽게 잡히도록)
+  const clubMemberData: { clubId: string; userId: string; role: string }[] = []
+  const addMembers = (clubId: string, ownerId: string, members: { id: string }[]) => {
+    clubMemberData.push({ clubId, userId: ownerId, role: 'owner' })
+    for (const u of members) {
+      if (u.id !== ownerId) clubMemberData.push({ clubId, userId: u.id, role: 'member' })
+    }
+  }
+  addMembers(wineClub.id, host.id, [W[0], W[1], W[3], M[0], M[1], M[2]])
+  addMembers(coffeeClub.id, M[4].id, [W[1], W[2], M[0], M[3]])
+  addMembers(teaClub.id, W[2].id, [W[0], W[4], M[2]])
+  await prisma.clubMember.createMany({ data: clubMemberData, skipDuplicates: true })
+
+  // 클럽 게시글 + 댓글
+  const winePost = await prisma.clubPost.create({
+    data: {
+      clubId: wineClub.id,
+      authorId: W[0].id,
+      title: '이번 달 정모 와인 추천 받아요',
+      body: '가볍게 시작하기 좋은 내추럴 와인 있을까요? 6명 정도 모일 예정이에요.',
+    },
+  })
+  const winePostReply = await prisma.clubComment.create({
+    data: {
+      postId: winePost.id,
+      authorId: host.id,
+      body: '루아르 슈냉블랑부터 시작하면 입문자도 편하게 즐겨요. 제가 한 병 가져갈게요!',
+    },
+  })
+  await prisma.clubComment.create({
+    data: {
+      postId: winePost.id,
+      authorId: M[0].id,
+      parentId: winePostReply.id,
+      body: '오 좋아요, 저는 치즈 플래터 담당할게요 🧀',
+    },
+  })
+  await prisma.clubPost.update({
+    where: { id: winePost.id },
+    data: { commentCount: 2, lastCommentAt: minutesAgo(40) },
+  })
+  const coffeePost = await prisma.clubPost.create({
+    data: {
+      clubId: coffeeClub.id,
+      authorId: M[3].id,
+      title: '에티오피아 예가체프 vs 케냐 AA',
+      body: '둘 다 좋아하는데 다음 시음회 메인으로 뭐가 나을까요?',
+    },
+  })
+  await prisma.clubComment.create({
+    data: {
+      postId: coffeePost.id,
+      authorId: W[1].id,
+      body: '예가체프요! 플로럴한 향이 첫 시음회엔 더 임팩트 있어요.',
+    },
+  })
+  await prisma.clubPost.update({
+    where: { id: coffeePost.id },
+    data: { commentCount: 1, lastCommentAt: minutesAgo(120) },
+  })
+
+  // ── 팔로우 (호스트 중심 + 참가자 상호) ──
+  const followPairs: [{ id: string }, { id: string }][] = [
+    [W[0], host],
+    [W[1], host],
+    [W[2], host],
+    [M[0], host],
+    [M[1], host],
+    [M[2], host],
+    [M[3], host],
+    [W[0], M[0]],
+    [M[0], W[0]],
+    [W[1], M[1]],
+    [W[3], M[2]],
+    [M[4], W[2]],
+    [host, W[0]],
+  ]
+  await prisma.follow.createMany({
+    data: followPairs.map(([follower, following]) => ({
+      followerId: follower.id,
+      followingId: following.id,
+    })),
+    skipDuplicates: true,
+  })
+
+  // ── 후기 (종료된 approvalParty 기준: 호스트 후기 + 참가자 상호 후기) ──
+  await prisma.review.createMany({
+    data: [
+      {
+        partyId: approvalParty.id,
+        fromUserId: W[0].id,
+        targetUserId: host.id,
+        rating: 5,
+        body: '진행이 매끄럽고 어색한 순간이 없었어요. 질문 카드 타이밍이 특히 좋았습니다.',
+        tagsJson: JSON.stringify(['친절해요', '진행이 매끄러워요']),
+        hostReply: '함께해 주셔서 감사해요! 다음에 또 뵐게요 🍷',
+        hostRepliedAt: minutesAgo(30),
+      },
+      {
+        partyId: approvalParty.id,
+        fromUserId: M[0].id,
+        targetUserId: host.id,
+        rating: 5,
+        body: '처음 참여였는데 부담 없이 즐겼습니다. 강력 추천!',
+        tagsJson: JSON.stringify(['분위기 좋아요', '또 참여하고 싶어요']),
+      },
+      {
+        partyId: approvalParty.id,
+        fromUserId: W[1].id,
+        targetUserId: host.id,
+        rating: 4,
+        body: '전반적으로 만족스러웠어요. 라운드 시간이 조금만 더 길었으면.',
+        tagsJson: JSON.stringify(['편안했어요']),
+      },
+      {
+        partyId: approvalParty.id,
+        fromUserId: M[0].id,
+        targetUserId: W[0].id,
+        rating: 5,
+        body: '대화가 정말 잘 통했어요. 또 뵙고 싶네요.',
+        anonymous: true,
+        tagsJson: JSON.stringify(['대화가 즐거워요']),
+      },
+      {
+        partyId: approvalParty.id,
+        fromUserId: W[0].id,
+        targetUserId: M[0].id,
+        rating: 5,
+        body: '편하게 리드해 주셔서 즐거웠습니다.',
+        anonymous: true,
+        tagsJson: JSON.stringify(['배려심 있어요']),
+      },
+    ],
+  })
+
+  // ── 완성된 매칭 + 양방향 최종투표 (approvalParty) ──
+  await prisma.finalMatchVote.createMany({
+    data: [
+      { partyId: approvalParty.id, fromUserId: W[0].id, toUserId: M[0].id },
+      { partyId: approvalParty.id, fromUserId: M[0].id, toUserId: W[0].id },
+      { partyId: approvalParty.id, fromUserId: W[1].id, toUserId: M[1].id },
+    ],
+    skipDuplicates: true,
+  })
+  await prisma.finalMatch.create({
+    data: {
+      partyId: approvalParty.id,
+      userAId: W[0].id < M[0].id ? W[0].id : M[0].id,
+      userBId: W[0].id < M[0].id ? M[0].id : W[0].id,
+      result: 'mutual',
+    },
+  })
+
+  // ── 쪽지 (종료 후 도착) ──
+  await prisma.partyNote.createMany({
+    data: [
+      {
+        partyId: approvalParty.id,
+        fromUserId: M[0].id,
+        toUserId: W[0].id,
+        roundIndex: 2,
+        body: '오늘 대화 정말 즐거웠어요. 다음에 커피 한 잔 어때요?',
+        emoji: '☕',
+        shareContact: true,
+        deliveredAt: minutesAgo(50),
+        readAt: minutesAgo(20),
+      },
+      {
+        partyId: approvalParty.id,
+        fromUserId: W[1].id,
+        toUserId: M[1].id,
+        roundIndex: 3,
+        body: '추천해 주신 차, 꼭 마셔볼게요. 고마워요!',
+        emoji: '🍵',
+        deliveredAt: minutesAgo(50),
+      },
+      {
+        partyId: approvalParty.id,
+        fromUserId: W[0].id,
+        toUserId: M[0].id,
+        roundIndex: 2,
+        body: '저도 즐거웠어요 :) 연락 주세요.',
+        emoji: '😊',
+        shareContact: true,
+        deliveredAt: minutesAgo(45),
+      },
+    ],
+  })
+
+  // ── 그룹 채팅방 + 메시지 (매칭된 페어 채팅) ──
+  const pairRoom = await prisma.chatRoom.create({
+    data: {
+      kind: 'pair',
+      partyId: approvalParty.id,
+      title: '윤슬 ♥ 매칭 채팅',
+      lastMessageAt: minutesAgo(5),
+    },
+  })
+  await prisma.chatMembership.createMany({
+    data: [
+      { roomId: pairRoom.id, userId: W[0].id, lastReadAt: minutesAgo(4) },
+      { roomId: pairRoom.id, userId: M[0].id, lastReadAt: minutesAgo(5) },
+    ],
+  })
+  await prisma.chatMessage.createMany({
+    data: [
+      {
+        roomId: pairRoom.id,
+        userId: M[0].id,
+        body: '안녕하세요! 오늘 즐거웠어요 :)',
+        createdAt: minutesAgo(60),
+      },
+      {
+        roomId: pairRoom.id,
+        userId: W[0].id,
+        body: '저도요! 덕분에 편하게 대화했어요',
+        createdAt: minutesAgo(55),
+      },
+      {
+        roomId: pairRoom.id,
+        userId: M[0].id,
+        body: '주말에 시간 괜찮으세요?',
+        createdAt: minutesAgo(6),
+      },
+      {
+        roomId: pairRoom.id,
+        userId: W[0].id,
+        body: '네 좋아요! 토요일 오후 어떠세요?',
+        createdAt: minutesAgo(5),
+      },
+    ],
+  })
+
+  // ── 후기/완성 모임의 사진 + 좋아요 ──
+  const photo1 = await prisma.partyPhoto.create({
+    data: {
+      partyId: approvalParty.id,
+      userId: host.id,
+      url: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=900',
+      caption: '오늘의 첫 잔 🍷',
+    },
+  })
+  const photo2 = await prisma.partyPhoto.create({
+    data: {
+      partyId: approvalParty.id,
+      userId: W[0].id,
+      url: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=900',
+      caption: '다실 분위기가 너무 좋았어요',
+    },
+  })
+  await prisma.photoLike.createMany({
+    data: [
+      { photoId: photo1.id, userId: W[0].id },
+      { photoId: photo1.id, userId: M[0].id },
+      { photoId: photo1.id, userId: W[1].id },
+      { photoId: photo2.id, userId: host.id },
+      { photoId: photo2.id, userId: M[0].id },
+    ],
+    skipDuplicates: true,
+  })
+
+  // ── 저장한 모임 (북마크) ──
+  await prisma.savedParty.createMany({
+    data: [
+      { userId: W[0].id, partyId: wineParty.id },
+      { userId: W[0].id, partyId: teaParty.id },
+      { userId: M[0].id, partyId: wineParty.id },
+      { userId: M[1].id, partyId: coffeeParty.id },
+      { userId: W[2].id, partyId: teaParty.id },
+      { userId: M[3].id, partyId: coffeeParty.id },
+    ],
+    skipDuplicates: true,
+  })
+
+  // ── 호스트 지원 (운영자 승인 대기/완료) ──
+  await prisma.hostApplication.createMany({
+    data: [
+      {
+        userId: W[2].id,
+        introduction:
+          '북촌에서 다도 모임을 5년째 운영해 왔습니다. 차분하고 깊은 대화를 좋아하는 분들을 모시고 싶어요.',
+        hostingStyle: '차분 / 따뜻',
+        plannedCategories: JSON.stringify(['tea']),
+        experience: '오프라인 다도 모임 30회 이상 진행',
+        status: 'pending',
+      },
+      {
+        userId: M[3].id,
+        introduction: '스페셜티 커피 큐그레이더 자격이 있습니다. 블라인드 시음회를 열고 싶어요.',
+        hostingStyle: '발랄 / 진지',
+        plannedCategories: JSON.stringify(['coffee']),
+        experience: '카페 운영 3년',
+        status: 'approved',
+        reviewedById: admin.id,
+        reviewedNote: '경력과 진정성이 충분합니다. 승인합니다.',
+      },
+      {
+        userId: M[1].id,
+        introduction: '위스키 페어링 모임을 기획하고 싶습니다.',
+        hostingStyle: '진지',
+        plannedCategories: JSON.stringify(['whisky']),
+        status: 'rejected',
+        reviewedById: admin.id,
+        reviewedNote: '구체적인 운영 계획 보완 후 재지원 부탁드립니다.',
+      },
+    ],
+  })
+
+  // ── 추천(레퍼럴) ──
+  await prisma.referral.createMany({
+    data: [
+      { referrerId: host.id, referredId: M[4].id, bonusKRW: 3000 },
+      { referrerId: W[0].id, referredId: W[3].id, bonusKRW: 3000 },
+    ],
+    skipDuplicates: true,
+  })
+
+  // ── 알림 (각 유형별 샘플) ──
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: host.id,
+        kind: 'party_join',
+        title: '새 참가 신청',
+        body: '윤슬님이 한남 루프탑 와인 로테이션에 참가했어요.',
+        link: `/parties/${wineParty.id}`,
+        createdAt: minutesAgo(180),
+        readAt: minutesAgo(170),
+      },
+      {
+        userId: W[0].id,
+        kind: 'match_made',
+        title: '매칭 성사! 💞',
+        body: '서로 호감을 보냈어요. 채팅을 시작해 보세요.',
+        link: `/chat/${pairRoom.id}`,
+        createdAt: minutesAgo(58),
+      },
+      {
+        userId: M[0].id,
+        kind: 'match_made',
+        title: '매칭 성사! 💞',
+        body: '윤슬님과 매칭되었어요.',
+        link: `/chat/${pairRoom.id}`,
+        createdAt: minutesAgo(58),
+      },
+      {
+        userId: W[0].id,
+        kind: 'message',
+        title: '새 메시지',
+        body: '주말에 시간 괜찮으세요?',
+        link: `/chat/${pairRoom.id}`,
+        createdAt: minutesAgo(6),
+      },
+      {
+        userId: host.id,
+        kind: 'host_review',
+        title: '새 후기가 도착했어요 ⭐',
+        body: '윤슬님이 별점 5점 후기를 남겼어요.',
+        link: `/parties/${approvalParty.id}`,
+        createdAt: minutesAgo(40),
+      },
+      {
+        userId: W[2].id,
+        kind: 'party_starting',
+        title: '곧 시작해요',
+        body: '북촌 다실 모임이 곧 시작됩니다.',
+        link: `/parties/${teaParty.id}`,
+        createdAt: daysAgo(0),
+      },
+    ],
+  })
+
+  // ── 차단 (안전 기능 데모) ──
+  await prisma.userBlock.create({
+    data: { blockerId: W[4].id, blockedId: M[2].id, reason: '불쾌한 메시지' },
+  })
+
+  // ── 공간 예약 요청 (호스트가 남의 공간 섭외) ──
+  await prisma.venueBooking.create({
+    data: {
+      venueId: venues[3].id,
+      requesterId: M[0].id,
+      ownerId: venues[3].ownerId,
+      startAt: inDays(20),
+      endAt: afterHours(inDays(20), 3),
+      partySize: 8,
+      category: 'whisky',
+      noteToOwner: '소규모 위스키 페어링 모임을 열고 싶습니다. 시가룸도 사용 가능할까요?',
+      status: 'requested',
+      hours: 3,
+      baseKRW: 540_000,
+      multiplier: 1,
+      cleaningFeeKRW: 30_000,
+      totalKRW: 570_000,
+    },
+  })
+
   console.log('✔ Seed complete')
   console.log('   관리자:   admin@rotifolk.dev')
   console.log('   호스트:   host@rotifolk.dev')
   console.log('   여성 5명: w1~w5@rotifolk.dev')
   console.log('   남성 5명: m1~m5@rotifolk.dev')
   console.log('   비밀번호: rotifolk1234!')
+  console.log(
+    '   소셜 데이터: 클럽 3 · 팔로우 · 후기 · 매칭 · 쪽지 · 채팅 · 사진 · 저장 · 호스트지원 · 추천 · 알림 · 예약요청'
+  )
 }
 
 main()

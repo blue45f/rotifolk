@@ -10,13 +10,19 @@ import { useGeolocation } from '@domains/geo/useGeolocation'
 import { PartyCard } from '@domains/parties/PartyCard'
 import { useParties } from '@domains/parties/queries'
 import { usePageMeta } from '@hooks/usePageMeta'
-import { SEOUL_AREAS, haversineKm } from '@rotifolk/shared'
+import {
+  PRICE_BANDS,
+  SEOUL_AREAS,
+  filterByPriceBand,
+  getPriceBand,
+  haversineKm,
+} from '@rotifolk/shared'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import styles from './DiscoverPage.module.css'
 
-import type { PartyCategory } from '@rotifolk/shared'
+import type { PartyCategory, PriceBandKey } from '@rotifolk/shared'
 
 const PAGE_INCREMENT = 20
 const MAX_PAGE_SIZE = 50
@@ -59,6 +65,7 @@ export default function DiscoverPage() {
   const area = params.get('area')
   const date = params.get('date')
   const tag = params.get('tag')
+  const price = params.get('price') as PriceBandKey | null
 
   const sort = (params.get('sort') as SortKey | null) ?? 'soonest'
   const status = (params.get('status') as StatusKey | null) ?? 'open'
@@ -101,7 +108,7 @@ export default function DiscoverPage() {
 
   const sortedItems = useMemo(() => {
     if (!data) return []
-    const arr = [...data.items]
+    const arr = filterByPriceBand(data.items, price)
     if (sort === 'popular') {
       arr.sort((a, b) => {
         const fa = a.currentParticipants / Math.max(1, a.maxParticipants)
@@ -121,7 +128,7 @@ export default function DiscoverPage() {
       arr.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
     }
     return arr
-  }, [data, sort, geo.coords])
+  }, [data, sort, geo.coords, price])
 
   // List rhythm: lift "happening now / about to start" out of the uniform grid
   // so the list reads as a feed with a pulse, not an endless identical card wall.
@@ -162,10 +169,12 @@ export default function DiscoverPage() {
     activeChips.push({ key: 'date', label: d?.label ?? date })
   }
   if (tag) activeChips.push({ key: 'tag', label: `#${tag}` })
+  const priceBand = getPriceBand(price)
+  if (priceBand) activeChips.push({ key: 'price', label: `💸 ${priceBand.label}` })
 
   const clearAll = () => {
     const next = new URLSearchParams(params)
-    for (const k of ['category', 'area', 'date', 'tag']) next.delete(k)
+    for (const k of ['category', 'area', 'date', 'tag', 'price']) next.delete(k)
     setParams(next, { replace: true })
   }
 
@@ -281,6 +290,26 @@ export default function DiscoverPage() {
               })}
             </div>
           </div>
+
+          <div className={styles.refineGroup} role="group" aria-label="참가비 필터">
+            <span className={styles.refineLabel}>
+              <Icon name="sliders" /> 참가비
+            </span>
+            <div className={styles.chipScroll}>
+              <Chip selected={!price} onClick={() => setParam('price', null)}>
+                전체
+              </Chip>
+              {PRICE_BANDS.map((b) => (
+                <Chip
+                  key={b.key}
+                  selected={price === b.key}
+                  onClick={() => setParam('price', price === b.key ? null : b.key)}
+                >
+                  {b.label}
+                </Chip>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Active-filter summary + one-tap reset. */}
@@ -310,7 +339,7 @@ export default function DiscoverPage() {
       <section className={`container ${styles.list}`} aria-busy={isFetching || undefined}>
         {isLoading ? (
           <PartyCardSkeletonGrid />
-        ) : !data || data.items.length === 0 ? (
+        ) : !data || sortedItems.length === 0 ? (
           <EmptyState
             emoji="🍷"
             title="조건에 맞는 파티가 없어요"
@@ -327,7 +356,15 @@ export default function DiscoverPage() {
           <>
             <div className={styles.resultHead}>
               <p className={styles.count}>
-                총 <strong>{data.total}</strong>개의 파티
+                {price ? (
+                  <>
+                    참가비 조건 <strong>{sortedItems.length}</strong>개 (총 {data.total}개)
+                  </>
+                ) : (
+                  <>
+                    총 <strong>{data.total}</strong>개의 파티
+                  </>
+                )}
               </p>
             </div>
 
