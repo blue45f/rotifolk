@@ -7,7 +7,7 @@ const DISMISSED_KEY = 'rotifolk-pwa-dismissed-at'
 
 describe('usePwaInstall', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
   })
 
   it('captures beforeinstallprompt and handles acceptance', async () => {
@@ -28,7 +28,7 @@ describe('usePwaInstall', () => {
     })
 
     act(() => {
-      window.dispatchEvent(event)
+      globalThis.dispatchEvent(event)
     })
 
     expect(preventDefault).toHaveBeenCalledTimes(1)
@@ -44,7 +44,7 @@ describe('usePwaInstall', () => {
 
   it('dismisses for 14 days and records timestamp', () => {
     const dismissedAt = Date.now() - 1_000
-    window.localStorage.setItem(DISMISSED_KEY, String(dismissedAt))
+    globalThis.localStorage.setItem(DISMISSED_KEY, String(dismissedAt))
     const { result } = renderHook(() => usePwaInstall())
 
     expect(result.current.canInstall).toBe(false)
@@ -53,7 +53,7 @@ describe('usePwaInstall', () => {
       result.current.dismiss()
     })
 
-    const current = Number(window.localStorage.getItem(DISMISSED_KEY))
+    const current = Number(globalThis.localStorage.getItem(DISMISSED_KEY))
     expect(current).toBeGreaterThan(dismissedAt)
     expect(result.current.canInstall).toBe(false)
   })
@@ -70,8 +70,8 @@ describe('usePwaInstall', () => {
     Object.assign(event, { prompt, userChoice })
 
     act(() => {
-      window.dispatchEvent(event)
-      window.dispatchEvent(new Event('appinstalled'))
+      globalThis.dispatchEvent(event)
+      globalThis.dispatchEvent(new Event('appinstalled'))
     })
 
     expect(result.current.canInstall).toBe(false)

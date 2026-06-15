@@ -87,14 +87,14 @@ export default function LivePartyPage() {
       const msg = String(state.lastEvent.payload?.message ?? '').trim()
       if (msg) {
         const until = Date.now() + 30_000
-        const showTimer = window.setTimeout(() => {
+        const showTimer = globalThis.setTimeout(() => {
           setAnnouncement({ message: msg, until })
         }, 0)
         const clearTimer = setTimeout(() => {
           setAnnouncement((cur) => (cur && cur.until === until ? null : cur))
         }, 30_000)
         return () => {
-          window.clearTimeout(showTimer)
+          globalThis.clearTimeout(showTimer)
           clearTimeout(clearTimer)
         }
       }
@@ -105,14 +105,14 @@ export default function LivePartyPage() {
     const k = state.lastEvent?.kind
     if (k && REC_KINDS.has(k)) {
       const until = Date.now() + 40_000
-      const showTimer = window.setTimeout(() => {
+      const showTimer = globalThis.setTimeout(() => {
         setRec({ kind: k, payload: state.lastEvent?.payload, until })
       }, 0)
       const clearTimer = setTimeout(() => {
         setRec((cur) => (cur && cur.until === until ? null : cur))
       }, 40_000)
       return () => {
-        window.clearTimeout(showTimer)
+        globalThis.clearTimeout(showTimer)
         clearTimeout(clearTimer)
       }
     }

@@ -8,7 +8,7 @@ import { PromptContext, type PromptFn, type PromptOptions } from './PromptContex
 /**
  * Imperative `prompt()` resolving to the entered string (or `null` when
  * dismissed), backed by the branded modal {@link Sheet} — a themed, accessible
- * replacement for `window.prompt`. One instance lives at the app root next to
+ * replacement for `globalThis.prompt`. One instance lives at the app root next to
  * the ConfirmProvider; call sites do
  * `const name = await prompt({ title, label }); if (name === null) return`.
  */

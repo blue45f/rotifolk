@@ -12,27 +12,27 @@ const IS_MOCKED_RESPONSE = Symbol('isMockedResponse')
 const activeClientIds = new Set()
 
 addEventListener('install', function () {
-  self.skipWaiting()
+  globalThis.skipWaiting()
 })
 
 addEventListener('activate', function (event) {
-  event.waitUntil(self.clients.claim())
+  event.waitUntil(globalThis.clients.claim())
 })
 
 addEventListener('message', async function (event) {
   const clientId = Reflect.get(event.source || {}, 'id')
 
-  if (!clientId || !self.clients) {
+  if (!clientId || !globalThis.clients) {
     return
   }
 
-  const client = await self.clients.get(clientId)
+  const client = await globalThis.clients.get(clientId)
 
   if (!client) {
     return
   }
 
-  const allClients = await self.clients.matchAll({
+  const allClients = await globalThis.clients.matchAll({
     type: 'window',
   })
 
@@ -79,7 +79,7 @@ addEventListener('message', async function (event) {
 
       // Unregister itself when there are no more clients
       if (remainingClients.length === 0) {
-        self.registration.unregister()
+        globalThis.registration.unregister()
       }
 
       break
@@ -166,7 +166,7 @@ async function handleRequest(event, requestId, requestInterceptedAt) {
  * @returns {Promise<Client | undefined>}
  */
 async function resolveMainClient(event) {
-  const client = await self.clients.get(event.clientId)
+  const client = await globalThis.clients.get(event.clientId)
 
   if (activeClientIds.has(event.clientId)) {
     return client
@@ -176,7 +176,7 @@ async function resolveMainClient(event) {
     return client
   }
 
-  const allClients = await self.clients.matchAll({
+  const allClients = await globalThis.clients.matchAll({
     type: 'window',
   })
 

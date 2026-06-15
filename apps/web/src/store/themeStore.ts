@@ -39,7 +39,7 @@ export function useApplyTheme() {
     const root = document.documentElement
     const apply = (t: 'light' | 'dark') => root.setAttribute('data-theme', t)
     if (theme === 'system') {
-      const mql = window.matchMedia('(prefers-color-scheme: dark)')
+      const mql = globalThis.matchMedia('(prefers-color-scheme: dark)')
       const update = () => apply(resolveTheme('system', mql.matches))
       update()
       mql.addEventListener('change', update)

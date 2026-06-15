@@ -135,11 +135,11 @@ export default function ClubDetailPage() {
       const detailState = toTermsConsentState((event as CustomEvent<TermsConsentState>).detail)
       refreshTerms(detailState ?? undefined)
     }
-    window.addEventListener('storage', onStorageChange)
-    window.addEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
+    globalThis.addEventListener('storage', onStorageChange)
+    globalThis.addEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
     return () => {
-      window.removeEventListener('storage', onStorageChange)
-      window.removeEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
+      globalThis.removeEventListener('storage', onStorageChange)
+      globalThis.removeEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
     }
   }, [])
 

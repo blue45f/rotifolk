@@ -141,7 +141,7 @@ const dispatchActivityChanged = (entry: CommunityDemoActivityLogEntry) => {
     }
   )
 
-  window.dispatchEvent(event)
+  globalThis.dispatchEvent(event)
 }
 
 export const toCommunityDemoActivityEntry = (

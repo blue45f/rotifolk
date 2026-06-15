@@ -10,7 +10,7 @@ type WindowWithWebkitAudio = Window & { webkitAudioContext?: typeof AudioContext
 /** 짧은 2음 차임 (E5→A5) — 외부 에셋 없이 oscillator로 합성. */
 export function playRoundChime(): void {
   try {
-    const Ctor = window.AudioContext ?? (window as WindowWithWebkitAudio).webkitAudioContext
+    const Ctor = globalThis.AudioContext ?? (window as WindowWithWebkitAudio).webkitAudioContext
     if (!Ctor) return
     audioCtx ??= new Ctor()
     if (audioCtx.state === 'suspended') void audioCtx.resume()

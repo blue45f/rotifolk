@@ -72,7 +72,7 @@ export default function MatchCardPage() {
   })()
 
   const handleShare = async () => {
-    const url = window.location.href
+    const url = globalThis.location.href
     try {
       if (navigator.share) {
         await navigator.share({ title: `${data.user.nickname}의 명함`, url })

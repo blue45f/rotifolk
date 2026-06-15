@@ -109,7 +109,7 @@ function absoluteInviteUrl(path?: string | null): string {
   if (!path) return ''
   if (path.startsWith('http')) return path
   if (typeof window === 'undefined') return path
-  return `${window.location.origin}${path}`
+  return `${globalThis.location.origin}${path}`
 }
 
 export default function DerivedPartyManager({

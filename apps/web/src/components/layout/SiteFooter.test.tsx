@@ -7,7 +7,7 @@ import { SiteFooter } from './SiteFooter'
 
 function renderFooter(initialPath = '/venues') {
   // detectInitialLocale은 jsdom의 navigator.language를 따르므로 한국어로 고정한다.
-  window.localStorage.setItem('rotifolk-locale', 'ko')
+  globalThis.localStorage.setItem('rotifolk-locale', 'ko')
   return render(
     <I18nProvider>
       <MemoryRouter initialEntries={[initialPath]}>
@@ -19,7 +19,7 @@ function renderFooter(initialPath = '/venues') {
 
 describe('SiteFooter', () => {
   afterEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
   })
 
   it('exposes always-visible trust links for terms, privacy, and refund policies', () => {

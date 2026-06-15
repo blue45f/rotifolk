@@ -7,12 +7,12 @@ const STORAGE_KEY = 'rotifolk-recents'
 
 describe('useRecents', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
     vi.useRealTimers()
   })
 
   it('ignores malformed stored entries', () => {
-    window.localStorage.setItem(
+    globalThis.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify([
         { id: 'valid', title: '성수 와인', category: 'wine', visitedAt: 1_000 },
@@ -49,7 +49,7 @@ describe('useRecents', () => {
       category: 'coffee',
     })
     expect(result.current.items.filter((item) => item.id === 'party-3')).toHaveLength(1)
-    expect(JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '[]')).toEqual(
+    expect(JSON.parse(globalThis.localStorage.getItem(STORAGE_KEY) ?? '[]')).toEqual(
       result.current.items
     )
   })
@@ -57,12 +57,12 @@ describe('useRecents', () => {
   it('reloads items from localStorage when another tab updates the key', () => {
     const { result } = renderHook(() => useRecents())
 
-    window.localStorage.setItem(
+    globalThis.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify([{ id: 'external', title: '다른 탭 모임', category: 'tea', visitedAt: 123 }])
     )
     act(() => {
-      window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }))
+      globalThis.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }))
     })
 
     expect(result.current.items).toEqual([

@@ -1,6 +1,6 @@
 const CACHE_NAME = 'rotifolk-v1'
 
-self.addEventListener('install', (event) => {
+globalThis.addEventListener('install', (event) => {
   // Precache the app shell so deep-link visitors get the '/' offline fallback below.
   event.waitUntil(
     caches
@@ -8,10 +8,10 @@ self.addEventListener('install', (event) => {
       .then((cache) => cache.add('/'))
       .catch(() => {})
   )
-  self.skipWaiting()
+  globalThis.skipWaiting()
 })
 
-self.addEventListener('activate', (event) => {
+globalThis.addEventListener('activate', (event) => {
   event.waitUntil(
     Promise.all([
       caches
@@ -20,12 +20,12 @@ self.addEventListener('activate', (event) => {
           Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
         )
         .catch(() => {}),
-      self.clients.claim(),
+      globalThis.clients.claim(),
     ])
   )
 })
 
-self.addEventListener('fetch', (event) => {
+globalThis.addEventListener('fetch', (event) => {
   const { request } = event
   if (request.mode === 'navigate') {
     event.respondWith(

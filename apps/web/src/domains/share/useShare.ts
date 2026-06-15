@@ -2,7 +2,7 @@
  * 모임 공유 키트의 공용 로직.
  *
  * 새 의존성 없이 순수 Web 표준만 쓴다:
- *  - 초대 링크 조립 (window.location.origin + /invite/:codeOrId)
+ *  - 초대 링크 조립 (globalThis.location.origin + /invite/:codeOrId)
  *  - 공유 문구 생성
  *  - navigator.share → 실패 시 clipboard.writeText 폴백
  */
@@ -22,8 +22,8 @@ export interface ShareArgs {
  */
 export function buildInviteUrl(codeOrId: string): string {
   const origin =
-    typeof window !== 'undefined' && window.location?.origin
-      ? window.location.origin
+    typeof window !== 'undefined' && globalThis.location?.origin
+      ? globalThis.location.origin
       : 'https://rotifolk.app'
   const safe = encodeURIComponent(String(codeOrId).trim())
   return `${origin}/invite/${safe}`

@@ -157,7 +157,7 @@ export default function SearchPage() {
 
   const handleFocus = () => {
     if (blurTimer.current) {
-      window.clearTimeout(blurTimer.current)
+      globalThis.clearTimeout(blurTimer.current)
       blurTimer.current = null
     }
     setFocused(true)
@@ -165,7 +165,7 @@ export default function SearchPage() {
 
   const handleBlur = () => {
     // delay so click on suggestion can register before we hide it
-    blurTimer.current = window.setTimeout(() => setFocused(false), 150)
+    blurTimer.current = globalThis.setTimeout(() => setFocused(false), 150)
   }
 
   const choose = (term: string) => {

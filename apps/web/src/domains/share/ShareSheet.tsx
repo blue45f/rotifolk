@@ -25,7 +25,7 @@ const QR_ENDPOINT = 'https://api.qrserver.com/v1/create-qr-code/'
 /**
  * 모임 공유 바텀시트.
  * PartyShareCard 미리보기 + 시스템 공유 / 링크 복사 / X / 카카오 / QR.
- * 새 의존성 없이 Web Share API · window.open intent · clipboard만 사용.
+ * 새 의존성 없이 Web Share API · globalThis.open intent · clipboard만 사용.
  */
 export function ShareSheet({
   open,
@@ -44,11 +44,11 @@ export function ShareSheet({
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
+    globalThis.addEventListener('keydown', onKey)
     const original = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
-      window.removeEventListener('keydown', onKey)
+      globalThis.removeEventListener('keydown', onKey)
       document.body.style.overflow = original
     }
   }, [open, onClose])
@@ -73,7 +73,7 @@ export function ShareSheet({
     const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
       text
     )}&url=${encodeURIComponent(inviteUrl)}`
-    window.open(intent, '_blank', 'noopener,noreferrer')
+    globalThis.open(intent, '_blank', 'noopener,noreferrer')
   }
 
   const handleKakao = async () => {

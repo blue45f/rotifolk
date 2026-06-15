@@ -60,7 +60,7 @@ export default function SupportPage() {
     setSubmitting(true)
     setErrorMessage(null)
     try {
-      const created = await createInquiry(input, window.location.href)
+      const created = await createInquiry(input, globalThis.location.href)
       setReceipt(created)
     } catch (error) {
       setErrorMessage((error as Error).message || '문의 접수에 실패했어요.')

@@ -32,11 +32,11 @@ export function usePwaInstall() {
       setInstalled(true)
       setEvent(null)
     }
-    window.addEventListener('beforeinstallprompt', onPrompt)
-    window.addEventListener('appinstalled', onInstalled)
+    globalThis.addEventListener('beforeinstallprompt', onPrompt)
+    globalThis.addEventListener('appinstalled', onInstalled)
     return () => {
-      window.removeEventListener('beforeinstallprompt', onPrompt)
-      window.removeEventListener('appinstalled', onInstalled)
+      globalThis.removeEventListener('beforeinstallprompt', onPrompt)
+      globalThis.removeEventListener('appinstalled', onInstalled)
     }
   }, [])
 

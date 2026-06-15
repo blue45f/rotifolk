@@ -69,7 +69,7 @@ export function usePageMeta(meta: PageMeta): void {
   // 호출부가 렌더마다 새 객체를 만들어도 effect가 헛돌지 않도록 직렬화 문자열을 deps로 쓴다.
   const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined
   // 렌더 시점에 풀어 deps에 넣는다 — 같은 컴포넌트가 파라미터만 바뀌며 재사용돼도 canonical이 따라온다.
-  const canonicalPath = path ?? (typeof window === 'undefined' ? '/' : window.location.pathname)
+  const canonicalPath = path ?? (typeof window === 'undefined' ? '/' : globalThis.location.pathname)
 
   useEffect(() => {
     const resolvedTitle = title ? (withBrand ? `${title} · ${BRAND}` : title) : DEFAULT_TITLE

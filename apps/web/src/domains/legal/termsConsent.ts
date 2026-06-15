@@ -128,7 +128,7 @@ const dispatchConsentUpdated = (state: TermsConsentState) => {
     detail: state,
   })
 
-  window.dispatchEvent(event)
+  globalThis.dispatchEvent(event)
 }
 
 const normalizeSectionHashes = (value: unknown): Record<TermsSectionId, string> => {

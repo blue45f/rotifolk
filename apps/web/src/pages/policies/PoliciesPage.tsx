@@ -156,8 +156,8 @@ function resolveSafeReturnPath(raw: string | null): string {
   if (typeof window === 'undefined') return fallback
 
   try {
-    const target = new URL(raw, window.location.origin)
-    if (target.origin !== window.location.origin) return fallback
+    const target = new URL(raw, globalThis.location.origin)
+    if (target.origin !== globalThis.location.origin) return fallback
     return `${target.pathname}${target.search}${target.hash}`
   } catch {
     return fallback
@@ -329,10 +329,10 @@ export default function PoliciesPage() {
     if (!focusedSection) return
     const element = document.getElementById(focusedSection)
     if (!element) return
-    const id = window.setTimeout(() => {
+    const id = globalThis.setTimeout(() => {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 80)
-    return () => window.clearTimeout(id)
+    return () => globalThis.clearTimeout(id)
   }, [focusedSection])
 
   useEffect(() => {

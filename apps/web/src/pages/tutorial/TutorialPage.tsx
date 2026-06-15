@@ -158,8 +158,8 @@ function resolveSafeReturnPath(raw: string | null): string {
   if (typeof window === 'undefined') return fallback
 
   try {
-    const target = new URL(raw, window.location.origin)
-    if (target.origin !== window.location.origin) return fallback
+    const target = new URL(raw, globalThis.location.origin)
+    if (target.origin !== globalThis.location.origin) return fallback
     return `${target.pathname}${target.search}${target.hash}`
   } catch {
     return fallback
@@ -293,12 +293,12 @@ export default function TutorialPage() {
       refreshTerms(next ?? undefined)
     }
 
-    window.addEventListener('storage', onStorageChange)
-    window.addEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
+    globalThis.addEventListener('storage', onStorageChange)
+    globalThis.addEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
 
     return () => {
-      window.removeEventListener('storage', onStorageChange)
-      window.removeEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
+      globalThis.removeEventListener('storage', onStorageChange)
+      globalThis.removeEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
     }
   }, [])
 
@@ -326,12 +326,12 @@ export default function TutorialPage() {
       })
     }
 
-    window.addEventListener('storage', onStorageChange)
-    window.addEventListener(COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT, onDemoActivityChanged)
+    globalThis.addEventListener('storage', onStorageChange)
+    globalThis.addEventListener(COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT, onDemoActivityChanged)
 
     return () => {
-      window.removeEventListener('storage', onStorageChange)
-      window.removeEventListener(COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT, onDemoActivityChanged)
+      globalThis.removeEventListener('storage', onStorageChange)
+      globalThis.removeEventListener(COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT, onDemoActivityChanged)
     }
   }, [])
 
@@ -366,13 +366,13 @@ export default function TutorialPage() {
 
   useEffect(() => {
     if (!focus) return
-    const timeout = window.setTimeout(() => {
+    const timeout = globalThis.setTimeout(() => {
       const node = document.getElementById(`tutorial-step-${focus}`)
       if (node) {
         node.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
     }, 80)
-    return () => window.clearTimeout(timeout)
+    return () => globalThis.clearTimeout(timeout)
   }, [focus])
 
   return (

@@ -5,7 +5,7 @@ import { useRecentSearches } from './useRecentSearches'
 
 describe('useRecentSearches', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
   })
 
   it('normalizes, deduplicates by case-insensitive term, and caps list size', () => {
@@ -56,10 +56,10 @@ describe('useRecentSearches', () => {
 
   it('reloads across storage events', () => {
     const { result } = renderHook(() => useRecentSearches())
-    window.localStorage.setItem('rotifolk-recent-searches', JSON.stringify(['foo', 'bar']))
+    globalThis.localStorage.setItem('rotifolk-recent-searches', JSON.stringify(['foo', 'bar']))
 
     act(() => {
-      window.dispatchEvent(new StorageEvent('storage', { key: 'rotifolk-recent-searches' }))
+      globalThis.dispatchEvent(new StorageEvent('storage', { key: 'rotifolk-recent-searches' }))
     })
 
     expect(result.current.items).toEqual(['foo', 'bar'])

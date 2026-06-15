@@ -46,14 +46,14 @@ describe('usePageMeta', () => {
 
   it('path를 생략하면 현재 location.pathname을 canonical 경로로 쓴다', () => {
     const { canonical, ogUrl } = injectCanonicalTags()
-    window.history.pushState({}, '', '/discover')
+    globalThis.history.pushState({}, '', '/discover')
     const { unmount } = renderHook(() => usePageMeta({ title: '둘러보기' }))
 
     expect(canonical.href).toBe(`${SITE_ORIGIN}/discover`)
     expect(ogUrl.content).toBe(`${SITE_ORIGIN}/discover`)
 
     unmount()
-    window.history.pushState({}, '', '/')
+    globalThis.history.pushState({}, '', '/')
     canonical.remove()
     ogUrl.remove()
   })

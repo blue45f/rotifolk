@@ -1,3 +1,4 @@
+import { FeedbackWidget } from '@components/feedback/SurveyDesk/FeedbackWidget'
 import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
 import { useChatRealtime } from '@domains/chat/useChatRealtime'
 import CommandPalette from '@domains/command-palette/CommandPalette'
@@ -33,7 +34,7 @@ export default function RootLayout() {
   // 라우트 전환 시 스크롤을 최상단으로 되돌리고 본문 랜드마크로 포커스를 옮긴다(a11y).
   // 첫 진입(직접 연 위치)은 포커스를 가로채지 않는다.
   useEffect(() => {
-    window.scrollTo(0, 0)
+    globalThis.scrollTo(0, 0)
     if (isFirstRender.current) {
       isFirstRender.current = false
       return
@@ -66,8 +67,8 @@ export default function RootLayout() {
         return
       }
     }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    globalThis.addEventListener('keydown', onKeyDown)
+    return () => globalThis.removeEventListener('keydown', onKeyDown)
   }, [isLive])
 
   return (
@@ -85,6 +86,10 @@ export default function RootLayout() {
       {!isLive && <OnboardingSheet forceOpenSignal={onboardingOpenSignal} />}
       {isCommandOpen && (
         <CommandPalette onClose={closeCommand} onRestartOnboarding={openOnboarding} />
+      )}
+      {/* SurveyDesk 미배포 시(VITE_SURVEYDESK_URL 미설정) 위젯은 렌더되지 않아 앱에 영향 없음 */}
+      {import.meta.env.VITE_SURVEYDESK_URL && (
+        <FeedbackWidget appId="rotifolk" endpoint={import.meta.env.VITE_SURVEYDESK_URL} />
       )}
     </div>
   )

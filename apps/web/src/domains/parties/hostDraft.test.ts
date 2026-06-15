@@ -4,7 +4,7 @@ import { HOST_DRAFT_KEY, clearHostDraft, loadHostDraft, saveHostDraft } from './
 
 describe('hostDraft', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
   })
 
   it('returns null when no draft is stored', () => {
@@ -33,16 +33,16 @@ describe('hostDraft', () => {
   })
 
   it('returns null for corrupted or non-object payloads', () => {
-    window.localStorage.setItem(HOST_DRAFT_KEY, '{not json')
+    globalThis.localStorage.setItem(HOST_DRAFT_KEY, '{not json')
     expect(loadHostDraft()).toBeNull()
-    window.localStorage.setItem(HOST_DRAFT_KEY, JSON.stringify(['oops']))
+    globalThis.localStorage.setItem(HOST_DRAFT_KEY, JSON.stringify(['oops']))
     expect(loadHostDraft()).toBeNull()
   })
 
   it('clears the stored draft', () => {
     saveHostDraft({ title: '지울 드래프트' })
     clearHostDraft()
-    expect(window.localStorage.getItem(HOST_DRAFT_KEY)).toBeNull()
+    expect(globalThis.localStorage.getItem(HOST_DRAFT_KEY)).toBeNull()
     expect(loadHostDraft()).toBeNull()
   })
 

@@ -35,16 +35,16 @@ export default defineConfig(
   {
     files: ['apps/web/**/*.{ts,tsx}'],
     rules: {
-      // 네이티브 window.confirm/alert/prompt 금지 — 브랜드 ConfirmProvider/Toast/Sheet를 쓴다.
+      // 네이티브 globalThis.confirm/alert/prompt 금지 — 브랜드 ConfirmProvider/Toast/Sheet를 쓴다.
       // (useConfirm() 같은 로컬 confirm 변수는 섀도잉이라 영향 없음)
       'no-restricted-globals': [
         'error',
         {
           name: 'confirm',
-          message: 'useConfirm()/ConfirmProvider를 사용하세요 (window.confirm 금지).',
+          message: 'useConfirm()/ConfirmProvider를 사용하세요 (globalThis.confirm 금지).',
         },
-        { name: 'alert', message: 'Toast/Sheet를 사용하세요 (window.alert 금지).' },
-        { name: 'prompt', message: '입력 Sheet/폼을 사용하세요 (window.prompt 금지).' },
+        { name: 'alert', message: 'Toast/Sheet를 사용하세요 (globalThis.alert 금지).' },
+        { name: 'prompt', message: '입력 Sheet/폼을 사용하세요 (globalThis.prompt 금지).' },
       ],
       // react-hooks 불변식과 exhaustive-deps 는 하드 게이트로 error 강제.
       'react-hooks/exhaustive-deps': 'error',

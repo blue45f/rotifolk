@@ -268,7 +268,7 @@ export default function PartyDetailPage() {
   })
 
   const handleShare = async () => {
-    const url = window.location.href
+    const url = globalThis.location.href
     const title = data?.party.title ?? 'Rotifolk 파티'
     try {
       if (navigator.share) {
@@ -306,10 +306,10 @@ export default function PartyDetailPage() {
       {
         uid: `rotifolk-${p.id}@rotifolk.app`,
         title: p.title,
-        description: `${p.config.category} · ${p.config.totalRounds}라운드 · ${p.currentParticipants}/${p.maxParticipants}명\n${window.location.href}`,
+        description: `${p.config.category} · ${p.config.totalRounds}라운드 · ${p.currentParticipants}/${p.maxParticipants}명\n${globalThis.location.href}`,
         startAt: p.startAt,
         endAt: p.endAt,
-        url: window.location.href,
+        url: globalThis.location.href,
       },
       safe
     )
@@ -646,7 +646,7 @@ export default function PartyDetailPage() {
                 maxParticipants={party.maxParticipants}
                 inviteUrl={
                   typeof window !== 'undefined'
-                    ? `${window.location.origin}/parties/${party.id}`
+                    ? `${globalThis.location.origin}/parties/${party.id}`
                     : `/parties/${party.id}`
                 }
                 gradient={cat.bgGradient}

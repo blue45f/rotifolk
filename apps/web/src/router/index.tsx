@@ -25,7 +25,7 @@ function lazyRetry<T extends ComponentType>(factory: () => Promise<{ default: T 
     } catch (error) {
       if (!sessionStorage.getItem(CHUNK_RETRY_KEY)) {
         sessionStorage.setItem(CHUNK_RETRY_KEY, '1')
-        window.location.reload()
+        globalThis.location.reload()
         // Stay pending — the reload takes over this document.
         return new Promise<never>(() => {})
       }

@@ -74,7 +74,7 @@ export default function QuickCreatePage() {
 
   const handleShare = async () => {
     if (!createdParty) return
-    const url = `${window.location.origin}/invite/${createdParty.quickCode}`
+    const url = `${globalThis.location.origin}/invite/${createdParty.quickCode}`
     const shareText = `즉석 모임에 초대합니다!\n초대 코드: ${createdParty.quickCode}`
     try {
       if (navigator.share) {

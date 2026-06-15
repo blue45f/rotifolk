@@ -50,8 +50,8 @@ export function useRecentSearches() {
     const onStorage = (e: StorageEvent) => {
       if (e.key === KEY) setItems(load())
     }
-    window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
+    globalThis.addEventListener('storage', onStorage)
+    return () => globalThis.removeEventListener('storage', onStorage)
   }, [])
 
   return { items, remember, forget, clearAll }

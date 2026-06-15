@@ -133,7 +133,7 @@ const DICTS: Record<Locale, Record<string, string>> = { ko: KO, en: EN }
 function detectInitialLocale(): Locale {
   if (typeof window === 'undefined') return 'ko'
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY)
+    const stored = globalThis.localStorage.getItem(STORAGE_KEY)
     if (stored === 'ko' || stored === 'en') return stored
   } catch {
     // ignore storage access errors (private mode etc.)
@@ -147,7 +147,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, locale)
+      globalThis.localStorage.setItem(STORAGE_KEY, locale)
     } catch {
       // ignore storage write errors
     }

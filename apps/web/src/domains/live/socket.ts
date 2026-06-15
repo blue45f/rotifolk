@@ -11,7 +11,7 @@ export function getSocket(): Socket<ServerToClientEvents, ClientToServerEvents> 
 
   const mockMode = import.meta.env.VITE_USE_MSW === 'true' || import.meta.env.VITE_USE_MSW === '1'
   const url =
-    (mockMode ? window.location.origin : import.meta.env.VITE_SOCKET_URL) ??
+    (mockMode ? globalThis.location.origin : import.meta.env.VITE_SOCKET_URL) ??
     (import.meta.env.DEV ? 'http://localhost:3000' : '')
 
   if (singleton) {

@@ -175,7 +175,7 @@ export default function InvitePage() {
   }
 
   const handleShare = async () => {
-    const url = window.location.href
+    const url = globalThis.location.href
     const shareText = `${data.title}\n${startLabel} · ${data.venueArea}\n초대 코드: ${data.quickCode}`
     try {
       if (navigator.share) {

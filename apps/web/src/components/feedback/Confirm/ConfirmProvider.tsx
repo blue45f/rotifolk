@@ -6,7 +6,7 @@ import { ConfirmContext, type ConfirmFn, type ConfirmOptions } from './ConfirmCo
 
 /**
  * Imperative `confirm()` resolving to a boolean, backed by the branded modal
- * {@link Sheet} — a themed, accessible replacement for `window.confirm`. One
+ * {@link Sheet} — a themed, accessible replacement for `globalThis.confirm`. One
  * instance lives at the app root (like the Toaster); call sites do
  * `if (!(await confirm({ title, danger: true }))) return`.
  */

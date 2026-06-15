@@ -708,12 +708,12 @@ export default function CommunityPage() {
       refreshTerms(detailState ?? undefined)
     }
 
-    window.addEventListener('storage', onStorageChange)
-    window.addEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
+    globalThis.addEventListener('storage', onStorageChange)
+    globalThis.addEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
 
     return () => {
-      window.removeEventListener('storage', onStorageChange)
-      window.removeEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
+      globalThis.removeEventListener('storage', onStorageChange)
+      globalThis.removeEventListener(TERMS_CONSENT_CHANGED_EVENT, onTermsConsentChange)
     }
   }, [])
 
@@ -737,12 +737,12 @@ export default function CommunityPage() {
       setDemoActivityLog((prev) => mergeCommunityDemoActivity(prev, next))
     }
 
-    window.addEventListener('storage', onStorageChange)
-    window.addEventListener(COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT, onDemoActivityChanged)
+    globalThis.addEventListener('storage', onStorageChange)
+    globalThis.addEventListener(COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT, onDemoActivityChanged)
 
     return () => {
-      window.removeEventListener('storage', onStorageChange)
-      window.removeEventListener(COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT, onDemoActivityChanged)
+      globalThis.removeEventListener('storage', onStorageChange)
+      globalThis.removeEventListener(COMMUNITY_DEMO_ACTIVITY_CHANGED_EVENT, onDemoActivityChanged)
     }
   }, [])
 

@@ -14,12 +14,12 @@ const sampleTrack = {
 
 describe('useBgmQueue', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
     vi.useRealTimers()
   })
 
   it('loads cached queue and clamps out-of-range current index', () => {
-    window.localStorage.setItem(
+    globalThis.localStorage.setItem(
       storageKey('party-1'),
       JSON.stringify({
         tracks: [sampleTrack, { ...sampleTrack, id: 'track-2', title: 'second' }],
@@ -70,7 +70,7 @@ describe('useBgmQueue', () => {
     expect(result.current.current).toBe(2)
     expect(result.current.currentTrack?.title).toBe('C')
 
-    const persisted = JSON.parse(window.localStorage.getItem(storageKey('party-1')) ?? '{}')
+    const persisted = JSON.parse(globalThis.localStorage.getItem(storageKey('party-1')) ?? '{}')
     expect(persisted.current).toBe(2)
     expect(persisted.tracks).toHaveLength(2)
   })

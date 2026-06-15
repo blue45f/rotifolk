@@ -50,8 +50,8 @@ export function useGeolocation(autoRequest = false): GeoState & { request: () =>
 
   useEffect(() => {
     if (!autoRequest || state.status !== 'idle') return
-    const timer = window.setTimeout(request, 0)
-    return () => window.clearTimeout(timer)
+    const timer = globalThis.setTimeout(request, 0)
+    return () => globalThis.clearTimeout(timer)
   }, [autoRequest, state.status, request])
 
   return { ...state, request }

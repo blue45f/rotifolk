@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly VITE_API_URL?: string
   readonly VITE_SOCKET_URL?: string
   readonly VITE_USE_MSW?: string
+  readonly VITE_SURVEYDESK_URL?: string
 }
 
 interface ImportMeta {

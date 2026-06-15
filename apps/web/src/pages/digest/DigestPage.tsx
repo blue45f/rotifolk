@@ -175,7 +175,7 @@ export default function DigestPage() {
           size="sm"
           className={styles.shareBtn}
           onClick={async () => {
-            const url = window.location.href
+            const url = globalThis.location.href
             const title = '이번 주 Rotifolk 다이제스트'
             if (navigator.share) {
               await navigator.share({ title, url })
