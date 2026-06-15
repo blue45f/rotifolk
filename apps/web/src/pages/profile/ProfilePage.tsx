@@ -17,7 +17,7 @@ import { PartyCard } from '@domains/parties/PartyCard'
 import { useMyParties } from '@domains/parties/queries'
 import { usePageMeta } from '@hooks/usePageMeta'
 import { api } from '@infrastructure/api'
-import { computeHostLevel } from '@rotifolk/shared'
+import { computeHostLevel, computeProfileCompleteness } from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -139,6 +139,20 @@ export default function ProfilePage() {
   })
   const { earned: earnedAchievements, total: totalAchievements } =
     summarizeAchievements(achievements)
+
+  // 프로필 완성도 — 채울수록 매칭 품질·신뢰도가 올라간다. 미완 항목이 있을 때만 안내.
+  const completeness = computeProfileCompleteness(user)
+  // 항목별로 알맞은 액션으로 보낸다(편집 시트 vs 프로필 스튜디오).
+  const NEXT_ITEM_CTA: Record<string, { label: string } & ({ to: string } | { edit: true })> = {
+    bio: { label: '소개 작성', edit: true },
+    mbti: { label: 'MBTI 입력', edit: true },
+    interests: { label: '관심사 추가', edit: true },
+    avatar: { label: '사진 올리기', to: '#avatar' },
+    basics: { label: '기본 정보 입력', to: '/me/profile-studio' },
+    preProfile: { label: '사전 프로필 작성', to: '/me/profile-studio' },
+    channel: { label: '연결 채널 추가', to: '/me/profile-studio' },
+    verified: { label: '본인 인증', to: '/me/profile-studio' },
+  }
 
   const upcoming = mine?.filter((m) =>
     ['confirmed', 'waitlist', 'checked-in'].includes(m.participation.status)
@@ -285,6 +299,71 @@ export default function ProfilePage() {
           </div>
         </div>
       </header>
+
+      {completeness.percent < 100 && completeness.nextItem && (
+        <div className="container">
+          <section className={styles.completeness} aria-labelledby="profile-completeness">
+            <div className={styles.completenessHead}>
+              <strong id="profile-completeness">프로필 완성도</strong>
+              <span className={styles.completenessPercent}>{completeness.percent}%</span>
+            </div>
+            <div
+              className={styles.completenessBar}
+              role="progressbar"
+              aria-valuenow={completeness.percent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="프로필 완성도"
+            >
+              <div
+                className={styles.completenessFill}
+                style={{ width: `${completeness.percent}%` }}
+              />
+            </div>
+            <div className={styles.completenessChecks}>
+              {completeness.items.map((item) => (
+                <span
+                  key={item.key}
+                  className={`${styles.completenessChip} ${item.done ? styles.completenessChipDone : ''}`}
+                >
+                  <Icon name={item.done ? 'check' : 'plus'} size={0.7} />
+                  {item.label}
+                </span>
+              ))}
+            </div>
+            <div className={styles.completenessFoot}>
+              <span className={styles.completenessNext}>
+                다음: <strong>{completeness.nextItem.label}</strong>
+              </span>
+              {(() => {
+                const cta = NEXT_ITEM_CTA[completeness.nextItem.key]
+                if (!cta) return null
+                if ('edit' in cta) {
+                  return (
+                    <Button variant="soft" size="sm" onClick={openProfileEditor}>
+                      {cta.label}
+                    </Button>
+                  )
+                }
+                if (cta.to === '#avatar') {
+                  return (
+                    <Button variant="soft" size="sm" onClick={openAvatarEditor}>
+                      {cta.label}
+                    </Button>
+                  )
+                }
+                return (
+                  <Link to={cta.to}>
+                    <Button variant="soft" size="sm">
+                      {cta.label}
+                    </Button>
+                  </Link>
+                )
+              })()}
+            </div>
+          </section>
+        </div>
+      )}
 
       {showVerifyNudge && (
         <div className="container">

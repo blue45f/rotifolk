@@ -120,6 +120,78 @@
   color: var(--color-text);
 }
 
+/* ---- Profile completeness ---- */
+.completeness {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-6);
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklab, var(--color-primary) 6%, var(--color-surface));
+  border: 1px solid color-mix(in oklab, var(--color-primary) 20%, transparent);
+}
+.completenessHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.completenessHead strong {
+  font-weight: var(--fw-bold);
+}
+.completenessPercent {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+.completenessBar {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--color-primary) 14%, var(--color-surface));
+  overflow: hidden;
+}
+.completenessFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--color-primary), var(--brand-apricot-400));
+  transition: width var(--dur-slow) var(--ease-out-quart);
+}
+.completenessChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.completenessChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  background: color-mix(in oklab, var(--color-text) 6%, transparent);
+  color: var(--color-text-muted);
+}
+.completenessChipDone {
+  background: color-mix(in oklab, var(--color-success, var(--color-primary)) 14%, transparent);
+  color: color-mix(in oklab, var(--color-success, var(--color-primary)) 80%, var(--color-text));
+}
+.completenessFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.completenessNext {
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+}
+.completenessNext strong {
+  color: var(--color-text);
+  font-weight: var(--fw-semibold);
+}
+
 /* ---- Tabs + content ---- */
 .tabsRow {
   margin-bottom: var(--space-6);
