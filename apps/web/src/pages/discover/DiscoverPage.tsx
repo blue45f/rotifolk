@@ -16,6 +16,8 @@ import {
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
+import { SponsoredRail } from '../../domains/deskcloud/SponsoredRail'
+
 import styles from './DiscoverPage.module.css'
 
 import type { PartyCategory, PriceBandKey } from '@rotifolk/shared'
@@ -377,6 +379,9 @@ export default function DiscoverPage() {
                 <div className={styles.featGrid}>{renderCards(featured)}</div>
               </div>
             )}
+
+            {/* 추천(Sponsored) 모임 — 네이티브 AdDesk 레일; 서빙될 때만 렌더 */}
+            <SponsoredRail />
 
             <div className={styles.section}>
               {featured.length > 0 && (

@@ -30,6 +30,7 @@
     "@radix-ui/react-visually-hidden": "^1.2.5",
     "@rotifolk/shared": "workspace:*",
     "@tanstack/react-query": "^5.101.0",
+    "embla-carousel-react": "^8.6.0",
     "ky": "^2.0.2",
     "motion": "^12.40.0",
     "react": "^19.2.7",
