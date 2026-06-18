@@ -16,6 +16,7 @@ import styles from './HomePage.module.css'
 import type { PartySummary } from '@rotifolk/shared'
 
 import { ALL_CATEGORIES, CATEGORY_META } from '@/domains/categories/meta'
+import { Testimonials } from '@/domains/deskcloud/Testimonials'
 import { PartyCard } from '@/domains/parties/PartyCard'
 import { useParties } from '@/domains/parties/queries'
 import { useRecents } from '@/domains/recents/useRecents'
@@ -315,6 +316,9 @@ export default function HomePage() {
           </li>
         </ol>
       </section>
+
+      {/* ===== 이용 후기(ReviewDesk) — VITE_REVIEWDESK_URL 설정 시에만 렌더(SDK pk_ 네이티브) ===== */}
+      <Testimonials limit={3} />
 
       {/* ===== Recently viewed — slim personal rail ===== */}
       {recentTop.length > 0 && (

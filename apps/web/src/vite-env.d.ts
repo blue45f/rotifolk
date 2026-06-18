@@ -4,19 +4,13 @@ interface ImportMetaEnv {
   readonly VITE_API_URL?: string
   readonly VITE_SOCKET_URL?: string
   readonly VITE_USE_MSW?: string
-  readonly VITE_SURVEYDESK_URL?: string
-  // DeskCloud 위젯 — 각 *_URL 설정 시에만 위젯이 활성화된다(*_PK 는 공개 키, 미설정 시 pk_demo).
-  readonly VITE_CHANGELOGDESK_URL?: string
+  // DeskCloud 네이티브 연동(@heejun/deskcloud SDK, pk_) — 각 *_URL 설정 시에만 활성.
+  // *_PK 는 브라우저 노출이 안전한 공개 키이며 미설정 시 pk_demo 로 폴백한다(위젯 임베드 없음).
+  readonly VITE_SURVEYDESK_URL?: string // 피드백(우하단 런처)
+  readonly VITE_SURVEYDESK_PK?: string
+  readonly VITE_CHANGELOGDESK_URL?: string // 새 소식(헤더 런처)
   readonly VITE_CHANGELOGDESK_PK?: string
-  readonly VITE_NOTIFYDESK_URL?: string
-  readonly VITE_NOTIFYDESK_PK?: string
-  readonly VITE_SEARCHDESK_URL?: string
-  readonly VITE_SEARCHDESK_PK?: string
-  readonly VITE_COMMUNITYDESK_URL?: string
-  readonly VITE_COMMUNITYDESK_PK?: string
-  readonly VITE_CHATDESK_URL?: string
-  readonly VITE_CHATDESK_PK?: string
-  readonly VITE_REVIEWDESK_URL?: string
+  readonly VITE_REVIEWDESK_URL?: string // 이용 후기(홈 섹션)
   readonly VITE_REVIEWDESK_PK?: string
 }
 

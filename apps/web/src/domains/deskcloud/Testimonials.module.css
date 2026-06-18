@@ -1,0 +1,131 @@
+/* 이용 후기 섹션 — 홈의 다른 섹션과 동일한 리듬·토큰을 따른다(네이티브 룩앤필). */
+.section {
+  padding: var(--space-16) var(--space-4);
+}
+.head {
+  margin-bottom: var(--space-8);
+}
+.title {
+  font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+  font-weight: var(--fw-black);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--lh-snug);
+  text-wrap: balance;
+}
+.sub {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--fs-sm);
+}
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-5);
+}
+
+.card {
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.stars {
+  display: inline-flex;
+  gap: 2px;
+  font-size: var(--fs-md);
+  line-height: 1;
+}
+/* amber 별점 — 앱 팔레트(따뜻한 amber)로, 외부 위젯의 파랑/노랑이 아님. */
+.starOn {
+  color: var(--brand-amber-600);
+}
+.starOff {
+  color: var(--color-border-strong);
+}
+
+.quote {
+  margin: 0;
+  flex: 1;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  color: var(--color-text);
+  /* 가독 measure — 한 줄이 너무 길어지지 않도록 제한. */
+  max-width: 60ch;
+  text-wrap: pretty;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.quoteTitle {
+  color: var(--color-text);
+  font-weight: var(--fw-bold);
+}
+.quoteTitle::after {
+  content: '. ';
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-sm);
+}
+.author {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+}
+
+/* —— 스켈레톤(로딩) —— */
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.skLine {
+  height: 12px;
+  border-radius: var(--radius-xs);
+  background: var(--color-surface-soft);
+  animation: tm-pulse 1.3s ease-in-out infinite;
+}
+@keyframes tm-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skLine {
+    animation: none;
+  }
+}

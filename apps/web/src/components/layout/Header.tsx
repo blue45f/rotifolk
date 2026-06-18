@@ -10,6 +10,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 
 import styles from './Header.module.css'
 
+import { WhatsNew } from '@/domains/deskcloud/WhatsNew'
 import { useLocale, useT } from '@/domains/i18n/useI18n'
 import { notificationKeys } from '@/domains/notifications/useNotificationsRealtime'
 import { api } from '@/infrastructure/api'
@@ -110,6 +111,8 @@ export function Header({ onOpenCommand }: HeaderProps) {
               </button>
             </Tooltip>
           )}
+          {/* ChangelogDesk(새 소식) — VITE_CHANGELOGDESK_URL 설정 시에만 렌더(SDK pk_ 네이티브). */}
+          <WhatsNew />
           <div className={styles.themeWrap}>
             <DropdownMenu.Root>
               <DropdownMenu.Trigger asChild>
