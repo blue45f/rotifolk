@@ -7,9 +7,8 @@ import { Argon2Hasher } from './heejun/argon2-hasher'
 import { OAUTH_VERIFIER } from './heejun/oauth.provider'
 import { TokenService } from './heejun/token.service'
 
-import type { LoginDto, SignUpDto } from '@rotifolk/shared'
-
 import type { OAuthVerifier } from '@heejun/auth'
+import type { LoginDto, SignUpDto } from '@rotifolk/shared'
 
 import { inactiveAccountException, isAccountActive } from '@/common/account-status'
 import { PrismaService } from '@/prisma/prisma.service'
