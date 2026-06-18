@@ -33,23 +33,33 @@
   z-index: 60;
 }
 
-/* ReviewDesk/CommunityDesk 콘텐츠 패널 — 우하단 고정, 크기 제한 + 스크롤. */
+/* ReviewDesk/CommunityDesk 콘텐츠 패널 — 우하단 고정, 크기 제한 + 스크롤.
+   두 패널을 동시에 켜도 겹치지 않도록 ReviewDesk 는 우하단, CommunityDesk 는
+   좌하단으로 분리한다(이전엔 동일 좌표라 겹침). 패널 높이는 화면의 약 45%로
+   제한해 둘이 세로로 쌓여도 본문을 과하게 가리지 않는다. */
 .deskFloatPanel {
   position: fixed;
-  right: var(--space-3);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
   z-index: 55;
-  width: min(380px, calc(100vw - var(--space-6)));
-  max-height: min(60vh, 540px);
+  width: min(360px, calc(100vw - var(--space-6)));
+  max-height: min(46vh, 460px);
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   background: var(--color-surface, #fff);
   border: 1px solid var(--color-border, #d7dae0);
   border-radius: var(--radius-lg, 14px);
-  box-shadow:
-    0 1px 2px rgb(16 24 40 / 6%),
-    0 12px 32px -8px rgb(16 24 40 / 22%);
+  box-shadow: var(--shadow-md);
   padding: var(--space-3);
+}
+
+/* ReviewDesk — 우하단(ChatDesk 런처 위, NotifyDesk 벨 아래로 자연 적층). */
+.deskFloatPanelReview {
+  right: var(--space-3);
+}
+
+/* CommunityDesk — 좌하단(ChangelogDesk 좌하단 런처 위로 적층, ReviewDesk 와 분리). */
+.deskFloatPanelCommunity {
+  left: var(--space-3);
 }
 
 /* 좁은 화면에서는 콘텐츠 패널을 숨겨 본문을 가리지 않는다(부동 런처 위젯만 노출). */

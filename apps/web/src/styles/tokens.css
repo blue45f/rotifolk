@@ -76,7 +76,9 @@
 
   --color-text: oklch(26% 0.022 50);
   --color-text-muted: oklch(46% 0.022 48);
-  --color-text-subtle: oklch(62% 0.016 50);
+  /* WCAG AA: 62% L 는 paper bg(98.5%)에서 ~3.5:1 로 본문 미달이었음.
+     54% 로 낮춰 ~4.9:1 확보(warm hue 유지로 팔레트 정체성 보존). */
+  --color-text-subtle: oklch(54% 0.018 50);
   --color-text-inverse: var(--brand-paper-50);
 
   --color-border: color-mix(in oklab, var(--brand-clay-900) 12%, transparent);

@@ -131,7 +131,11 @@ export default function RootLayout() {
         />
       )}
       {!isLive && env.VITE_REVIEWDESK_URL && (
-        <div className={styles.deskFloatPanel} role="complementary" aria-label="이용 후기">
+        <div
+          className={`${styles.deskFloatPanel} ${styles.deskFloatPanelReview}`}
+          role="complementary"
+          aria-label="이용 후기"
+        >
           <TestimonialWall
             publishableKey={env.VITE_REVIEWDESK_PK ?? 'pk_demo'}
             endpoint={env.VITE_REVIEWDESK_URL}
@@ -141,7 +145,11 @@ export default function RootLayout() {
         </div>
       )}
       {!isLive && env.VITE_COMMUNITYDESK_URL && (
-        <div className={styles.deskFloatPanel} role="complementary" aria-label="커뮤니티">
+        <div
+          className={`${styles.deskFloatPanel} ${styles.deskFloatPanelCommunity}`}
+          role="complementary"
+          aria-label="커뮤니티"
+        >
           <CommunityBoard
             publishableKey={env.VITE_COMMUNITYDESK_PK ?? 'pk_demo'}
             endpoint={env.VITE_COMMUNITYDESK_URL}
