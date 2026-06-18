@@ -1,6 +1,7 @@
-import Loading from '@components/feedback/Loading'
+import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
 import { recommendParties, userToContext } from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
 import { useQuery } from '@tanstack/react-query'

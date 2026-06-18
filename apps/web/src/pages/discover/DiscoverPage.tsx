@@ -3,14 +3,22 @@ import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
+import { Sheet } from '@components/ui/Sheet/Sheet'
+import { Tabs } from '@components/ui/Tabs/Tabs'
 import { usePageMeta } from '@hooks/usePageMeta'
-import { SEOUL_AREAS, haversineKm } from '@rotifolk/shared'
+import {
+  PRICE_BANDS,
+  SEOUL_AREAS,
+  filterByPriceBand,
+  getPriceBand,
+  haversineKm,
+} from '@rotifolk/shared'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import styles from './DiscoverPage.module.css'
 
-import type { PartyCategory } from '@rotifolk/shared'
+import type { PartyCategory, PriceBandKey } from '@rotifolk/shared'
 
 import { ALL_CATEGORIES } from '@/domains/categories/meta'
 import { useGeolocation } from '@/domains/geo/useGeolocation'

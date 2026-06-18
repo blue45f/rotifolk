@@ -1,6 +1,7 @@
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -125,6 +126,8 @@ export default function CalendarPage() {
     () => buildMonthGrid(cursor.getFullYear(), cursor.getMonth(), parties),
     [cursor, parties]
   )
+
+  const selectedCell = useMemo(() => cells.find((c) => c.key === selectedKey), [cells, selectedKey])
 
   const monthLabel = cursor.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
 

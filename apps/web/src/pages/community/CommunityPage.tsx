@@ -3,6 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
 import {
   COMMUNITY_POST_CATEGORY_LABEL,
@@ -12,7 +13,7 @@ import {
   type CreateReportDto,
 } from '@rotifolk/shared'
 import { useCurrentUser } from '@store/authStore'
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import styles from './Community.module.css'

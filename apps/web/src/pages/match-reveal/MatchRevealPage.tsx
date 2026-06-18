@@ -3,6 +3,7 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import {
   CONNECTION_CHANNELS,
   CONTACT_EXCHANGE_POLICY_LABEL,

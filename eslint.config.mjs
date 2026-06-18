@@ -13,6 +13,11 @@ export default defineConfig(
     '**/*.tsbuildinfo',
     'apps/api/prisma/migrations/**',
     '**/*.config.{js,mjs,cjs,ts}',
+    // DeskCloud 단일 파일 벤더 위젯(외부 서비스 원본을 그대로 복붙) — 호스트 레포의
+    // 맞춤 a11y/hooks/react-compiler 규칙 대상이 아니라 원본과 동일하게 유지한다.
+    // (env 미설정 시 렌더 자체가 비활성. 기존 SurveyDesk 벤더와 동일 취급.)
+    'apps/web/src/components/deskcloud/**',
+    'apps/web/src/components/feedback/SurveyDesk/**',
   ]),
 
   // 공유 베이스(TS recommended + import 위생 + prettier 충돌 비활성).

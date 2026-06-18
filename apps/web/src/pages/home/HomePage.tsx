@@ -8,8 +8,9 @@ import { recommendParties, userToContext } from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'motion/react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
+import { buildHomePulse } from './home-pulse'
 import styles from './HomePage.module.css'
 
 import type { PartySummary } from '@rotifolk/shared'

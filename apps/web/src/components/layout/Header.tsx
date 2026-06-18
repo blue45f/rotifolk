@@ -1,5 +1,7 @@
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
+import { Tooltip } from '@components/ui/Tooltip/Tooltip'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useAuthStore } from '@store/authStore'
 import { useThemeStore } from '@store/themeStore'

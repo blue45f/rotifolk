@@ -15,13 +15,13 @@ import type { NotificationItem } from '@/domains/notifications/realtime-cache'
 import { notificationKeys } from '@/domains/notifications/useNotificationsRealtime'
 import { api } from '@/infrastructure/api'
 
-const KIND_EMOJI: Record<string, string> = {
-  party_join: '🎟️',
-  party_starting: '⏰',
-  match_made: '💌',
-  host_review: '⭐',
-  message: '💬',
-  new_follower: '👤',
+const KIND_ICON: Record<string, IconName> = {
+  party_join: 'mail',
+  party_starting: 'clock',
+  match_made: 'mail',
+  host_review: 'check',
+  message: 'chat',
+  new_follower: 'user',
 }
 
 type FilterKey = 'all' | 'party' | 'match' | 'message' | 'review' | 'follow'

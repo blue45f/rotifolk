@@ -1,6 +1,7 @@
 import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useAuthStore } from '@store/authStore'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'

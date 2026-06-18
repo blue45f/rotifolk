@@ -1,5 +1,13 @@
+import { ChangelogWidget } from '@components/deskcloud/changelogdesk/ChangelogWidget'
+import { ChatWidget } from '@components/deskcloud/chatdesk/ChatWidget'
+import { CommunityBoard } from '@components/deskcloud/communitydesk/CommunityBoard'
+import { NotificationBell } from '@components/deskcloud/notifydesk/NotificationBell'
+import { TestimonialWall } from '@components/deskcloud/reviewdesk/ReviewWidgets'
+import { SearchPalette } from '@components/deskcloud/searchdesk/SearchPalette'
 import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
+import { FeedbackWidget } from '@components/feedback/SurveyDesk/FeedbackWidget'
 import { useDocumentTitle } from '@hooks/useDocumentTitle'
+import { useCurrentUser } from '@store/authStore'
 import { useApplyTheme } from '@store/themeStore'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
@@ -14,11 +22,16 @@ import CommandPalette from '@/domains/command-palette/CommandPalette'
 import { useNotificationsRealtime } from '@/domains/notifications/useNotificationsRealtime'
 import OnboardingSheet from '@/domains/onboard/OnboardingSheet'
 
+// DeskCloud 위젯은 각자의 VITE_*_URL 이 설정됐을 때만 렌더된다(미설정=완전 비활성).
+// 퍼블리시 키는 공개 키라 브라우저 노출이 안전하며 미지정 시 데모 키로 폴백한다.
+const env = import.meta.env
+
 export default function RootLayout() {
   useApplyTheme()
   useChatRealtime()
   useNotificationsRealtime()
   useDocumentTitle()
+  const user = useCurrentUser()
   const location = useLocation()
   const isFirstRender = useRef(true)
   const [commandOpen, setCommandOpen] = useState(false)
@@ -88,8 +101,63 @@ export default function RootLayout() {
         <CommandPalette onClose={closeCommand} onRestartOnboarding={openOnboarding} />
       )}
       {/* SurveyDesk 미배포 시(VITE_SURVEYDESK_URL 미설정) 위젯은 렌더되지 않아 앱에 영향 없음 */}
-      {import.meta.env.VITE_SURVEYDESK_URL && (
-        <FeedbackWidget appId="rotifolk" endpoint={import.meta.env.VITE_SURVEYDESK_URL} />
+      {env.VITE_SURVEYDESK_URL && (
+        <FeedbackWidget appId="rotifolk" endpoint={env.VITE_SURVEYDESK_URL} />
+      )}
+
+      {/* ───────────────── DeskCloud 위젯 (각 env URL 설정 시에만 활성) ─────────────────
+          전역 셸에 데스크당 1회 마운트하며, 미설정 env 는 렌더 자체를 건너뛴다(기존 앱 기능 보존). */}
+      {!isLive && env.VITE_CHANGELOGDESK_URL && (
+        <ChangelogWidget
+          publishableKey={env.VITE_CHANGELOGDESK_PK ?? 'pk_demo'}
+          endpoint={env.VITE_CHANGELOGDESK_URL}
+          position="bottom-left"
+        />
+      )}
+      {!isLive && user && env.VITE_NOTIFYDESK_URL && (
+        <div className={styles.deskNotifyBell}>
+          <NotificationBell
+            recipientId={user.id}
+            publishableKey={env.VITE_NOTIFYDESK_PK ?? 'pk_demo'}
+            endpoint={env.VITE_NOTIFYDESK_URL}
+          />
+        </div>
+      )}
+      {!isLive && env.VITE_SEARCHDESK_URL && (
+        <SearchPalette
+          publishableKey={env.VITE_SEARCHDESK_PK ?? 'pk_demo'}
+          endpoint={env.VITE_SEARCHDESK_URL}
+          hotkey="mod+shift+k"
+        />
+      )}
+      {!isLive && env.VITE_REVIEWDESK_URL && (
+        <div className={styles.deskFloatPanel} role="complementary" aria-label="이용 후기">
+          <TestimonialWall
+            publishableKey={env.VITE_REVIEWDESK_PK ?? 'pk_demo'}
+            endpoint={env.VITE_REVIEWDESK_URL}
+            title="이용 후기"
+            limit={3}
+          />
+        </div>
+      )}
+      {!isLive && env.VITE_COMMUNITYDESK_URL && (
+        <div className={styles.deskFloatPanel} role="complementary" aria-label="커뮤니티">
+          <CommunityBoard
+            publishableKey={env.VITE_COMMUNITYDESK_PK ?? 'pk_demo'}
+            endpoint={env.VITE_COMMUNITYDESK_URL}
+            boardSlug="general"
+            memberId={user?.id}
+            memberName={user?.nickname}
+          />
+        </div>
+      )}
+      {!isLive && user && env.VITE_CHATDESK_URL && (
+        <ChatWidget
+          publishableKey={env.VITE_CHATDESK_PK ?? 'pk_demo'}
+          endpoint={env.VITE_CHATDESK_URL}
+          memberId={user.id}
+          memberName={user.nickname}
+        />
       )}
     </div>
   )

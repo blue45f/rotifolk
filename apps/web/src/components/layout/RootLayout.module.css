@@ -19,3 +19,40 @@
     padding-bottom: var(--space-12);
   }
 }
+
+/* ───────────────── DeskCloud 위젯 마운트 컨테이너 ─────────────────
+   각 위젯은 env URL 이 설정됐을 때만 렌더된다. 부동(floating) 위젯들은 셸 위에
+   겹쳐 띄우되 서로 다른 코너/오프셋으로 분리해 충돌을 피한다. 콘텐츠 패널은
+   크기를 제한하고 자체 스크롤을 둬 페이지 레이아웃을 밀어내지 않는다. */
+
+/* NotifyDesk 벨 — 우상단 고정 런처(헤더 기존 벨과 구분되도록 화면 코너에 배치). */
+.deskNotifyBell {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + var(--space-3));
+  right: var(--space-3);
+  z-index: 60;
+}
+
+/* ReviewDesk/CommunityDesk 콘텐츠 패널 — 우하단 고정, 크기 제한 + 스크롤. */
+.deskFloatPanel {
+  position: fixed;
+  right: var(--space-3);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 96px);
+  z-index: 55;
+  width: min(380px, calc(100vw - var(--space-6)));
+  max-height: min(60vh, 540px);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #d7dae0);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 12px 32px -8px rgb(16 24 40 / 22%);
+  padding: var(--space-3);
+}
+
+/* 좁은 화면에서는 콘텐츠 패널을 숨겨 본문을 가리지 않는다(부동 런처 위젯만 노출). */
+@media (max-width: 640px) {
+  .deskFloatPanel {
+    display: none;
+  }
+}

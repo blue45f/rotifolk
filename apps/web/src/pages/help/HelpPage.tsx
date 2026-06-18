@@ -1,6 +1,6 @@
 import EmptyState from '@components/feedback/EmptyState'
 import { Badge } from '@components/ui/Badge/Badge'
-import { Icon } from '@components/ui/Icon/Icon'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import { useEffect, useMemo, useState } from 'react'

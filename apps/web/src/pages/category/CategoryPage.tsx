@@ -3,6 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
 import { useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 

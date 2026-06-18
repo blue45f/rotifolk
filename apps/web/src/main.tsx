@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 
 import AppProviders from '@/app/AppProviders'
 import '@/styles/tailwind.css'
-import '@/styles/globalThis.css'
+import '@/styles/global.css'
 
 async function bootstrap() {
   if (import.meta.env.VITE_USE_MSW === 'true' || import.meta.env.VITE_USE_MSW === '1') {

@@ -1,5 +1,6 @@
 import EmptyState from '@components/feedback/EmptyState'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import { usePageMeta } from '@hooks/usePageMeta'
 import { createElement } from 'react'
 import { Link, useLocation } from 'react-router-dom'

@@ -1,4 +1,5 @@
 import { Button } from '@components/ui/Button/Button'
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Link, useLocation } from 'react-router-dom'
 
 import styles from './NotFound.module.css'

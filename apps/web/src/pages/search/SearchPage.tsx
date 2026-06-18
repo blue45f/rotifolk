@@ -1,6 +1,7 @@
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Chip } from '@components/ui/Chip/Chip'
+import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { RecognizedConditions } from '@components/ui/RecognizedConditions/RecognizedConditions'
 import {
@@ -157,7 +158,7 @@ export default function SearchPage() {
 
   const handleFocus = () => {
     if (blurTimer.current) {
-      globalThis.clearTimeout(blurTimer.current)
+      window.clearTimeout(blurTimer.current)
       blurTimer.current = null
     }
     setFocused(true)
@@ -165,7 +166,7 @@ export default function SearchPage() {
 
   const handleBlur = () => {
     // delay so click on suggestion can register before we hide it
-    blurTimer.current = globalThis.setTimeout(() => setFocused(false), 150)
+    blurTimer.current = window.setTimeout(() => setFocused(false), 150)
   }
 
   const choose = (term: string) => {

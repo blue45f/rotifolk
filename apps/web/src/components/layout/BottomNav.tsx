@@ -1,3 +1,4 @@
+import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { useAuthStore } from '@store/authStore'
 import { useQuery } from '@tanstack/react-query'
 import { NavLink } from 'react-router-dom'

@@ -2,6 +2,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
+import { Icon } from '@components/ui/Icon/Icon'
 import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import {
