@@ -1,0 +1,130 @@
+{
+  "venues": [
+    {
+      "name": "루즈 셀러",
+      "kind": "wine-bar",
+      "area": "한남동",
+      "rating": 4.7,
+      "photos": ["https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=900"]
+    },
+    {
+      "name": "오후의 카페 5510",
+      "kind": "cafe",
+      "area": "연남동",
+      "rating": 4.6,
+      "photos": ["https://images.unsplash.com/photo-1507133750040-4a8f57021571?w=900"]
+    },
+    {
+      "name": "청차원",
+      "kind": "tea-house",
+      "area": "북촌",
+      "rating": 4.8,
+      "photos": ["https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=900"]
+    },
+    {
+      "name": "미드나잇 위스키 라운지",
+      "kind": "whisky-bar",
+      "area": "강남",
+      "rating": 4.9,
+      "photos": ["https://images.unsplash.com/photo-1582819509237-d6b13f681c25?w=900"]
+    }
+  ],
+  "items": [
+    {
+      "id": "party-1",
+      "title": "한남 루프탑 와인 로테이션 vol.12",
+      "description": "5:5 이성 매칭. 6라운드 × 5분. 잔당 결제 — 마음에 드는 와인은 그 자리에서 추가 주문하세요.",
+      "category": "wine",
+      "categoryLabel": "와인",
+      "cover": "https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=1200",
+      "venueName": "루즈 셀러",
+      "area": "한남동",
+      "rating": 4.7,
+      "basePriceKRW": 18000,
+      "maxParticipants": 12,
+      "totalRounds": 5,
+      "tags": ["#와인", "#한남", "#5:5", "#이성매칭"],
+      "alcohol": true
+    },
+    {
+      "id": "party-2",
+      "title": "연남 스페셜티 6종 블라인드 코스",
+      "description": "6종 빈 코스 패키지. 호스트가 한 잔씩 따라드려요. 디저트만 추가 결제.",
+      "category": "coffee",
+      "categoryLabel": "커피",
+      "cover": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200",
+      "venueName": "오후의 카페 5510",
+      "area": "연남동",
+      "rating": 4.6,
+      "basePriceKRW": 32000,
+      "maxParticipants": 9,
+      "totalRounds": 5,
+      "tags": ["#커피", "#블라인드", "#코스", "#아바타모드"],
+      "alcohol": false
+    },
+    {
+      "id": "party-3",
+      "title": "북촌 다실, 차 한 잔의 깊은 대화",
+      "description": "한옥 다실 6종 차 코스. 다과까지 포함된 풀패키지.",
+      "category": "tea",
+      "categoryLabel": "티",
+      "cover": "https://images.unsplash.com/photo-1597481499750-3e6b22637e12?w=1200",
+      "venueName": "청차원",
+      "area": "북촌",
+      "rating": 4.8,
+      "basePriceKRW": 42000,
+      "maxParticipants": 8,
+      "totalRounds": 4,
+      "tags": ["#차", "#한옥", "#코스"],
+      "alcohol": false
+    },
+    {
+      "id": "party-4",
+      "title": "요청 승인형 연락처 교환 데모",
+      "description": "매칭 후 채팅은 바로 시작하고, 인스타·카톡·번호는 상대가 승인할 때만 공개되는 안전형 데모 파티.",
+      "category": "tea",
+      "categoryLabel": "티",
+      "cover": "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=1200",
+      "venueName": "청차원",
+      "area": "북촌",
+      "rating": 4.8,
+      "basePriceKRW": 28000,
+      "maxParticipants": 8,
+      "totalRounds": 4,
+      "tags": ["#요청승인", "#연락처교환", "#데모"],
+      "alcohol": false
+    },
+    {
+      "id": "party-5",
+      "title": "미드나잇 위스키 무제한 페어링",
+      "description": "6종 싱글몰트 무제한 + 다크초콜릿/치즈 코스. 5:5 이성 매칭.",
+      "category": "whisky",
+      "categoryLabel": "whisky",
+      "cover": "https://images.unsplash.com/photo-1582819509237-d6b13f681c25?w=1200",
+      "venueName": "미드나잇 위스키 라운지",
+      "area": "강남",
+      "rating": 4.9,
+      "basePriceKRW": 88000,
+      "maxParticipants": 10,
+      "totalRounds": 5,
+      "tags": ["#위스키", "#무제한", "#강남", "#5:5"],
+      "alcohol": false
+    },
+    {
+      "id": "party-6",
+      "title": "연남 보드게임 + 커피 첫 모임 (무료)",
+      "description": "제가 처음 여는 모임이에요. 커피 한 잔 사면서 자유롭게 모여요. 부담 ZERO!",
+      "category": "custom",
+      "categoryLabel": "custom",
+      "cover": "https://images.unsplash.com/photo-1507133750040-4a8f57021571?w=900",
+      "venueName": "오후의 카페 5510",
+      "area": "연남동",
+      "rating": 4.6,
+      "basePriceKRW": 0,
+      "maxParticipants": 8,
+      "totalRounds": 3,
+      "tags": ["#무료", "#보드게임", "#캐주얼"],
+      "alcohol": false
+    }
+  ]
+}

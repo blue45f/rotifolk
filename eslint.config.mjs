@@ -12,6 +12,7 @@ export default defineConfig(
     '**/*.d.ts',
     '**/*.tsbuildinfo',
     'apps/api/prisma/migrations/**',
+    'apps/toss/**',
     '**/*.config.{js,mjs,cjs,ts}',
     // DeskCloud 단일 파일 벤더 위젯(외부 서비스 원본을 그대로 복붙) — 호스트 레포의
     // 맞춤 a11y/hooks/react-compiler 규칙 대상이 아니라 원본과 동일하게 유지한다.
