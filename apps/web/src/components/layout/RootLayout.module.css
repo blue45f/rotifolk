@@ -46,7 +46,9 @@
   background: var(--color-surface, #fff);
   border: 1px solid var(--color-border, #d7dae0);
   border-radius: var(--radius-lg, 14px);
-  box-shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 12px 32px -8px rgb(16 24 40 / 22%);
+  box-shadow:
+    0 1px 2px rgb(16 24 40 / 6%),
+    0 12px 32px -8px rgb(16 24 40 / 22%);
   padding: var(--space-3);
 }
 

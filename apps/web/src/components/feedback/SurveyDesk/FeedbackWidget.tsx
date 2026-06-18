@@ -91,7 +91,10 @@ function validateAnswers(
     switch (q.type) {
       case 'rating':
         if (!isInt(raw) || raw < RATING_MIN || raw > RATING_MAX)
-          errors.push({ questionId: q.id, message: `별점은 ${RATING_MIN}–${RATING_MAX} 정수여야 합니다` })
+          errors.push({
+            questionId: q.id,
+            message: `별점은 ${RATING_MIN}–${RATING_MAX} 정수여야 합니다`,
+          })
         else value[q.id] = raw
         break
       case 'nps':
@@ -115,8 +118,10 @@ function validateAnswers(
       }
       case 'text': {
         const max = TEXT_MAX[q.variant ?? 'short']
-        if (typeof raw !== 'string') errors.push({ questionId: q.id, message: '문자열이어야 합니다' })
-        else if (raw.length > max) errors.push({ questionId: q.id, message: `${max}자 이내로 입력해 주세요` })
+        if (typeof raw !== 'string')
+          errors.push({ questionId: q.id, message: '문자열이어야 합니다' })
+        else if (raw.length > max)
+          errors.push({ questionId: q.id, message: `${max}자 이내로 입력해 주세요` })
         else value[q.id] = raw.trim()
         break
       }
@@ -340,7 +345,13 @@ const StarIcon = ({ filled }: { filled: boolean }): ReactElement => (
 )
 const CheckIcon = (): ReactElement => (
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="m5 13 4 4L19 7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="m5 13 4 4L19 7"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 )
 const AlertIcon = (): ReactElement => (
@@ -405,7 +416,9 @@ function renderBody(
     case 'multi_choice':
       return <MultiChoice question={question} value={value} onChange={onChange} />
     case 'text':
-      return <Text question={question} value={value} onChange={onChange} describedBy={describedBy} />
+      return (
+        <Text question={question} value={value} onChange={onChange} describedBy={describedBy} />
+      )
     default:
       return <></>
   }
@@ -422,7 +435,8 @@ function Rating({
 }): ReactElement {
   const current = typeof value === 'number' ? value : 0
   const stars = Array.from({ length: RATING_MAX - RATING_MIN + 1 }, (_, i) => RATING_MIN + i)
-  const move = (d: number) => onChange(Math.min(RATING_MAX, Math.max(RATING_MIN, (current || RATING_MIN) + d)))
+  const move = (d: number) =>
+    onChange(Math.min(RATING_MAX, Math.max(RATING_MIN, (current || RATING_MIN) + d)))
   return (
     <div
       className="sd-stars"
@@ -739,7 +753,8 @@ export function FeedbackWidget(props: FeedbackWidgetProps): ReactElement | null 
       respondent,
       meta: {
         pageUrl: typeof location !== 'undefined' ? location.href : undefined,
-        referrer: typeof document !== 'undefined' && document.referrer ? document.referrer : undefined,
+        referrer:
+          typeof document !== 'undefined' && document.referrer ? document.referrer : undefined,
       },
     })
       .then((receipt) => {
@@ -865,8 +880,18 @@ function SurveyForm(props: {
   onClose: () => void
   onSubmit: () => void
 }): ReactElement {
-  const { survey, answers, errors, formError, submitting, titleId, introId, onAnswer, onClose, onSubmit } =
-    props
+  const {
+    survey,
+    answers,
+    errors,
+    formError,
+    submitting,
+    titleId,
+    introId,
+    onAnswer,
+    onClose,
+    onSubmit,
+  } = props
   return (
     <>
       <div className="sd-header">
@@ -916,7 +941,12 @@ function SurveyForm(props: {
         <button type="button" className="sd-btn sd-btn-ghost" onClick={onClose}>
           취소
         </button>
-        <button type="button" className="sd-btn sd-btn-primary" disabled={submitting} onClick={onSubmit}>
+        <button
+          type="button"
+          className="sd-btn sd-btn-primary"
+          disabled={submitting}
+          onClick={onSubmit}
+        >
           {submitting ? '제출 중…' : '제출'}
         </button>
       </div>

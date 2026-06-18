@@ -311,11 +311,7 @@
 .scaleBar {
   height: 14px;
   border-radius: var(--radius-xs);
-  background: linear-gradient(
-    90deg,
-    var(--brand-apricot-500),
-    var(--brand-apricot-400)
-  );
+  background: linear-gradient(90deg, var(--brand-apricot-500), var(--brand-apricot-400));
 }
 
 /* —— Radii —— */
