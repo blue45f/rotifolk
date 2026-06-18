@@ -1,5 +1,4 @@
 import 'reflect-metadata'
-import { ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import compression from 'compression'
@@ -8,8 +7,6 @@ import { Logger } from 'nestjs-pino'
 
 import { AppModule } from './app.module'
 import { validateEnv } from './config/env'
-
-import type { NestExpressApplication } from '@nestjs/platform-express'
 
 import type { NestExpressApplication } from '@nestjs/platform-express'
 
@@ -43,13 +40,9 @@ async function bootstrap() {
     origin: config.get<string>('CORS_ORIGIN', 'http://localhost:5173').split(','),
     credentials: true,
   })
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: false,
-    })
-  )
+  // Request validation is handled per-route via nestjs-zod `ZodValidationPipe`
+  // (this project does not depend on `class-validator`), so no global
+  // class-validator `ValidationPipe` is registered here.
 
   // Let Nest run PrismaService.onModuleDestroy ($disconnect) on SIGTERM/SIGINT
   // so container shutdowns close the DB pool cleanly instead of leaking it.

@@ -5,6 +5,9 @@ import { PassportModule } from '@nestjs/passport'
 
 import { AuthController } from './auth.controller'
 import { AuthService } from './auth.service'
+import { Argon2Hasher } from './heejun/argon2-hasher'
+import { oauthVerifierProvider } from './heejun/oauth.provider'
+import { TokenService } from './heejun/token.service'
 import { JwtStrategy } from './jwt.strategy'
 
 type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn']
