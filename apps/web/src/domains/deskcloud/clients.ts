@@ -11,9 +11,11 @@
  * 위젯(외부 CSS·번들)을 마운트하지 않는다 — 데이터만 SDK 로 받아 앱 컴포넌트·토큰으로 렌더한다.
  */
 import {
+  createAdClient,
   createChangelogClient,
   createReviewClient,
   createSurveyClient,
+  type AdClient,
   type ChangelogClient,
   type ReviewClient,
   type SurveyClient,
@@ -51,6 +53,25 @@ export function getReviewDesk(): ReviewClient | null {
   if (!endpoint) return null
   return createReviewClient({ endpoint, publishableKey: pk(env.VITE_REVIEWDESK_PK) })
 }
+
+/** AdDesk(추천·스폰서 모임 배너) — URL 미설정이면 null. */
+export function getAdDesk(): AdClient | null {
+  const endpoint = env.VITE_ADDESK_URL
+  if (!endpoint) return null
+  return createAdClient({ endpoint, publishableKey: pk(env.VITE_ADDESK_PK) })
+}
+
+/**
+ * 디스커버 "추천(Sponsored)" 레일이 서빙하는 슬롯 키들(슬롯당 1 크리에이티브).
+ * `VITE_ADDESK_SLOTS`(콤마 구분)로 배포별 오버라이드. 활성 크리에이티브를 반환하는
+ * 슬롯만 렌더되므로, 미설정 슬롯(과 AdDesk OFF 전체)은 보이지 않는다.
+ */
+export const adDiscoverSlots: string[] = (
+  env.VITE_ADDESK_SLOTS ?? 'discover-spotlight-1,discover-spotlight-2,discover-spotlight-3'
+)
+  .split(',')
+  .map((s: string) => s.trim())
+  .filter(Boolean)
 
 /** 익명 식별자 — ChangelogDesk 의 미읽음/읽음 추적에 쓰는 디바이스 anonId. */
 const ANON_KEY = 'rotifolk:deskcloud:anonId'
