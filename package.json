@@ -6,7 +6,7 @@
   "packageManager": "pnpm@11.4.0",
   "engines": {
     "node": ">=24.16.0",
-    "pnpm": ">=11.0.0"
+    "pnpm": ">=11"
   },
   "scripts": {
     "prepare": "husky",
@@ -61,7 +61,7 @@
       "eslint --max-warnings=0 --no-warn-ignored --fix",
       "prettier --write"
     ],
-    "*.{json,md,yml,yaml,html}": [
+    "*.{json,md,yml,yaml,html,css}": [
       "prettier --write"
     ]
   }
