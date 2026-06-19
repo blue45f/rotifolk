@@ -2,88 +2,121 @@
 .hero {
   position: relative;
   overflow: hidden;
-  min-height: clamp(520px, 82vh, 720px);
+  min-height: clamp(560px, 84vh, 760px);
   display: flex;
   align-items: flex-end;
   padding-bottom: var(--space-16);
   isolation: isolate;
-  color: var(--brand-cream-50);
-  background-image:
-    linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--brand-ink-900) 92%, transparent) 0%,
-      color-mix(in oklab, var(--brand-ink-900) 45%, transparent) 40%,
-      color-mix(in oklab, var(--brand-ink-900) 80%, transparent) 80%,
-      var(--color-bg) 100%
-    ),
-    url('/images/wine_cellar_twilight_bg.png');
-  background-size: cover;
-  background-position: center 65%;
-  background-repeat: no-repeat;
-  transition: background-position 0.3s var(--ease-out);
-}
-/* Soft sunburst glow toward the upper area, warming the sky. */
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
+  color: var(--color-text);
+  /* The sky stands on its own: a layered golden-hour wash (amber crest →
+     apricot body → warm paper floor) so the hero never depends on a photo. */
   background:
     radial-gradient(
-      90% 70% at 78% 8%,
-      color-mix(in oklab, var(--brand-amber-300) 70%, transparent),
-      transparent 58%
+      130% 90% at 82% -10%,
+      color-mix(in oklab, var(--brand-amber-400) 78%, transparent) 0%,
+      transparent 52%
     ),
     radial-gradient(
-      80% 60% at 14% 0%,
-      color-mix(in oklab, var(--brand-apricot-200) 45%, transparent),
+      120% 80% at 8% -6%,
+      color-mix(in oklab, var(--brand-apricot-300) 62%, transparent) 0%,
+      transparent 56%
+    ),
+    radial-gradient(
+      120% 70% at 50% 116%,
+      color-mix(in oklab, var(--brand-apricot-500) 40%, transparent) 0%,
       transparent 60%
-    );
-  z-index: 0;
-  pointer-events: none;
+    ),
+    linear-gradient(176deg, oklch(93% 0.075 70) 0%, oklch(95% 0.05 58) 42%, var(--color-bg) 100%);
 }
 
-/* —— Decorative sunset glasses —— */
+/* —— Atmospheric layer (sun-glow + drifting motes) —— */
 .heroSky {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  contain: strict;
 }
-.glasses {
+.atmos {
   position: absolute;
-  inset: 16% 0 18% 0;
-  display: block;
+  inset: 0;
 }
-.glass {
+/* The golden sun, breathing slowly upper-right. */
+.sunGlow {
+  position: absolute;
+  top: -22%;
+  right: -8%;
+  width: clamp(360px, 46vw, 640px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--brand-amber-300) 92%, transparent) 0%,
+    color-mix(in oklab, var(--brand-apricot-400) 55%, transparent) 38%,
+    transparent 70%
+  );
+  filter: blur(8px);
+  opacity: 0.85;
+  transform-origin: center;
+  animation: sun-breathe 9s var(--ease-in-out) infinite;
+  will-change: transform, opacity;
+}
+@keyframes sun-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.78;
+  }
+  50% {
+    transform: scale(1.07);
+    opacity: 0.96;
+  }
+}
+/* Warm aperitivo dust drifting up through the golden hour. */
+.motes {
+  position: absolute;
+  inset: 6% 0 8% 0;
+}
+.mote {
   position: absolute;
   bottom: 0;
-  width: 54px;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  filter: drop-shadow(0 18px 36px color-mix(in oklab, var(--brand-apricot-700) 28%, transparent));
-}
-.glassBowl {
-  width: 100%;
-  flex: 1;
-  border-radius: 50% 50% 46% 46% / 18% 18% 82% 82%;
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--brand-amber-100) 70%, transparent) 0%,
-    color-mix(in oklab, var(--brand-apricot-400) 60%, transparent) 60%,
-    color-mix(in oklab, var(--brand-apricot-600) 70%, transparent) 100%
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    color-mix(in oklab, var(--brand-amber-100) 95%, transparent),
+    color-mix(in oklab, var(--brand-apricot-500) 70%, transparent) 70%,
+    transparent
   );
-  box-shadow:
-    inset 0 2px 8px color-mix(in oklab, var(--color-surface) 40%, transparent),
-    inset -6px 0 12px color-mix(in oklab, var(--brand-apricot-700) 26%, transparent);
+  box-shadow: 0 0 10px color-mix(in oklab, var(--brand-amber-400) 55%, transparent);
+  opacity: 0;
+  transform: translateX(-50%);
+  animation: mote-rise var(--dur, 10s) var(--ease-out) var(--delay, 0s) infinite;
+  will-change: transform, opacity;
 }
-.glassStem {
-  width: 6px;
-  height: 22px;
-  border-radius: 0 0 4px 4px;
-  background: color-mix(in oklab, var(--brand-apricot-700) 55%, transparent);
+@keyframes mote-rise {
+  0% {
+    transform: translate(-50%, 10%) scale(0.7);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  82% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--drift, 0px)), -340%) scale(1.05);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sunGlow {
+    animation: none;
+  }
+  .motes {
+    display: none;
+  }
 }
 
 .heroEdge {
@@ -102,21 +135,24 @@
   padding-block: var(--space-16) var(--space-10);
 }
 .heroCopy {
-  max-width: 640px;
+  max-width: 660px;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  background: color-mix(in oklab, var(--color-surface) 78%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: var(--space-7) var(--space-8);
-  border-radius: var(--radius-xl);
-  border: 1px solid color-mix(in oklab, white 8%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 86%, transparent);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  padding: var(--space-8) var(--space-8) var(--space-7);
+  border-radius: var(--radius-2xl);
+  border: 1px solid color-mix(in oklab, var(--brand-apricot-200) 60%, transparent);
   box-shadow:
-    0 24px 48px color-mix(in oklab, var(--brand-ink-900) 40%, transparent),
-    inset 0 1px 0 color-mix(in oklab, white 10%, transparent);
+    var(--shadow-lg),
+    inset 0 1px 0 color-mix(in oklab, white 60%, transparent);
 }
 .kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
   letter-spacing: var(--tracking-uppercase);
@@ -124,27 +160,163 @@
   color: var(--brand-apricot-700);
   font-weight: var(--fw-semibold);
 }
+.kickerDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-amber-500);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--brand-amber-500) 28%, transparent);
+  animation: kicker-twinkle 2.4s var(--ease-in-out) infinite;
+}
+@keyframes kicker-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.82);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kickerDot {
+    animation: none;
+  }
+}
 .heroTitle {
   font-size: clamp(2.6rem, 6.2vw, 4.6rem);
   font-weight: var(--fw-black);
   line-height: var(--lh-tight);
   letter-spacing: var(--tracking-tight);
   color: var(--color-text);
+  text-wrap: balance;
+}
+.heroTitleAccent {
+  position: relative;
+  color: var(--brand-apricot-700);
+}
+/* A warm hand-drawn underline under the accent line. */
+.heroTitleAccent::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.04em;
+  height: 0.16em;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    var(--brand-amber-400),
+    color-mix(in oklab, var(--brand-apricot-500) 90%, transparent)
+  );
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: underline-sweep 0.7s var(--ease-out-expo) 0.5s both;
+}
+@keyframes underline-sweep {
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heroTitleAccent::after {
+    animation: none;
+    transform: scaleX(1);
+  }
 }
 .heroLead {
   font-size: var(--fs-lg);
   line-height: var(--lh-relaxed);
   color: var(--color-text-muted);
   max-width: 56ch;
+  text-wrap: pretty;
 }
 .heroCta {
   display: flex;
   gap: var(--space-3);
+  align-items: center;
   flex-wrap: wrap;
   margin-top: var(--space-2);
 }
 .heroCtaLink {
   text-decoration: none;
+}
+/* Primary CTA: a slow gold sheen sweeps across to draw the eye, once settled. */
+.heroPrimary {
+  position: relative;
+  overflow: hidden;
+}
+.heroPrimary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in oklab, white 50%, transparent) 50%,
+    transparent 70%
+  );
+  transform: translateX(-130%);
+  animation: cta-sheen 4.2s var(--ease-out) 1.4s infinite;
+  pointer-events: none;
+}
+@keyframes cta-sheen {
+  0% {
+    transform: translateX(-130%);
+  }
+  18%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .heroPrimary::after {
+    animation: none;
+    opacity: 0;
+  }
+}
+/* "랜덤 한 잔" — a playful tertiary action; quiet until hovered. */
+.heroDice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px dashed color-mix(in oklab, var(--brand-apricot-600) 45%, transparent);
+  background: transparent;
+  color: var(--brand-apricot-700);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart),
+    transform var(--dur-fast) var(--ease-out-quart);
+}
+.heroDice:hover {
+  background: var(--color-primary-soft);
+  border-color: color-mix(in oklab, var(--brand-apricot-600) 70%, transparent);
+}
+.heroDice:active {
+  transform: scale(0.96);
+}
+.heroDice:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+.heroDiceFace {
+  font-size: 1.05rem;
+  transition: transform var(--dur-base) var(--ease-spring);
+}
+.heroDice:hover .heroDiceFace {
+  transform: rotate(22deg) scale(1.12);
+}
+@media (prefers-reduced-motion: reduce) {
+  .heroDice:hover .heroDiceFace {
+    transform: none;
+  }
 }
 .heroProof {
   display: flex;
@@ -444,16 +616,62 @@
   color: var(--color-text-inverse);
   text-decoration: none;
   isolation: isolate;
+  /* Staggered rise-in on mount. fill-mode both -> resting state is visible even
+     before/after the run, so the tiles never ship blank on a headless render. */
+  animation: tile-in 0.55s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
   transition:
     transform var(--dur-base) var(--ease-spring),
     box-shadow var(--dur-base) var(--ease-out-quart);
 }
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .catTile {
+    animation: none;
+  }
+}
 .catTile:hover {
   transform: translateY(-6px) scale(1.02);
   box-shadow:
-    0 22px 40px color-mix(in oklab, var(--brand-burgundy-900) 28%, transparent),
-    0 0 0 1px color-mix(in oklab, var(--brand-gold-500) 20%, transparent),
+    0 22px 44px color-mix(in oklab, var(--brand-apricot-900) 30%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--brand-amber-400) 28%, transparent),
     var(--shadow-lg);
+}
+.catTile:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+/* A go-arrow that slides in on hover, hinting the tile is a door. */
+.tileGo {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-5);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--brand-paper-50) 22%, transparent);
+  color: var(--color-text-inverse);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+.catTile:hover .tileGo,
+.catTile:focus-visible .tileGo {
+  opacity: 1;
+  transform: translateX(0);
 }
 .tileSurface {
   position: absolute;
@@ -516,8 +734,28 @@
   gap: 0;
 }
 .steps li {
-  padding: var(--space-6) var(--space-5);
-  border-top: 1px solid var(--color-border);
+  position: relative;
+  padding: var(--space-7) var(--space-5) var(--space-6);
+  border-top: 2px solid var(--color-border);
+  animation: tile-in 0.5s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .steps li {
+    animation: none;
+  }
+}
+/* The leading rule warms to apricot on hover — the step lights up in turn. */
+.steps li:hover {
+  border-top-color: var(--color-primary);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-primary) 6%, transparent),
+    transparent 60%
+  );
 }
 .steps li + li {
   border-left: 1px solid var(--color-border);
@@ -528,12 +766,27 @@
   }
 }
 .stepIndex {
-  display: block;
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
   font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  color: var(--color-primary);
-  letter-spacing: var(--tracking-uppercase);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--brand-apricot-700);
+  background: var(--color-primary-soft);
+  letter-spacing: 0.02em;
   margin-bottom: var(--space-3);
+  transition: transform var(--dur-base) var(--ease-spring);
+}
+.steps li:hover .stepIndex {
+  transform: translateY(-2px) scale(1.06);
+}
+@media (prefers-reduced-motion: reduce) {
+  .steps li:hover .stepIndex {
+    transform: none;
+  }
 }
 .steps h3 {
   font-size: var(--fs-lg);
@@ -567,6 +820,7 @@
   text-align: center;
   overflow: hidden;
   isolation: isolate;
+  box-shadow: var(--shadow-lg);
 }
 .ctaCard::after {
   content: '';
@@ -585,15 +839,68 @@
       transparent 70%
     );
 }
+/* A slow drifting light bloom over the cellar gradient. */
+.ctaGlow {
+  position: absolute;
+  z-index: -1;
+  top: -40%;
+  left: 50%;
+  width: 70%;
+  aspect-ratio: 1.6;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--brand-amber-300) 55%, transparent),
+    transparent 68%
+  );
+  filter: blur(10px);
+  transform: translateX(-50%);
+  animation: cta-bloom 11s var(--ease-in-out) infinite;
+  pointer-events: none;
+}
+@keyframes cta-bloom {
+  0%,
+  100% {
+    transform: translate(-58%, 0) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-42%, 6%) scale(1.12);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ctaGlow {
+    animation: none;
+  }
+}
 .ctaCard h2 {
   font-size: clamp(1.8rem, 3.6vw, 2.4rem);
   font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
   margin-block: var(--space-4) var(--space-3);
+  text-wrap: balance;
 }
 .ctaCard p {
   color: color-mix(in oklab, var(--color-text-inverse) 92%, transparent);
   margin-bottom: var(--space-6);
+  max-width: 52ch;
+  margin-inline: auto;
+}
+.ctaActions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+/* The invite button sits on the dark cellar card, so it needs light ink. */
+.ctaShare {
+  color: var(--color-text-inverse);
+  border: 1px solid color-mix(in oklab, var(--brand-paper-50) 40%, transparent);
+  background: color-mix(in oklab, var(--brand-paper-50) 12%, transparent);
+}
+.ctaShare:hover {
+  background: color-mix(in oklab, var(--brand-paper-50) 22%, transparent);
 }
 
 /* ============ Mobile ============ */
@@ -610,15 +917,15 @@
     padding-inline: var(--space-3);
   }
   .heroCopy {
-    padding: var(--space-4) var(--space-5);
-    border-radius: var(--radius-lg);
+    padding: var(--space-5) var(--space-5);
+    border-radius: var(--radius-xl);
   }
   .heroProof {
     font-size: var(--fs-xs);
   }
-  /* 장식용 잔(sunset glasses)은 좁은 폭에서 본문 카드와 겹치므로 숨긴다.
-     순수 장식(aria-hidden)이라 의미 손실이 없다. */
-  .glasses {
+  /* 좁은 폭에서는 떠다니는 모트가 본문 카드와 겹쳐 산만해지므로 숨긴다.
+     순수 장식(aria-hidden)이라 의미 손실이 없다. 해의 글로우는 유지한다. */
+  .motes {
     display: none;
   }
 }

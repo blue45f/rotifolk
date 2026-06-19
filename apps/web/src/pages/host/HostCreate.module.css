@@ -73,11 +73,11 @@
   border: none;
   background: transparent;
   border-radius: var(--radius-pill);
+  font-family: inherit;
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   color: var(--color-text-muted);
   cursor: pointer;
-  font: inherit;
   transition:
     background var(--dur-base) var(--ease-out),
     color var(--dur-base) var(--ease-out);

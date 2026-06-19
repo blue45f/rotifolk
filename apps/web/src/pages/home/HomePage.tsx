@@ -8,7 +8,8 @@ import { recommendParties, userToContext } from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'motion/react'
-import { Link, useLocation } from 'react-router-dom'
+import { useCallback, useMemo } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { buildHomePulse } from './home-pulse'
 import styles from './HomePage.module.css'
@@ -20,6 +21,8 @@ import { Testimonials } from '@/domains/deskcloud/Testimonials'
 import { PartyCard } from '@/domains/parties/PartyCard'
 import { useParties } from '@/domains/parties/queries'
 import { useRecents } from '@/domains/recents/useRecents'
+import { ShareButton } from '@/domains/share/ShareButton'
+import { buildInviteUrl } from '@/domains/share/useShare'
 import { api } from '@/infrastructure/api'
 
 export default function HomePage() {
@@ -29,6 +32,7 @@ export default function HomePage() {
     description: '와인·커피·차·위스키 로테이션 모임. 모르는 사람들이 진짜 친해지는 5분 라운드.',
   })
   const location = useLocation()
+  const navigate = useNavigate()
   const me = useAuthStore((s) => s.user)
   const { data: parties, isLoading } = useParties({ status: 'open', pageSize: 6 })
   const { data: nowParties } = useQuery({
@@ -61,34 +65,59 @@ export default function HomePage() {
   const liveParties = nowParties ?? []
   const hasLive = liveParties.length > 0
 
+  // "랜덤 한 잔" — 어디로 갈지 모르겠다면 운에 맡긴다. 지금 흐르는 라운드(라이브
+  // 우선, 없으면 모집 중)에서 무작위 한 곳으로 데려간다. 순수 클라이언트 동작이라
+  // 추가 네트워크 비용 0, 빈 목록이면 둘러보기로 폴백한다.
+  const shufflePool = useMemo(() => {
+    const live = nowParties ?? []
+    return live.length > 0 ? live : (parties?.items ?? [])
+  }, [nowParties, parties?.items])
+  const handleSurprise = useCallback(() => {
+    if (shufflePool.length === 0) {
+      navigate('/discover')
+      return
+    }
+    const pick = shufflePool[Math.floor(Math.random() * shufflePool.length)]
+    navigate(`/parties/${pick.id}`)
+  }, [navigate, shufflePool])
+
+  // 호스트 CTA에서 공유할 "다음 라운드" — 친구를 데려오면 첫 잔이 덜 어색하다.
+  const featured = pulse.nextParty ?? parties?.items[0] ?? null
+
   return (
     <div>
       {/* ===== HERO — sunset aperitivo, one clear primary path ===== */}
       <section className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroSky} aria-hidden="true">
-          <CellarBottles reduce={reduce} />
+          <SunsetAtmosphere reduce={reduce} />
         </div>
 
         <div className={`container ${styles.heroInner}`}>
           <motion.div
             className={styles.heroCopy}
-            initial={reduce ? false : { opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
+            initial={reduce ? false : 'hidden'}
+            animate="show"
+            variants={{
+              hidden: {},
+              show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+            }}
           >
-            <span className={styles.kicker}>로테이션 파티 매칭 · 와인 · 커피 · 차</span>
-            <h1 id="hero-title" className={styles.heroTitle}>
+            <motion.span className={styles.kicker} variants={lineVariants}>
+              <span className={styles.kickerDot} aria-hidden="true" />
+              로테이션 파티 매칭 · 와인 · 커피 · 차
+            </motion.span>
+            <motion.h1 id="hero-title" className={styles.heroTitle} variants={lineVariants}>
               한 모금이 끝나기 전,
               <br />
-              다음 자리로.
-            </h1>
-            <p className={styles.heroLead}>
+              <span className={styles.heroTitleAccent}>다음 자리로.</span>
+            </motion.h1>
+            <motion.p className={styles.heroLead} variants={lineVariants}>
               호스트가 짠 5분 라운드. 모르는 사람과 한 잔, 새로운 와인 한 모금. 마지막 라운드에
               서로를 고른 사람만 1:1로 이어집니다.
-            </p>
-            <div className={styles.heroCta}>
+            </motion.p>
+            <motion.div className={styles.heroCta} variants={lineVariants}>
               <Link to="/discover" className={styles.heroCtaLink}>
-                <Button variant="primary" size="xl">
+                <Button variant="primary" size="xl" className={styles.heroPrimary}>
                   오늘의 파티
                 </Button>
               </Link>
@@ -97,8 +126,14 @@ export default function HomePage() {
                   즉석 모임
                 </Button>
               </Link>
-            </div>
-            <ul className={styles.heroProof}>
+              <button type="button" className={styles.heroDice} onClick={handleSurprise}>
+                <span className={styles.heroDiceFace} aria-hidden="true">
+                  🎲
+                </span>
+                랜덤 한 잔
+              </button>
+            </motion.div>
+            <motion.ul className={styles.heroProof} variants={lineVariants}>
               <li>
                 <span>5</span>분 라운드
               </li>
@@ -108,7 +143,7 @@ export default function HomePage() {
               </li>
               <li className={styles.proofDot} aria-hidden="true" />
               <li>실명 노출 없이 아바타 모드</li>
-            </ul>
+            </motion.ul>
           </motion.div>
         </div>
 
@@ -206,12 +241,17 @@ export default function HomePage() {
           </div>
         </header>
         <div className={styles.catRail}>
-          {ALL_CATEGORIES.filter((c) => c.value !== 'custom').map((cat) => (
+          {ALL_CATEGORIES.filter((c) => c.value !== 'custom').map((cat, i) => (
             <Link
               key={cat.value}
               to={`/discover?category=${cat.value}`}
               className={styles.catTile}
-              style={{ ['--tile-bg' as never]: cat.bgGradient } as never}
+              style={
+                {
+                  ['--tile-bg' as never]: cat.bgGradient,
+                  ['--i' as never]: i,
+                } as never
+              }
             >
               <span className={styles.tileSurface} aria-hidden="true" />
               <span className={styles.tileEmoji} aria-hidden="true">
@@ -220,6 +260,9 @@ export default function HomePage() {
               <span className={styles.tileBody}>
                 <strong>{cat.label}</strong>
                 <small>{cat.description}</small>
+              </span>
+              <span className={styles.tileGo} aria-hidden="true">
+                <Icon name="chevron-right" />
               </span>
             </Link>
           ))}
@@ -286,7 +329,7 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* ===== How it works — explanatory, demoted below the listings ===== */}
+      {/* ===== How it works — a real ordered sequence, revealed in step ===== */}
       <section className={`container ${styles.section}`} aria-labelledby="how-title">
         <header className={styles.sectionHead}>
           <h2 id="how-title" className={styles.sectionTitle}>
@@ -294,22 +337,22 @@ export default function HomePage() {
           </h2>
         </header>
         <ol className={styles.steps}>
-          <li>
+          <li style={{ ['--i' as never]: 0 } as never}>
             <span className={styles.stepIndex}>01</span>
             <h3>체크인 · 아바타</h3>
             <p>도착하면 좌석 안내. 닉네임과 아바타만으로 충분합니다.</p>
           </li>
-          <li>
+          <li style={{ ['--i' as never]: 1 } as never}>
             <span className={styles.stepIndex}>02</span>
             <h3>라운드 회전</h3>
             <p>5분마다 자동으로 다음 자리. 한 잔에 한 사람.</p>
           </li>
-          <li>
+          <li style={{ ['--i' as never]: 2 } as never}>
             <span className={styles.stepIndex}>03</span>
             <h3>질문 카드 · 라이브 퀴즈</h3>
             <p>4단계 깊이의 카드가 어색함을 녹입니다.</p>
           </li>
-          <li>
+          <li style={{ ['--i' as never]: 3 } as never}>
             <span className={styles.stepIndex}>04</span>
             <h3>최종 매칭</h3>
             <p>서로를 고른 사람만 1:1 채팅이 열립니다.</p>
@@ -363,50 +406,87 @@ export default function HomePage() {
       {/* ===== Host CTA ===== */}
       <section className={`container ${styles.ctaSection}`} aria-labelledby="host-cta">
         <div className={styles.ctaCard}>
+          <span className={styles.ctaGlow} aria-hidden="true" />
           <Badge tone="gold" size="md">
             호스트가 되어볼래요?
           </Badge>
           <h2 id="host-cta">한 모임을 여는 데 5분이면 충분해요.</h2>
           <p>제휴 라운지 · 와인바 · 카페 디렉터리에서 장소를 고르고, 라운드 컨셉만 정하세요.</p>
-          <Link to="/host/create">
-            <Button variant="gold" size="lg">
-              파티 개설 시작
-            </Button>
-          </Link>
+          <div className={styles.ctaActions}>
+            <Link to="/host/create">
+              <Button variant="gold" size="lg">
+                파티 개설 시작
+              </Button>
+            </Link>
+            {featured ? (
+              <ShareButton
+                title={featured.title}
+                category={featured.category}
+                venueArea={featured.venueArea}
+                startAtISO={featured.startAt}
+                currentParticipants={featured.currentParticipants}
+                maxParticipants={featured.maxParticipants}
+                inviteUrl={buildInviteUrl(featured.id)}
+                gradient={CATEGORY_META[featured.category]?.bgGradient}
+                label="친구 초대"
+                variant="ghost"
+                size="lg"
+                className={styles.ctaShare}
+              />
+            ) : null}
+          </div>
         </div>
       </section>
     </div>
   )
 }
 
+/** Staggered hero line entrance — gentle rise + fade, expo ease. */
+const lineVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.19, 1, 0.22, 1] as const } },
+}
+
 /**
- * SunsetGlasses — decorative aperitivo glasses catching the sunset behind the
- * hero copy. Purely ornamental (aria-hidden), hidden on narrow widths.
+ * SunsetAtmosphere — the golden-hour scene behind the hero copy. A soft sun-glow
+ * that breathes and warm motes (aperitivo dust) drifting up, evoking the
+ * "해 지기 직전 첫 잔" north star without depending on a background photo.
+ * Purely ornamental (aria-hidden) and fully suppressed under reduced-motion.
  */
-function CellarBottles({ reduce }: { reduce: boolean }) {
-  const glasses = [
-    { left: '12%', delay: 0, height: 150 },
-    { left: '26%', delay: 0.5, height: 190 },
-    { left: '40%', delay: 0.9, height: 140 },
-    { left: '66%', delay: 0.7, height: 176 },
-    { left: '80%', delay: 0.3, height: 158 },
-    { left: '92%', delay: 1, height: 184 },
+function SunsetAtmosphere({ reduce }: { reduce: boolean }) {
+  const motes = [
+    { left: '14%', delay: 0, dur: 9, size: 7, drift: -18 },
+    { left: '24%', delay: 1.6, dur: 11, size: 5, drift: 14 },
+    { left: '38%', delay: 0.8, dur: 10, size: 9, drift: -10 },
+    { left: '52%', delay: 2.4, dur: 12, size: 6, drift: 20 },
+    { left: '63%', delay: 0.4, dur: 9.5, size: 8, drift: -16 },
+    { left: '74%', delay: 3, dur: 11.5, size: 5, drift: 12 },
+    { left: '83%', delay: 1.2, dur: 10.5, size: 7, drift: -12 },
+    { left: '92%', delay: 2, dur: 12.5, size: 9, drift: 18 },
   ]
   return (
-    <div className={styles.glasses}>
-      {glasses.map((g, i) => (
-        <motion.span
-          key={i}
-          className={styles.glass}
-          style={{ left: g.left, height: g.height }}
-          initial={reduce ? false : { opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: g.delay, duration: 1.2, ease: [0.19, 1, 0.22, 1] }}
-        >
-          <span className={styles.glassBowl} />
-          <span className={styles.glassStem} />
-        </motion.span>
-      ))}
+    <div className={styles.atmos}>
+      <span className={styles.sunGlow} />
+      {!reduce && (
+        <div className={styles.motes}>
+          {motes.map((m, i) => (
+            <span
+              key={i}
+              className={styles.mote}
+              style={
+                {
+                  left: m.left,
+                  width: m.size,
+                  height: m.size,
+                  ['--dur' as never]: `${m.dur}s`,
+                  ['--delay' as never]: `${m.delay}s`,
+                  ['--drift' as never]: `${m.drift}px`,
+                } as never
+              }
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -3463,7 +3463,7 @@ export const handlers = [
                   channels: [
                     { channel: 'chat', handle: null },
                     { channel: 'instagram', handle: isChatOnly ? null : 'haeun_pic' },
-                    { channel: 'kakao', handle: isChatOnly ? null : null },
+                    { channel: 'kakao', handle: null },
                     { channel: 'phone', handle: isChatOnly ? null : '010-9999-8888' },
                   ],
                 },
