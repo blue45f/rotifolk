@@ -46,7 +46,9 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
-    sourcemap: true,
+    // Vercel's builder OOMs in rolldown's native sourcemap generation for this
+    // app; skip sourcemaps there only (kept locally). See vercel.json heap bump.
+    sourcemap: !process.env.VERCEL,
     rollupOptions: {
       output: {
         manualChunks(id) {
