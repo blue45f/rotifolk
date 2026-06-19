@@ -26,10 +26,12 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,css,yml,yaml}\"",
     "ci": "pnpm run db:generate && pnpm run test:api-contracts && pnpm run test:frontend-a11y && pnpm run audit:api-contracts && pnpm run audit:frontend-a11y && pnpm run lint:ci && pnpm run typecheck && pnpm run test && pnpm run build",
     "verify": "pnpm run validate:architecture && pnpm run ci",
-    "verify:push": "pnpm run verify",
+    "verify:push": "pnpm run verify && pnpm run lint:security",
     "sonar": "npx --yes sonar-scanner",
     "lint:strict": "eslint . --max-warnings=0",
     "lint:ci": "pnpm run lint:strict",
+    "audit:security": "pnpm audit --audit-level high --ignore GHSA-2p57-rm9w-gvfp",
+    "lint:security": "pnpm run lint:strict && pnpm run audit:security",
     "sonar:ci": "npx --yes sonar-scanner -Dsonar.qualitygate.wait=true",
     "seed": "pnpm --filter @rotifolk/api run seed",
     "db:generate": "pnpm --filter @rotifolk/api run prisma:generate",
@@ -55,7 +57,6 @@
     "prettier": "^3.8.3",
     "typescript": "^6.0.3"
   },
-  "prettier": "@heejun/prettier-config",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --max-warnings=0 --no-warn-ignored --fix",
