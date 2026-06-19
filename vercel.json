@@ -7,7 +7,8 @@
   "build": {
     "env": {
       "VITE_API_URL": "/api",
-      "VITE_SOCKET_URL": "https://rotifolk.3.107.235.143.nip.io"
+      "VITE_SOCKET_URL": "https://rotifolk.3.107.235.143.nip.io",
+      "NODE_OPTIONS": "--max-old-space-size=4096"
     }
   },
   "rewrites": [
