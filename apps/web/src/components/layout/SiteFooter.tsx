@@ -35,8 +35,8 @@ export function SiteFooter() {
         </nav>
         <p className={styles.copyright}>
           © {year} rotifolk
-          <Link to="/design" className={styles.meta}>
-            디자인 시스템
+          <Link to="/sitemap" className={styles.meta}>
+            사이트맵
           </Link>
         </p>
       </div>

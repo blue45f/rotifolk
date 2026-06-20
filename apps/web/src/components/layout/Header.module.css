@@ -54,6 +54,19 @@
   color: inherit;
   white-space: nowrap;
 }
+.betaBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in oklab, var(--color-primary) 38%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-primary) 10%, transparent);
+  color: var(--color-primary);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-black);
+  line-height: 1;
+  letter-spacing: 0.05em;
+}
 
 .nav {
   display: none;

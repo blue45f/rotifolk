@@ -83,6 +83,7 @@ export const routes: RouteObject[] = [
       { path: 'help', element: lazyPage(() => import('@pages/help/HelpPage')) },
       { path: 'tutorial', element: lazyPage(() => import('@pages/tutorial/TutorialPage')) },
       { path: 'design', element: lazyPage(() => import('@pages/design/DesignPage')) },
+      { path: 'sitemap', element: lazyPage(() => import('@pages/sitemap/SitemapPage')) },
       { path: 'policies', element: lazyPage(() => import('@pages/policies/PoliciesPage')) },
       { path: 'terms', element: lazyPage(() => import('@pages/policy/PolicyPage')) },
       { path: 'privacy', element: lazyPage(() => import('@pages/policy/PolicyPage')) },

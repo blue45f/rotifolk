@@ -60,6 +60,7 @@ export function Header({ onOpenCommand }: HeaderProps) {
         <Link to="/" className={styles.brand} aria-label="Rotifolk 홈">
           <span className={styles.mark} aria-hidden="true" />
           <span className={styles.logo}>rotifolk</span>
+          <span className={styles.betaBadge}>BETA</span>
         </Link>
 
         <nav className={styles.nav} aria-label="주요 메뉴">
