@@ -14,10 +14,10 @@
     "dev:web": "pnpm --filter @rotifolk/web run dev",
     "dev:api": "pnpm --filter @rotifolk/api run dev",
     "dev:mock": "pnpm --filter @rotifolk/web run dev:mock",
-    "build": "pnpm -r run build",
-    "lint": "eslint .",
-    "typecheck": "pnpm -r run typecheck",
-    "test": "pnpm -r run test",
+    "build": "pnpm exec turbo run build",
+    "lint": "eslint . && pnpm exec turbo run lint",
+    "typecheck": "pnpm exec turbo run typecheck",
+    "test": "pnpm exec turbo run test --concurrency=1",
     "test:api-contracts": "node --test scripts/audit-api-contracts.test.mjs",
     "test:frontend-a11y": "node --test scripts/audit-frontend-a11y.test.mjs",
     "audit:api-contracts": "node scripts/audit-api-contracts.mjs --strict-mock",
@@ -55,6 +55,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
     "prettier": "^3.8.3",
+    "turbo": "^2.9.18",
     "typescript": "^6.0.3"
   },
   "lint-staged": {
