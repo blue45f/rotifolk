@@ -8,6 +8,7 @@ import { BottomNav } from './BottomNav'
 import { Header } from './Header'
 import styles from './RootLayout.module.css'
 import { SiteFooter } from './SiteFooter'
+import { IntroSplash } from './IntroSplash'
 
 import { useChatRealtime } from '@/domains/chat/useChatRealtime'
 import CommandPalette from '@/domains/command-palette/CommandPalette'
@@ -74,6 +75,7 @@ export default function RootLayout() {
 
   return (
     <div className={styles.shell} data-live={isLive ? 'true' : undefined}>
+      <IntroSplash />
       <a href="#main-content" className="skip-link">
         본문 바로가기
       </a>
