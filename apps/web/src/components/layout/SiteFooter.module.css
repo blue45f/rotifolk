@@ -85,3 +85,35 @@
     gap: var(--space-3) var(--space-6);
   }
 }
+
+.businessInfo {
+  width: 100%;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.08));
+  font-size: var(--fs-2xs, 11px);
+  color: var(--color-text-subtle);
+  line-height: 1.6;
+}
+
+.businessGrid {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .businessGrid {
+    grid-template-cols: repeat(4, 1fr);
+  }
+}
+
+.businessBottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  font-size: 10px;
+}
