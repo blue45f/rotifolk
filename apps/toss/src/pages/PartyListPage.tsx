@@ -1,5 +1,5 @@
 import { Top } from '@toss/tds-mobile'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { getParties, won, type Party } from '../lib/api'
 import { navigate } from '../router'
@@ -9,9 +9,30 @@ import { SearchBar, Chips, Badge, Cover } from '../ui'
 const ALL = '전체'
 
 export function PartyListPage() {
-  const items = getParties()
+  const [items, setItems] = useState<Party[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [q, setQ] = useState('')
   const [cat, setCat] = useState(ALL)
+
+  useEffect(() => {
+    let active = true
+    getParties()
+      .then((data) => {
+        if (!active) return
+        setItems(data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (!active) return
+        console.error('Error fetching parties:', err)
+        setError(true)
+        setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const cats = useMemo(() => {
     const c = new Map<string, number>()
@@ -41,6 +62,87 @@ export function PartyListPage() {
   }, [items, q, cat])
 
   const open = (p: Party) => navigate(`/party/${encodeURIComponent(p.id)}`)
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100dvh', background: theme.bg }}>
+        <Top
+          title={<Top.TitleParagraph size={22}>🍷 로티포크</Top.TitleParagraph>}
+          subtitleBottom={
+            <Top.SubtitleParagraph size={15}>
+              취향으로 만나는 라운드 로테이션 모임
+            </Top.SubtitleParagraph>
+          }
+        />
+        <div style={pageShell}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 20 }}>
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="pulse"
+                style={{
+                  height: 250,
+                  border: `1px solid ${theme.border}`,
+                  borderRadius: theme.radius + 2,
+                  background: theme.surface,
+                  padding: 0,
+                  overflow: 'hidden',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div style={{ minHeight: '100dvh', background: theme.bg }}>
+        <Top
+          title={<Top.TitleParagraph size={22}>🍷 로티포크</Top.TitleParagraph>}
+          subtitleBottom={
+            <Top.SubtitleParagraph size={15}>
+              취향으로 만나는 라운드 로테이션 모임
+            </Top.SubtitleParagraph>
+          }
+        />
+        <div style={pageShell}>
+          <div style={{ textAlign: 'center', color: theme.textMuted, padding: '80px 0' }}>
+            <p style={{ fontSize: 16, marginBottom: 16 }}>모임 정보를 불러오는 데 실패했어요.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setLoading(true)
+                setError(false)
+                getParties()
+                  .then((data) => {
+                    setItems(data)
+                    setLoading(false)
+                  })
+                  .catch((err) => {
+                    console.error(err)
+                    setError(true)
+                    setLoading(false)
+                  })
+              }}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 8,
+                background: theme.accent,
+                color: theme.accentInk,
+                border: 'none',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              다시 시도
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ minHeight: '100dvh', background: theme.bg }}>

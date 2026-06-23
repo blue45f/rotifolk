@@ -59,6 +59,9 @@ export function toParty(row: PartyRow, participationCount?: number): Party {
     hostId: row.hostId,
     host: row.host ? (toPublicSummary(row.host as never) as never) : undefined,
     venueId: row.venueId,
+    venueName: row.venue?.name,
+    venueArea: row.venue?.area,
+    venueRating: row.venue?.rating,
     coverImageUrl: row.coverImageUrl,
     startAt: row.startAt.toISOString(),
     endAt: row.endAt.toISOString(),
@@ -149,6 +152,9 @@ export function toPartySummary(row: PartyRow): PartySummary {
     snackPackage: row.snackPackage as SnackPackage,
     hostId: row.hostId,
     hostNickname: row.host?.nickname ?? '',
+    description: row.description,
+    totalRounds: row.totalRounds,
+    venueRating: row.venue?.rating,
   }
 }
 

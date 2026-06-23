@@ -290,6 +290,9 @@ export interface Party extends Timestamps {
   maritalRequirement?: MaritalStatus[]
   /** 아이 유무 대상. */
   childrenPolicy?: ChildrenPolicy
+  venueName?: string
+  venueArea?: string
+  venueRating?: number
 }
 
 export interface PartySummary extends Pick<
@@ -314,6 +317,9 @@ export interface PartySummary extends Pick<
   snackPackage: SnackPackage
   hostId: ID
   hostNickname: string
+  description?: string
+  totalRounds?: number
+  venueRating?: number
 }
 
 export type ParticipationStatus =

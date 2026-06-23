@@ -1,15 +1,43 @@
 import { Button } from '@toss/tds-mobile'
 import { useEffect, useState } from 'react'
 
-import { getParty, won } from '../lib/api'
+import { getParty, won, type Party } from '../lib/api'
 import { shareMessage } from '../lib/toss'
 import { navigate } from '../router'
 import { theme } from '../theme'
 import { Badge, Cover, StatStrip } from '../ui'
 
 export function PartyDetailPage({ id = '' }: { id?: string }) {
-  const p = getParty(id)
+  const [p, setP] = useState<Party | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError(false)
+    getParty(id)
+      .then((data) => {
+        if (!active) return
+        if (data) {
+          setP(data)
+        } else {
+          setP(null)
+        }
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (!active) return
+        console.error('Error fetching party detail:', err)
+        setError(true)
+        setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [id])
+
   useEffect(() => {
     if (!toast) return
     const x = window.setTimeout(() => setToast(null), 2000)
@@ -50,15 +78,96 @@ export function PartyDetailPage({ id = '' }: { id?: string }) {
       </button>
     </header>
   )
-  if (!p)
+
+  if (loading) {
     return (
       <div style={{ background: theme.bg, minHeight: '100dvh' }}>
         {Header}
-        <p style={{ textAlign: 'center', color: theme.textMuted, paddingTop: 40 }}>
-          모임을 찾을 수 없어요.
-        </p>
+        <div style={{ padding: '0 16px' }}>
+          <div
+            className="pulse"
+            style={{
+              height: 210,
+              borderRadius: 16,
+              background: theme.surface,
+            }}
+          />
+          <div
+            className="pulse"
+            style={{
+              height: 32,
+              borderRadius: 6,
+              background: theme.surface,
+              marginTop: 18,
+              width: '60%',
+            }}
+          />
+          <div
+            className="pulse"
+            style={{
+              height: 20,
+              borderRadius: 6,
+              background: theme.surface,
+              marginTop: 12,
+              width: '40%',
+            }}
+          />
+          <div
+            className="pulse"
+            style={{
+              height: 80,
+              borderRadius: 8,
+              background: theme.surface,
+              marginTop: 18,
+            }}
+          />
+        </div>
       </div>
     )
+  }
+
+  if (error || !p) {
+    return (
+      <div style={{ background: theme.bg, minHeight: '100dvh' }}>
+        {Header}
+        <div style={{ textAlign: 'center', color: theme.textMuted, paddingTop: 40 }}>
+          <p style={{ fontSize: 16, marginBottom: 16 }}>
+            {error ? '모임 정보를 불러오는 데 실패했어요.' : '모임을 찾을 수 없어요.'}
+          </p>
+          {error && (
+            <button
+              type="button"
+              onClick={() => {
+                setLoading(true)
+                setError(false)
+                getParty(id)
+                  .then((data) => {
+                    setP(data ?? null)
+                    setLoading(false)
+                  })
+                  .catch((err) => {
+                    console.error(err)
+                    setError(true)
+                    setLoading(false)
+                  })
+              }}
+              style={{
+                padding: '10px 20px',
+                borderRadius: 8,
+                background: theme.accent,
+                color: theme.accentInk,
+                border: 'none',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              다시 시도
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   const share = async () => {
     const r = await shareMessage(`[로티포크] ${p.title}\n${p.description}`)
