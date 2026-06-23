@@ -56,6 +56,6 @@ describe('SiteFooter', () => {
       'href',
       '/community?from=%2Fvenues'
     )
-    expect(screen.getByText(`© ${new Date().getFullYear()} rotifolk`)).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(`© ${new Date().getFullYear()}\\s*rotifolk`))).toBeInTheDocument()
   })
 })
