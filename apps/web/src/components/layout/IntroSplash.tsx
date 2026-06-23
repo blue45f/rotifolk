@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { useEffect, useState } from 'react'
+
 import styles from './IntroSplash.module.css'
 
 export function IntroSplash() {

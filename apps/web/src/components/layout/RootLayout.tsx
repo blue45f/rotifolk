@@ -6,9 +6,9 @@ import { Outlet, useLocation } from 'react-router-dom'
 
 import { BottomNav } from './BottomNav'
 import { Header } from './Header'
+import { IntroSplash } from './IntroSplash'
 import styles from './RootLayout.module.css'
 import { SiteFooter } from './SiteFooter'
-import { IntroSplash } from './IntroSplash'
 
 import { useChatRealtime } from '@/domains/chat/useChatRealtime'
 import CommandPalette from '@/domains/command-palette/CommandPalette'
