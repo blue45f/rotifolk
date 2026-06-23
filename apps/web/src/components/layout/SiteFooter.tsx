@@ -53,7 +53,7 @@ export function SiteFooter() {
             </div>
           </div>
           <div className={styles.businessBottom}>
-            <span>© {year} rotifolk. All rights reserved.</span>
+            <span>© {year} rotifolk (Beta). All rights reserved.</span>
             <Link to="/sitemap" className={styles.meta}>
               사이트맵
             </Link>
