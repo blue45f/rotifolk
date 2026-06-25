@@ -91,7 +91,10 @@ jobs:
           set -euo pipefail
           SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes -o ConnectTimeout=20 ${EC2_USER}@${EC2_HOST}"
 
-          $SSH "sudo docker image prune -f && sudo docker builder prune -f --filter until=24h"
+          # 미사용(컨테이너 미연결) 이미지·빌드캐시 전부 정리 — 누적된 옛 태그 이미지가
+          # 디스크를 채워 새 레이어 추출이 실패(no space left)하던 문제 예방. 실행/중지 컨테이너가
+          # 참조하는 이미지는 보존되므로 공동 호스팅(termsdesk 등) 서비스에는 영향 없음.
+          $SSH "sudo docker image prune -af && sudo docker builder prune -af"
           docker save "$API_IMAGE" "$API_LATEST_IMAGE" | gzip | $SSH "gunzip | sudo docker load"
 
       - name: Restart API container
@@ -134,7 +137,7 @@ jobs:
         run: |
           set -euo pipefail
           SSH="ssh -i ~/.ssh/rotifolk_ec2.pem -o BatchMode=yes -o ConnectTimeout=20 ${EC2_USER}@${EC2_HOST}"
-          $SSH "sudo docker image prune -f && sudo docker builder prune -f --filter until=24h" || true
+          $SSH "sudo docker image prune -af && sudo docker builder prune -af" || true
 
       - name: Revoke runner SSH ingress
         if: always() && env.RUNNER_SSH_CIDR != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
