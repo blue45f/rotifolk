@@ -325,6 +325,9 @@ export default function PartyDetailPage() {
   const end = new Date(party.endAt)
   const isHost = me?.id === party.hostId
   const joinedMe = participants.find((p) => p.userId === me?.id)
+  const activeParticipantCount = participants.filter(
+    (p) => p.status === 'confirmed' || p.status === 'checked-in'
+  ).length
 
   const conflict =
     me && myParties
@@ -354,6 +357,9 @@ export default function PartyDetailPage() {
 
   const isFull = party.currentParticipants >= party.maxParticipants
   const status = party.status
+  const canHostAddGuest =
+    isHost && ['open', 'full'].includes(status) && activeParticipantCount < party.maxParticipants
+  const canCancelJoin = joinedMe != null && ['open', 'full', 'locked'].includes(status)
   const isFree = party.pricing.basePriceKRW === 0
   const hoursUntilStart = (start.getTime() - nowMs) / 3_600_000
   const canRefund = !!paidPayment && hoursUntilStart >= 24
@@ -661,7 +667,7 @@ export default function PartyDetailPage() {
           <EligibilityPriceCard party={party} />
 
           <section className={styles.section}>
-            <h2 className={styles.h2}>참가자 ({participants.length})</h2>
+            <h2 className={styles.h2}>참가자 ({activeParticipantCount})</h2>
             {participants.length === 0 ? (
               <p className={styles.muted}>아직 첫 참가자를 기다리고 있어요.</p>
             ) : (
@@ -700,6 +706,11 @@ export default function PartyDetailPage() {
                         {p.status === 'checked-in' && (
                           <Badge tone="success" size="sm">
                             체크인
+                          </Badge>
+                        )}
+                        {p.status === 'waitlist' && (
+                          <Badge tone="neutral" size="sm">
+                            대기
                           </Badge>
                         )}
                       </div>
@@ -999,15 +1010,17 @@ export default function PartyDetailPage() {
                 >
                   단톡방 입장
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="md"
-                  fullWidth
-                  leftIcon={<Icon name="plus" aria-hidden />}
-                  onClick={() => setShowAddGuest(true)}
-                >
-                  게스트 추가 (현장 합류)
-                </Button>
+                {canHostAddGuest && (
+                  <Button
+                    variant="ghost"
+                    size="md"
+                    fullWidth
+                    leftIcon={<Icon name="plus" aria-hidden />}
+                    onClick={() => setShowAddGuest(true)}
+                  >
+                    게스트 추가 (현장 합류)
+                  </Button>
+                )}
               </div>
             ) : joinedMe ? (
               <div className={styles.stack}>
@@ -1064,18 +1077,20 @@ export default function PartyDetailPage() {
                     환불 요청
                   </Button>
                 )}
-                <Button
-                  variant="ghost"
-                  size="md"
-                  fullWidth
-                  onClick={() =>
-                    cancel.mutate(undefined, {
-                      onSuccess: () => toast.show('신청을 취소했어요', 'info'),
-                    })
-                  }
-                >
-                  신청 취소
-                </Button>
+                {canCancelJoin && (
+                  <Button
+                    variant="ghost"
+                    size="md"
+                    fullWidth
+                    onClick={() =>
+                      cancel.mutate(undefined, {
+                        onSuccess: () => toast.show('신청을 취소했어요', 'info'),
+                      })
+                    }
+                  >
+                    신청 취소
+                  </Button>
+                )}
               </div>
             ) : (
               <Button

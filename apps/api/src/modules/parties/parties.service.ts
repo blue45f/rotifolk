@@ -500,7 +500,7 @@ export class PartiesService {
     if (!row)
       throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
     const participations = await this.prisma.participation.findMany({
-      where: { partyId: id, status: { in: ['confirmed', 'checked-in'] } },
+      where: { partyId: id, status: { in: ['confirmed', 'checked-in', 'waitlist'] } },
       include: { user: { include: { avatar: true } } },
       orderBy: { createdAt: 'asc' },
     })
@@ -903,7 +903,7 @@ export class PartiesService {
     })
     if (!party)
       throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
-    if (party.status !== 'open')
+    if (!['open', 'full'].includes(party.status))
       throw new BadRequestException({ code: 'party_closed', message: '신청이 마감된 파티에요' })
 
     // 성비 판단에 쓰는 신청자 성별 — 재참가·신규 양쪽에서 사용
@@ -1009,7 +1009,7 @@ export class PartiesService {
     })
     if (!party)
       throw new NotFoundException({ code: 'party_not_found', message: '파티를 찾을 수 없어요' })
-    if (party.status !== 'open' && party.status !== 'live')
+    if (party.status !== 'open')
       throw new BadRequestException({ code: 'party_closed', message: '신청이 마감된 파티에요' })
 
     if (dto.token) {
@@ -1100,7 +1100,7 @@ export class PartiesService {
     })
     if (!party || party.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트만 추가할 수 있어요' })
-    if (party.status === 'ended' || party.status === 'cancelled')
+    if (['ended', 'cancelled', 'locked', 'live'].includes(party.status))
       throw new BadRequestException({ code: 'party_closed', message: '종료된 파티에요' })
 
     const created = await this.prisma.$transaction(async (tx) => {
@@ -1250,6 +1250,15 @@ export class PartiesService {
     if (p.status === 'cancelled') return { ok: true, refund: null }
 
     const party = await this.prisma.party.findUnique({ where: { id: partyId } })
+    if (!party || ['ended', 'cancelled', 'live'].includes(party.status)) {
+      throw new BadRequestException({
+        code: 'party_closed',
+        message:
+          party?.status === 'live'
+            ? '진행중인 모임은 취소할 수 없어요.'
+            : '종료된 모임은 취소할 수 없어요.',
+      })
+    }
     const wasActive = p.status === 'confirmed' || p.status === 'checked-in'
 
     // 환불 정책 적용 — 결제 내역이 있으면 취소 시점·마감 기준으로 환불율 산정.
@@ -1356,6 +1365,16 @@ export class PartiesService {
     const p = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!p || p.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트 권한이 필요해요' })
+    if (['ended', 'cancelled', 'live'].includes(p.status)) {
+      throw new BadRequestException({ code: 'party_closed', message: '모집이 마감된 파티에요.' })
+    }
+    if (p.status === 'locked') return p
+    if (p.status !== 'open' && p.status !== 'full') {
+      throw new BadRequestException({
+        code: 'invalid_party_status',
+        message: '해당 상태에서는 잠글 수 없어요.',
+      })
+    }
     return this.prisma.party.update({ where: { id: partyId }, data: { status: 'locked' } })
   }
 
@@ -1363,6 +1382,19 @@ export class PartiesService {
     const p = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!p || p.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트 권한이 필요해요' })
+    if (['ended', 'cancelled'].includes(p.status)) {
+      throw new BadRequestException({
+        code: 'party_closed',
+        message: '이미 종료된 모임은 시작할 수 없어요.',
+      })
+    }
+    if (p.status === 'live') return p
+    if (!['open', 'full', 'locked'].includes(p.status)) {
+      throw new BadRequestException({
+        code: 'invalid_party_status',
+        message: '해당 상태에서는 시작할 수 없어요.',
+      })
+    }
     const [updated, participants] = await Promise.all([
       this.prisma.party.update({ where: { id: partyId }, data: { status: 'live' } }),
       this.prisma.participation.findMany({
@@ -1398,6 +1430,13 @@ export class PartiesService {
     const p = await this.prisma.party.findUnique({ where: { id: partyId } })
     if (!p || p.hostId !== hostId)
       throw new ForbiddenException({ code: 'forbidden', message: '호스트 권한이 필요해요' })
+    if (p.status === 'ended') return p
+    if (p.status !== 'live') {
+      throw new BadRequestException({
+        code: 'invalid_party_status',
+        message: '진행 중인 모임만 종료할 수 있어요.',
+      })
+    }
     return this.prisma.party.update({ where: { id: partyId }, data: { status: 'ended' } })
   }
 }

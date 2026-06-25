@@ -1,67 +1,33 @@
 import { Top } from '@toss/tds-mobile'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback } from 'react'
 
-import { getParties, won, type Party } from '../lib/api'
-import { navigate } from '../router'
+import { PartyListCard } from '../features/party/components/PartyListCard'
+import { usePartyBookmarks } from '../features/party/localBookmarks'
+import { usePartyListPageState } from '../features/party/list/state'
 import { theme, pageShell } from '../theme'
-import { SearchBar, Chips, Badge, Cover } from '../ui'
-
-const ALL = '전체'
+import { navigate } from '../router'
+import { SearchBar, Chips } from '../ui'
+import type { Party } from '../features/party/lib/partyApi'
 
 export function PartyListPage() {
-  const [items, setItems] = useState<Party[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-  const [q, setQ] = useState('')
-  const [cat, setCat] = useState(ALL)
+  const {
+    loading,
+    error,
+    query,
+    selectedCategory,
+    categories,
+    filteredItems,
+    setQuery,
+    setSelectedCategory,
+    retry,
+  } = usePartyListPageState()
 
-  useEffect(() => {
-    let active = true
-    getParties()
-      .then((data) => {
-        if (!active) return
-        setItems(data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        if (!active) return
-        console.error('Error fetching parties:', err)
-        setError(true)
-        setLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [])
+  const { isBookmarked, toggle: toggleBookmark } = usePartyBookmarks()
 
-  const cats = useMemo(() => {
-    const c = new Map<string, number>()
-    for (const p of items) c.set(p.categoryLabel, (c.get(p.categoryLabel) || 0) + 1)
-    return [
-      ALL,
-      ...[...c.entries()]
-        .sort((a, b) => b[1] - a[1])
-        .map(([k]) => k)
-        .slice(0, 7),
-    ]
-  }, [items])
-
-  const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase()
-    return items.filter((p) => {
-      const okC = cat === ALL || p.categoryLabel === cat
-      const okQ =
-        !query ||
-        [p.title, p.description, p.venueName, p.area, ...(p.tags || [])]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-          .includes(query)
-      return okC && okQ
-    })
-  }, [items, q, cat])
-
-  const open = (p: Party) => navigate(`/party/${encodeURIComponent(p.id)}`)
+  const open = (p: Party) => navigate(`/parties/${encodeURIComponent(p.id)}`)
+  const onRetry = useCallback(() => {
+    void retry()
+  }, [retry])
 
   if (loading) {
     return (
@@ -112,20 +78,7 @@ export function PartyListPage() {
             <p style={{ fontSize: 16, marginBottom: 16 }}>모임 정보를 불러오는 데 실패했어요.</p>
             <button
               type="button"
-              onClick={() => {
-                setLoading(true)
-                setError(false)
-                getParties()
-                  .then((data) => {
-                    setItems(data)
-                    setLoading(false)
-                  })
-                  .catch((err) => {
-                    console.error(err)
-                    setError(true)
-                    setLoading(false)
-                  })
-              }}
+              onClick={onRetry}
               style={{
                 padding: '10px 20px',
                 borderRadius: 8,
@@ -156,77 +109,31 @@ export function PartyListPage() {
       />
       <div style={pageShell}>
         <div className="rise" style={{ marginBottom: 12 }}>
-          <SearchBar value={q} onChange={setQ} placeholder="모임·장소·취향 검색" />
+          <SearchBar value={query} onChange={setQuery} placeholder="모임·장소·취향 검색" />
         </div>
         <div className="rise" style={{ animationDelay: '60ms', marginBottom: 18 }}>
-          <Chips items={cats} active={cat} onPick={setCat} />
+          <Chips items={categories} active={selectedCategory} onPick={setSelectedCategory} />
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {filtered.map((p, i) => (
-            <button
+          {filteredItems.map((p, i) => (
+            <PartyListCard
               key={p.id}
-              type="button"
-              onClick={() => open(p)}
-              className="pressable rise"
-              style={{
-                animationDelay: `${90 + i * 25}ms`,
-                width: '100%',
-                textAlign: 'left',
-                padding: 0,
-                border: `1px solid ${theme.border}`,
-                borderRadius: theme.radius + 2,
-                overflow: 'hidden',
-                background: theme.surface,
-                color: theme.text,
-                cursor: 'pointer',
-              }}
-            >
-              <Cover src={p.cover} alt={p.title} height={158} radius={0} seed={p.title} />
-              <div style={{ padding: '12px 14px 14px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 6,
-                    marginBottom: 8,
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Badge accent>{p.categoryLabel}</Badge>
-                  {p.area && <Badge>{p.area}</Badge>}
-                  {p.alcohol && <Badge>19+</Badge>}
-                  {p.rating ? <Badge>★ {p.rating.toFixed(1)}</Badge> : null}
-                </div>
-                <div style={{ fontSize: 16, fontWeight: 700, lineHeight: 1.4 }}>{p.title}</div>
-                {p.venueName && (
-                  <div style={{ fontSize: 13, color: theme.textMuted, marginTop: 4 }}>
-                    📍 {p.venueName}
-                  </div>
-                )}
-                <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: theme.accent }}>
-                    {won(p.basePriceKRW)}
-                  </span>
-                  {p.maxParticipants ? (
-                    <span style={{ fontSize: 12.5, color: theme.textMuted }}>
-                      · 최대 {p.maxParticipants}명
-                    </span>
-                  ) : null}
-                  {p.totalRounds ? (
-                    <span style={{ fontSize: 12.5, color: theme.textMuted }}>
-                      · {p.totalRounds}라운드
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            </button>
+              party={p}
+              index={i}
+              onOpen={() => open(p)}
+              isBookmarked={isBookmarked(p.id)}
+              onToggleBookmark={toggleBookmark}
+            />
           ))}
-          {filtered.length === 0 && (
+          {filteredItems.length === 0 && (
             <p style={{ textAlign: 'center', color: theme.textMuted, padding: '40px 0' }}>
-              ‘{q || cat}’ 결과가 없어요.
+              ‘{query || selectedCategory}’ 결과가 없어요.
             </p>
           )}
+        </div>
+        <div style={{ color: theme.textMuted, fontSize: 12, marginTop: 14, paddingBottom: 12 }}>
+          찜한 모임 {filteredItems.filter((p) => isBookmarked(p.id)).length}개
         </div>
       </div>
     </div>

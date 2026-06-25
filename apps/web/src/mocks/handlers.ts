@@ -1743,6 +1743,13 @@ export const handlers = [
       }
       return HttpResponse.json(await delay({ participation: existing, guestToken: token }))
     }
+    const party = mockParties.find((p) => p.id === partyId)
+    if (party && party.status !== 'open') {
+      return HttpResponse.json(
+        { code: 'party_closed', message: '신청이 마감된 파티에요' },
+        { status: 400 }
+      )
+    }
     const participation = makeGuestParticipation(
       partyId,
       body.nickname ?? '게스트',
@@ -1772,8 +1779,15 @@ export const handlers = [
     mockGuestParticipants.push(participation)
     return HttpResponse.json(await delay(participation))
   }),
-  http.post(`${API}/parties/:id/join`, async ({ params }) =>
-    HttpResponse.json(
+  http.post(`${API}/parties/:id/join`, async ({ params }) => {
+    const party = mockParties.find((p) => p.id === params.id)
+    if (party && party.status !== 'open' && party.status !== 'full') {
+      return HttpResponse.json(
+        { code: 'party_closed', message: '신청이 마감된 파티에요' },
+        { status: 400 }
+      )
+    }
+    return HttpResponse.json(
       await delay({
         id: 'pt_me',
         partyId: params.id as string,
@@ -1785,27 +1799,61 @@ export const handlers = [
         updatedAt: new Date().toISOString(),
       })
     )
-  ),
+  }),
   http.delete(`${API}/parties/:id/join`, async () => HttpResponse.json(await delay({ ok: true }))),
   http.post(`${API}/parties/:id/lock`, async ({ params }) => {
     const party = mockParties.find((p) => p.id === params.id)
     if (party) {
-      party.status = 'locked'
-      party.updatedAt = nowIso()
+      if (['ended', 'cancelled', 'live'].includes(party.status)) {
+        return HttpResponse.json(
+          { code: 'party_closed', message: '모집이 마감된 파티에요.' },
+          { status: 400 }
+        )
+      }
+      if (party.status !== 'locked') {
+        if (party.status !== 'open' && party.status !== 'full') {
+          return HttpResponse.json(
+            { code: 'invalid_party_status', message: '해당 상태에서는 잠글 수 없어요.' },
+            { status: 400 }
+          )
+        }
+        party.status = 'locked'
+        party.updatedAt = nowIso()
+      }
     }
     return HttpResponse.json(await delay(party ?? { ok: true, id: params.id }))
   }),
   http.post(`${API}/parties/:id/start`, async ({ params }) => {
     const party = mockParties.find((p) => p.id === params.id)
     if (party) {
-      party.status = 'live'
-      party.updatedAt = nowIso()
+      if (['ended', 'cancelled'].includes(party.status)) {
+        return HttpResponse.json(
+          { code: 'party_closed', message: '이미 종료된 모임은 시작할 수 없어요.' },
+          { status: 400 }
+        )
+      }
+      if (party.status !== 'live') {
+        if (!['open', 'full', 'locked'].includes(party.status)) {
+          return HttpResponse.json(
+            { code: 'invalid_party_status', message: '해당 상태에서는 시작할 수 없어요.' },
+            { status: 400 }
+          )
+        }
+        party.status = 'live'
+        party.updatedAt = nowIso()
+      }
     }
     return HttpResponse.json(await delay(party ?? { ok: true, id: params.id }))
   }),
   http.post(`${API}/parties/:id/end`, async ({ params }) => {
     const party = mockParties.find((p) => p.id === params.id)
-    if (party) {
+    if (party && party.status !== 'ended') {
+      if (party.status !== 'live') {
+        return HttpResponse.json(
+          { code: 'invalid_party_status', message: '진행 중인 모임만 종료할 수 있어요.' },
+          { status: 400 }
+        )
+      }
       party.status = 'ended'
       party.updatedAt = nowIso()
     }

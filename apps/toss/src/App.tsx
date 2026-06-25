@@ -1,12 +1,18 @@
 import { PartyDetailPage } from './pages/PartyDetailPage.tsx'
 import { PartyListPage } from './pages/PartyListPage.tsx'
-import { useHashPath } from './router'
+import { useRoute } from './router'
+import { useAuthBootstrap } from './domains/auth/hooks'
 import IntroSplashScreen from './components/IntroSplashScreen.tsx'
 
 export function App() {
-  const path = useHashPath()
-  const m = path.match(/^\/party\/(.+)$/)
-  const content = m ? <PartyDetailPage id={decodeURIComponent(m[1])} /> : <PartyListPage />
+  useAuthBootstrap()
+  const route = useRoute()
+  const content =
+    route.kind === 'party' && route.partyId ? (
+      <PartyDetailPage id={route.partyId} />
+    ) : (
+      <PartyListPage />
+    )
 
   return (
     <>

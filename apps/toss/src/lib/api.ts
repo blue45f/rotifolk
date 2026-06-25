@@ -1,118 +1,141 @@
-// 토스 정책: 만남 주선/성별 매칭 프레이밍 완화 → 취향 기반 라운드 모임으로 표기.
-const SENSITIVE = /(\d:\d\s*)?이성\s*매칭|남녀|소개팅/g
-const sanitize = (s: string) =>
-  s
-    .replace(SENSITIVE, '라운드 매칭')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-const cleanTags = (tags: string[]) => tags.filter((t) => !/\d:\d|이성|남녀|매칭/.test(t))
+import type {
+  Party as SharedParty,
+  Participation,
+  PartySummary as SharedPartySummary,
+} from '@rotifolk/shared'
+import type { GuestJoinDto } from '@rotifolk/shared'
 
-export interface Party {
-  id: string
-  title: string
-  description: string
-  category: string
-  categoryLabel: string
-  cover: string | null
-  venueName: string
-  area: string
-  rating: number
-  basePriceKRW: number
-  maxParticipants: number
-  totalRounds: number
-  tags: string[]
-  alcohol: boolean
+import {
+  mapPartyDetail,
+  mapPartySummary,
+  type PartyDetailItem,
+  type PartyListItem,
+} from '../entities/party/party'
+
+import { request } from '@/shared/api/request'
+
+export type Party = PartyListItem
+export type PartyDetail = PartyDetailItem
+
+export interface PartySession {
+  party: PartyDetail
+  participants: Participation[]
 }
 
-const categoryLabels: Record<string, string> = {
-  wine: '와인',
-  coffee: '커피',
-  tea: '티',
-  whisky: '위스키',
-  cocktail: '칵테일',
-  beer: '맥주',
-  sake: '사케',
-  'natural-wine': '내추럴 와인',
-  dessert: '디저트',
+export interface GuestJoinBody {
+  nickname: string
+  avatar?: {
+    emoji: string
+    hue: string
+    imageData?: string | null
+  }
 }
 
-function mapPartySummaryToParty(p: any): Party {
-  const category = p.category || 'custom'
-  const isAlcohol = ['wine', 'whisky', 'cocktail', 'beer', 'sake', 'natural-wine'].includes(
-    category
+export interface GuestSessionResult {
+  participation: Participation | null
+}
+
+export interface GuestMutationResult {
+  participation: Participation
+  guestToken: string
+}
+
+type PartyListPayload = {
+  items: SharedPartySummary[]
+  total: number
+  page: number
+  pageSize: number
+  hasNext: boolean
+}
+
+function mapList(payload: unknown): SharedPartySummary[] {
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    'items' in (payload as Record<string, unknown>) &&
+    Array.isArray((payload as { items?: unknown }).items)
+  ) {
+    return (payload as { items: unknown[] }).items as SharedPartySummary[]
+  }
+  return []
+}
+
+export async function getParties(
+  query: Record<string, string | number | boolean | undefined> = {}
+): Promise<Party[]> {
+  const params = new URLSearchParams()
+  for (const [k, v] of Object.entries(query)) {
+    if (v == null) continue
+    params.set(k, String(v))
+  }
+  if (!params.has('pageSize')) params.set('pageSize', '20')
+
+  const payload = await request<PartyListPayload>('parties', {
+    query: Object.fromEntries(params.entries()) as Record<string, string>,
+  })
+  return mapList(payload).map(mapPartySummary)
+}
+
+export async function getParty(id: string): Promise<PartySession | undefined> {
+  const data = await request<{ party?: SharedParty; participants?: Participation[] }>(
+    `parties/${encodeURIComponent(id)}`
   )
+  if (!data.party) return undefined
 
   return {
-    id: p.id,
-    title: p.title,
-    description: sanitize(p.description || ''),
-    category,
-    categoryLabel: categoryLabels[category] || category,
-    cover: p.coverImageUrl || null,
-    venueName: p.venueName || '',
-    area: p.venueArea || '',
-    rating: p.venueRating || 0,
-    basePriceKRW: p.basePriceKRW || 0,
-    maxParticipants: p.maxParticipants || 0,
-    totalRounds: p.totalRounds || 0,
-    tags: cleanTags(p.tags || []),
-    alcohol: isAlcohol,
+    party: mapPartyDetail(data.party),
+    participants: data.participants ?? [],
   }
 }
 
-function mapFullPartyToParty(p: any): Party {
-  const category = p.config?.category || p.category || 'custom'
-  const isAlcohol = ['wine', 'whisky', 'cocktail', 'beer', 'sake', 'natural-wine'].includes(
-    category
-  )
-
-  return {
-    id: p.id,
-    title: p.title,
-    description: sanitize(p.description || ''),
-    category,
-    categoryLabel: categoryLabels[category] || category,
-    cover: p.coverImageUrl || null,
-    venueName: p.venueName || '',
-    area: p.venueArea || '',
-    rating: p.venueRating || 0,
-    basePriceKRW: p.pricing?.basePriceKRW || p.basePriceKRW || 0,
-    maxParticipants: p.maxParticipants || 0,
-    totalRounds: p.config?.totalRounds || p.totalRounds || 0,
-    tags: cleanTags(p.tags || []),
-    alcohol: isAlcohol,
-  }
+export async function joinParty(id: string, note?: string): Promise<Participation> {
+  return request<Participation>(`parties/${encodeURIComponent(id)}/join`, {
+    method: 'POST',
+    json: note ? { note } : undefined,
+  })
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
-
-export async function getParties(): Promise<Party[]> {
-  try {
-    const res = await fetch(`${API_BASE}/parties?pageSize=100`)
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
-    const data = await res.json()
-    const rawItems = data.items || []
-    return rawItems.map(mapPartySummaryToParty)
-  } catch (error) {
-    console.error('Failed to get parties from DB:', error)
-    throw error
-  }
+export async function cancelPartyJoin(id: string): Promise<{ ok: true }> {
+  return request<{ ok: true }>(`parties/${encodeURIComponent(id)}/join`, { method: 'DELETE' })
 }
 
-export async function getParty(id: string): Promise<Party | undefined> {
-  try {
-    const res = await fetch(`${API_BASE}/parties/${encodeURIComponent(id)}`)
-    if (!res.ok) {
-      if (res.status === 404) return undefined
-      throw new Error(`HTTP error! status: ${res.status}`)
-    }
-    const data = await res.json()
-    if (!data.party) return undefined
-    return mapFullPartyToParty(data.party)
-  } catch (error) {
-    console.error(`Failed to get party ${id} from DB:`, error)
-    throw error
-  }
+export async function lockParty(id: string): Promise<SharedParty> {
+  return request<SharedParty>(`parties/${encodeURIComponent(id)}/lock`, { method: 'POST' })
+}
+
+export async function startParty(id: string): Promise<SharedParty> {
+  return request<SharedParty>(`parties/${encodeURIComponent(id)}/start`, { method: 'POST' })
+}
+
+export async function endParty(id: string): Promise<SharedParty> {
+  return request<SharedParty>(`parties/${encodeURIComponent(id)}/end`, { method: 'POST' })
+}
+
+export async function guestJoin(
+  id: string,
+  body: GuestJoinBody | GuestJoinDto
+): Promise<GuestMutationResult> {
+  return request<GuestMutationResult>(`parties/${encodeURIComponent(id)}/guest-join`, {
+    method: 'POST',
+    json: body,
+  })
+}
+
+export async function getGuestSession(
+  id: string,
+  token: string | null
+): Promise<GuestSessionResult> {
+  if (!token) return { participation: null }
+  return request<GuestSessionResult>(`parties/${encodeURIComponent(id)}/guests/me`, {
+    query: { token },
+  })
+}
+
+export async function hostAddGuest(id: string, name: string): Promise<Participation> {
+  return request<Participation>(`parties/${encodeURIComponent(id)}/guests`, {
+    method: 'POST',
+    json: { name },
+  })
 }
 
 export const won = (n: number) => '₩' + n.toLocaleString('ko-KR')
