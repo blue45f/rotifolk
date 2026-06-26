@@ -1,7 +1,7 @@
 import { Icon } from '@components/ui/Icon/Icon'
 import * as Dialog from '@radix-ui/react-dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 
 import styles from './Sheet.module.css'
 
@@ -33,6 +33,8 @@ export function Sheet({
   // Controlled dialog (no Radix Trigger), so capture the opener ourselves and
   // restore focus to it on close — Radix only restores to its own Trigger.
   const openerRef = useRef<HTMLElement | null>(null)
+  const descriptionId = useId()
+
   useEffect(() => {
     if (open) openerRef.current = document.activeElement as HTMLElement | null
   }, [open])
@@ -43,6 +45,7 @@ export function Sheet({
         <Dialog.Overlay className={styles.backdrop} />
         <Dialog.Content
           className={`${styles.panel} ${styles[`v_${variant}`]} ${styles[`s_${size}`]}`}
+          aria-describedby={descriptionId}
           onCloseAutoFocus={(event) => {
             const opener = openerRef.current
             if (opener && opener.isConnected) {
@@ -55,12 +58,24 @@ export function Sheet({
             <header className={styles.header}>
               <Dialog.Title className={styles.title}>{title}</Dialog.Title>
               {description && (
-                <Dialog.Description className={styles.desc}>{description}</Dialog.Description>
+                <Dialog.Description className={styles.desc} id={descriptionId}>
+                  {description}
+                </Dialog.Description>
+              )}
+              {!description && (
+                <VisuallyHidden>
+                  <Dialog.Description id={descriptionId}>
+                    현재 표시 중인 대화 상자입니다.
+                  </Dialog.Description>
+                </VisuallyHidden>
               )}
             </header>
           ) : (
             <VisuallyHidden>
               <Dialog.Title>대화 상자</Dialog.Title>
+              <Dialog.Description id={descriptionId}>
+                현재 표시 중인 대화 상자입니다.
+              </Dialog.Description>
             </VisuallyHidden>
           )}
           <div className={styles.body}>{children}</div>

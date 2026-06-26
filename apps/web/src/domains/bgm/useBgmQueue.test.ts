@@ -13,12 +13,18 @@ const sampleTrack = {
 }
 
 describe('useBgmQueue', () => {
+  const flushMicrotasks = async () => {
+    await act(async () => {
+      await Promise.resolve()
+    })
+  }
+
   beforeEach(() => {
     globalThis.localStorage.clear()
     vi.useRealTimers()
   })
 
-  it('loads cached queue and clamps out-of-range current index', () => {
+  it('loads cached queue and clamps out-of-range current index', async () => {
     globalThis.localStorage.setItem(
       storageKey('party-1'),
       JSON.stringify({
@@ -28,6 +34,7 @@ describe('useBgmQueue', () => {
     )
 
     const { result } = renderHook(() => useBgmQueue('party-1'))
+    await flushMicrotasks()
 
     expect(result.current.tracks).toHaveLength(2)
     expect(result.current.current).toBe(2)
@@ -36,6 +43,7 @@ describe('useBgmQueue', () => {
 
   it('adds first track and ignores empty input', async () => {
     const { result } = renderHook(() => useBgmQueue('party-1', '닉네임'))
+    await flushMicrotasks()
 
     act(() => {
       result.current.addTrack('')
@@ -51,8 +59,9 @@ describe('useBgmQueue', () => {
     })
   })
 
-  it('removes a track and keeps a valid current pointer', () => {
+  it('removes a track and keeps a valid current pointer', async () => {
     const { result } = renderHook(() => useBgmQueue('party-1'))
+    await flushMicrotasks()
 
     act(() => {
       result.current.addTrack('https://www.youtube.com/watch?v=1', 'A', '유저')
@@ -75,8 +84,9 @@ describe('useBgmQueue', () => {
     expect(persisted.tracks).toHaveLength(2)
   })
 
-  it('normalizes prev/next playback boundaries', () => {
+  it('normalizes prev/next playback boundaries', async () => {
     const { result } = renderHook(() => useBgmQueue('party-1'))
+    await flushMicrotasks()
 
     act(() => {
       result.current.addTrack('https://www.youtube.com/watch?v=1', 'A')
