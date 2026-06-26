@@ -53,3 +53,6 @@ screenshots/
 # 단, README 문서용 스크린샷은 추적한다(위 무시의 예외)
 !docs/screenshots/
 !docs/screenshots/*.png
+
+# 앱인토스(app-in-toss) 빌드 번들 — ait build 산출물(생성물이라 추적 제외)
+apps/toss/*.ait
