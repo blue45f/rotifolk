@@ -1,0 +1,358 @@
+.title {
+  --enchant-primary: color-mix(in oklab, currentColor 72%, var(--color-text) 28%);
+  --enchant-shimmer: color-mix(in oklab, white 68%, currentColor 32%);
+  --enchant-glow: color-mix(in oklab, var(--enchant-primary) 34%, transparent 66%);
+  --enchant-ring-size: min(4.2rem, 12vw);
+  position: relative;
+  display: inline-flex;
+  isolation: isolate;
+  overflow: hidden;
+  white-space: inherit;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+  will-change: transform, filter;
+}
+
+.titleInteractive {
+  cursor: pointer;
+}
+
+.titleInteractive:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 55%, white 45%);
+  outline-offset: 0.25rem;
+}
+
+.titleInteractive:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+.titleShimmer {
+  position: absolute;
+  inset: -30% -55%;
+  pointer-events: none;
+  border-radius: 999px;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    color-mix(in oklab, var(--enchant-shimmer) 12%, transparent) 30%,
+    color-mix(in oklab, var(--enchant-shimmer) 54%, transparent) 56%,
+    transparent 90%
+  );
+  transform: rotate(-12deg) translateX(-145%);
+  opacity: 0;
+  mix-blend-mode: screen;
+  animation: titleShimmer 2.1s linear infinite;
+  filter: blur(0.8px);
+  z-index: 1;
+}
+
+.titleAura {
+  position: absolute;
+  inset: -0.72em;
+  left: -0.3em;
+  right: -0.3em;
+  margin: auto;
+  border-radius: 999px;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      color-mix(in oklab, var(--enchant-shimmer) 40%, transparent),
+      transparent 46%
+    ),
+    conic-gradient(
+      from 0deg at 50% 50%,
+      transparent 0%,
+      color-mix(in oklab, var(--enchant-shimmer) 22%, transparent) 38%,
+      transparent 62%,
+      color-mix(in oklab, var(--enchant-shimmer) 30%, transparent) 84%,
+      transparent 100%
+    );
+  opacity: 0.13;
+  transform-origin: 50% 50%;
+  animation: titleAuraRotate 7.4s linear infinite;
+  filter: blur(0.35rem);
+  z-index: 0;
+  mix-blend-mode: screen;
+}
+
+.titleText {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+}
+
+.titleShine {
+  color: inherit;
+  text-shadow:
+    0 0 0.02rem color-mix(in oklab, var(--enchant-glow) 88%, transparent),
+    0 0 0.45rem color-mix(in oklab, var(--enchant-glow) 42%, transparent),
+    0 0 1rem color-mix(in oklab, var(--enchant-glow) 25%, transparent);
+}
+
+.titleSparkleField {
+  position: absolute;
+  inset: -0.6em;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.titleSparkle {
+  --enchant-sparkle-rotate: 0deg;
+  --enchant-sparkle-distance: 12px;
+  --enchant-sparkle-size: 2px;
+  --title-sparkle-delay: 0ms;
+  --title-sparkle-duration: 4s;
+  --title-sparkle-drift: 0px;
+
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--enchant-sparkle-size);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  transform: translate(-50%, -50%) rotate(var(--enchant-sparkle-rotate))
+    translateX(var(--enchant-sparkle-distance));
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--enchant-shimmer) 95%, transparent) 0%,
+    color-mix(in oklab, var(--enchant-shimmer) 35%, transparent) 62%,
+    transparent 100%
+  );
+  box-shadow: 0 0 0.18rem color-mix(in oklab, var(--enchant-shimmer) 82%, transparent);
+  opacity: 0;
+  animation: titleSparkle 4.8s ease-in-out infinite;
+  animation-delay: var(--title-sparkle-delay);
+  animation-duration: var(--title-sparkle-duration);
+  z-index: 2;
+}
+
+.titleSparkle::before,
+.titleSparkle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+}
+
+.titleSparkle::before {
+  transform: rotate(45deg) scaleY(0.45) scaleX(1.35);
+}
+
+.titleSparkle::after {
+  transform: rotate(-45deg) scaleY(0.45) scaleX(1.35);
+}
+
+.titleBurst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.titleRing {
+  --ring-distance: calc(var(--title-ring-distance, 52px));
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  border: 1px solid color-mix(in oklab, var(--enchant-primary) 68%, transparent);
+  transform: translate(-50%, -50%) scale(0.12);
+  opacity: 0;
+}
+
+.titleRingSecond {
+  --ring-distance: calc(var(--title-ring-distance, 52px));
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in oklab, var(--enchant-shimmer) 82%, transparent);
+  transform: translate(-50%, -50%) scale(0.1) rotate(12deg);
+  opacity: 0;
+}
+
+.titleActive .titleShimmer {
+  opacity: 0.75;
+}
+
+.titleActive .titleText {
+  animation: titleTextPulse 920ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.titleActive .titleParticle {
+  animation: titleBangParticle 920ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation-delay: var(--title-burst-delay, 0ms);
+}
+
+.titleActive .titleRing {
+  animation: titleBangRing 920ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.titleActive .titleRingSecond {
+  animation: titleBangRingSecondary 920ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 80ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .titleShimmer,
+  .titleAura,
+  .titleSparkle,
+  .titleActive .titleShimmer,
+  .titleActive .titleParticle,
+  .titleActive .titleRing,
+  .titleActive .titleRingSecond,
+  .titleActive .titleText {
+    animation: none;
+  }
+
+  .titleShimmer {
+    opacity: 0;
+  }
+}
+
+@keyframes titleShimmer {
+  0% {
+    transform: rotate(-12deg) translateX(-145%);
+    opacity: 0;
+  }
+  22% {
+    opacity: 0.75;
+  }
+  60% {
+    opacity: 0.22;
+  }
+  100% {
+    transform: rotate(-12deg) translateX(96%);
+    opacity: 0;
+  }
+}
+
+@keyframes titleAuraRotate {
+  0% {
+    transform: rotate(0deg) scale(0.98);
+    opacity: 0.1;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.04);
+    opacity: 0.18;
+  }
+  100% {
+    transform: rotate(360deg) scale(0.98);
+    opacity: 0.1;
+  }
+}
+
+@keyframes titleSparkle {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--enchant-sparkle-rotate))
+      translateX(var(--enchant-sparkle-distance)) scale(0.15);
+  }
+  14% {
+    opacity: 0.82;
+  }
+  45% {
+    opacity: 0.46;
+    transform: translate(-50%, -50%) rotate(calc(var(--enchant-sparkle-rotate) + 130deg))
+      translateX(var(--enchant-sparkle-distance)) scale(1);
+  }
+  78% {
+    opacity: 0.2;
+    transform: translate(-50%, -50%) rotate(calc(var(--enchant-sparkle-rotate) + 290deg))
+      translateX(var(--enchant-sparkle-distance)) scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(calc(var(--enchant-sparkle-rotate) + 360deg))
+      translateX(var(--enchant-sparkle-distance)) scale(0.18);
+  }
+}
+
+@keyframes titleBangParticle {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--enchant-burst-rotate)) translateX(0) scale(0.12);
+  }
+  12% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) rotate(var(--enchant-burst-rotate))
+      translateX(calc(var(--enchant-burst-distance) * 0.45)) scale(0.95);
+  }
+  72% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--enchant-burst-rotate))
+      translateX(var(--enchant-burst-distance)) scale(0.55);
+  }
+}
+
+@keyframes titleBangRing {
+  0% {
+    opacity: 0.95;
+    width: 0.35rem;
+    height: 0.35rem;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  55% {
+    opacity: 0.25;
+    width: var(--enchant-ring-size);
+    height: var(--enchant-ring-size);
+    border-width: 1px;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    width: calc(var(--enchant-ring-size) + 1.05rem);
+    height: calc(var(--enchant-ring-size) + 1.05rem);
+    border-width: 1px;
+    transform: translate(-50%, -50%) scale(1.22);
+  }
+}
+
+@keyframes titleBangRingSecondary {
+  0% {
+    opacity: 0.75;
+    width: 0.35rem;
+    height: 0.35rem;
+    transform: translate(-50%, -50%) scale(0.14) rotate(0deg);
+  }
+  60% {
+    opacity: 0.22;
+    width: calc(var(--enchant-ring-size) * 0.9);
+    height: calc(var(--enchant-ring-size) * 0.9);
+    border-style: dotted;
+    border-width: 1px;
+    transform: translate(-50%, -50%) scale(1) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    width: calc(var(--enchant-ring-size) + 1.25rem);
+    height: calc(var(--enchant-ring-size) + 1.25rem);
+    border-style: dotted;
+    border-width: 1px;
+    transform: translate(-50%, -50%) scale(1.25) rotate(360deg);
+  }
+}
+
+@keyframes titleTextPulse {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  28% {
+    transform: translateY(-1px) scale(1.018);
+  }
+  55% {
+    transform: translateY(0) scale(0.996);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}

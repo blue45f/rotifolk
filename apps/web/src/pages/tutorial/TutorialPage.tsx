@@ -1,5 +1,6 @@
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
@@ -382,7 +383,7 @@ export default function TutorialPage() {
         <Badge tone="primary" size="md">
           첫 진입 가이드
         </Badge>
-        <h1 className={styles.title}>8단계로 익히는 첫 진입 루트</h1>
+        <EnchantingTitle className={styles.title}>8단계로 익히는 첫 진입 루트</EnchantingTitle>
         <p className={styles.lead}>
           새 계정이든 데모 유저든, 여기에서 동선을 8단계로 점검해보면 실제 이용 경로를 금방 이해할
           수 있어요. 한 단계씩 천천히 따라오면 돼요.

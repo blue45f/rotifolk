@@ -1,6 +1,7 @@
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { RecognizedConditions } from '@components/ui/RecognizedConditions/RecognizedConditions'
@@ -12,14 +13,16 @@ import {
   type SmartSearchParse,
 } from '@rotifolk/shared'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 
 import styles from './Search.module.css'
 
 import { CATEGORY_META } from '@/domains/categories/meta'
+import { GuestConversionBanner } from '@/domains/guest/GuestConversionBanner'
 import { PartyCard } from '@/domains/parties/PartyCard'
 import { useParties } from '@/domains/parties/queries'
 import { useRecentSearches } from '@/domains/search/useRecentSearches'
+import { useAuthStore } from '@/store/authStore'
 
 const SUGGESTED_TAGS = ['와인', '한남', '5:5', '즉석', '무료'] as const
 
@@ -30,6 +33,9 @@ function normalize(s: string): string {
 export default function SearchPage() {
   const [params, setParams] = useSearchParams()
   const urlQuery = params.get('q') ?? ''
+  const me = useAuthStore((s) => s.user)
+  const location = useLocation()
+  const currentPath = `${location.pathname}${location.search}${location.hash}`
   const [input, setInput] = useState(urlQuery)
   const [debounced, setDebounced] = useState(urlQuery)
   const [focused, setFocused] = useState(false)
@@ -187,7 +193,7 @@ export default function SearchPage() {
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
-        <h1 className={styles.title}>파티 검색</h1>
+        <EnchantingTitle className={styles.title}>파티 검색</EnchantingTitle>
         <div className={styles.searchBlock} role="search">
           <Input
             type="search"
@@ -279,6 +285,11 @@ export default function SearchPage() {
           )}
         </div>
       </header>
+      {!me && (
+        <section className={`container ${styles.guestBannerWrap}`}>
+          <GuestConversionBanner from={currentPath} />
+        </section>
+      )}
 
       <section className={`container ${styles.body}`}>
         {!hasQuery ? (

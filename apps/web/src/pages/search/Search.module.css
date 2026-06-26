@@ -9,6 +9,10 @@
   margin-bottom: var(--space-8);
 }
 
+.guestBannerWrap {
+  margin-bottom: var(--space-5);
+}
+
 .title {
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   font-weight: var(--fw-black);

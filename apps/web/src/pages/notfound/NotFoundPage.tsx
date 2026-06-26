@@ -1,4 +1,5 @@
 import { Button } from '@components/ui/Button/Button'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Link, useLocation } from 'react-router-dom'
 
@@ -109,9 +110,9 @@ export default function NotFoundPage() {
           🌙
         </span>
         <p className={styles.kicker}>404 · 길 잃은 잔</p>
-        <h1 id="notfound-title" className={styles.title}>
+        <EnchantingTitle id="notfound-title" className={styles.title}>
           여기엔 아직 따라둔 잔이 없어요
-        </h1>
+        </EnchantingTitle>
         <p className={styles.hint}>{hint}</p>
         <p className={styles.path}>
           찾던 주소: <code>{pathname}</code>

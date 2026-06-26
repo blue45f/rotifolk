@@ -37,7 +37,7 @@ function lazyRetry<T extends ComponentType>(factory: () => Promise<{ default: T 
 function lazyPage(loader: () => Promise<{ default: ComponentType }>) {
   const C = lazyRetry(loader)
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<Loading label="페이지를 불러오는 중입니다" />}>
       <C />
     </Suspense>
   )

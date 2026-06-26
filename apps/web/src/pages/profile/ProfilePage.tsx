@@ -5,6 +5,7 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
@@ -248,7 +249,7 @@ export default function ProfilePage() {
           label={`${user.nickname}님의 프로필 사진`}
         />
         <div className={styles.headBody}>
-          <h1 className={styles.name}>
+          <EnchantingTitle className={styles.name}>
             {user.nickname}
             {user.isVerified && (
               <Badge tone="info">
@@ -256,7 +257,7 @@ export default function ProfilePage() {
               </Badge>
             )}
             <HostLevelBadge level={hostLevel.level} size="md" />
-          </h1>
+          </EnchantingTitle>
           <p className={styles.bio}>{user.bio ?? '한 줄 소개를 추가해 보세요.'}</p>
           <dl className={styles.statRow}>
             {stats.map((s) => (

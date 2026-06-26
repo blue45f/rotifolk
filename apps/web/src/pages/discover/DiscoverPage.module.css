@@ -16,6 +16,59 @@
   color: var(--color-text-muted);
 }
 
+.guestBannerWrap {
+  margin-bottom: var(--space-5);
+}
+
+/* ===== Quick filters (similar to MZ product browse presets) ===== */
+.quickIntents {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.quickIntent {
+  min-height: 64px;
+  flex: 1 1 0;
+  min-width: 168px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+  transition:
+    transform var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart);
+}
+.quickIntent:hover,
+.quickIntent:focus-visible {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+.quickIntent svg {
+  margin-bottom: 2px;
+  color: var(--brand-apricot-700);
+}
+.quickIntent strong {
+  font-size: var(--fs-sm);
+}
+.quickIntent small {
+  color: var(--color-text-muted);
+  font-size: var(--fs-2xs);
+}
+.quickIntentActive {
+  border-color: var(--brand-apricot-600);
+  background: color-mix(in oklab, var(--color-primary) 14%, var(--color-surface));
+  box-shadow: 0 8px 22px color-mix(in oklab, var(--color-primary) 22%, transparent);
+}
+
 /* ============ Filter rail ============ */
 .filters {
   display: flex;
@@ -111,6 +164,12 @@
   color: var(--color-text);
   font-weight: var(--fw-bold);
 }
+.countMeta {
+  display: inline-flex;
+  margin-left: var(--space-2);
+  color: var(--color-text-subtle);
+  font-size: var(--fs-2xs);
+}
 
 .section {
   display: flex;
@@ -159,6 +218,13 @@
 
 /* ============ Mobile Breakpoints ============ */
 @media (max-width: 760px) {
+  .quickIntents {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
   .controlRow {
     flex-direction: column;
     align-items: stretch;

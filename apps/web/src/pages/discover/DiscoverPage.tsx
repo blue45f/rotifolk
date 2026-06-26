@@ -2,6 +2,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Tabs } from '@components/ui/Tabs/Tabs'
@@ -13,8 +14,8 @@ import {
   getPriceBand,
   haversineKm,
 } from '@rotifolk/shared'
-import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useCallback, useMemo, useState } from 'react'
+import { useLocation, useSearchParams } from 'react-router-dom'
 
 import { SponsoredRail } from '../../domains/deskcloud/SponsoredRail'
 
@@ -24,8 +25,10 @@ import type { PartyCategory, PriceBandKey } from '@rotifolk/shared'
 
 import { ALL_CATEGORIES } from '@/domains/categories/meta'
 import { useGeolocation } from '@/domains/geo/useGeolocation'
+import { GuestConversionBanner } from '@/domains/guest/GuestConversionBanner'
 import { PartyCard } from '@/domains/parties/PartyCard'
 import { useParties } from '@/domains/parties/queries'
+import { useAuthStore } from '@/store/authStore'
 
 const PAGE_INCREMENT = 20
 const MAX_PAGE_SIZE = 50
@@ -58,20 +61,85 @@ const STATUSES: { value: StatusKey; label: string; icon: IconName }[] = [
   { value: 'ended', label: '지난 모임', icon: 'archive' },
 ]
 
+type QuickIntentState = {
+  status: StatusKey | null
+  sort: SortKey | null
+  date: string | null
+  price: PriceBandKey | null
+}
+
+type QuickIntent = {
+  key: string
+  label: string
+  icon: IconName
+  sub: string
+  state: QuickIntentState
+}
+
+const QUICK_INTENTS: QuickIntent[] = [
+  {
+    key: 'live',
+    label: '지금 진행',
+    icon: 'live',
+    sub: 'LIVE 라운드부터',
+    state: { status: 'live', sort: null, date: null, price: null },
+  },
+  {
+    key: 'tonight',
+    label: '오늘 즉시',
+    icon: 'moon',
+    sub: '오늘 시작 모임',
+    state: { status: 'open', sort: 'soonest', date: 'today', price: null },
+  },
+  {
+    key: 'nearby',
+    label: '내 주변',
+    icon: 'pin',
+    sub: '거리순 정렬',
+    state: { status: 'open', sort: 'nearby', date: null, price: null },
+  },
+  {
+    key: 'popular',
+    label: '인기',
+    icon: 'flame',
+    sub: '가장 뜨거운 모임',
+    state: { status: 'open', sort: 'popular', date: null, price: null },
+  },
+  {
+    key: 'weekend',
+    label: '주말',
+    icon: 'moon',
+    sub: '이번 주말 집중',
+    state: { status: 'open', sort: 'soonest', date: 'weekend', price: null },
+  },
+  {
+    key: 'free',
+    label: '가성비',
+    icon: 'sparkle',
+    sub: '무료 라운드',
+    state: { status: 'open', sort: 'soonest', date: null, price: 'free' },
+  },
+]
+
 export default function DiscoverPage() {
   usePageMeta({
     title: '로테이션 파티 둘러보기',
     description: '와인·커피·차·위스키 로테이션 모임을 카테고리·지역·날짜로 둘러보세요.',
   })
   const [params, setParams] = useSearchParams()
+  const me = useAuthStore((s) => s.user)
+  const location = useLocation()
+  const currentPath = `${location.pathname}${location.search}${location.hash}`
   const category = params.get('category') as PartyCategory | null
   const area = params.get('area')
   const date = params.get('date')
   const tag = params.get('tag')
   const price = params.get('price') as PriceBandKey | null
-
-  const sort = (params.get('sort') as SortKey | null) ?? 'soonest'
-  const status = (params.get('status') as StatusKey | null) ?? 'open'
+  const statusParam = params.get('status') as StatusKey | null
+  const sortParam = params.get('sort') as SortKey | null
+  const sort = sortParam ?? 'soonest'
+  const status = statusParam ?? 'open'
+  const activeSort = sortParam ?? 'soonest'
 
   const [pageSize, setPageSize] = useState(PAGE_INCREMENT)
   const [areaSheetOpen, setAreaSheetOpen] = useState(false)
@@ -108,6 +176,58 @@ export default function DiscoverPage() {
   )
   const { data, isLoading, isFetching } = useParties(query)
   const geo = useGeolocation()
+  const resetPage = useCallback(() => {
+    setPageSize(PAGE_INCREMENT)
+  }, [])
+  const activeQuickState = useMemo(
+    () => ({
+      status: statusParam ?? 'open',
+      sort: activeSort,
+      date,
+      price,
+    }),
+    [activeSort, date, price, statusParam]
+  )
+  const applyQuickIntent = (next: QuickIntentState) => {
+    resetPage()
+    const nextParams = new URLSearchParams(params)
+    ;(['status', 'sort', 'date', 'price'] as const).forEach((k) => {
+      const value = next[k]
+      if (value == null) {
+        nextParams.delete(k)
+      } else {
+        nextParams.set(k, value)
+      }
+    })
+    if (next.sort === 'nearby' && !geo.coords) geo.request()
+    setParams(nextParams, { replace: true })
+  }
+  const isQuickIntentActive = (intent: QuickIntent) =>
+    intent.state.status === activeQuickState.status &&
+    (intent.state.sort == null || intent.state.sort === activeQuickState.sort) &&
+    (intent.state.date == null || intent.state.date === activeQuickState.date) &&
+    (intent.state.price == null || intent.state.price === activeQuickState.price)
+
+  const priceBand = getPriceBand(price)
+
+  const filterSummary = useMemo(() => {
+    const parts: string[] = [
+      status === 'open' ? '모집 중' : status === 'live' ? '진행 중' : '지난 모임',
+    ]
+    if (date) {
+      const found = DATE_FILTERS.find((entry) => entry.value === date)
+      if (found) parts.push(found.label)
+    }
+    if (sort === 'popular') parts.push('인기순')
+    if (sort === 'nearby') parts.push('거리순')
+    if (priceBand) parts.push(`참가비 ${priceBand.label}`)
+    if (category) {
+      const foundCategory = ALL_CATEGORIES.find((entry) => entry.value === category)
+      if (foundCategory) parts.push(foundCategory.shortLabel)
+    }
+    if (area) parts.push(area)
+    return parts.join(' · ')
+  }, [area, category, date, priceBand, sort, status])
 
   const sortedItems = useMemo(() => {
     if (!data) return []
@@ -155,6 +275,11 @@ export default function DiscoverPage() {
     setParams(next, { replace: true })
   }
 
+  const setParamWithReset = (key: string, value: string | null) => {
+    resetPage()
+    setParam(key, value)
+  }
+
   const areaActive = (a: string | null) => (a ?? '') === (area ?? '')
   const otherAreas = Object.keys(SEOUL_AREAS).filter(
     (a) => !QUICK_AREAS.includes(a as (typeof QUICK_AREAS)[number])
@@ -172,10 +297,10 @@ export default function DiscoverPage() {
     activeChips.push({ key: 'date', label: d?.label ?? date })
   }
   if (tag) activeChips.push({ key: 'tag', label: `#${tag}` })
-  const priceBand = getPriceBand(price)
   if (priceBand) activeChips.push({ key: 'price', label: `💸 ${priceBand.label}` })
 
   const clearAll = () => {
+    resetPage()
     const next = new URLSearchParams(params)
     for (const k of ['category', 'area', 'date', 'tag', 'price']) next.delete(k)
     setParams(next, { replace: true })
@@ -187,17 +312,43 @@ export default function DiscoverPage() {
   return (
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
-        <h1>로테이션 파티 둘러보기</h1>
+        <EnchantingTitle>로테이션 파티 둘러보기</EnchantingTitle>
         <p>관심 있는 카테고리 · 지역으로 필터링해 보세요.</p>
       </header>
+      {!me && (
+        <section className={`container ${styles.guestBannerWrap}`}>
+          <GuestConversionBanner from={currentPath} />
+        </section>
+      )}
 
       <section className={`container ${styles.filters}`} aria-label="모임 필터">
+        <div className={styles.quickIntents} role="group" aria-label="빠른 탐색">
+          {QUICK_INTENTS.map((intent) => {
+            const active = isQuickIntentActive(intent)
+            return (
+              <button
+                key={intent.key}
+                type="button"
+                className={`${styles.quickIntent} ${active ? styles.quickIntentActive : ''}`}
+                onClick={() => applyQuickIntent(intent.state)}
+                aria-pressed={active}
+              >
+                <Icon name={intent.icon} />
+                <span>
+                  <strong>{intent.label}</strong>
+                  <small>{intent.sub}</small>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
         {/* Primary axis: what am I browsing (status) + how it's ordered (sort). */}
         <div className={styles.controlRow}>
           <Tabs
             label="모임 상태"
             value={status}
-            onChange={(v) => setParam('status', v === 'open' ? null : v)}
+            onChange={(v) => setParamWithReset('status', v === 'open' ? null : v)}
             tabs={STATUSES.map((s) => ({
               value: s.value,
               label: s.label,
@@ -211,7 +362,7 @@ export default function DiscoverPage() {
             value={sort}
             onChange={(v) => {
               if (v === 'nearby' && !geo.coords) geo.request()
-              setParam('sort', v === 'soonest' ? null : v)
+              setParamWithReset('sort', v === 'soonest' ? null : v)
             }}
             tabs={SORTS.map((s) => ({
               value: s.value,
@@ -225,7 +376,7 @@ export default function DiscoverPage() {
         <div className={styles.chipScroll} role="group" aria-label="카테고리 필터">
           <Chip
             selected={!category}
-            onClick={() => setParam('category', null)}
+            onClick={() => setParamWithReset('category', null)}
             leadingIcon={<Icon name="sparkle" />}
           >
             전체
@@ -234,7 +385,7 @@ export default function DiscoverPage() {
             <Chip
               key={c.value}
               selected={category === c.value}
-              onClick={() => setParam('category', category === c.value ? null : c.value)}
+              onClick={() => setParamWithReset('category', category === c.value ? null : c.value)}
               leadingEmoji={c.emoji}
             >
               {c.shortLabel}
@@ -249,16 +400,16 @@ export default function DiscoverPage() {
               <Icon name="pin" /> 지역
             </span>
             <div className={styles.chipScroll}>
-              <Chip selected={areaActive(null)} onClick={() => setParam('area', null)}>
+              <Chip selected={areaActive(null)} onClick={() => setParamWithReset('area', null)}>
                 전체
               </Chip>
               {QUICK_AREAS.map((a) => (
-                <Chip key={a} selected={areaActive(a)} onClick={() => setParam('area', a)}>
+                <Chip key={a} selected={areaActive(a)} onClick={() => setParamWithReset('area', a)}>
                   {a}
                 </Chip>
               ))}
               {area && !QUICK_AREAS.includes(area as (typeof QUICK_AREAS)[number]) && (
-                <Chip selected onClick={() => setParam('area', null)}>
+                <Chip selected onClick={() => setParamWithReset('area', null)}>
                   {area}
                 </Chip>
               )}
@@ -285,7 +436,7 @@ export default function DiscoverPage() {
                   <Chip
                     key={entry.value ?? '전체'}
                     selected={active}
-                    onClick={() => setParam('date', entry.value)}
+                    onClick={() => setParamWithReset('date', entry.value)}
                   >
                     {entry.label}
                   </Chip>
@@ -299,14 +450,14 @@ export default function DiscoverPage() {
               <Icon name="sliders" /> 참가비
             </span>
             <div className={styles.chipScroll}>
-              <Chip selected={!price} onClick={() => setParam('price', null)}>
+              <Chip selected={!price} onClick={() => setParamWithReset('price', null)}>
                 전체
               </Chip>
               {PRICE_BANDS.map((b) => (
                 <Chip
                   key={b.key}
                   selected={price === b.key}
-                  onClick={() => setParam('price', price === b.key ? null : b.key)}
+                  onClick={() => setParamWithReset('price', price === b.key ? null : b.key)}
                 >
                   {b.label}
                 </Chip>
@@ -323,7 +474,7 @@ export default function DiscoverPage() {
               <Chip
                 key={c.key}
                 selected
-                onClick={() => setParam(c.key, null)}
+                onClick={() => setParamWithReset(c.key, null)}
                 aria-label={`${c.label} 필터 해제`}
               >
                 <span className={styles.activeChipInner}>
@@ -358,16 +509,9 @@ export default function DiscoverPage() {
         ) : (
           <>
             <div className={styles.resultHead}>
-              <p className={styles.count}>
-                {price ? (
-                  <>
-                    참가비 조건 <strong>{sortedItems.length}</strong>개 (총 {data.total}개)
-                  </>
-                ) : (
-                  <>
-                    총 <strong>{data.total}</strong>개의 파티
-                  </>
-                )}
+              <p className={styles.count} role="status" aria-live="polite">
+                <strong>{sortedItems.length}</strong>개 조회
+                <span className={styles.countMeta}>{filterSummary}</span>
               </p>
             </div>
 
@@ -418,7 +562,7 @@ export default function DiscoverPage() {
           <Chip
             selected={areaActive(null)}
             onClick={() => {
-              setParam('area', null)
+              setParamWithReset('area', null)
               setAreaSheetOpen(false)
             }}
           >
@@ -430,7 +574,7 @@ export default function DiscoverPage() {
               selected={areaActive(a)}
               leadingIcon={<Icon name="pin" />}
               onClick={() => {
-                setParam('area', a)
+                setParamWithReset('area', a)
                 setAreaSheetOpen(false)
               }}
             >

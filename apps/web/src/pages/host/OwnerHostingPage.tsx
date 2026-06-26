@@ -3,6 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { formatKRW } from '@rotifolk/shared'
 import { useState } from 'react'
@@ -35,7 +36,7 @@ export default function OwnerHostingPage() {
       <header className={`container ${styles.head}`}>
         <div className={styles.headText}>
           <span className={styles.kicker}>OWNER HOSTING</span>
-          <h1 className={styles.title}>내 가게로 호스팅</h1>
+          <EnchantingTitle className={styles.title}>내 가게로 호스팅</EnchantingTitle>
           <p className={styles.lead}>
             비어 있던 시간을, 사람으로 채우세요. 메뉴·가격은 가게 정보 그대로.
           </p>

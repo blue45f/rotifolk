@@ -1,3 +1,4 @@
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Link } from 'react-router-dom'
 
 import { usePageMeta } from '@/hooks/usePageMeta'
@@ -92,7 +93,9 @@ export default function SitemapPage() {
         >
           BETA Sitemap
         </p>
-        <h1 style={{ marginTop: 'var(--space-2)' }}>rotifolk 사이트맵</h1>
+        <EnchantingTitle style={{ marginTop: 'var(--space-2)' }} as="h1">
+          rotifolk 사이트맵
+        </EnchantingTitle>
         <p style={{ maxWidth: '64ch', color: 'var(--color-text-muted)' }}>
           탐색, 모임, 호스트 콘솔, 계정, 정책, 디자인 시스템 경로를 한 화면에 정리했습니다.
         </p>

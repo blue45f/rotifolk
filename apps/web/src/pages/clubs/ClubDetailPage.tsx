@@ -2,6 +2,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
 import { Tabs } from '@components/ui/Tabs/Tabs'
@@ -240,7 +241,7 @@ export default function ClubDetailPage() {
           <MemberRing club={club} />
           <div className={styles.detailIdentity}>
             <div className={styles.detailTitleRow}>
-              <h1>{club.name}</h1>
+              <EnchantingTitle>{club.name}</EnchantingTitle>
               {club.myRole && (
                 <span className={styles.joined}>
                   <Icon name="check" aria-hidden="true" />

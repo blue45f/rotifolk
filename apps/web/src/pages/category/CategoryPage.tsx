@@ -3,6 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
@@ -153,9 +154,9 @@ export default function CategoryPage() {
             {meta.emoji}
           </div>
           <p className={styles.kicker}>{meta.shortLabel} 로테이션</p>
-          <h1 id="cat-mood-title" className={styles.moodTitle}>
+          <EnchantingTitle id="cat-mood-title" className={styles.moodTitle} as="h1">
             {meta.label}
-          </h1>
+          </EnchantingTitle>
           <p className={styles.moodDesc}>{meta.description}</p>
 
           <dl className={styles.moodStats} aria-label="카테고리 요약">

@@ -1,6 +1,7 @@
 import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -253,7 +254,7 @@ export default function CalendarPage() {
       <header className={styles.head}>
         <div className={styles.headTitleBlock}>
           <p className={styles.kicker}>나의 캘린더</p>
-          <h1 className={styles.monthTitle}>{monthLabel}</h1>
+          <EnchantingTitle className={styles.monthTitle}>{monthLabel}</EnchantingTitle>
         </div>
         <div className={styles.headControls}>
           <div className={styles.monthNav} role="group" aria-label="월 이동">

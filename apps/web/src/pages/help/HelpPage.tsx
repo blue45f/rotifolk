@@ -1,5 +1,6 @@
 import EmptyState from '@components/feedback/EmptyState'
 import { Badge } from '@components/ui/Badge/Badge'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
@@ -249,7 +250,7 @@ export default function HelpPage() {
         <Badge tone={isTutorialMode ? 'info' : 'primary'} size="md">
           {badgeLabel}
         </Badge>
-        <h1 className={styles.title}>{guideTitle}</h1>
+        <EnchantingTitle className={styles.title}>{guideTitle}</EnchantingTitle>
         <p className={styles.lede}>{guideCopy}</p>
       </header>
 

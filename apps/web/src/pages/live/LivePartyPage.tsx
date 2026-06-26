@@ -4,6 +4,7 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { Tabs } from '@components/ui/Tabs/Tabs'
@@ -215,7 +216,7 @@ export default function LivePartyPage() {
               {cat.emoji} {cat.label}
             </span>
           </div>
-          <h1 className={styles.title}>{party.title}</h1>
+          <EnchantingTitle className={styles.title}>{party.title}</EnchantingTitle>
         </div>
         <div className={styles.headRight}>
           <span className={styles.timer} aria-hidden="true">

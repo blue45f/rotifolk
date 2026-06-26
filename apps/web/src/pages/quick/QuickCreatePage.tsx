@@ -2,6 +2,7 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { motion } from 'motion/react'
 import { useState } from 'react'
@@ -12,6 +13,7 @@ import styles from './QuickCreate.module.css'
 import type { PartyCategory } from '@rotifolk/shared'
 
 import { ALL_CATEGORIES, CATEGORY_META } from '@/domains/categories/meta'
+import { share } from '@/domains/share/useShare'
 import { useVenues } from '@/domains/venues/queries'
 import { api } from '@/infrastructure/api'
 
@@ -77,19 +79,16 @@ export default function QuickCreatePage() {
     if (!createdParty) return
     const url = `${globalThis.location.origin}/invite/${createdParty.quickCode}`
     const shareText = `즉석 모임에 초대합니다!\n초대 코드: ${createdParty.quickCode}`
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: '즉석 모임 초대',
-          text: shareText,
-          url,
-        })
-      } else {
-        await navigator.clipboard.writeText(`${shareText}\n${url}`)
-        toast.show('초대 링크를 복사했어요', 'success')
-      }
-    } catch {
-      // user cancelled
+    const outcome = await share({
+      title: '즉석 모임 초대',
+      text: shareText,
+      url,
+    })
+
+    if (outcome === 'copied') {
+      toast.show('초대 링크를 복사했어요', 'success')
+    } else if (outcome === 'unsupported') {
+      toast.show('공유를 지원하지 않는 환경이에요', 'warning')
     }
   }
 
@@ -100,7 +99,7 @@ export default function QuickCreatePage() {
           <div className={styles.successEmoji} aria-hidden="true">
             {cat.emoji}
           </div>
-          <h1 className={styles.successTitle}>모임이 열렸어요!</h1>
+          <EnchantingTitle className={styles.successTitle}>모임이 열렸어요!</EnchantingTitle>
           <p className={styles.successLead}>
             아래 초대 코드를 친구에게 공유하면 바로 참여할 수 있어요.
           </p>
@@ -157,9 +156,9 @@ export default function QuickCreatePage() {
           <Icon name="bolt" size={0.95} className={styles.badgeIcon} aria-hidden /> 1분 만에 즉석
           모임
         </Badge>
-        <h1 className={styles.title}>
+        <EnchantingTitle className={styles.title}>
           지금, <span className={styles.accent}>한 잔 어때요?</span>
-        </h1>
+        </EnchantingTitle>
         <p className={styles.lead}>
           {clubName
             ? `${clubName} 멤버와 바로 모입니다. 시간과 장소만 고르면 끝.`

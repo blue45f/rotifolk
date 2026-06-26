@@ -6,6 +6,7 @@
  *  - 공유 문구 생성
  *  - navigator.share → 실패 시 clipboard.writeText 폴백
  */
+import { isTossInApp, shareInToss } from '@/infrastructure/toss'
 
 export type ShareOutcome = 'shared' | 'copied' | 'cancelled' | 'unsupported'
 
@@ -37,6 +38,10 @@ export function shareText(title: string): string {
   return `${clean} · Rotifolk에서 같이 한 잔 어때요?`
 }
 
+function toCopyText({ title, text, url }: { title: string; text: string; url: string }): string {
+  return `${title} · ${text} · ${url}`
+}
+
 /**
  * 클립보드에 텍스트를 복사한다. 보안 컨텍스트가 아니면 execCommand 폴백을 시도한다.
  * 성공하면 true.
@@ -51,20 +56,21 @@ export async function copyToClipboard(value: string): Promise<boolean> {
     }
   }
   if (typeof document === 'undefined') return false
+  const ta = document.createElement('textarea')
+  ta.value = value
+  ta.setAttribute('readonly', '')
+  ta.style.position = 'fixed'
+  ta.style.opacity = '0'
+  ta.style.pointerEvents = 'none'
+
   try {
-    const el = document.createElement('textarea')
-    el.value = value
-    el.setAttribute('readonly', '')
-    el.style.position = 'fixed'
-    el.style.opacity = '0'
-    el.style.pointerEvents = 'none'
-    document.body.appendChild(el)
-    el.select()
-    const ok = document.execCommand('copy')
-    document.body.removeChild(el)
-    return ok
+    document.body.appendChild(ta)
+    ta.select()
+    return document.execCommand('copy')
   } catch {
     return false
+  } finally {
+    if (document.body.contains(ta)) document.body.removeChild(ta)
   }
 }
 
@@ -78,17 +84,27 @@ export async function copyToClipboard(value: string): Promise<boolean> {
  */
 export async function share({ title, url, text }: ShareArgs): Promise<ShareOutcome> {
   const body = text ?? shareText(title)
+  const shareMessage = toCopyText({ title, text: body, url })
+  if (isTossInApp()) {
+    const tossOutcome = await shareInToss(shareMessage)
+    if (tossOutcome === 'shared') return 'shared'
+    if (tossOutcome === 'cancelled') return 'cancelled'
+  }
+
   if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+    const data: ShareData = { title, text: body, url }
     try {
-      await navigator.share({ title, text: body, url })
-      return 'shared'
+      if (typeof navigator.canShare !== 'function' || navigator.canShare(data)) {
+        await navigator.share(data)
+        return 'shared'
+      }
     } catch (err) {
-      // 사용자가 시트를 닫으면 AbortError — 폴백하지 않는다.
+      // 사용자가 시트를 닫으면 'cancelled'로 보고, 실제 실패한 경우에만 폴백한다.
       if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled'
       // 그 외 오류는 클립보드로 폴백
     }
   }
-  const copied = await copyToClipboard(url)
+  const copied = await copyToClipboard(shareMessage)
   return copied ? 'copied' : 'unsupported'
 }
 

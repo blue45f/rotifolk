@@ -61,6 +61,52 @@ export default function HomePage() {
         minute: '2-digit',
       })
     : '새 라운드 준비 중'
+  const greeting = me
+    ? (() => {
+        const hour = new Date().getHours()
+        if (hour < 6) return `${me.nickname}님, 안 좋은 하루는 이미 지나갔어요.`
+        if (hour < 12) return `${me.nickname}님, 좋은 아침입니다.`
+        if (hour < 18) return `${me.nickname}님, 한잔의 동선이 좋은 오후예요.`
+        return `${me.nickname}님, 오늘 밤 좋은 만남을 찾아볼까요?`
+      })()
+    : '오늘은 어떤 잔으로 첫 시작할까요?'
+  const homeIntents = [
+    {
+      to: '/discover?status=live',
+      icon: 'live' as const,
+      label: '지금 시작',
+      body: '진행 중 파티로 바로 입장',
+      stat: `${pulse.liveCount}개`,
+    },
+    {
+      to: '/discover?status=open&sort=soonest',
+      icon: 'moon' as const,
+      label: '모집 중 먼저 보기',
+      body: '곧 시작할 모임이 먼저 보여요',
+      stat: `${pulse.openCount}개`,
+    },
+    {
+      to: '/discover?sort=popular',
+      icon: 'flame' as const,
+      label: '요즘 인기',
+      body: '참여율과 분위기가 뜨는 모임',
+      stat: '핫',
+    },
+    {
+      to: '/discover?sort=nearby',
+      icon: 'pin' as const,
+      label: '내 주변',
+      body: '동네 기준으로 빠르게 정렬',
+      stat: '거리 우선',
+    },
+    {
+      to: '/discover?price=free',
+      icon: 'sparkle' as const,
+      label: '가성비',
+      body: '참가비가 부담 없는 라운드',
+      stat: '무료',
+    },
+  ]
 
   const liveParties = nowParties ?? []
   const hasLive = liveParties.length > 0
@@ -106,6 +152,9 @@ export default function HomePage() {
               <span className={styles.kickerDot} aria-hidden="true" />
               로테이션 파티 매칭 · 와인 · 커피 · 차
             </motion.span>
+            <motion.p className={styles.heroGreeting} variants={lineVariants} aria-live="polite">
+              {greeting}
+            </motion.p>
             <motion.h1 id="hero-title" className={styles.heroTitle} variants={lineVariants}>
               한 모금이 끝나기 전,
               <br />
@@ -140,6 +189,10 @@ export default function HomePage() {
               <li className={styles.proofDot} aria-hidden="true" />
               <li>
                 <span>5:5</span> 이성 매칭
+              </li>
+              <li className={styles.proofDot} aria-hidden="true" />
+              <li>
+                <span>{pulse.averageFillRate}%</span> 평균 참여율
               </li>
               <li className={styles.proofDot} aria-hidden="true" />
               <li>실명 노출 없이 아바타 모드</li>
@@ -183,6 +236,36 @@ export default function HomePage() {
           <Icon name="chevron-right" className={styles.onboardArrow} aria-hidden="true" />
         </Link>
       </nav>
+
+      <section className={`container ${styles.section}`} aria-labelledby="quick-intent-title">
+        <header className={styles.sectionHead}>
+          <div>
+            <h2 id="quick-intent-title" className={styles.sectionTitle}>
+              1분 탐색
+            </h2>
+            <p className={styles.sectionSub}>원하는 상황으로 바로 이동해보세요.</p>
+          </div>
+        </header>
+        <div className={styles.quickIntentGrid} role="list">
+          {homeIntents.map((intent) => (
+            <Link
+              key={intent.label}
+              to={intent.to}
+              className={styles.quickIntentCard}
+              role="listitem"
+            >
+              <span className={styles.quickIntentIcon} aria-hidden="true">
+                <Icon name={intent.icon} />
+              </span>
+              <span className={styles.quickIntentBody}>
+                <strong>{intent.label}</strong>
+                <small>{intent.body}</small>
+              </span>
+              <span className={styles.quickIntentStat}>{intent.stat}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* ===== Live signal — pulse data folded into ONE calm strip + cards ===== */}
       {hasLive ? (
@@ -268,6 +351,33 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {pulse.hotAreas.length > 0 && (
+        <section className={`container ${styles.section}`} aria-labelledby="hot-areas-title">
+          <header className={styles.sectionHead}>
+            <div>
+              <h2 id="hot-areas-title" className={styles.sectionTitle}>
+                지금 동네 동향
+              </h2>
+              <p className={styles.sectionSub}>최근 오픈/진행 모임이 모인 구역 순입니다.</p>
+            </div>
+          </header>
+          <div className={styles.hotAreaRail} role="list">
+            {pulse.hotAreas.map((item) => (
+              <Link
+                key={item.area}
+                to={`/discover?area=${encodeURIComponent(item.area)}`}
+                className={styles.hotAreaChip}
+                role="listitem"
+                aria-label={`${item.area} 동네로 필터`}
+              >
+                <span>{item.area}</span>
+                <strong>{item.count}개</strong>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ===== For-you recommendations ===== */}
       {recommended.length > 0 && (

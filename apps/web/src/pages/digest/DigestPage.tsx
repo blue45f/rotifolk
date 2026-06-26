@@ -3,6 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
@@ -15,6 +16,7 @@ import type { PartyCategory, PartySummary } from '@rotifolk/shared'
 import { CATEGORY_META } from '@/domains/categories/meta'
 import { PartyCard } from '@/domains/parties/PartyCard'
 import { useParties } from '@/domains/parties/queries'
+import { share } from '@/domains/share/useShare'
 import { api } from '@/infrastructure/api'
 
 /**
@@ -155,9 +157,9 @@ export default function DigestPage() {
         <Badge tone="gold" size="sm" className={styles.weeklyBadge}>
           <Icon name="sparkle" size={0.9} aria-hidden /> WEEKLY
         </Badge>
-        <h1 id="digest-title" className={styles.heroTitle}>
+        <EnchantingTitle id="digest-title" className={styles.heroTitle}>
           이번 주 Rotifolk
-        </h1>
+        </EnchantingTitle>
         <p className={styles.heroLead}>
           이번 주 열린 모임과 가장 따뜻했던 자리들을 한 잔에 모았어요. 마음에 드는 곳이 보이면 바로
           이어가세요.
@@ -178,11 +180,11 @@ export default function DigestPage() {
           onClick={async () => {
             const url = globalThis.location.href
             const title = '이번 주 Rotifolk 다이제스트'
-            if (navigator.share) {
-              await navigator.share({ title, url })
-            } else {
-              await navigator.clipboard.writeText(url)
+            const outcome = await share({ title, url })
+            if (outcome === 'copied') {
               showToast('링크가 복사됐어요', 'success')
+            } else if (outcome === 'unsupported') {
+              showToast('공유를 지원하지 않는 환경이에요', 'warning')
             }
           }}
         >

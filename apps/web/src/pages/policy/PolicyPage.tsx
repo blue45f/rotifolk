@@ -1,5 +1,6 @@
 import EmptyState from '@components/feedback/EmptyState'
 import { Button } from '@components/ui/Button/Button'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { usePageMeta } from '@hooks/usePageMeta'
 import { createElement } from 'react'
@@ -110,7 +111,7 @@ export default function PolicyPage() {
         </Link>
 
         <p className={styles.kicker}>법적 고지</p>
-        <h1 className={styles.title}>{data?.name ?? doc.fallbackName}</h1>
+        <EnchantingTitle className={styles.title}>{data?.name ?? doc.fallbackName}</EnchantingTitle>
 
         {data?.effectiveAt && (
           <p className={styles.effective}>

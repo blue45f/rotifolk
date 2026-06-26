@@ -4,6 +4,7 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -168,12 +169,12 @@ export default function HostManagePage() {
 
         <div className={styles.headBar}>
           <div className={styles.headMain}>
-            <h1 className={styles.title}>
+            <EnchantingTitle className={styles.title}>
               <span className={styles.titleEmoji} aria-hidden>
                 {cat.emoji}
               </span>
               {party.title}
-            </h1>
+            </EnchantingTitle>
             <div className={styles.heroMeta}>
               <Badge tone="primary">{cat.label}</Badge>
               <Badge tone={isLive ? 'danger' : 'success'}>{party.status.toUpperCase()}</Badge>

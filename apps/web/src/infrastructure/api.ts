@@ -2,6 +2,7 @@ import { useAuthStore } from '@store/authStore'
 import ky, { HTTPError, type KyInstance, type Options } from 'ky'
 
 import { disconnectSocket } from '@/domains/live/socket'
+import { isTossInApp } from '@/infrastructure/toss'
 
 const API_BASE = import.meta.env.VITE_API_URL ?? '/api'
 
@@ -26,6 +27,7 @@ export const apiClient: KyInstance = ky.create({
       ({ request }) => {
         const token = useAuthStore.getState().token
         if (token) request.headers.set('authorization', `Bearer ${token}`)
+        if (isTossInApp()) request.headers.set('x-rotifolk-client', 'toss-webview')
       },
     ],
     afterResponse: [

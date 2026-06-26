@@ -1,13 +1,14 @@
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SignUpSchema } from '@rotifolk/shared'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm, type Resolver } from 'react-hook-form'
-import { useLocation, Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import styles from './AuthPage.module.css'
 
@@ -15,6 +16,19 @@ import type { SignUpDto } from '@rotifolk/shared'
 
 import { useSignUp } from '@/domains/auth/queries'
 import { normalizeTutorialStep } from '@/domains/tutorial/progress'
+
+function resolveReturnPath(raw: string | null, location: Location): string {
+  if (!raw) return '/'
+  if (!raw.startsWith('/')) return '/'
+  if (raw.includes('://')) return '/'
+  try {
+    const target = new URL(raw, location.origin)
+    if (target.origin !== location.origin) return '/'
+    return `${target.pathname}${target.search}${target.hash}`
+  } catch {
+    return '/'
+  }
+}
 
 type StrengthLevel = 'weak' | 'medium' | 'strong'
 
@@ -32,10 +46,12 @@ function passwordStrength(pw: string): { level: StrengthLevel; label: string } |
 export default function SignUpPage() {
   const signUp = useSignUp()
   const navigate = useNavigate()
-  const location = useLocation()
   const [searchParams] = useSearchParams()
   const toast = useToast()
-  const returnPath = `${location.pathname}${location.search}${location.hash}` || '/'
+  const returnPath = useMemo(
+    () => resolveReturnPath(searchParams.get('from'), window.location),
+    [searchParams]
+  )
   const fromTutorial = normalizeTutorialStep(searchParams.get('fromTutorial'))
   const loginHref = fromTutorial
     ? `/login?fromTutorial=${fromTutorial}&from=${encodeURIComponent(returnPath)}`
@@ -72,7 +88,7 @@ export default function SignUpPage() {
           Rotifolk
         </p>
         <div className={styles.intro}>
-          <h1 className={styles.title}>5분 라운드, 시작해 볼까요</h1>
+          <EnchantingTitle className={styles.title}>5분 라운드, 시작해 볼까요</EnchantingTitle>
           <p className={styles.lead}>닉네임과 이메일이면 충분해요.</p>
         </div>
         <form
@@ -89,7 +105,7 @@ export default function SignUpPage() {
                 ...(trimmed ? { referralCode: trimmed } : {}),
               })
               toast.show('환영해요! 첫 파티를 골라보세요 ✨', 'success')
-              navigate('/discover')
+              navigate(returnPath, { replace: true })
             } catch (e) {
               toast.show((e as Error).message, 'error')
             }

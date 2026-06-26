@@ -4,6 +4,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAuthStore } from '@store/authStore'
@@ -264,7 +265,9 @@ export default function HostApplyPage() {
         <Badge tone="primary" size="md" outlined>
           호스트 인증
         </Badge>
-        <h1 className={styles.title}>더 많은 사람을 잇는 호스트가 되어주세요</h1>
+        <EnchantingTitle className={styles.title}>
+          더 많은 사람을 잇는 호스트가 되어주세요
+        </EnchantingTitle>
         <p className={styles.lead}>
           짧은 자기소개로 시작해요. 어떤 라운드를 그리고 있는지, 어떤 분위기로 진행할지 알려주시면
           1~2일 내로 인증해 드릴게요.

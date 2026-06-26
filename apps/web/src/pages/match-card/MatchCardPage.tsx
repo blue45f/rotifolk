@@ -4,6 +4,7 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -12,6 +13,7 @@ import { useParams, Link } from 'react-router-dom'
 
 import styles from './MatchCard.module.css'
 
+import { share } from '@/domains/share/useShare'
 import { api } from '@/infrastructure/api'
 
 interface HostProfileLite {
@@ -74,14 +76,17 @@ export default function MatchCardPage() {
 
   const handleShare = async () => {
     const url = globalThis.location.href
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: `${data.user.nickname}의 명함`, url })
-      } else {
-        await navigator.clipboard.writeText(url)
-        toast.show('링크를 복사했어요', 'success')
-      }
-    } catch {}
+    const outcome = await share({
+      title: `${data.user.nickname}의 명함`,
+      url,
+      text: `명함: ${data.user.nickname}`,
+    })
+
+    if (outcome === 'copied') {
+      toast.show('링크를 복사했어요', 'success')
+    } else if (outcome === 'unsupported') {
+      toast.show('공유를 지원하지 않는 환경이에요', 'warning')
+    }
   }
 
   const canConnect = !!me && me.id !== userId
@@ -108,9 +113,9 @@ export default function MatchCardPage() {
             ring="gold"
             label={`${data.user.nickname}님의 프로필 사진`}
           />
-          <h1 id="match-name" className={styles.name}>
+          <EnchantingTitle id="match-name" className={styles.name} as="h1">
             {data.user.nickname}
-          </h1>
+          </EnchantingTitle>
           {data.user.mbti && (
             <Badge tone="gold" size="md">
               {data.user.mbti}

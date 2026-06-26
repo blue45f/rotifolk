@@ -100,6 +100,16 @@ export function PartyCard({ party }: Props) {
     toggleSave.mutate()
   }
 
+  const handleHostClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    navigate(`/hosts/${party.hostId}`, { replace: false })
+  }
+
+  const handleCardNavigate = () => {
+    navigate(`/parties/${party.id}`)
+  }
+
   const datePart = start.toLocaleDateString('ko-KR', {
     month: 'long',
     day: 'numeric',
@@ -108,7 +118,13 @@ export function PartyCard({ party }: Props) {
   const timePart = start.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
 
   return (
-    <Link to={`/parties/${party.id}`} className={styles.card} aria-label={party.title}>
+    <article className={styles.card} aria-label={`${party.title} 상세 보기`}>
+      <button
+        type="button"
+        className={styles.cardActionLink}
+        aria-label={`${party.title} 상세 보기`}
+        onClick={handleCardNavigate}
+      />
       <div className={styles.cover} style={{ background: cat.bgGradient }}>
         {party.coverImageUrl ? (
           <img src={party.coverImageUrl} alt="" className={styles.coverImg} loading="lazy" />
@@ -201,20 +217,12 @@ export function PartyCard({ party }: Props) {
           </span>
         </div>
         {party.hostNickname && (
-          <button
-            type="button"
-            className={styles.hostLink}
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              navigate(`/hosts/${party.hostId}`)
-            }}
-          >
+          <Link to={`/hosts/${party.hostId}`} className={styles.hostLink} onClick={handleHostClick}>
             🎙️ {party.hostNickname}
-          </button>
+          </Link>
         )}
       </div>
-    </Link>
+    </article>
   )
 }
 

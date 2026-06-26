@@ -6,6 +6,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { Tabs } from '@components/ui/Tabs/Tabs'
@@ -79,7 +80,7 @@ export default function ProfileStudioPage() {
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
         <span className={styles.kicker}>PROFILE STUDIO</span>
-        <h1 className={styles.title}>프로필 · 인증 · 회피</h1>
+        <EnchantingTitle className={styles.title}>프로필 · 인증 · 회피</EnchantingTitle>
         <p className={styles.lede}>나를 더 잘 보여주고, 신뢰는 더하고, 불편한 만남은 피해요.</p>
       </header>
 

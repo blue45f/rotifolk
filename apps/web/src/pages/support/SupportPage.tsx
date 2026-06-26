@@ -1,4 +1,5 @@
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { useState, type FormEvent } from 'react'
@@ -85,7 +86,7 @@ export default function SupportPage() {
           <div className={styles.shell}>
             <header className={styles.head}>
               <p className={styles.kicker}>고객지원</p>
-              <h1>문의가 접수됐어요</h1>
+              <EnchantingTitle>문의가 접수됐어요</EnchantingTitle>
               <p className={styles.lede}>
                 남겨주신 내용은 운영팀만 볼 수 있어요. 회신 이메일을 적었다면 그쪽으로 답을 드려요.
               </p>
@@ -127,7 +128,7 @@ export default function SupportPage() {
         <div className={styles.shell}>
           <header className={styles.head}>
             <p className={styles.kicker}>고객지원</p>
-            <h1>무엇을 도와드릴까요?</h1>
+            <EnchantingTitle>무엇을 도와드릴까요?</EnchantingTitle>
             <p className={styles.lede}>
               이용 문의, 제휴 제안, 버그 제보까지 이 폼 하나로 보내면 운영팀에 바로 닿아요. 본문과
               연락처는 외부에 공개되지 않아요.

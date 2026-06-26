@@ -6,6 +6,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { Sheet } from '@components/ui/Sheet/Sheet'
@@ -33,7 +34,7 @@ import {
 import { useAuthStore } from '@store/authStore'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'motion/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useParams, useNavigate, useSearchParams } from 'react-router-dom'
 
 import styles from './PartyDetailPage.module.css'
@@ -48,9 +49,11 @@ import { buildPartyEventJsonLd } from '@/domains/parties/partyEventJsonLd'
 import { useParty, useJoinParty, useCancelJoin, useMyParties } from '@/domains/parties/queries'
 import { useRecents } from '@/domains/recents/useRecents'
 import { ShareButton } from '@/domains/share/ShareButton'
+import { useShare } from '@/domains/share/useShare'
 import { normalizeTutorialStep } from '@/domains/tutorial/progress'
 import { useVenue } from '@/domains/venues/queries'
 import { api } from '@/infrastructure/api'
+import { isTossInApp } from '@/infrastructure/toss'
 
 interface PartyReview {
   id: string
@@ -99,7 +102,13 @@ export default function PartyDetailPage() {
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const me = useAuthStore((s) => s.user)
-  const { data, isLoading } = useParty(partyId)
+  const {
+    data,
+    isLoading,
+    isError: isPartyError,
+    error: partyError,
+    refetch: refetchParty,
+  } = useParty(partyId)
   const join = useJoinParty(partyId!)
   const cancel = useCancelJoin(partyId!)
   const toast = useToast()
@@ -115,6 +124,9 @@ export default function PartyDetailPage() {
   const [showAddGuest, setShowAddGuest] = useState(false)
   const [newGuestName, setNewGuestName] = useState('')
   const [nowMs] = useState(() => Date.now())
+  const isInTossInApp = isTossInApp()
+  const showQuickActionDock = !isInTossInApp
+  const inlineMobileActionClass = showQuickActionDock ? styles.mobileInlineAction : ''
 
   const metaParty = data?.party
   // Event JSON-LD의 location(Place)용 — 상세 응답엔 venueId만 있어 공개 단건 조회로 보강.
@@ -201,6 +213,15 @@ export default function PartyDetailPage() {
 
   const [payOpen, setPayOpen] = useState(false)
   const [payMethod, setPayMethod] = useState<PaymentMethod>('card')
+  const payMethods = isInTossInApp
+    ? PAYMENT_METHODS.filter((method) => method.value === 'toss')
+    : PAYMENT_METHODS
+  const safePayMethods = payMethods.length > 0 ? payMethods : PAYMENT_METHODS
+  const isTossPayOnly =
+    isInTossInApp && safePayMethods.length === 1 && safePayMethods[0].value === 'toss'
+  const defaultPayMethod = isInTossInApp
+    ? (safePayMethods.find((method) => method.value === 'toss')?.value ?? safePayMethods[0].value)
+    : 'card'
   const payMutation = useMutation({
     mutationFn: (method: PaymentMethod) =>
       api.post<PaymentRow>(`payments/${partyId}/pay`, { method }),
@@ -212,6 +233,21 @@ export default function PartyDetailPage() {
     },
     onError: (e) => toast.show((e as Error).message, 'error'),
   })
+  const [activeSection, setActiveSection] = useState('overview')
+  const selectedPayMethod = useMemo(() => {
+    if (safePayMethods.some((method) => method.value === payMethod)) {
+      return payMethod
+    }
+    return safePayMethods[0]?.value ?? defaultPayMethod
+  }, [payMethod, safePayMethods, defaultPayMethod])
+  const handlePayAction = () => {
+    if (isTossPayOnly) {
+      payMutation.mutate('toss')
+      return
+    }
+    setPayOpen(true)
+  }
+
   const refundMutation = useMutation({
     mutationFn: (paymentId: string) => api.post<PaymentRow>(`payments/${paymentId}/refund`),
     onSuccess: () => {
@@ -267,20 +303,36 @@ export default function PartyDetailPage() {
     },
     onError: (e) => toast.show((e as Error).message, 'error'),
   })
+  const { share } = useShare()
 
   const handleShare = async () => {
+    if (!data) return
+
     const url = globalThis.location.href
-    const title = data?.party.title ?? 'Rotifolk 파티'
-    try {
-      if (navigator.share) {
-        await navigator.share({ title, text: '같이 가실래요?', url })
-      } else {
-        await navigator.clipboard.writeText(url)
-        toast.show('링크를 복사했어요', 'success')
-      }
-    } catch {
-      // user cancelled
+    const outcome = await share({ title: data.party.title, url, text: '같이 가실래요?' })
+    if (outcome === 'shared') {
+      toast.show('공유 창을 열었어요', 'success')
+      return
     }
+    if (outcome === 'copied') {
+      toast.show('링크를 복사했어요', 'success')
+      return
+    }
+    if (outcome === 'unsupported') {
+      toast.show('공유를 지원하지 않는 환경이에요', 'warning')
+    }
+  }
+
+  const handleSectionJump = (sectionId: string) => {
+    if (typeof window === 'undefined') return
+
+    const target = document.getElementById(sectionId)
+    if (!target) return
+
+    const offset = Math.max(window.innerHeight ? Math.floor(window.innerHeight * 0.12) : 88, 72)
+    const nextY = target.getBoundingClientRect().top + window.scrollY - offset
+    window.scrollTo({ top: Math.max(0, nextY), behavior: 'smooth' })
+    setActiveSection(sectionId)
   }
 
   const ensureRoom = useEnsurePartyRoom()
@@ -317,7 +369,141 @@ export default function PartyDetailPage() {
     toast.show('캘린더 파일을 받았어요', 'success')
   }
 
-  if (isLoading) return <Loading />
+  const sectionLinks = useMemo(() => {
+    if (!data?.party) return []
+
+    const partyForLinks = data.party
+    const partyParticipants = data.participants
+    const partyJoinedMe = me ? partyParticipants.find((p) => p.userId === me.id) : null
+    const statusForLinks = partyForLinks.status
+    const canPostPhotoForLinks =
+      !!me &&
+      (statusForLinks === 'live' || statusForLinks === 'ended') &&
+      (me.id === partyForLinks.hostId ||
+        partyParticipants.some((participant) => participant.userId === me.id))
+    const showPhotosSection = (photos?.length ?? 0) > 0 || canPostPhotoForLinks
+    const showReviewSection =
+      (reviews?.length ?? 0) > 0 || (statusForLinks === 'ended' && !!partyJoinedMe)
+
+    const reqV = partyForLinks.requiredVerifications ?? []
+    const marital = partyForLinks.maritalRequirement ?? []
+    const childrenPolicy = partyForLinks.childrenPolicy ?? 'any'
+    const ageFields = {
+      ageMin: partyForLinks.ageMin,
+      ageMax: partyForLinks.ageMax,
+      maleAgeMin: partyForLinks.maleAgeMin,
+      maleAgeMax: partyForLinks.maleAgeMax,
+      femaleAgeMin: partyForLinks.femaleAgeMin,
+      femaleAgeMax: partyForLinks.femaleAgeMax,
+    }
+    const hasAgeCondition = Object.values(ageFields).some((value) => value != null)
+    const pricingRules = partyForLinks.pricing.pricingRules ?? []
+    const myAge = me ? ageFromBirthYear(me.birthYear ?? null, new Date().getFullYear()) : null
+    const myPrice = me
+      ? resolveParticipantPrice(partyForLinks.pricing.basePriceKRW, pricingRules, {
+          gender: me.gender,
+          age: myAge,
+        })
+      : null
+    const showMyPrice =
+      !!me && pricingRules.length > 0 && myPrice !== partyForLinks.pricing.basePriceKRW
+
+    const hasEligibilitySection =
+      reqV.length > 0 ||
+      marital.length > 0 ||
+      childrenPolicy !== 'any' ||
+      hasAgeCondition ||
+      showMyPrice
+
+    return [
+      { id: 'overview', label: '모임 요약' },
+      { id: 'rules', label: '참가 전에' },
+      ...(hasEligibilitySection ? [{ id: 'eligibility', label: '참가 자격' }] : []),
+      { id: 'participants', label: '참가자' },
+      ...(showPhotosSection ? [{ id: 'photos', label: '사진' }] : []),
+      ...(showReviewSection ? [{ id: 'reviews', label: '후기' }] : []),
+      { id: 'booking', label: '신청' },
+    ]
+  }, [data, me, photos, reviews])
+
+  const loginHref = `/login?from=${encodeURIComponent(currentPath)}`
+  const signupHref = `/signup?from=${encodeURIComponent(currentPath)}`
+
+  useEffect(() => {
+    if (!sectionLinks.length) return
+    const sectionElements = sectionLinks
+      .map((item) => document.getElementById(item.id))
+      .filter(Boolean) as HTMLElement[]
+
+    if (sectionElements.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting)
+        if (visible.length === 0) return
+
+        const next = visible.reduce((prev, curr) => {
+          if (curr.intersectionRatio > prev.intersectionRatio) return curr
+          if (
+            curr.intersectionRatio === prev.intersectionRatio &&
+            curr.boundingClientRect.top < prev.boundingClientRect.top
+          )
+            return curr
+          return prev
+        }, visible[0])
+        if (next) setActiveSection(next.target.id)
+      },
+      {
+        root: null,
+        rootMargin: `-${Math.max(window?.innerHeight ? Math.floor(window.innerHeight * 0.1) : 56, 56)}px 0px -55% 0px`,
+        threshold: [0.1, 0.3, 0.55, 0.9],
+      }
+    )
+
+    for (const section of sectionElements) {
+      observer.observe(section)
+    }
+
+    return () => observer.disconnect()
+  }, [sectionLinks])
+
+  useEffect(() => {
+    if (!data?.party) return
+
+    queueMicrotask(() => {
+      try {
+        track({ id: data.party.id, title: data.party.title, category: data.party.config.category })
+      } catch {}
+    })
+  }, [data?.party, track])
+
+  if (isLoading) {
+    return (
+      <Loading
+        label="파티 정보를 불러오는 중"
+        onRetry={() => {
+          void refetchParty()
+        }}
+      />
+    )
+  }
+
+  if (isPartyError) {
+    const message = partyError instanceof Error ? partyError.message : '일시적인 문제가 발생했어요.'
+    return (
+      <EmptyState
+        emoji="🫠"
+        title="파티 정보를 불러오지 못했어요"
+        description={message}
+        action={
+          <Button variant="primary" onClick={() => void refetchParty()}>
+            다시 시도
+          </Button>
+        }
+      />
+    )
+  }
+
   if (!data) return <EmptyState emoji="🌙" title="파티를 찾을 수 없어요" />
   const { party, participants } = data
   const cat = CATEGORY_META[party.config.category]
@@ -328,6 +514,11 @@ export default function PartyDetailPage() {
   const activeParticipantCount = participants.filter(
     (p) => p.status === 'confirmed' || p.status === 'checked-in'
   ).length
+  const hostProfileHref = party.hostId
+    ? `/hosts/${party.hostId}`
+    : party.host?.id
+      ? `/hosts/${party.host.id}`
+      : null
 
   const conflict =
     me && myParties
@@ -363,20 +554,60 @@ export default function PartyDetailPage() {
   const isFree = party.pricing.basePriceKRW === 0
   const hoursUntilStart = (start.getTime() - nowMs) / 3_600_000
   const canRefund = !!paidPayment && hoursUntilStart >= 24
-
-  // track recent visit (one-shot per detail page mount)
-  if (party.id) {
-    queueMicrotask(() => {
-      try {
-        track({ id: party.id, title: party.title, category: party.config.category })
-      } catch {}
-    })
+  const canPostPhoto =
+    !!me &&
+    (status === 'live' || status === 'ended') &&
+    (isHost || participants.some((p) => p.userId === me.id))
+  const showPhotosSection = (photos && photos.length > 0) || canPostPhoto
+  const showReviewSection = (reviews && reviews.length > 0) || (status === 'ended' && joinedMe)
+  const reqV = party.requiredVerifications ?? []
+  const marital = party.maritalRequirement ?? []
+  const childrenPolicy = party.childrenPolicy ?? 'any'
+  const ageFields = {
+    ageMin: party.ageMin,
+    ageMax: party.ageMax,
+    maleAgeMin: party.maleAgeMin,
+    maleAgeMax: party.maleAgeMax,
+    femaleAgeMin: party.femaleAgeMin,
+    femaleAgeMax: party.femaleAgeMax,
   }
-
+  const hasAgeCondition = Object.values(ageFields).some((value) => value != null)
+  const pricingRules = party.pricing.pricingRules ?? []
+  const myAge = me ? ageFromBirthYear(me.birthYear ?? null, new Date().getFullYear()) : null
+  const myPrice = me
+    ? resolveParticipantPrice(party.pricing.basePriceKRW, pricingRules, {
+        gender: me.gender,
+        age: myAge,
+      })
+    : null
+  const showMyPrice = !!me && pricingRules.length > 0 && myPrice !== party.pricing.basePriceKRW
+  const hasEligibilitySection =
+    reqV.length > 0 ||
+    marital.length > 0 ||
+    childrenPolicy !== 'any' ||
+    hasAgeCondition ||
+    showMyPrice
   const guestMe = !me ? (guestSession?.participation ?? null) : null
 
+  const handleJoinAction = () => {
+    join.mutate(undefined, {
+      onSuccess: () => toast.show('신청 완료! 곧 만나요 ✨', 'success'),
+      onError: (e) => toast.show((e as Error).message, 'error'),
+    })
+  }
+  const handleCancelAction = () => {
+    cancel.mutate(undefined, {
+      onSuccess: () => toast.show('신청을 취소했어요', 'info'),
+      onError: (e) => toast.show((e as Error).message, 'error'),
+    })
+  }
+  const handleRefundAction = () => {
+    if (!paidPayment) return
+    refundMutation.mutate(paidPayment.id)
+  }
+
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${showQuickActionDock ? styles.pageWithDock : ''}`}>
       {guestMe && (
         <div className={`container ${styles.guestBannerWrap}`}>
           <GuestConversionBanner from={`/parties/${party.id}`} />
@@ -475,7 +706,13 @@ export default function PartyDetailPage() {
               )}
             </div>
           </div>
-          <h1 className={styles.heroTitle}>{party.title}</h1>
+          <EnchantingTitle
+            className={styles.heroTitle}
+            aria-label="파티 제목에 반짝이는 효과 재생"
+            title="파티 제목을 눌러 이펙트를 확인해 보세요"
+          >
+            {party.title}
+          </EnchantingTitle>
           <ul className={styles.heroFacts}>
             <li>
               <Icon name="clock" aria-hidden />
@@ -506,9 +743,29 @@ export default function PartyDetailPage() {
         </div>
       </motion.section>
 
-      <div className={`container ${styles.body}`}>
+      <nav className={styles.sectionNav} aria-label="파티 상세 탐색">
+        {sectionLinks.map((link) => (
+          <a
+            key={link.id}
+            href={`#${link.id}`}
+            className={`${styles.sectionNavItem} ${
+              activeSection === link.id ? styles.sectionNavItemActive : ''
+            }`}
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+              e.preventDefault()
+              handleSectionJump(link.id)
+            }}
+            aria-current={activeSection === link.id ? 'location' : undefined}
+          >
+            {link.label}
+          </a>
+        ))}
+      </nav>
+
+      <div className={`container ${styles.body} ${showQuickActionDock ? styles.bodyWithDock : ''}`}>
         <main className={styles.main}>
-          <section className={styles.section}>
+          <section id="overview" className={`${styles.section} ${styles.anchorSection}`}>
             <h2 className={styles.h2}>이 파티는요</h2>
             <p className={styles.desc}>{party.description}</p>
 
@@ -557,7 +814,7 @@ export default function PartyDetailPage() {
             )}
           </section>
 
-          <section className={styles.section}>
+          <section id="rules" className={`${styles.section} ${styles.anchorSection}`}>
             <h2 className={styles.h2}>참가 전에 확인해요</h2>
             <div className={styles.signalGrid}>
               <div className={styles.signal}>
@@ -664,9 +921,13 @@ export default function PartyDetailPage() {
             </div>
           </section>
 
-          <EligibilityPriceCard party={party} />
+          {hasEligibilitySection ? (
+            <div id="eligibility" className={styles.anchorSection}>
+              <EligibilityPriceCard party={party} />
+            </div>
+          ) : null}
 
-          <section className={styles.section}>
+          <section id="participants" className={`${styles.section} ${styles.anchorSection}`}>
             <h2 className={styles.h2}>참가자 ({activeParticipantCount})</h2>
             {participants.length === 0 ? (
               <p className={styles.muted}>아직 첫 참가자를 기다리고 있어요.</p>
@@ -722,14 +983,9 @@ export default function PartyDetailPage() {
           </section>
 
           {(() => {
-            const canPostPhoto =
-              !!me &&
-              (status === 'live' || status === 'ended') &&
-              (isHost || participants.some((p) => p.userId === me.id))
-            const showPhotosSection = (photos && photos.length > 0) || canPostPhoto
             if (!showPhotosSection) return null
             return (
-              <section className={styles.section}>
+              <section id="photos" className={`${styles.section} ${styles.anchorSection}`}>
                 <h2 className={styles.h2}>사진 ({photos?.length ?? 0})</h2>
                 {canPostPhoto && (
                   <form
@@ -801,8 +1057,8 @@ export default function PartyDetailPage() {
             <AfterPartyManager partyId={party.id} isHost={isHost} />
           )}
 
-          {(reviews && reviews.length > 0) || (status === 'ended' && joinedMe) ? (
-            <section className={styles.section}>
+          {showReviewSection ? (
+            <section id="reviews" className={`${styles.section} ${styles.anchorSection}`}>
               <h2 className={styles.h2}>후기</h2>
               {status === 'ended' && joinedMe && (
                 <div className={styles.reviewForm}>
@@ -967,7 +1223,7 @@ export default function PartyDetailPage() {
         </main>
 
         <aside className={styles.aside} aria-label="참가 신청">
-          <Card padding="lg" className={styles.bookCard}>
+          <Card id="booking" padding="lg" className={`${styles.bookCard} ${styles.anchorSection}`}>
             <div className={styles.priceRow}>
               <span className={styles.priceLabel}>참가비</span>
               <strong className={styles.priceVal}>
@@ -988,13 +1244,17 @@ export default function PartyDetailPage() {
                 <span>환불: 시작 {party.pricing.refundDeadlineHours}시간 전까지 전액</span>
               </li>
             </ul>
-            <Link to={policyHref} className={styles.policyLink}>
+            <Link
+              to={policyHref}
+              className={styles.policyLink}
+              aria-label="환불 취소 노쇼 정책 전문 페이지로 이동"
+            >
               환불·취소·노쇼 정책 자세히 보기
-              <Icon name="chevron-right" aria-hidden />
+              <Icon name="chevron-right" aria-hidden className={styles.policyIcon} />
             </Link>
 
             {isHost ? (
-              <div className={styles.stack}>
+              <div className={`${styles.stack} ${inlineMobileActionClass}`}>
                 <Link to={`/host/parties/${party.id}`} className={styles.stackLink}>
                   <Button variant="primary" size="lg" fullWidth>
                     호스트 콘솔로 가기
@@ -1023,7 +1283,7 @@ export default function PartyDetailPage() {
                 )}
               </div>
             ) : joinedMe ? (
-              <div className={styles.stack}>
+              <div className={`${styles.stack} ${inlineMobileActionClass}`}>
                 <div className={styles.joinedBadges}>
                   <Badge tone="success">
                     <Icon name="check" aria-hidden /> 신청 완료 ·{' '}
@@ -1048,12 +1308,12 @@ export default function PartyDetailPage() {
                     variant="primary"
                     size="lg"
                     fullWidth
-                    onClick={() => {
-                      setPayMethod('card')
-                      setPayOpen(true)
-                    }}
+                    isLoading={payMutation.isPending}
+                    onClick={handlePayAction}
                   >
-                    결제하기 ({party.pricing.basePriceKRW.toLocaleString()}원)
+                    {isInTossInApp
+                      ? `토스페이 결제 (${party.pricing.basePriceKRW.toLocaleString()}원)`
+                      : `결제하기 (${party.pricing.basePriceKRW.toLocaleString()}원)`}
                   </Button>
                 )}
                 <Button
@@ -1072,76 +1332,96 @@ export default function PartyDetailPage() {
                     size="md"
                     fullWidth
                     isLoading={refundMutation.isPending}
-                    onClick={() => refundMutation.mutate(paidPayment.id)}
+                    onClick={handleRefundAction}
                   >
                     환불 요청
                   </Button>
                 )}
                 {canCancelJoin && (
-                  <Button
-                    variant="ghost"
-                    size="md"
-                    fullWidth
-                    onClick={() =>
-                      cancel.mutate(undefined, {
-                        onSuccess: () => toast.show('신청을 취소했어요', 'info'),
-                      })
-                    }
-                  >
+                  <Button variant="ghost" size="md" fullWidth onClick={handleCancelAction}>
                     신청 취소
                   </Button>
                 )}
               </div>
+            ) : !me ? (
+              <div className={`${styles.loginPrompt} ${inlineMobileActionClass}`}>
+                <p className={styles.loginHint}>빠르게 참가하려면 로그인/회원가입이 필요해요.</p>
+                <div className={styles.loginActionRow}>
+                  <Link to={loginHref} className={styles.stackLink}>
+                    <Button variant="primary" size="lg" fullWidth>
+                      로그인하고 신청하기
+                    </Button>
+                  </Link>
+                  <Link to={signupHref} className={styles.stackLink}>
+                    <Button variant="soft" size="lg" fullWidth>
+                      회원가입하고 신청하기
+                    </Button>
+                  </Link>
+                </div>
+              </div>
             ) : (
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                isLoading={join.isPending}
-                onClick={() => {
-                  if (!me) {
-                    toast.show('로그인이 필요해요', 'warning')
-                    navigate('/login', { state: { from: `/parties/${party.id}` } })
-                    return
-                  }
-                  join.mutate(undefined, {
-                    onSuccess: () => toast.show('신청 완료! 곧 만나요 ✨', 'success'),
-                    onError: (e) => toast.show((e as Error).message, 'error'),
-                  })
-                }}
-              >
-                {status === 'open' ? '참가 신청' : status === 'full' ? '대기 신청' : '신청 마감'}
-              </Button>
+              <div className={inlineMobileActionClass}>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  isLoading={join.isPending}
+                  onClick={handleJoinAction}
+                >
+                  {status === 'open' ? '참가 신청' : status === 'full' ? '대기 신청' : '신청 마감'}
+                </Button>
+              </div>
             )}
           </Card>
 
-          <Card padding="lg">
+          <Card padding="lg" className={styles.hostCard}>
             <h3 className={styles.h3}>호스트</h3>
-            <Link to={`/hosts/${party.hostId}`} className={styles.hostBlock}>
-              <Avatar
-                size="lg"
-                hue="var(--color-primary)"
-                pattern="gradient"
-                emoji={party.host?.nickname?.[0]}
-                imageSrc={party.host?.avatarImage ?? null}
-                ring="glow"
-              />
-              <div>
-                <div className={styles.partName}>
-                  {party.host?.nickname ?? '호스트'}
-                  {party.host?.isVerified && (
-                    <Badge tone="info">
-                      <Icon name="check" aria-hidden /> 인증
-                    </Badge>
-                  )}
+            {hostProfileHref ? (
+              <Link
+                to={hostProfileHref}
+                className={styles.hostBlock}
+                aria-label={`${party.host?.nickname ?? '호스트'}의 프로필 보기`}
+              >
+                <Avatar
+                  size="lg"
+                  hue="var(--color-primary)"
+                  pattern="gradient"
+                  emoji={party.host?.nickname?.[0]}
+                  imageSrc={party.host?.avatarImage ?? null}
+                  ring="glow"
+                />
+                <div>
+                  <div className={styles.partName}>
+                    {party.host?.nickname ?? '호스트'}
+                    {party.host?.isVerified && (
+                      <Badge tone="info">
+                        <Icon name="check" aria-hidden /> 인증
+                      </Badge>
+                    )}
+                  </div>
+                  {party.host?.bio && <p className={styles.muted}>{party.host.bio}</p>}
+                  <p className={styles.hostLink}>
+                    프로필 보기
+                    <Icon name="chevron-right" aria-hidden />
+                  </p>
                 </div>
-                {party.host?.bio && <p className={styles.muted}>{party.host.bio}</p>}
-                <p className={styles.hostLink}>
-                  프로필 보기
-                  <Icon name="chevron-right" aria-hidden />
-                </p>
+              </Link>
+            ) : (
+              <div className={styles.hostBlock} aria-label="호스트 정보가 없습니다">
+                <Avatar
+                  size="lg"
+                  hue="var(--color-primary)"
+                  pattern="gradient"
+                  emoji={party.host?.nickname?.[0]}
+                  imageSrc={party.host?.avatarImage ?? null}
+                  ring="glow"
+                />
+                <div>
+                  <div className={styles.partName}>호스트 정보가 비공개입니다</div>
+                  <p className={styles.muted}>호스트 프로필이 아직 로딩되었거나 삭제됐어요.</p>
+                </div>
               </div>
-            </Link>
+            )}
 
             {(() => {
               const hostFeedbackCounts = (reviews ?? []).reduce<Record<string, number>>(
@@ -1179,42 +1459,147 @@ export default function PartyDetailPage() {
         </aside>
       </div>
 
-      <Sheet
-        open={payOpen}
-        onClose={() => setPayOpen(false)}
-        title="결제 수단 선택"
-        description={`${party.pricing.basePriceKRW.toLocaleString()}원을 결제할 수단을 골라주세요`}
-        variant="modal"
-        size="sm"
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setPayOpen(false)}>
-              취소
-            </Button>
-            <Button
-              variant="primary"
-              isLoading={payMutation.isPending}
-              onClick={() => payMutation.mutate(payMethod)}
-            >
-              {party.pricing.basePriceKRW.toLocaleString()}원 결제하기
-            </Button>
-          </>
-        }
-      >
-        <div className={styles.payMethodGrid}>
-          {PAYMENT_METHODS.map((m) => (
-            <Chip
-              key={m.value}
-              leadingEmoji={m.emoji}
-              selected={payMethod === m.value}
-              onClick={() => setPayMethod(m.value)}
-            >
-              {m.label}
-            </Chip>
-          ))}
+      {showQuickActionDock ? (
+        <div className={styles.quickActionDock} aria-label="빠른 동작">
+          <div className={styles.quickActionDockInner}>
+            {isHost ? (
+              <>
+                <Link to={`/host/parties/${party.id}`} className={styles.stackLink}>
+                  <Button variant="primary" size="sm" fullWidth>
+                    호스트 콘솔로 가기
+                  </Button>
+                </Link>
+                <Button
+                  variant="soft"
+                  size="sm"
+                  fullWidth
+                  leftIcon={<Icon name="chat" aria-hidden />}
+                  onClick={handleOpenGroupChat}
+                  isLoading={ensureRoom.isPending}
+                >
+                  단톡방 입장
+                </Button>
+              </>
+            ) : joinedMe ? (
+              <>
+                {status === 'live' ? (
+                  <Link to={`/live/${party.id}`} className={styles.stackLink}>
+                    <Button
+                      variant="gold"
+                      size="sm"
+                      fullWidth
+                      leftIcon={<Icon name="live" aria-hidden />}
+                    >
+                      라이브 입장
+                    </Button>
+                  </Link>
+                ) : null}
+                {!isFree && !paidPayment ? (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    fullWidth
+                    isLoading={payMutation.isPending}
+                    onClick={handlePayAction}
+                  >
+                    {isInTossInApp
+                      ? `토스페이 결제 (${party.pricing.basePriceKRW.toLocaleString()}원)`
+                      : `결제하기 (${party.pricing.basePriceKRW.toLocaleString()}원)`}
+                  </Button>
+                ) : null}
+                <Button
+                  variant="soft"
+                  size="sm"
+                  fullWidth
+                  leftIcon={<Icon name="chat" aria-hidden />}
+                  onClick={handleOpenGroupChat}
+                  isLoading={ensureRoom.isPending}
+                >
+                  단톡방 입장
+                </Button>
+                {paidPayment && canRefund ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    fullWidth
+                    isLoading={refundMutation.isPending}
+                    onClick={handleRefundAction}
+                  >
+                    환불 요청
+                  </Button>
+                ) : null}
+                {canCancelJoin ? (
+                  <Button variant="ghost" size="sm" fullWidth onClick={handleCancelAction}>
+                    신청 취소
+                  </Button>
+                ) : null}
+              </>
+            ) : !me ? (
+              <>
+                <Link to={loginHref} className={styles.stackLink}>
+                  <Button variant="primary" size="sm" fullWidth>
+                    로그인하고 신청하기
+                  </Button>
+                </Link>
+                <Link to={signupHref} className={styles.stackLink}>
+                  <Button variant="soft" size="sm" fullWidth>
+                    회원가입하고 신청하기
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <Button
+                variant="primary"
+                size="sm"
+                fullWidth
+                isLoading={join.isPending}
+                onClick={handleJoinAction}
+              >
+                {status === 'open' ? '참가 신청' : status === 'full' ? '대기 신청' : '신청 마감'}
+              </Button>
+            )}
+          </div>
         </div>
-        <p className={styles.payNote}>※ 실제 결제는 발생하지 않는 시뮬레이션이에요.</p>
-      </Sheet>
+      ) : null}
+
+      {!isTossPayOnly && (
+        <Sheet
+          open={payOpen}
+          onClose={() => setPayOpen(false)}
+          title="결제 수단 선택"
+          description={`${party.pricing.basePriceKRW.toLocaleString()}원을 결제할 수단을 골라주세요`}
+          variant="modal"
+          size="sm"
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setPayOpen(false)}>
+                취소
+              </Button>
+              <Button
+                variant="primary"
+                isLoading={payMutation.isPending}
+                onClick={() => payMutation.mutate(selectedPayMethod)}
+              >
+                {`${party.pricing.basePriceKRW.toLocaleString()}원 결제하기`}
+              </Button>
+            </>
+          }
+        >
+          <div className={styles.payMethodGrid}>
+            {safePayMethods.map((m) => (
+              <Chip
+                key={m.value}
+                leadingEmoji={m.emoji}
+                selected={selectedPayMethod === m.value}
+                onClick={() => setPayMethod(m.value)}
+              >
+                {m.label}
+              </Chip>
+            ))}
+          </div>
+          <p className={styles.payNote}>※ 실제 결제는 발생하지 않는 시뮬레이션이에요.</p>
+        </Sheet>
+      )}
 
       <Sheet
         open={showAddGuest}

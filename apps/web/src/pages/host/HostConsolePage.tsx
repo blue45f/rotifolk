@@ -3,6 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { REVENUE_MONITORING_POLICY } from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
@@ -410,9 +411,9 @@ export default function HostConsolePage() {
       <header className={`container ${styles.head}`}>
         <div className={styles.headIntro}>
           <span className={styles.kicker}>HOST CONSOLE</span>
-          <h1 className={styles.title}>
+          <EnchantingTitle className={styles.title}>
             안녕하세요, <span className={styles.accent}>{user?.nickname}</span> 호스트님
-          </h1>
+          </EnchantingTitle>
           <p className={styles.lead}>오늘의 라운드를 준비해 볼까요?</p>
         </div>
         <div className={styles.headActions}>

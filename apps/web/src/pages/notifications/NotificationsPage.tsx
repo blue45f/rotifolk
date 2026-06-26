@@ -2,6 +2,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -99,7 +100,7 @@ export default function NotificationsPage() {
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
         <div className={styles.headText}>
-          <h1>알림</h1>
+          <EnchantingTitle>알림</EnchantingTitle>
           {unread > 0 ? (
             <p className={styles.muted}>읽지 않은 {unread}개</p>
           ) : (

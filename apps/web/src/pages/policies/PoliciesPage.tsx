@@ -1,4 +1,5 @@
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { refundSchedule } from '@rotifolk/shared'
@@ -502,7 +503,7 @@ export default function PoliciesPage() {
           <Icon name="shield" size={1} aria-hidden="true" />
           ROTIFOLK POLICIES
         </span>
-        <h1 className={styles.title}>이용 · 환불 · 개인정보 정책</h1>
+        <EnchantingTitle className={styles.title}>이용 · 환불 · 개인정보 정책</EnchantingTitle>
         <p className={styles.sub}>
           누구나 안심하고 동네 로테이션 모임을 열고 참여할 수 있도록 정한 약속이에요. 동의 상태는 이
           페이지에서 바로 관리할 수 있어요.

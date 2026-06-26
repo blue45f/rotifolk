@@ -2,6 +2,7 @@ import { usePrompt } from '@components/feedback/Prompt/usePrompt'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -163,7 +164,7 @@ export default function LoginPage() {
           Rotifolk
         </p>
         <div className={styles.intro}>
-          <h1 className={styles.title}>다시 만나서 반가워요 🍷</h1>
+          <EnchantingTitle className={styles.title}>다시 만나서 반가워요 🍷</EnchantingTitle>
           <p className={styles.lead}>로그인하고 새로운 라운드를 시작해 보세요.</p>
         </div>
         <div className={styles.social}>

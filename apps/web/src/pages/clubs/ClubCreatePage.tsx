@@ -1,6 +1,7 @@
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import {
@@ -69,7 +70,7 @@ export default function ClubCreatePage() {
             <span className={styles.kicker}>
               <Icon name="plus" aria-hidden="true" /> 새 클럽
             </span>
-            <h1>클럽 만들기</h1>
+            <EnchantingTitle>클럽 만들기</EnchantingTitle>
             <p>
               정기적으로 같은 취향이 모이는 자리를 엽니다. 운영자는 자동으로 첫 멤버가 되고,
               클럽에서 바로 파티를 열 수 있어요.

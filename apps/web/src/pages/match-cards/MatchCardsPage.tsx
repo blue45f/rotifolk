@@ -4,6 +4,7 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { useQuery } from '@tanstack/react-query'
@@ -116,7 +117,7 @@ export default function MatchCardsPage() {
         <Badge tone="gold" size="md">
           내 명함
         </Badge>
-        <h1 className={styles.title}>라운드에서 만난 인연</h1>
+        <EnchantingTitle className={styles.title}>라운드에서 만난 인연</EnchantingTitle>
         <p className={styles.lede}>
           여러 라운드에서 마주친 사람들의 명함이에요. 이어가고 싶은 상대를 골라 1:1로 연결해 보세요.
         </p>

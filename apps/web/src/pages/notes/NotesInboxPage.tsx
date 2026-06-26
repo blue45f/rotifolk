@@ -2,6 +2,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { useMemo } from 'react'
 
@@ -122,7 +123,7 @@ export default function NotesInboxPage() {
           <Icon name="mail" size={0.95} aria-hidden="true" />
           쪽지함
         </span>
-        <h1 className={styles.title}>받은 쪽지</h1>
+        <EnchantingTitle className={styles.title}>받은 쪽지</EnchantingTitle>
         <p className={styles.sub}>
           {notes.length > 0 ? (
             <>

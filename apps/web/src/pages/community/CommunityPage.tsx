@@ -3,6 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { LinkifiedText } from '@components/ui/LinkifiedText/LinkifiedText'
 import {
@@ -860,7 +861,7 @@ export default function CommunityPage() {
           <Badge tone="info" size="md">
             로컬 커뮤니티
           </Badge>
-          <h1>모임 전후의 궁금한 점을 바로 묻고 이어가세요</h1>
+          <EnchantingTitle>모임 전후의 궁금한 점을 바로 묻고 이어가세요</EnchantingTitle>
           <p>
             준비물, 분위기, 연락처 교환 방식까지. 처음 온 사람도 망설이지 않도록 질문과 답변을
             한곳에 모았습니다. 정기적으로 모이고 싶다면 <Link to="/clubs">클럽</Link>에서

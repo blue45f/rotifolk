@@ -2,6 +2,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Tabs } from '@components/ui/Tabs/Tabs'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -55,7 +56,7 @@ export default function FollowsPage() {
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
         <p className={styles.kicker}>나의 사람들</p>
-        <h1>팔로우</h1>
+        <EnchantingTitle>팔로우</EnchantingTitle>
         <p className={styles.muted}>마음에 든 호스트를 따라가고, 나를 따르는 사람을 확인하세요.</p>
       </header>
 

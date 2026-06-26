@@ -3,6 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { recommendParties } from '@rotifolk/shared'
 import { motion } from 'motion/react'
@@ -79,11 +80,11 @@ export default function VibePage() {
           <Icon name="sparkle" className={styles.badgeIcon} aria-hidden="true" />
           VIBE CHECK
         </Badge>
-        <h1 id="vibe-title" className={styles.title}>
+        <EnchantingTitle id="vibe-title" className={styles.title}>
           오늘의 기분을 한 줄로,
           <br />
           어울리는 모임 찾아드릴게요.
-        </h1>
+        </EnchantingTitle>
         <p className={styles.lead}>자기소개 형식이 아니어도 좋아요. 키워드만 던져도 충분합니다.</p>
 
         <div className={styles.composerBlock}>

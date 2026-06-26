@@ -5,6 +5,7 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { Sheet } from '@components/ui/Sheet/Sheet'
@@ -20,6 +21,7 @@ import { resizeAvatarImage } from '@/domains/avatar/imageUpload'
 import { CATEGORY_META } from '@/domains/categories/meta'
 import { GuestConversionBanner } from '@/domains/guest/GuestConversionBanner'
 import { useGuestJoin, useGuestSession } from '@/domains/guest/queries'
+import { share } from '@/domains/share/useShare'
 import { api } from '@/infrastructure/api'
 
 interface InvitePreview {
@@ -178,20 +180,18 @@ export default function InvitePage() {
   const handleShare = async () => {
     const url = globalThis.location.href
     const shareText = `${data.title}\n${startLabel} · ${data.venueArea}\n초대 코드: ${data.quickCode}`
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: data.title,
-          text: shareText,
-          url,
-        })
-      } else {
-        await navigator.clipboard.writeText(`${shareText}\n${url}`)
-        toast.show('초대 링크를 복사했어요', 'success')
-        setLiveMessage('초대 링크를 복사했어요')
-      }
-    } catch {
-      // user cancelled
+    const outcome = await share({
+      title: data.title,
+      text: shareText,
+      url,
+    })
+
+    if (outcome === 'copied') {
+      toast.show('초대 링크를 복사했어요', 'success')
+      setLiveMessage('초대 링크를 복사했어요')
+    } else if (outcome === 'unsupported') {
+      toast.show('공유를 지원하지 않는 환경이에요', 'warning')
+      setLiveMessage('공유를 지원하지 않는 환경이에요')
     }
   }
 
@@ -221,7 +221,7 @@ export default function InvitePage() {
                   {countdownLabel}
                 </span>
               </div>
-              <h1 className={styles.title}>{data.title}</h1>
+              <EnchantingTitle className={styles.title}>{data.title}</EnchantingTitle>
               <p className={styles.metaRow}>
                 <span className={styles.metaItem}>
                   <span className={styles.metaIcon} aria-hidden="true">

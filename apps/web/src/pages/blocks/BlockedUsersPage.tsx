@@ -4,6 +4,7 @@ import Loading from '@components/feedback/Loading'
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -217,7 +218,7 @@ export default function BlockedUsersPage() {
           <Icon name="shield" />
           안심 매칭
         </p>
-        <h1>차단 목록 관리</h1>
+        <EnchantingTitle>차단 목록 관리</EnchantingTitle>
         <p className={styles.muted}>
           원치 않는 사용자를 매칭과 소셜링에서 격리하고, 지인 회피를 직접 설정하세요.
         </p>

@@ -2,6 +2,7 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -297,7 +298,7 @@ export default function HostCreatePage() {
         <div className={styles.titleRow}>
           <div>
             <p className={styles.kicker}>HOST · NEW ROTATION</p>
-            <h1 className={styles.title}>새 로테이션 파티 만들기</h1>
+            <EnchantingTitle className={styles.title}>새 로테이션 파티 만들기</EnchantingTitle>
           </div>
           <p className={styles.stepCount}>
             <b>{currentIndex + 1}</b> / {STEP_ORDER.length}

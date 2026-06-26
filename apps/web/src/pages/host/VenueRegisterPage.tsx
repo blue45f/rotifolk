@@ -1,6 +1,7 @@
 import { useToast } from '@components/feedback/Toast/useToast'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { CreateVenueSchema, SEOUL_AREAS, type VenueKind } from '@rotifolk/shared'
@@ -136,7 +137,7 @@ export default function VenueRegisterPage() {
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
         <span className={styles.kicker}>VENUE LISTING</span>
-        <h1 className={styles.title}>공간 등록</h1>
+        <EnchantingTitle className={styles.title}>공간 등록</EnchantingTitle>
         <p className={styles.lead}>
           한 번 등록해두면, 비는 시간에 직접 모임을 열거나 섭외를 받을 수 있어요.
         </p>

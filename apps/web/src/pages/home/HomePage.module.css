@@ -192,6 +192,13 @@
   color: var(--color-text);
   text-wrap: balance;
 }
+.heroGreeting {
+  margin-top: -2px;
+  margin-bottom: 2px;
+  font-size: var(--fs-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--fw-medium);
+}
 .heroTitleAccent {
   position: relative;
   color: var(--brand-apricot-700);
@@ -377,6 +384,115 @@
 }
 .sectionAction:hover {
   text-decoration: underline;
+}
+
+/* ===== 1-minute discover actions ===== */
+.quickIntentGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+.quickIntentCard {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-3);
+  align-items: center;
+  min-height: 88px;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart);
+}
+.quickIntentCard:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--color-primary) 40%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+.quickIntentCard:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+.quickIntentIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, var(--brand-apricot-600) 17%, var(--color-surface));
+  color: var(--brand-apricot-800);
+}
+.quickIntentBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.quickIntentBody strong {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--tracking-tight);
+}
+.quickIntentBody small {
+  color: var(--color-text-muted);
+  font-size: var(--fs-2xs);
+  line-height: 1.3;
+}
+.quickIntentStat {
+  justify-self: end;
+  font-size: var(--fs-xs);
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--color-surface-soft);
+}
+
+/* ===== Neighborhood pulse rail ===== */
+.hotAreaRail {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: var(--space-1);
+  margin-inline: calc(var(--space-2) * -1);
+  padding-inline: var(--space-2);
+}
+.hotAreaRail::-webkit-scrollbar {
+  display: none;
+}
+.hotAreaChip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  text-decoration: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart);
+}
+.hotAreaChip span:last-child {
+  color: var(--color-text-subtle);
+  font-size: var(--fs-2xs);
+}
+.hotAreaChip:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--color-primary) 32%, transparent);
+}
+.hotAreaChip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* ============ Onboarding strip (demoted quick-start) ============ */
@@ -907,6 +1023,9 @@
 @media (max-width: 640px) {
   .section {
     padding: var(--space-12) var(--space-3);
+  }
+  .quickIntentGrid {
+    grid-template-columns: 1fr;
   }
   .onboard {
     grid-template-columns: 1fr;

@@ -2,6 +2,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import {
@@ -62,7 +63,7 @@ export default function ClubsPage() {
             <span className={styles.kicker}>
               <Icon name="sparkle" aria-hidden="true" /> 정기 모임
             </span>
-            <h1>클럽</h1>
+            <EnchantingTitle>클럽</EnchantingTitle>
             <p>
               하룻밤 파티가 끝나도 잔은 다시 돕니다. 같은 취향이 정기적으로 모이는 자리, 마음 맞는
               클럽에 앉아보세요.

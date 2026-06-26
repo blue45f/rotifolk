@@ -3,13 +3,23 @@
  * 권한 요청은 호스트가 알람 토글을 켤 때 1회만 일어난다.
  */
 
+import {
+  isUiAudioEnabled as isUiAudioSwitchEnabled,
+  playBangTick as playBangTickSound,
+} from '@/lib/uiSound'
+
 let audioCtx: AudioContext | null = null
 
 type WindowWithWebkitAudio = Window & { webkitAudioContext?: typeof AudioContext }
 
+function isUiAudioAllowed(): boolean {
+  return isUiAudioSwitchEnabled()
+}
+
 /** 짧은 2음 차임 (E5→A5) — 외부 에셋 없이 oscillator로 합성. */
 export function playRoundChime(): void {
   try {
+    if (!isUiAudioAllowed()) return
     const Ctor = globalThis.AudioContext ?? (window as WindowWithWebkitAudio).webkitAudioContext
     if (!Ctor) return
     audioCtx ??= new Ctor()
@@ -34,6 +44,13 @@ export function playRoundChime(): void {
     }
   } catch {
     // 오디오 미지원/차단 환경 — 알람은 보조 수단이므로 조용히 무시
+  }
+}
+
+/** 버튼/타이틀 bang에 맞는 짧은 클릭형 사운드(오디오 컨텍스트 재생용). */
+export function playBangTick(): void {
+  if (isUiAudioAllowed()) {
+    playBangTickSound()
   }
 }
 

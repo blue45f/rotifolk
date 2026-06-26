@@ -4,6 +4,7 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -107,7 +108,7 @@ export default function PaymentsHistoryPage() {
     <div className={`container ${styles.page}`}>
       <header className={styles.head}>
         <p className={styles.kicker}>결제</p>
-        <h1>결제 내역</h1>
+        <EnchantingTitle>결제 내역</EnchantingTitle>
         <p className={styles.muted}>
           참여한 모임의 결제와 환불 기록이에요. 최근 100건까지 표시돼요.
         </p>

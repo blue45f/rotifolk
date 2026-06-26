@@ -1,6 +1,7 @@
 import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { useAuthStore } from '@store/authStore'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -124,7 +125,7 @@ export default function ChatRoomPage() {
           ring="soft"
         />
         <div className={styles.roomHeaderBody}>
-          <h1 className={styles.roomTitle}>{name}</h1>
+          <EnchantingTitle className={styles.roomTitle}>{name}</EnchantingTitle>
           {room.partyId && !isPair ? (
             <Link to={`/parties/${room.partyId}`} className={styles.roomPartyLink}>
               파티 보기

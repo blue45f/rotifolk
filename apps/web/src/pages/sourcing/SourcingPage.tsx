@@ -4,6 +4,7 @@ import { useToast } from '@components/feedback/Toast/useToast'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { formatKRW, VENUE_BOOKING_STATUS_LABEL } from '@rotifolk/shared'
 import { motion, useReducedMotion } from 'motion/react'
@@ -85,7 +86,7 @@ export default function SourcingPage() {
           <span className={styles.kickerTick} aria-hidden="true" />
           VENUE SOURCING
         </span>
-        <h1 className={styles.title}>모임 공간 섭외</h1>
+        <EnchantingTitle className={styles.title}>모임 공간 섭외</EnchantingTitle>
         <p className={styles.lead}>
           카테고리·인원·시간만 정하면 위치까지 따져 잘 맞는 공간을 점수로 추천해요. 마음에 들면 바로
           섭외를 요청하고, 진행 상황은 한자리에서 추적하세요.

@@ -3,6 +3,7 @@ import { Badge } from '@components/ui/Badge/Badge'
 import { Button, type ButtonVariant } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
@@ -246,7 +247,7 @@ export default function DesignPage() {
         <div className={`container ${styles.mastheadInner}`}>
           <div className={styles.mastheadText}>
             <p className={styles.wordmark}>rotifolk</p>
-            <h1 className={styles.mastheadTitle}>Design System</h1>
+            <EnchantingTitle className={styles.mastheadTitle}>Design System</EnchantingTitle>
             <p className={styles.mastheadDesc}>
               해 지기 직전 첫 잔을 나누는 황금빛 사교 시간. 이 페이지의 토큰과 컴포넌트는 실제 앱이
               쓰는 것과 동일합니다 — 값은 현재 테마 기준으로 라이브 계산됩니다.

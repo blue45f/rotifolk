@@ -3,6 +3,7 @@ import Loading from '@components/feedback/Loading'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Card } from '@components/ui/Card/Card'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -119,7 +120,7 @@ export default function VenuesPage() {
     <div className={styles.page}>
       <header className={`container ${styles.head}`}>
         <p className={styles.kicker}>VENUES · 제휴 장소</p>
-        <h1 className={styles.title}>파티를 열 장소를 골라보세요</h1>
+        <EnchantingTitle className={styles.title}>파티를 열 장소를 골라보세요</EnchantingTitle>
         <p className={styles.lead}>
           파티를 열기 좋은 라운지·와인바·카페·다실. 호스트 콘솔에서 바로 선택할 수 있어요.
         </p>

@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   background: var(--color-bg);
+  position: relative;
 }
 .main {
   flex: 1;
@@ -10,12 +11,244 @@
   /* 하단 탭바 클리어런스는 SiteFooter가 가져간다 — 여기는 푸터와의 간격만 */
   padding-bottom: var(--space-8);
 }
+
+.scrollProgress {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--header-h);
+  height: 2px;
+  z-index: var(--z-sticky);
+  pointer-events: none;
+  background: color-mix(in oklab, var(--color-border) 55%, transparent);
+}
+
+.scrollProgressBar {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-primary-soft) 35%, transparent),
+    var(--color-primary)
+  );
+  transition: transform 180ms var(--ease-out);
+}
+
+.toTop {
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right, 0px));
+  bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--color-surface) 96%, transparent);
+  box-shadow:
+    0 10px 24px color-mix(in oklab, var(--color-text) 12%, transparent),
+    inset 0 1px 0 color-mix(in oklab, #fff 40%, transparent);
+  z-index: calc(var(--z-sticky) + 1);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  display: grid;
+  place-items: center;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.toTop:hover {
+  transform: translateY(-1px);
+}
+
+.toTop:active {
+  transform: translateY(1px);
+}
+
+.ambientBgm {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-border) 70%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 95%, transparent);
+  box-shadow:
+    0 10px 24px color-mix(in oklab, var(--color-text) 10%, transparent),
+    inset 0 1px 0 color-mix(in oklab, #fff 55%, transparent);
+  display: grid;
+  place-items: center;
+  font-size: var(--fs-lg);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+  touch-action: manipulation;
+}
+
+.ambientDock {
+  position: fixed;
+  left: max(var(--space-4), env(safe-area-inset-left, 0px));
+  bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-sticky);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.2rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-border) 66%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 94%, transparent);
+  box-shadow:
+    0 14px 32px color-mix(in oklab, var(--color-text) 14%, transparent),
+    inset 0 1px 0 color-mix(in oklab, #fff 45%, transparent);
+}
+
+.ambientBgmOn {
+  color: var(--color-primary);
+  border-color: color-mix(in oklab, var(--color-primary) 60%, transparent);
+  box-shadow:
+    0 12px 30px color-mix(in oklab, var(--color-primary) 20%, transparent),
+    inset 0 1px 0 color-mix(in oklab, #fff 65%, transparent);
+}
+
+.ambientBgm:hover {
+  transform: translateY(-1px);
+}
+
+.ambientBgm:active {
+  transform: translateY(1px) scale(0.985);
+}
+
+.ambientDockToggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--color-border) 62%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 96%, transparent);
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+  touch-action: manipulation;
+}
+
+.ambientDockToggle:active {
+  transform: scale(0.97);
+}
+
+.ambientPanel {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  min-width: 178px;
+  padding: 0.56rem 0.66rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklab, var(--color-border) 70%, transparent);
+  background: color-mix(in oklab, var(--color-surface) 96%, transparent);
+  box-shadow:
+    0 14px 36px color-mix(in oklab, var(--color-text) 16%, transparent),
+    inset 0 1px 0 color-mix(in oklab, #fff 45%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px) scale(0.97);
+  transform-origin: 50% 110%;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out),
+    visibility var(--dur-base) var(--ease-out);
+  visibility: hidden;
+}
+
+.ambientPanelOpen {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.ambientPanelLabel {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+.ambientPanelRangeLabel {
+  display: block;
+  margin-top: 0.3rem;
+  margin-bottom: 0.4rem;
+  color: var(--color-text-muted);
+  font-size: var(--fs-2xs);
+}
+
+.ambientRange {
+  width: 100%;
+  appearance: none;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-border) 80%, transparent);
+  outline: none;
+  margin: 0;
+}
+
+.ambientRange::-webkit-slider-thumb {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  border: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--color-primary) 68%, var(--color-text)),
+    var(--color-primary)
+  );
+  box-shadow: 0 4px 10px color-mix(in oklab, var(--color-primary) 30%, transparent);
+}
+
+.ambientRange::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--color-primary);
+}
+
+.ambientPanelActions {
+  margin-top: 0.52rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.ambientPanelAction {
+  justify-self: stretch;
+  border: 0;
+  background: color-mix(in oklab, var(--color-surface) 85%, transparent);
+  color: var(--color-text-muted);
+  font-size: var(--fs-2xs);
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  text-align: center;
+  min-height: 32px;
+  touch-action: manipulation;
+}
+
 .shell[data-live='true'] .main {
   padding-bottom: 0;
+}
+.shell[data-toss='true'] .main {
+  padding-top: max(var(--space-4), env(safe-area-inset-top, 0px));
+  padding-bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 1024px) {
   .main {
     padding-bottom: var(--space-12);
+  }
+
+  .shell[data-toss='true'] .main {
+    padding-top: max(var(--space-6), env(safe-area-inset-top, 0px));
   }
 }

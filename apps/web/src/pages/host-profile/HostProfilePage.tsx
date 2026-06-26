@@ -6,6 +6,7 @@ import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
 import { Button } from '@components/ui/Button/Button'
 import { Card } from '@components/ui/Card/Card'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { HostLevelBadge } from '@components/ui/HostLevelBadge/HostLevelBadge'
 import { Sheet } from '@components/ui/Sheet/Sheet'
 import { computeHostLevel } from '@rotifolk/shared'
@@ -116,7 +117,7 @@ export default function HostProfilePage() {
           />
           <div className={styles.identityBody}>
             <div className={styles.nameRow}>
-              <h1>{user.nickname}</h1>
+              <EnchantingTitle>{user.nickname}</EnchantingTitle>
               {user.isVerified && <Badge tone="info">✓ 인증</Badge>}
               {user.role === 'host' ? (
                 <HostLevelBadge level={hostLevel.level} size="md" />

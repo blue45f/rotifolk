@@ -67,6 +67,9 @@ export function Header({ onOpenCommand }: HeaderProps) {
           <NavLink to="/discover" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.discover')}
           </NavLink>
+          <NavLink to="/search" className={({ isActive }) => (isActive ? styles.active : '')}>
+            {t('nav.search')}
+          </NavLink>
           <NavLink to="/quick" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.quick')}
           </NavLink>
@@ -87,6 +90,14 @@ export function Header({ onOpenCommand }: HeaderProps) {
               <span className={styles.commandBtnHint}>데모</span>
             </Link>
           )}
+          <Tooltip label="파티 검색">
+            <Link to="/search" className={styles.commandBtn} aria-label="파티 검색">
+              <Icon name="search" aria-hidden />
+              <span className={styles.commandBtnHint} aria-hidden="true">
+                ⌘F
+              </span>
+            </Link>
+          </Tooltip>
           <Tooltip label={`Switch language to ${nextLocale.toUpperCase()}`}>
             <button
               type="button"

@@ -2,6 +2,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Badge } from '@components/ui/Badge/Badge'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { Input } from '@components/ui/Input/Input'
 import { useAuthStore } from '@store/authStore'
@@ -38,7 +39,7 @@ export default function ChatListPage() {
   if (isLoading) {
     return (
       <div className={`container ${styles.page}`}>
-        <h1 className={styles.title}>채팅</h1>
+        <EnchantingTitle className={styles.title}>채팅</EnchantingTitle>
         <Loading />
       </div>
     )
@@ -47,7 +48,7 @@ export default function ChatListPage() {
   if (!data || data.length === 0) {
     return (
       <div className={`container ${styles.page}`}>
-        <h1 className={styles.title}>채팅</h1>
+        <EnchantingTitle className={styles.title}>채팅</EnchantingTitle>
         <EmptyState
           emoji="💌"
           title="아직 채팅방이 없어요"
@@ -59,7 +60,7 @@ export default function ChatListPage() {
 
   return (
     <div className={`container ${styles.page}`}>
-      <h1 className={styles.title}>채팅</h1>
+      <EnchantingTitle className={styles.title}>채팅</EnchantingTitle>
       <div className={styles.searchWrap}>
         <Input
           type="search"

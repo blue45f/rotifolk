@@ -2,6 +2,7 @@ import EmptyState from '@components/feedback/EmptyState'
 import Loading from '@components/feedback/Loading'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import EnchantingTitle from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { SEOUL_AREAS, formatDistanceKm, haversineKm } from '@rotifolk/shared'
 import { useQuery } from '@tanstack/react-query'
@@ -75,7 +76,7 @@ export default function NeighborhoodPage() {
           <Icon name="pin" aria-hidden="true" />
           우리 동네
         </p>
-        <h1 className={styles.title}>{areaTitle} 모임</h1>
+        <EnchantingTitle className={styles.title}>{areaTitle} 모임</EnchantingTitle>
         <p className={styles.lead}>
           {selectedDesc ?? '걸어서 갈 만한 거리의 로테이션 모임만 모아봤어요.'}
         </p>

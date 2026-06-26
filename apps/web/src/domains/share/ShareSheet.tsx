@@ -79,7 +79,7 @@ export function ShareSheet({
   const handleKakao = async () => {
     // 별도 SDK 없이 — 시스템 공유 시트(카카오톡 포함)를 띄우고, 없으면 링크 복사.
     const outcome = await share({ title, url: inviteUrl, text })
-    if (outcome === 'shared') return
+    if (outcome === 'shared' || outcome === 'cancelled') return
     const ok = outcome === 'copied' || (await copyToClipboard(inviteUrl))
     toast.show(
       ok ? '링크를 복사했어요. 카카오톡에 붙여넣어 보내세요' : '복사에 실패했어요',

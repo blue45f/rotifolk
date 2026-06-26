@@ -20,7 +20,7 @@ export function GuestConversionBanner({ from }: { from?: string }) {
         </span>
       </div>
       <span className={styles.cta}>
-        <Link to="/signup" state={from ? { from } : undefined}>
+        <Link to={from ? `/signup?from=${encodeURIComponent(from)}` : '/signup'}>
           <Button variant="gold" size="sm">
             계정 만들기
           </Button>

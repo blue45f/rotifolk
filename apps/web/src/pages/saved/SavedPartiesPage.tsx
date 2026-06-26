@@ -1,6 +1,7 @@
 import PartyCardSkeletonGrid from '@components/feedback/PartyCardSkeleton'
 import { Button } from '@components/ui/Button/Button'
 import { Chip } from '@components/ui/Chip/Chip'
+import { EnchantingTitle } from '@components/ui/EnchantingTitle/EnchantingTitle'
 import { Icon } from '@components/ui/Icon/Icon'
 import { recommendParties, userToContext } from '@rotifolk/shared'
 import { useAuthStore } from '@store/authStore'
@@ -47,7 +48,7 @@ export default function SavedPartiesPage() {
           <Icon name="bookmark" aria-hidden />
           저장한 모임
         </p>
-        <h1 className={styles.title}>북마크</h1>
+        <EnchantingTitle className={styles.title}>북마크</EnchantingTitle>
         <p className={styles.muted}>
           {isLoading
             ? '저장한 모임을 불러오는 중이에요'
