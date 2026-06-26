@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@heejun/deskcloud": "^0.1.0",
+    "@heejun/platform-bridge": "^0.1.0",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-alert-dialog": "^1.1.16",
     "@radix-ui/react-dialog": "^1.1.16",

@@ -1,3 +1,4 @@
+import { PlatformContext, webPlatformBridge } from '@heejun/platform-bridge'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
@@ -12,7 +13,9 @@ async function bootstrap() {
   }
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <AppProviders />
+      <PlatformContext.Provider value={webPlatformBridge}>
+        <AppProviders />
+      </PlatformContext.Provider>
     </StrictMode>
   )
   if (import.meta.env.PROD && 'serviceWorker' in navigator) {

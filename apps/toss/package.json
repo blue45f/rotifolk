@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@apps-in-toss/web-framework": "^2.9.2",
+    "@heejun/platform-bridge": "^0.1.0",
     "@emotion/react": "^11.14.0",
     "@toss/tds-mobile": "^2.5.0",
     "@toss/tds-mobile-ait": "^2.5.0",

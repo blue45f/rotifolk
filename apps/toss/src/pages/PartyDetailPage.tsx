@@ -1,3 +1,4 @@
+import { usePlatform } from '@heejun/platform-bridge'
 import { Button } from '@toss/tds-mobile'
 import {
   useCallback,
@@ -31,7 +32,6 @@ import {
   type PartySession,
 } from '@/lib/api'
 import { useTransientMessage } from '@/shared/hooks/useTransientMessage'
-import { shareMessage } from '@/lib/toss'
 import { navigate } from '@/router'
 import { theme } from '@/theme'
 import { Badge, Cover, StatStrip } from '@/ui'
@@ -45,6 +45,7 @@ const TOAST_MS = 2200
 
 export function PartyDetailPage({ id = '' }: PartyDetailPageProps) {
   const partyId = id
+  const platform = usePlatform()
   const me = useAuthStore((state) => state.user)
   const [data, setData] = useState<PartySession | null>(null)
   const [loading, setLoading] = useState(true)
@@ -115,12 +116,15 @@ export function PartyDetailPage({ id = '' }: PartyDetailPageProps) {
 
   const handleShare = useCallback(async () => {
     if (!data?.party) return
-    const r = await shareMessage(`[로티포크] ${data.party.title}\n${data.party.description}`)
-    if (r === 'clipboard') show('클립보드에 복사했어요.')
-    if (r === 'toss') show('토스 공유로 연결했어요.')
-    if (r === 'web-share') show('공유되었습니다.')
-    if (r === null) show('공유가 취소되었어요.')
-  }, [data?.party, show])
+    const r = await platform.share({
+      title: '[로티포크]',
+      text: `[로티포크] ${data.party.title}\n${data.party.description}`,
+    })
+    if (r === 'copied') show('클립보드에 복사했어요.')
+    else if (r === 'shared') show('공유했어요.')
+    else if (r === 'dismissed') show('공유가 취소되었어요.')
+    else show('공유를 지원하지 않는 환경이에요.')
+  }, [data?.party, platform, show])
 
   const handleJoin = useCallback(async () => {
     await mutate(
