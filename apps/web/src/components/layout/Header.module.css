@@ -128,9 +128,7 @@
   }
 
   .logo {
-    max-width: 34vw;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
   }
 
   .mark {
@@ -157,34 +155,7 @@
   }
 }
 
-@media (max-width: 560px) {
-  .inner {
-    justify-content: flex-start;
-  }
-
-  .brand {
-    flex: 1 1 100%;
-  }
-
-  .logo {
-    max-width: calc(100vw - 96px);
-  }
-
-  .actions {
-    flex: 1 1 100%;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    row-gap: 6px;
-  }
-
-  .actions > a :global(button) {
-    min-height: 40px;
-    padding-inline: 10px;
-  }
-}
-
 @media (max-width: 360px) {
-  .commandBtn,
   .langBtn,
   .themeBtn,
   .bell {
@@ -192,7 +163,6 @@
     height: 38px;
   }
 
-  .commandBtn,
   .langBtn {
     padding-inline: 8px;
   }
@@ -433,13 +403,14 @@
 @media (max-width: 767px) {
   .inner {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto 1fr;
     align-items: center;
     gap: var(--space-2);
     min-height: calc(var(--header-h) + env(safe-area-inset-top, 0px));
     padding-block: max(var(--space-2), env(safe-area-inset-top, 0px)) var(--space-2);
   }
 
+  /* Brand keeps its natural width so the "rotifolk" wordmark stays legible. */
   .brand {
     width: auto;
     max-width: 100%;
@@ -447,62 +418,40 @@
   }
 
   .logo {
-    max-width: clamp(92px, 34vw, 152px);
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: none;
+    overflow: visible;
     white-space: nowrap;
   }
 
+  /* No horizontal-scroll strip: the slimmed action set fits in one row, so the
+     login / signup CTAs stay visible for logged-out visitors. */
   .actions {
-    width: auto;
-    max-width: min(58vw, 284px);
-    justify-self: end;
-    justify-content: flex-start;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    gap: 6px;
-    padding: 2px;
-    margin-right: -2px;
-  }
-
-  .actions::-webkit-scrollbar {
-    display: none;
-  }
-
-  .commandBtn {
-    padding-inline: 12px;
-  }
-}
-
-@media (max-width: 560px) {
-  .brand {
     width: auto;
     max-width: 100%;
+    justify-self: end;
+    justify-content: flex-end;
+    overflow: visible;
+    gap: 6px;
+    padding: 0;
+    margin-right: 0;
   }
 
-  .actions {
-    flex: initial;
-    max-width: min(56vw, 236px);
-    row-gap: 0;
+  /* Keyboard/desktop-only affordances (demo shortcut, ⌘F search, ⌘K palette)
+     carry no value on touch and are reachable via bottom nav / the search page;
+     drop them on mobile to free room for the brand and auth CTAs. */
+  .commandBtn {
+    display: none;
   }
 }
 
 @media (max-width: 380px) {
   .mark {
-    width: 34px;
-    height: 34px;
+    width: 28px;
+    height: 28px;
   }
 
-  .logo {
-    max-width: 26vw;
-  }
-
-  .actions {
-    max-width: 60vw;
-  }
-
-  .commandBtn {
-    padding-inline: 10px;
+  /* Drop the language toggle on the tightest phones so brand + theme + auth fit. */
+  .langBtn {
+    display: none;
   }
 }
