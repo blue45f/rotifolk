@@ -200,7 +200,7 @@ type AmbientNodeSet = {
 let sharedContext: AudioContext | null = null
 let activeNodes: AmbientNodeSet | null = null
 let activeTrackIndex: number | null = null
-let clearStopTimer: number | NodeJS.Timeout | null = null
+let clearStopTimer: ReturnType<typeof setTimeout> | null = null
 
 function isAudioContextSupported(): boolean {
   return (
