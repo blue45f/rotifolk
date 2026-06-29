@@ -32,7 +32,7 @@ importers:
     devDependencies:
       '@commitlint/cli':
         specifier: ^21.0.2
-        version: 21.0.2(@types/node@26.0.0)(conventional-commits-parser@6.4.0)(typescript@6.0.3)
+        version: 21.0.2(@types/node@26.0.1)(conventional-commits-parser@6.4.0)(typescript@6.0.3)
       '@commitlint/config-conventional':
         specifier: ^21.0.2
         version: 21.0.2
@@ -215,20 +215,20 @@ importers:
   apps/toss:
     dependencies:
       '@apps-in-toss/web-framework':
-        specifier: ^3.0.0-beta.b36d7b5
-        version: 3.0.0-beta.d37d458(@types/node@26.0.0)(typanion@3.14.0)(typescript@5.7.3)
+        specifier: ^3.0.0-beta.3051978
+        version: 3.0.0-beta.3051978(@types/node@26.0.1)(typanion@3.14.0)(typescript@5.7.3)
       '@emotion/react':
         specifier: ^11.14.0
         version: 11.14.0(@types/react@19.2.15)(react@19.2.7)
       '@heejun/platform-bridge':
         specifier: ^0.1.0
-        version: 0.1.0(@apps-in-toss/web-framework@3.0.0-beta.d37d458(@types/node@26.0.0)(typanion@3.14.0)(typescript@5.7.3))(react@19.2.7)
+        version: 0.1.0(@apps-in-toss/web-framework@3.0.0-beta.3051978(@types/node@26.0.1)(typanion@3.14.0)(typescript@5.7.3))(react@19.2.7)
       '@toss/tds-mobile':
         specifier: ^2.5.0
         version: 2.5.0(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@toss/tds-mobile-ait':
         specifier: ^2.5.0
-        version: 2.5.0(@apps-in-toss/web-framework@3.0.0-beta.d37d458(@types/node@26.0.0)(typanion@3.14.0)(typescript@5.7.3))(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(@toss/tds-mobile@2.5.0(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 2.5.0(@apps-in-toss/web-framework@3.0.0-beta.3051978(@types/node@26.0.1)(typanion@3.14.0)(typescript@5.7.3))(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(@toss/tds-mobile@2.5.0(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react:
         specifier: ^19.2.6
         version: 19.2.7
@@ -247,7 +247,7 @@ importers:
         version: 19.2.3(@types/react@19.2.15)
       '@vitejs/plugin-react':
         specifier: ^4.3.4
-        version: 4.7.0(vite@8.0.16(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 4.7.0(vite@8.0.16(@types/node@26.0.1)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
@@ -256,7 +256,7 @@ importers:
         version: 5.7.3
       vite:
         specifier: '>=8.0.16'
-        version: 8.0.16(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
+        version: 8.0.16(@types/node@26.0.1)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
 
   apps/web:
     dependencies:
@@ -265,7 +265,7 @@ importers:
         version: 0.1.0(socket.io-client@4.8.3)
       '@heejun/platform-bridge':
         specifier: ^0.1.0
-        version: 0.1.0(@apps-in-toss/web-framework@3.0.0-beta.d37d458(@types/node@26.0.0)(typanion@3.14.0)(typescript@5.7.3))(react@19.2.7)
+        version: 0.1.0(@apps-in-toss/web-framework@3.0.0-beta.3051978(@types/node@26.0.1)(typanion@3.14.0)(typescript@5.7.3))(react@19.2.7)
       '@hookform/resolvers':
         specifier: ^5.4.0
         version: 5.4.0(react-hook-form@7.79.0(react@19.2.7))
@@ -428,12 +428,12 @@ packages:
     resolution: {integrity: sha512-1no0CXOhPEeSCrGduT37KMmCqA6irhowXa0S7AaPHb4RQSHGioR3wvvD7HHBCaUriMYs0EvtqRJfOgYd0ycKlQ==}
     engines: {node: '>=24'}
 
-  '@apps-in-toss/web-framework@3.0.0-beta.d37d458':
-    resolution: {integrity: sha512-WXawdmBPnh0sgn7m0C1g+a1bJRWrkUf5bam/Y+JtY2VRGm8ngmkU3gmNKk9PBCCP6vqG88jzTxqAmK+OoZjeAQ==}
+  '@apps-in-toss/web-framework@3.0.0-beta.3051978':
+    resolution: {integrity: sha512-gczIHBK1LF1TlWK7S53zb3EDa7Vlob2wnacq5alSN70o5bFlWTDvDbHRtTaKza6rSKeXEl7vUhN0CFZ2fIcqeQ==}
     hasBin: true
 
-  '@apps-in-toss/webview-bridge@3.0.0-beta.d37d458':
-    resolution: {integrity: sha512-Op2VSgt90fbLA2WbkCI41PPrtUmorvYlU+/Rbexcx07EVIL9SxuP3Gxg63fXzbDmO2YxMRinTpyH3ZymfVB/ag==}
+  '@apps-in-toss/webview-bridge@3.0.0-beta.0c56009':
+    resolution: {integrity: sha512-v4L1yvKSFci06xMXjf2mWA2VNn3ORUpVLyGbj8ybVB4+GnBw08K9sgYBaaBUEjdmWLA1DncGtREZNpQbWWJqEA==}
 
   '@asamuzakjp/css-color@5.1.11':
     resolution: {integrity: sha512-KVw6qIiCTUQhByfTd78h2yD1/00waTmm9uy/R7Ck/ctUyAPj+AEDLkQIdJW0T8+qGgj3j5bpNKK7Q3G+LedJWg==}
@@ -2948,8 +2948,8 @@ packages:
   '@types/node@25.9.3':
     resolution: {integrity: sha512-603BddQMv3pUcr4U2dhujk83N2tTDVr/34wII2B6bJy6g+8WD6yUb11jszNs0gdi4PesVWl7ABt8nYMVpnLUcg==}
 
-  '@types/node@26.0.0':
-    resolution: {integrity: sha512-vf2YFi1iY9lHGwNJMs01biZFbKJkrZR1T6/MlzjhJLPdntOHLhTrDSnSVcdtvjihi4VQNlrFRIxLsDBlQpAipA==}
+  '@types/node@26.0.1':
+    resolution: {integrity: sha512-fc3KiUoBt6kie0N9bIW3E47vZsuaMf0PM2AaUpLCLT0s/LvX1nxAim6Fc049cNxODPpGm6qRAuUOB86SkRuPQw==}
 
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
@@ -4201,12 +4201,12 @@ packages:
   flatted@3.4.2:
     resolution: {integrity: sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==}
 
-  flow-estree@0.320.0:
-    resolution: {integrity: sha512-pAqtAcD4UeoNBBpCrpK0oOXhO1oTGxSRsAEc8slnWVDoJJXaHUh/0FJROvlhYH+pyJLYE2YaxmGu6YfWDCkP8g==}
+  flow-estree@0.321.0:
+    resolution: {integrity: sha512-rQY7YKoo+PKpAHQjEP2cxyIefk04OCEKUlbtV4y6LAUG3Ly7guQX9YH8th6drSmYcNkMgpqWMaHRhhYaAF69CA==}
     engines: {node: '>=18'}
 
-  flow-parser@0.320.0:
-    resolution: {integrity: sha512-wVSB6Ii6Lk0865xyMvrOIOulvK4JDGdw5UGRyH1smzYJd8qFIGplZeLJpOsMn2fJIVX0BI6IRRJLBTumSNaQAQ==}
+  flow-parser@0.321.0:
+    resolution: {integrity: sha512-9LNK2rp/NWWbwdEK6mxC54XfQRyD2lVV0iPVBYf+5o5vvqJl7ietkR1hX3/dZ39j0GAbL4PIFoeekDViOW0x/Q==}
     engines: {node: '>=0.4.0'}
 
   for-each@0.3.5:
@@ -4649,6 +4649,10 @@ packages:
 
   js-yaml@4.2.0:
     resolution: {integrity: sha512-ePWsvanv0DWuDRsW8dnt+R4jQ31SCRCQ7hhNcPXZPsoBZiemuZNYGf7adZdqX2D86j6rvKp3RpCxVTSb8WQlOw==}
+    hasBin: true
+
+  js-yaml@4.3.0:
+    resolution: {integrity: sha512-1td788aAnnZ5qs7V2QIRl1owjtYpbKt749Y3xauqQgwIIGF/xXWz1wMTEBx5O3LK3lXLVuqXPdPxj2BoFHaW9Q==}
     hasBin: true
 
   jscodeshift@17.3.0:
@@ -5505,6 +5509,10 @@ packages:
 
   recast@0.23.11:
     resolution: {integrity: sha512-YTUo+Flmw4ZXiWfQKGcwwc11KnoRAYgzAE2E7mXKCjSviTKShtxBsN6YUUBB2gtaBzKzeKunxhUwNHQuRryhWA==}
+    engines: {node: '>= 4'}
+
+  recast@0.23.12:
+    resolution: {integrity: sha512-dEWRjcINDu/F4l2dYx57ugBtD7HV9KXESyxhzw/MqWLeglJrsjJKqACPyUPg+6AF8mIgm+Zi0dZ3ACoIg+QtpA==}
     engines: {node: '>= 4'}
 
   redent@3.0.0:
@@ -6423,14 +6431,14 @@ snapshots:
       '@apps-in-toss/ait-format-proto': 1.0.0
       fflate: 0.8.3
 
-  '@apps-in-toss/web-framework@3.0.0-beta.d37d458(@types/node@26.0.0)(typanion@3.14.0)(typescript@5.7.3)':
+  '@apps-in-toss/web-framework@3.0.0-beta.3051978(@types/node@26.0.1)(typanion@3.14.0)(typescript@5.7.3)':
     dependencies:
       '@apps-in-toss/ait-format': 1.0.0
-      '@apps-in-toss/webview-bridge': 3.0.0-beta.d37d458
+      '@apps-in-toss/webview-bridge': 3.0.0-beta.0c56009
       '@clack/prompts': 1.6.0
       clipanion: 4.0.0-rc.4(typanion@3.14.0)
       cosmiconfig: 9.0.2(typescript@5.7.3)
-      cosmiconfig-typescript-loader: 6.3.0(@types/node@26.0.0)(cosmiconfig@9.0.2(typescript@5.7.3))(typescript@5.7.3)
+      cosmiconfig-typescript-loader: 6.3.0(@types/node@26.0.1)(cosmiconfig@9.0.2(typescript@5.7.3))(typescript@5.7.3)
       jscodeshift: 17.3.0
       uuidv7: 1.2.1
     transitivePeerDependencies:
@@ -6440,7 +6448,7 @@ snapshots:
       - typanion
       - typescript
 
-  '@apps-in-toss/webview-bridge@3.0.0-beta.d37d458': {}
+  '@apps-in-toss/webview-bridge@3.0.0-beta.0c56009': {}
 
   '@asamuzakjp/css-color@5.1.11':
     dependencies:
@@ -6756,11 +6764,11 @@ snapshots:
       fast-wrap-ansi: 0.2.2
       sisteransi: 1.0.5
 
-  '@commitlint/cli@21.0.2(@types/node@26.0.0)(conventional-commits-parser@6.4.0)(typescript@6.0.3)':
+  '@commitlint/cli@21.0.2(@types/node@26.0.1)(conventional-commits-parser@6.4.0)(typescript@6.0.3)':
     dependencies:
       '@commitlint/format': 21.0.1
       '@commitlint/lint': 21.0.2
-      '@commitlint/load': 21.0.2(@types/node@26.0.0)(typescript@6.0.3)
+      '@commitlint/load': 21.0.2(@types/node@26.0.1)(typescript@6.0.3)
       '@commitlint/read': 21.0.2(conventional-commits-parser@6.4.0)
       '@commitlint/types': 21.0.1
       tinyexec: 1.2.4
@@ -6805,14 +6813,14 @@ snapshots:
       '@commitlint/rules': 21.0.2
       '@commitlint/types': 21.0.1
 
-  '@commitlint/load@21.0.2(@types/node@26.0.0)(typescript@6.0.3)':
+  '@commitlint/load@21.0.2(@types/node@26.0.1)(typescript@6.0.3)':
     dependencies:
       '@commitlint/config-validator': 21.0.1
       '@commitlint/execute-rule': 21.0.1
       '@commitlint/resolve-extends': 21.0.1
       '@commitlint/types': 21.0.1
       cosmiconfig: 9.0.1(typescript@6.0.3)
-      cosmiconfig-typescript-loader: 6.3.0(@types/node@26.0.0)(cosmiconfig@9.0.1(typescript@6.0.3))(typescript@6.0.3)
+      cosmiconfig-typescript-loader: 6.3.0(@types/node@26.0.1)(cosmiconfig@9.0.1(typescript@6.0.3))(typescript@6.0.3)
       es-toolkit: 1.47.0
       is-plain-obj: 4.1.0
       picocolors: 1.1.1
@@ -7253,11 +7261,11 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  '@heejun/platform-bridge@0.1.0(@apps-in-toss/web-framework@3.0.0-beta.d37d458(@types/node@26.0.0)(typanion@3.14.0)(typescript@5.7.3))(react@19.2.7)':
+  '@heejun/platform-bridge@0.1.0(@apps-in-toss/web-framework@3.0.0-beta.3051978(@types/node@26.0.1)(typanion@3.14.0)(typescript@5.7.3))(react@19.2.7)':
     dependencies:
       react: 19.2.7
     optionalDependencies:
-      '@apps-in-toss/web-framework': 3.0.0-beta.d37d458(@types/node@26.0.0)(typanion@3.14.0)(typescript@5.7.3)
+      '@apps-in-toss/web-framework': 3.0.0-beta.3051978(@types/node@26.0.1)(typanion@3.14.0)(typescript@5.7.3)
 
   '@heejun/prettier-config@3.0.0(prettier@3.8.3)':
     dependencies:
@@ -8621,9 +8629,9 @@ snapshots:
 
   '@toss/tds-colors@0.1.0': {}
 
-  '@toss/tds-mobile-ait@2.5.0(@apps-in-toss/web-framework@3.0.0-beta.d37d458(@types/node@26.0.0)(typanion@3.14.0)(typescript@5.7.3))(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(@toss/tds-mobile@2.5.0(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@toss/tds-mobile-ait@2.5.0(@apps-in-toss/web-framework@3.0.0-beta.3051978(@types/node@26.0.1)(typanion@3.14.0)(typescript@5.7.3))(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(@toss/tds-mobile@2.5.0(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
-      '@apps-in-toss/web-framework': 3.0.0-beta.d37d458(@types/node@26.0.0)(typanion@3.14.0)(typescript@5.7.3)
+      '@apps-in-toss/web-framework': 3.0.0-beta.3051978(@types/node@26.0.1)(typanion@3.14.0)(typescript@5.7.3)
       '@emotion/react': 11.14.0(@types/react@19.2.15)(react@19.2.7)
       '@toss/tds-colors': 0.1.0
       '@toss/tds-mobile': 2.5.0(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -8751,7 +8759,7 @@ snapshots:
     dependencies:
       undici-types: 7.24.6
 
-  '@types/node@26.0.0':
+  '@types/node@26.0.1':
     dependencies:
       undici-types: 8.3.0
 
@@ -8977,7 +8985,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
 
-  '@vitejs/plugin-react@4.7.0(vite@8.0.16(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))':
+  '@vitejs/plugin-react@4.7.0(vite@8.0.16(@types/node@26.0.1)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/plugin-transform-react-jsx-self': 7.29.7(@babel/core@7.29.7)
@@ -8985,7 +8993,7 @@ snapshots:
       '@rolldown/pluginutils': 1.0.0-beta.27
       '@types/babel__core': 7.20.5
       react-refresh: 0.17.0
-      vite: 8.0.16(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
+      vite: 8.0.16(@types/node@26.0.1)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -9449,16 +9457,16 @@ snapshots:
       object-assign: 4.1.1
       vary: 1.1.2
 
-  cosmiconfig-typescript-loader@6.3.0(@types/node@26.0.0)(cosmiconfig@9.0.1(typescript@6.0.3))(typescript@6.0.3):
+  cosmiconfig-typescript-loader@6.3.0(@types/node@26.0.1)(cosmiconfig@9.0.1(typescript@6.0.3))(typescript@6.0.3):
     dependencies:
-      '@types/node': 26.0.0
+      '@types/node': 26.0.1
       cosmiconfig: 9.0.1(typescript@6.0.3)
       jiti: 2.6.1
       typescript: 6.0.3
 
-  cosmiconfig-typescript-loader@6.3.0(@types/node@26.0.0)(cosmiconfig@9.0.2(typescript@5.7.3))(typescript@5.7.3):
+  cosmiconfig-typescript-loader@6.3.0(@types/node@26.0.1)(cosmiconfig@9.0.2(typescript@5.7.3))(typescript@5.7.3):
     dependencies:
-      '@types/node': 26.0.0
+      '@types/node': 26.0.1
       cosmiconfig: 9.0.2(typescript@5.7.3)
       jiti: 2.6.1
       typescript: 5.7.3
@@ -9484,7 +9492,7 @@ snapshots:
     dependencies:
       env-paths: 2.2.1
       import-fresh: 3.3.1
-      js-yaml: 4.2.0
+      js-yaml: 4.3.0
       parse-json: 5.2.0
     optionalDependencies:
       typescript: 5.7.3
@@ -10189,11 +10197,11 @@ snapshots:
 
   flatted@3.4.2: {}
 
-  flow-estree@0.320.0: {}
+  flow-estree@0.321.0: {}
 
-  flow-parser@0.320.0:
+  flow-parser@0.321.0:
     dependencies:
-      flow-estree: 0.320.0
+      flow-estree: 0.321.0
 
   for-each@0.3.5:
     dependencies:
@@ -10598,6 +10606,10 @@ snapshots:
     dependencies:
       argparse: 2.0.1
 
+  js-yaml@4.3.0:
+    dependencies:
+      argparse: 2.0.1
+
   jscodeshift@17.3.0:
     dependencies:
       '@babel/core': 7.29.7
@@ -10610,12 +10622,12 @@ snapshots:
       '@babel/preset-flow': 7.29.7(@babel/core@7.29.7)
       '@babel/preset-typescript': 7.29.7(@babel/core@7.29.7)
       '@babel/register': 7.29.7(@babel/core@7.29.7)
-      flow-parser: 0.320.0
+      flow-parser: 0.321.0
       graceful-fs: 4.2.11
       micromatch: 4.0.8
       neo-async: 2.6.2
       picocolors: 1.1.1
-      recast: 0.23.11
+      recast: 0.23.12
       tmp: 0.2.7
       write-file-atomic: 5.0.1
     transitivePeerDependencies:
@@ -11484,6 +11496,14 @@ snapshots:
       tiny-invariant: 1.3.3
       tslib: 2.8.1
 
+  recast@0.23.12:
+    dependencies:
+      ast-types: 0.16.1
+      esprima: 4.0.1
+      source-map: 0.6.1
+      tiny-invariant: 1.3.3
+      tslib: 2.8.1
+
   redent@3.0.0:
     dependencies:
       indent-string: 4.0.0
@@ -12214,7 +12234,7 @@ snapshots:
       tsx: 4.22.4
       yaml: 2.9.0
 
-  vite@8.0.16(@types/node@26.0.0)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0):
+  vite@8.0.16(@types/node@26.0.1)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
@@ -12222,7 +12242,7 @@ snapshots:
       rolldown: 1.0.3
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 26.0.0
+      '@types/node': 26.0.1
       esbuild: 0.28.0
       fsevents: 2.3.3
       jiti: 2.7.0
