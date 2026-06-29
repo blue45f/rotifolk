@@ -13,7 +13,7 @@
     "build": "vite build && ait build"
   },
   "dependencies": {
-    "@apps-in-toss/web-framework": "^3.0.0-beta.b36d7b5",
+    "@apps-in-toss/web-framework": "^3.0.0-beta.3051978",
     "@heejun/platform-bridge": "^0.1.0",
     "@emotion/react": "^11.14.0",
     "@toss/tds-mobile": "^2.5.0",
