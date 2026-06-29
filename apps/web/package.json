@@ -47,7 +47,7 @@
     "@rolldown/plugin-babel": "^0.2.3",
     "@storybook/addon-a11y": "^10.4.4",
     "@storybook/addon-docs": "^10.4.4",
-    "@storybook/react-vite": "^10.4.4",
+    "@storybook/react-vite": "^10.4.6",
     "@tailwindcss/vite": "^4.3.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
