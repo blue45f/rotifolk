@@ -49,7 +49,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: env.EC2_HOST != '' && env.EC2_USER != '' && env.EC2_SSH_KEY != '' && env.AWS_ACCESS_KEY_ID != '' && env.AWS_SECRET_ACCESS_KEY != '' && env.AWS_REGION != '' && env.EC2_SECURITY_GROUP_ID != ''
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
