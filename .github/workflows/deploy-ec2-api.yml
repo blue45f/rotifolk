@@ -41,7 +41,7 @@ jobs:
       API_NETWORK: termsdesk_default
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Skip deployment when EC2 secrets are not configured
         if: env.EC2_HOST == '' || env.EC2_USER == '' || env.EC2_SSH_KEY == '' || env.AWS_ACCESS_KEY_ID == '' || env.AWS_SECRET_ACCESS_KEY == '' || env.AWS_REGION == '' || env.EC2_SECURITY_GROUP_ID == ''
