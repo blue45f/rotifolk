@@ -19,269 +19,133 @@ export interface GlobalNavigationSection {
   items: GlobalNavigationItem[]
 }
 
-const START_SECTION: GlobalNavigationSection = {
-  key: 'start',
-  label: '바로 시작',
-  description: '지금 필요한 행동으로 곧장 이동합니다.',
-  items: [
-    {
-      key: 'discover',
-      to: '/discover',
-      label: '파티 둘러보기',
-      description: '날짜·지역·가격으로 모임 찾기',
-      icon: 'compass',
-      activePrefixes: ['/discover', '/category', '/parties'],
-    },
-    {
-      key: 'search',
-      to: '/search',
-      label: '통합 검색',
-      description: '파티와 키워드를 한 번에 검색',
-      icon: 'search',
-    },
-    {
-      key: 'quick',
-      to: '/quick',
-      label: '즉석 모임',
-      description: '세 번의 선택으로 빠르게 개설',
-      icon: 'bolt',
-    },
-  ],
+type NavigationItemOptions = Pick<GlobalNavigationItem, 'activePrefixes' | 'exact'>
+
+function createItem(
+  key: string,
+  to: string,
+  label: string,
+  description: string,
+  icon: IconName,
+  options: NavigationItemOptions = {}
+): GlobalNavigationItem {
+  return { key, to, label, description, icon, ...options }
 }
 
-const EXPLORE_SECTION: GlobalNavigationSection = {
-  key: 'explore',
-  label: '취향 넓히기',
-  description: '모임·사람·장소를 다양한 관점으로 발견합니다.',
-  items: [
-    {
-      key: 'clubs',
-      to: '/clubs',
-      label: '클럽',
-      description: '꾸준히 만나는 취향 모임',
-      icon: 'sparkle',
-    },
-    {
-      key: 'community',
-      to: '/community',
-      label: '커뮤니티',
-      description: '질문과 후기로 먼저 분위기 보기',
-      icon: 'chat',
-    },
-    {
-      key: 'vibe',
-      to: '/vibe',
-      label: '분위기로 찾기',
-      description: '오늘 원하는 무드에서 시작',
-      icon: 'moon',
-    },
-    {
-      key: 'neighborhood',
-      to: '/neighborhood',
-      label: '내 동네',
-      description: '가까운 곳의 새로운 라운드',
-      icon: 'pin',
-    },
-    {
-      key: 'venues',
-      to: '/venues',
-      label: '장소',
-      description: '검증된 라운지·바·카페 탐색',
-      icon: 'pin',
-    },
-    {
-      key: 'digest',
-      to: '/digest',
-      label: '주간 다이제스트',
-      description: '놓치기 아쉬운 소식 모아보기',
-      icon: 'archive',
-    },
-  ],
+function createSection(
+  key: string,
+  label: string,
+  description: string,
+  items: GlobalNavigationItem[]
+): GlobalNavigationSection {
+  return { key, label, description, items }
 }
 
-const ACCOUNT_SECTION: GlobalNavigationSection = {
-  key: 'account',
-  label: '내 활동',
-  description: '참여 기록과 관계, 저장한 내용을 관리합니다.',
-  items: [
-    {
-      key: 'profile',
-      to: '/me',
-      label: '내 프로필',
-      description: '프로필과 참여 현황 확인',
-      icon: 'user',
+const START_SECTION = createSection('start', '바로 시작', '지금 필요한 행동으로 곧장 이동합니다.', [
+  createItem(
+    'discover',
+    '/discover',
+    '파티 둘러보기',
+    '날짜·지역·가격으로 모임 찾기',
+    'compass',
+    { activePrefixes: ['/discover', '/category', '/parties'] }
+  ),
+  createItem('search', '/search', '통합 검색', '파티와 키워드를 한 번에 검색', 'search'),
+  createItem('quick', '/quick', '즉석 모임', '세 번의 선택으로 빠르게 개설', 'bolt'),
+])
+
+const EXPLORE_SECTION = createSection(
+  'explore',
+  '취향 넓히기',
+  '모임·사람·장소를 다양한 관점으로 발견합니다.',
+  [
+    createItem('clubs', '/clubs', '클럽', '꾸준히 만나는 취향 모임', 'sparkle'),
+    createItem('community', '/community', '커뮤니티', '질문과 후기로 먼저 분위기 보기', 'chat'),
+    createItem('vibe', '/vibe', '분위기로 찾기', '오늘 원하는 무드에서 시작', 'moon'),
+    createItem('neighborhood', '/neighborhood', '내 동네', '가까운 곳의 새로운 라운드', 'pin'),
+    createItem('venues', '/venues', '장소', '검증된 라운지·바·카페 탐색', 'pin'),
+    createItem('digest', '/digest', '주간 다이제스트', '놓치기 아쉬운 소식 모아보기', 'archive'),
+  ]
+)
+
+const ACCOUNT_SECTION = createSection(
+  'account',
+  '내 활동',
+  '참여 기록과 관계, 저장한 내용을 관리합니다.',
+  [
+    createItem('profile', '/me', '내 프로필', '프로필과 참여 현황 확인', 'user', {
       activePrefixes: ['/me/profile-studio'],
       exact: true,
-    },
-    {
-      key: 'chats',
-      to: '/chats',
-      label: '채팅',
-      description: '매칭된 사람과 이어서 대화',
-      icon: 'mail',
-    },
-    {
-      key: 'notifications',
-      to: '/notifications',
-      label: '알림',
-      description: '참여·매칭·운영 소식 확인',
-      icon: 'bell',
-    },
-    {
-      key: 'calendar',
-      to: '/calendar',
-      label: '캘린더',
-      description: '예정된 모임을 일정으로 확인',
-      icon: 'clock',
-    },
-    {
-      key: 'saved',
-      to: '/me/saved',
-      label: '저장한 모임',
-      description: '관심 있는 라운드 다시 보기',
-      icon: 'bookmark',
-    },
-    {
-      key: 'cards',
-      to: '/me/cards',
-      label: '매치 카드',
-      description: '교환한 카드와 인연 모아보기',
-      icon: 'sparkle',
-    },
-    {
-      key: 'follows',
-      to: '/me/follows',
-      label: '팔로우',
-      description: '관심 있는 호스트와 사람',
-      icon: 'user',
-    },
-    {
-      key: 'notes',
-      to: '/me/notes',
-      label: '받은 노트',
-      description: '모임 뒤 도착한 메시지 확인',
-      icon: 'mail',
-    },
-    {
-      key: 'payments',
-      to: '/me/payments',
-      label: '결제 내역',
-      description: '참가비와 환불 상태 확인',
-      icon: 'archive',
-    },
-  ],
-}
+    }),
+    createItem('chats', '/chats', '채팅', '매칭된 사람과 이어서 대화', 'mail'),
+    createItem('notifications', '/notifications', '알림', '참여·매칭·운영 소식 확인', 'bell'),
+    createItem('calendar', '/calendar', '캘린더', '예정된 모임을 일정으로 확인', 'clock'),
+    createItem('saved', '/me/saved', '저장한 모임', '관심 있는 라운드 다시 보기', 'bookmark'),
+    createItem('cards', '/me/cards', '매치 카드', '교환한 카드와 인연 모아보기', 'sparkle'),
+    createItem('follows', '/me/follows', '팔로우', '관심 있는 호스트와 사람', 'user'),
+    createItem('notes', '/me/notes', '받은 노트', '모임 뒤 도착한 메시지 확인', 'mail'),
+    createItem('payments', '/me/payments', '결제 내역', '참가비와 환불 상태 확인', 'archive'),
+  ]
+)
 
-const PARTICIPANT_HOST_SECTION: GlobalNavigationSection = {
-  key: 'host',
-  label: '호스트 시작',
-  description: '내 취향의 모임을 직접 열어봅니다.',
-  items: [
-    {
-      key: 'become-host',
-      to: '/become-host',
-      label: '호스트 지원',
-      description: '운영 방식과 자격을 확인하고 시작',
-      icon: 'shield',
-    },
-  ],
-}
+const PARTICIPANT_HOST_SECTION = createSection(
+  'host',
+  '호스트 시작',
+  '내 취향의 모임을 직접 열어봅니다.',
+  [
+    createItem(
+      'become-host',
+      '/become-host',
+      '호스트 지원',
+      '운영 방식과 자격을 확인하고 시작',
+      'shield'
+    ),
+  ]
+)
 
-const HOST_SECTION: GlobalNavigationSection = {
-  key: 'host',
-  label: '호스트 도구',
-  description: '파티 개설부터 현장 운영까지 한곳에서 관리합니다.',
-  items: [
-    {
-      key: 'host-console',
-      to: '/host',
-      label: '호스트 콘솔',
-      description: '다가오는 파티와 운영 상태 확인',
-      icon: 'shield',
+const HOST_SECTION = createSection(
+  'host',
+  '호스트 도구',
+  '파티 개설부터 현장 운영까지 한곳에서 관리합니다.',
+  [
+    createItem('host-console', '/host', '호스트 콘솔', '다가오는 파티와 운영 상태 확인', 'shield', {
       exact: true,
-    },
-    {
-      key: 'host-create',
-      to: '/host/create',
-      label: '새 파티 만들기',
-      description: '정식 로테이션 파티 개설',
-      icon: 'plus',
-    },
-    {
-      key: 'host-sourcing',
-      to: '/host/sourcing',
-      label: '게스트 모집',
-      description: '초대와 모집 채널 관리',
-      icon: 'search',
-    },
-    {
-      key: 'host-space',
-      to: '/host/space',
-      label: '공간 호스팅',
-      description: '보유 공간을 모임 장소로 운영',
-      icon: 'pin',
-    },
-  ],
-}
+    }),
+    createItem('host-create', '/host/create', '새 파티 만들기', '정식 로테이션 파티 개설', 'plus'),
+    createItem('host-sourcing', '/host/sourcing', '게스트 모집', '초대와 모집 채널 관리', 'search'),
+    createItem('host-space', '/host/space', '공간 호스팅', '보유 공간을 모임 장소로 운영', 'pin'),
+  ]
+)
 
-const ADMIN_SECTION: GlobalNavigationSection = {
-  key: 'admin',
-  label: '운영 관리',
-  description: '서비스 상태와 신고·운영 항목을 관리합니다.',
-  items: [
-    {
-      key: 'admin-dashboard',
-      to: '/admin',
-      label: '관리자 대시보드',
-      description: '핵심 운영 지표와 상태 확인',
-      icon: 'shield',
+const ADMIN_SECTION = createSection(
+  'admin',
+  '운영 관리',
+  '서비스 상태와 신고·운영 항목을 관리합니다.',
+  [
+    createItem('admin-dashboard', '/admin', '관리자 대시보드', '핵심 운영 지표와 상태 확인', 'shield', {
       exact: true,
-    },
-    {
-      key: 'admin-moderation',
-      to: '/admin/moderation',
-      label: '신고·검토',
-      description: '안전 관련 신고와 조치 관리',
-      icon: 'shield',
-    },
-  ],
-}
+    }),
+    createItem(
+      'admin-moderation',
+      '/admin/moderation',
+      '신고·검토',
+      '안전 관련 신고와 조치 관리',
+      'shield'
+    ),
+  ]
+)
 
-const HELP_SECTION: GlobalNavigationSection = {
-  key: 'help',
-  label: '도움과 안전',
-  description: '처음부터 다시 보거나 문제가 생겼을 때 이용합니다.',
-  items: [
-    {
-      key: 'tutorial',
-      to: '/tutorial',
-      label: '튜토리얼',
-      description: '핵심 사용 흐름을 단계별로 익히기',
-      icon: 'compass',
-    },
-    {
-      key: 'help-center',
-      to: '/help',
-      label: '이용 가이드',
-      description: '참여자·호스트별 도움말',
-      icon: 'sparkle',
-    },
-    {
-      key: 'support',
-      to: '/support',
-      label: '고객 지원',
-      description: '문의와 문제 해결 요청',
-      icon: 'chat',
-    },
-    {
-      key: 'policies',
-      to: '/policies',
-      label: '정책과 안전',
-      description: '취소·개인정보·안전 정책 확인',
-      icon: 'archive',
-    },
-  ],
-}
+const HELP_SECTION = createSection(
+  'help',
+  '도움과 안전',
+  '처음부터 다시 보거나 문제가 생겼을 때 이용합니다.',
+  [
+    createItem('tutorial', '/tutorial', '튜토리얼', '핵심 사용 흐름을 단계별로 익히기', 'compass'),
+    createItem('help-center', '/help', '이용 가이드', '참여자·호스트별 도움말', 'sparkle'),
+    createItem('support', '/support', '고객 지원', '문의와 문제 해결 요청', 'chat'),
+    createItem('policies', '/policies', '정책과 안전', '취소·개인정보·안전 정책 확인', 'archive'),
+  ]
+)
 
 export function buildGlobalNavigation(role: NavigationRole): GlobalNavigationSection[] {
   const sections = [START_SECTION, EXPLORE_SECTION]
