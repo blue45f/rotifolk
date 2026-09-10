@@ -2,34 +2,37 @@
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
+  border-bottom: 1px solid var(--color-border);
   background: color-mix(in oklab, var(--color-bg) 88%, transparent);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
   backdrop-filter: blur(18px) saturate(140%);
-  border-bottom: 1px solid var(--color-border);
 }
+
 .inner {
+  min-width: 0;
   min-height: var(--header-h);
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .brand {
-  flex: 0 0 auto;
   min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  color: var(--brand-apricot-800);
+  font-size: var(--fs-xl);
   font-weight: var(--fw-black);
   letter-spacing: var(--tracking-tight);
-  font-size: var(--fs-xl);
-  color: var(--brand-apricot-800);
 }
+
 .mark {
   position: relative;
   width: 30px;
   height: 30px;
+  flex: 0 0 auto;
   border-radius: 9px;
   background:
     radial-gradient(
@@ -40,95 +43,211 @@
     var(--brand-apricot-800);
   box-shadow:
     0 4px 12px color-mix(in oklab, var(--brand-apricot-800) 30%, transparent),
-    inset 0 1px 0 color-mix(in oklab, white 25%, transparent);
+    inset 0 1px 0 color-mix(in oklab, var(--color-text-inverse) 25%, transparent);
 }
+
 .mark::after {
   content: '';
   position: absolute;
-  inset: 7px 9px 7px 9px;
-  border-radius: 999px;
+  inset: 7px 9px;
+  border-radius: var(--radius-pill);
   background: var(--brand-paper-50);
   box-shadow: inset 0 -3px 0 color-mix(in oklab, var(--brand-amber-500) 80%, transparent);
 }
+
 .logo {
-  color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .betaBadge {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
   border: 1px solid color-mix(in oklab, var(--color-primary) 38%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in oklab, var(--color-primary) 10%, transparent);
   color: var(--color-primary);
   font-size: var(--fs-2xs);
   font-weight: var(--fw-black);
-  line-height: 1;
   letter-spacing: 0.05em;
+  line-height: 1;
 }
 
 .nav {
   display: none;
+  min-width: 0;
   align-items: center;
-  gap: var(--space-6);
+  justify-content: center;
+  gap: clamp(var(--space-3), 1.6vw, var(--space-6));
+  color: var(--color-text-muted);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
-  color: var(--color-text-muted);
 }
+
 .nav a {
   position: relative;
-  padding-block: 4px;
+  padding-block: 6px;
+  white-space: nowrap;
   transition: color var(--dur-fast) var(--ease-out-quart);
 }
+
 .nav a:hover {
   color: var(--color-text);
 }
+
 .nav .active {
   color: var(--color-text);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
 }
+
 .nav .active::after {
   content: '';
   position: absolute;
   inset-inline: 0;
-  bottom: -10px;
+  bottom: -9px;
   height: 2px;
-  background: var(--color-primary);
   border-radius: 2px;
+  background: var(--color-primary);
 }
 
-@media (min-width: 768px) {
+.actions {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.utilityButton,
+.bell,
+.avatarLink {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+
+.utilityButton,
+.bell {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-soft);
+  color: var(--color-text);
+  transition:
+    border-color var(--dur-fast) var(--ease-out-quart),
+    background var(--dur-fast) var(--ease-out-quart),
+    transform var(--dur-fast) var(--ease-out-quart);
+}
+
+.utilityButton {
+  gap: 7px;
+  padding-inline: 12px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+}
+
+.utilityButton:hover,
+.bell:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--color-primary) 34%, var(--color-border));
+  background: color-mix(in oklab, var(--color-primary) 10%, var(--color-surface-soft));
+}
+
+.searchButton {
+  padding-inline: 13px 8px;
+}
+
+.actionText {
+  white-space: nowrap;
+}
+
+.shortcut {
+  min-width: 30px;
+  padding: 3px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 7px;
+  background: var(--color-surface);
+  color: var(--color-text-subtle);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  text-align: center;
+}
+
+.whatsNew {
+  display: inline-flex;
+  align-items: center;
+}
+
+.bell {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 16px;
+}
+
+.bellDot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 5px;
+  border: 2px solid var(--color-surface);
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+}
+
+.avatarLink {
+  flex: 0 0 auto;
+}
+
+.authActions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.utilityButton:focus-visible,
+.bell:focus-visible,
+.avatarLink:focus-visible,
+.brand:focus-visible,
+.nav a:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--color-primary) 82%, transparent);
+  outline-offset: 2px;
+}
+
+@media (min-width: 960px) {
+  .inner {
+    grid-template-columns: minmax(132px, max-content) minmax(0, 1fr) max-content;
+    column-gap: clamp(12px, 2vw, 28px);
+  }
+
   .nav {
     display: inline-flex;
   }
 }
 
-.actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex: 0 1 auto;
-  min-width: 0;
-  gap: var(--space-2);
-}
-.actions > * {
-  flex: 0 0 auto;
-}
-
 @media (max-width: 767px) {
   .inner {
-    height: auto;
-    padding-block: max(8px, env(safe-area-inset-top, 0px));
-    gap: var(--space-2);
+    min-height: calc(var(--header-h) + env(safe-area-inset-top, 0px));
+    padding-block: max(var(--space-2), env(safe-area-inset-top, 0px)) var(--space-2);
   }
 
   .brand {
-    flex: 1 1 auto;
-  }
-
-  .logo {
-    overflow: visible;
+    gap: 8px;
   }
 
   .mark {
@@ -141,317 +260,40 @@
     gap: 6px;
   }
 
-  .themeModeText,
-  .commandBtnHint {
-    display: none;
+  .utilityButton,
+  .bell,
+  .avatarLink {
+    min-width: 42px;
+    min-height: 42px;
   }
 
-  .commandBtn,
-  .langBtn,
-  .themeBtn,
-  .bell {
-    min-width: 40px;
-    height: 40px;
-  }
-}
-
-@media (max-width: 360px) {
-  .langBtn,
-  .themeBtn,
-  .bell {
-    min-width: 38px;
-    height: 38px;
-  }
-
-  .langBtn {
-    padding-inline: 8px;
-  }
-}
-.themeBtn {
-  width: 36px;
-  height: 36px;
-  min-width: 40px;
-  min-height: 40px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 18px;
-  background: var(--color-surface-soft);
-  transition: background var(--dur-fast) var(--ease-out-quart);
-  touch-action: manipulation;
-}
-.themeWrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.themeBtn:hover {
-  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
-}
-.themeModeText {
-  color: var(--color-text-muted);
-  font-size: var(--fs-2xs);
-  font-weight: var(--fw-semibold);
-  min-width: 46px;
-  text-align: center;
-}
-.bell {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  min-width: 40px;
-  min-height: 40px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 16px;
-  background: var(--color-surface-soft);
-  transition: background var(--dur-fast) var(--ease-out-quart);
-  touch-action: manipulation;
-}
-.bell:hover {
-  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
-}
-.bellDot {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  min-width: 18px;
-  height: 18px;
-  border-radius: var(--radius-pill);
-  background: var(--color-danger);
-  color: white;
-  font-size: 10px;
-  font-weight: var(--fw-bold);
-  display: grid;
-  place-items: center;
-  padding: 0 5px;
-  border: 2px solid var(--color-surface);
-}
-
-.commandBtn {
-  min-width: 36px;
-  min-height: 40px;
-  height: 36px;
-  padding: 0 10px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  color: var(--color-text);
-  background: var(--color-surface-soft);
-  border: 1px solid var(--color-border);
-  transition:
-    background var(--dur-fast) var(--ease-out-quart),
-    border-color var(--dur-fast) var(--ease-out-quart);
-  touch-action: manipulation;
-}
-.commandBtn:hover {
-  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
-  border-color: color-mix(in oklab, var(--color-primary) 32%, var(--color-border));
-}
-.commandBtnHint {
-  margin-left: 2px;
-  margin-right: -2px;
-  font-size: var(--fs-2xs);
-  color: var(--color-text-muted);
-  font-weight: var(--fw-bold);
-}
-
-.langBtn {
-  min-width: 36px;
-  min-height: 40px;
-  height: 36px;
-  padding: 0 10px;
-  border-radius: 999px;
-  display: inline-grid;
-  place-items: center;
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  letter-spacing: var(--tracking-tight);
-  color: var(--color-text);
-  background: var(--color-surface-soft);
-  border: 1px solid var(--color-border);
-  transition:
-    background var(--dur-fast) var(--ease-out-quart),
-    border-color var(--dur-fast) var(--ease-out-quart);
-  touch-action: manipulation;
-}
-.langBtn:hover {
-  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
-  border-color: color-mix(in oklab, var(--color-primary) 32%, var(--color-border));
-}
-
-/* Radix DropdownMenu.Content (portaled; Radix sets position). */
-.themeMenu {
-  z-index: var(--z-overlay);
-  min-width: 158px;
-  padding: 6px;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
-  animation: theme-menu-in var(--dur-fast) var(--ease-out);
-}
-@keyframes theme-menu-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .themeMenu {
-    animation: none;
-  }
-}
-.themeOption {
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 34px;
-  padding: 0 10px;
-  border-radius: var(--radius-md);
-  color: var(--color-text);
-  text-align: left;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.themeOption[aria-checked='true'],
-.themeOption[data-state='checked'] {
-  background: color-mix(in oklab, var(--color-primary) 15%, var(--color-surface));
-  font-weight: var(--fw-semibold);
-}
-.themeOption:hover,
-.themeOption[data-highlighted] {
-  background: color-mix(in oklab, var(--color-primary) 12%, var(--color-surface-soft));
-  outline: none;
-}
-
-.themeBtn:focus-visible,
-.langBtn:focus-visible,
-.commandBtn:focus-visible,
-.bell:focus-visible,
-.themeOption:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--color-primary) 80%, transparent);
-  outline-offset: 2px;
-}
-
-/* Shell resilience pass: keep the app header usable on compressed and mobile viewports. */
-.inner,
-.brand,
-.nav,
-.actions {
-  min-width: 0;
-}
-
-.actions {
-  flex-wrap: nowrap;
-}
-
-.commandBtn,
-.iconButton,
-.notificationLink,
-.userButton,
-.userBtn {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-@media (min-width: 768px) {
-  .inner {
-    display: grid;
-    grid-template-columns: minmax(132px, max-content) minmax(0, 1fr) max-content;
-    align-items: center;
-    column-gap: clamp(10px, 2vw, 24px);
-  }
-
-  .brand {
-    justify-self: start;
-  }
-
-  .nav {
-    justify-self: center;
-    max-width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    gap: clamp(4px, 0.8vw, 12px);
-    padding-inline: 2px;
-  }
-
-  .nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .actions {
-    justify-self: end;
-  }
-}
-
-@media (max-width: 767px) {
-  .inner {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: calc(var(--header-h) + env(safe-area-inset-top, 0px));
-    padding-block: max(var(--space-2), env(safe-area-inset-top, 0px)) var(--space-2);
-  }
-
-  /* Brand keeps its natural width so the "rotifolk" wordmark stays legible. */
-  .brand {
-    width: auto;
-    max-width: 100%;
-    flex: initial;
-  }
-
-  .logo {
-    max-width: none;
-    overflow: visible;
-    white-space: nowrap;
-  }
-
-  /* No horizontal-scroll strip: the slimmed action set fits in one row, so the
-     login / signup CTAs stay visible for logged-out visitors. */
-  .actions {
-    width: auto;
-    max-width: 100%;
-    justify-self: end;
-    justify-content: flex-end;
-    overflow: visible;
-    gap: 6px;
+  .utilityButton {
+    width: 42px;
+    height: 42px;
     padding: 0;
-    margin-right: 0;
   }
 
-  /* Keyboard/desktop-only affordances (demo shortcut, ⌘F search, ⌘K palette)
-     carry no value on touch and are reachable via bottom nav / the search page;
-     drop them on mobile to free room for the brand and auth CTAs. */
-  .commandBtn {
+  .actionText,
+  .shortcut,
+  .whatsNew,
+  .authActions {
     display: none;
   }
 }
 
 @media (max-width: 380px) {
-  .mark {
-    width: 28px;
-    height: 28px;
+  .brand {
+    font-size: var(--fs-lg);
   }
 
-  /* Drop the language toggle on the tightest phones so brand + theme + auth fit. */
-  .langBtn {
+  .betaBadge {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .utilityButton,
+  .bell {
+    transition: none;
   }
 }
