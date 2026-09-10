@@ -1,4 +1,6 @@
+import ConnectivityStatus from '@components/feedback/ConnectivityStatus'
 import PwaInstallBanner from '@components/feedback/PwaInstallBanner'
+import RouteAnnouncer from '@components/feedback/RouteAnnouncer'
 import { useDocumentTitle } from '@hooks/useDocumentTitle'
 import { useApplyTheme } from '@store/themeStore'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
@@ -8,12 +10,14 @@ import { BottomNav } from './BottomNav'
 import { Header } from './Header'
 import { IntroSplash } from './IntroSplash'
 import styles from './RootLayout.module.css'
+import enhancements from './ShellEnhancements.module.css'
 import { SiteFooter } from './SiteFooter'
 
 import { useSiteAmbientBgm } from '@/domains/bgm/useSiteAmbientBgm'
 import { useChatRealtime } from '@/domains/chat/useChatRealtime'
 import CommandPalette from '@/domains/command-palette/CommandPalette'
 import { FeedbackButton } from '@/domains/deskcloud/FeedbackButton'
+import GlobalMenu from '@/domains/navigation/GlobalMenu'
 import { useNotificationsRealtime } from '@/domains/notifications/useNotificationsRealtime'
 import OnboardingSheet from '@/domains/onboard/OnboardingSheet'
 import { useUiAudioEnabled } from '@/domains/sound/useUiAudio'
@@ -28,6 +32,7 @@ export default function RootLayout() {
   const isInTossInApp = isTossInApp()
   const isFirstRender = useRef(true)
   const [commandOpen, setCommandOpen] = useState(false)
+  const [globalMenuOpen, setGlobalMenuOpen] = useState(false)
   const [onboardingOpenSignal, setOnboardingOpenSignal] = useState(0)
   const [scrollProgress, setScrollProgress] = useState(0)
   const [ambientPanelOpen, setAmbientPanelOpen] = useState(false)
@@ -38,10 +43,20 @@ export default function RootLayout() {
   const uiAudio = useUiAudioEnabled()
   const ambient = useSiteAmbientBgm(showChrome, uiAudio.isEnabled)
   const isCommandOpen = showChrome ? commandOpen : false
-  const openCommand = useCallback(() => setCommandOpen(true), [])
+  const isGlobalMenuOpen = showChrome ? globalMenuOpen : false
+  const openCommand = useCallback(() => {
+    setGlobalMenuOpen(false)
+    setCommandOpen(true)
+  }, [])
   const closeCommand = useCallback(() => setCommandOpen(false), [])
+  const openGlobalMenu = useCallback(() => {
+    setCommandOpen(false)
+    setGlobalMenuOpen(true)
+  }, [])
+  const closeGlobalMenu = useCallback(() => setGlobalMenuOpen(false), [])
   const openOnboarding = useCallback(() => {
-    setOnboardingOpenSignal((n) => n + 1)
+    setGlobalMenuOpen(false)
+    setOnboardingOpenSignal((count) => count + 1)
   }, [])
 
   // 라우트 전환 시 스크롤을 최상단으로 되돌리고 본문 랜드마크로 포커스를 옮긴다(a11y).
@@ -59,30 +74,38 @@ export default function RootLayout() {
     if (!showChrome) {
       let cancelled = false
       queueMicrotask(() => {
-        if (!cancelled) setCommandOpen(false)
+        if (cancelled) return
+        setCommandOpen(false)
+        setGlobalMenuOpen(false)
       })
       return () => {
         cancelled = true
       }
     }
-    const onKeyDown = (e: KeyboardEvent) => {
-      const isSlash = e.key === '/'
-      const isModK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'
-      const isEditable =
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target instanceof HTMLElement && e.target.isContentEditable)
 
-      if (isSlash && (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || isEditable)) return
-      if (isModK || isSlash) {
-        e.preventDefault()
-        setCommandOpen((open) => !open)
+    const onKeyDown = (event: KeyboardEvent) => {
+      const isSlash = event.key === '/'
+      const isModK = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k'
+      const isEditable =
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        (event.target instanceof HTMLElement && event.target.isContentEditable)
+
+      if (
+        isSlash &&
+        (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || isEditable)
+      ) {
         return
+      }
+      if (isModK || isSlash) {
+        event.preventDefault()
+        setGlobalMenuOpen(false)
+        setCommandOpen((open) => !open)
       }
     }
     globalThis.addEventListener('keydown', onKeyDown)
     return () => globalThis.removeEventListener('keydown', onKeyDown)
-  }, [isLive, showChrome])
+  }, [showChrome])
 
   useEffect(() => {
     if (!showChrome || typeof window === 'undefined') return
@@ -127,7 +150,13 @@ export default function RootLayout() {
       <a href="#main-content" className="skip-link">
         본문 바로가기
       </a>
-      {showChrome && <Header onOpenCommand={openCommand} />}
+      {showChrome && (
+        <Header
+          onOpenCommand={openCommand}
+          onOpenMenu={openGlobalMenu}
+          menuOpen={isGlobalMenuOpen}
+        />
+      )}
       {showChrome && (
         <div className={styles.scrollProgress} aria-hidden="true">
           <span
@@ -137,13 +166,15 @@ export default function RootLayout() {
         </div>
       )}
       {showChrome && <PwaInstallBanner />}
+      {showChrome && <ConnectivityStatus />}
+      <RouteAnnouncer />
       <main id="main-content" role="main" tabIndex={-1} className={styles.main}>
         <Outlet />
       </main>
       {showChrome && scrollProgress > 12 && (
         <button
           type="button"
-          className={styles.toTop}
+          className={`${styles.toTop} ${enhancements.toTop}`}
           onClick={handleScrollToTop}
           aria-label="페이지 상단으로 이동"
         >
@@ -151,7 +182,10 @@ export default function RootLayout() {
         </button>
       )}
       {showChrome && ambient.isSupported && (
-        <div className={styles.ambientDock} ref={ambientWrapRef}>
+        <div
+          className={`${styles.ambientDock} ${enhancements.ambientDock}`}
+          ref={ambientWrapRef}
+        >
           <button
             type="button"
             className={`${styles.ambientBgm} ${ambient.isEnabled ? styles.ambientBgmOn : ''}`}
@@ -185,8 +219,8 @@ export default function RootLayout() {
               max={1}
               step={0.01}
               value={ambient.volume}
-              onChange={(e) => {
-                ambient.setVolume(Number(e.target.value))
+              onChange={(event) => {
+                ambient.setVolume(Number(event.target.value))
               }}
             />
             <div className={styles.ambientPanelActions}>
@@ -213,8 +247,11 @@ export default function RootLayout() {
         </div>
       )}
       {showChrome && <SiteFooter />}
-      {showChrome && <BottomNav />}
+      {showChrome && (
+        <BottomNav onOpenMenu={openGlobalMenu} menuOpen={isGlobalMenuOpen} />
+      )}
       {showChrome && <OnboardingSheet forceOpenSignal={onboardingOpenSignal} />}
+      {showChrome && <GlobalMenu open={isGlobalMenuOpen} onClose={closeGlobalMenu} />}
       {isCommandOpen && (
         <CommandPalette onClose={closeCommand} onRestartOnboarding={openOnboarding} />
       )}
