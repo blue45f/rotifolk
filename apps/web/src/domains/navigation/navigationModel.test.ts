@@ -30,10 +30,14 @@ describe('buildGlobalNavigation', () => {
     expect(keysFor('host')).not.toContain('admin-moderation')
   })
 
-  it('does not expose duplicate destinations within a role menu', () => {
+  it('does not expose duplicate keys or destinations within a role menu', () => {
     for (const role of [null, 'participant', 'host', 'admin'] as const) {
-      const keys = keysFor(role)
+      const items = buildGlobalNavigation(role).flatMap((section) => section.items)
+      const keys = items.map((item) => item.key)
+      const destinations = items.map((item) => item.to)
+
       expect(new Set(keys).size).toBe(keys.length)
+      expect(new Set(destinations).size).toBe(destinations.length)
     }
   })
 })
@@ -48,5 +52,16 @@ describe('isNavigationItemActive', () => {
     expect(isNavigationItemActive('/parties/p_1', discover)).toBe(true)
     expect(isNavigationItemActive('/category/wine', discover)).toBe(true)
     expect(isNavigationItemActive('/community', discover)).toBe(false)
+  })
+
+  it('keeps exact root items from competing with their child destinations', () => {
+    const accountItems = buildGlobalNavigation('participant').flatMap((section) => section.items)
+    const profile = accountItems.find((item) => item.key === 'profile')!
+    const saved = accountItems.find((item) => item.key === 'saved')!
+
+    expect(isNavigationItemActive('/me', profile)).toBe(true)
+    expect(isNavigationItemActive('/me/profile-studio', profile)).toBe(true)
+    expect(isNavigationItemActive('/me/saved', profile)).toBe(false)
+    expect(isNavigationItemActive('/me/saved', saved)).toBe(true)
   })
 })

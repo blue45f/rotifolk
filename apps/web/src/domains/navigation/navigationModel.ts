@@ -9,6 +9,7 @@ export interface GlobalNavigationItem {
   description: string
   icon: IconName
   activePrefixes?: string[]
+  exact?: boolean
 }
 
 export interface GlobalNavigationSection {
@@ -110,6 +111,7 @@ const ACCOUNT_SECTION: GlobalNavigationSection = {
       description: '프로필과 참여 현황 확인',
       icon: 'user',
       activePrefixes: ['/me/profile-studio'],
+      exact: true,
     },
     {
       key: 'chats',
@@ -196,6 +198,7 @@ const HOST_SECTION: GlobalNavigationSection = {
       label: '호스트 콘솔',
       description: '다가오는 파티와 운영 상태 확인',
       icon: 'shield',
+      exact: true,
     },
     {
       key: 'host-create',
@@ -232,6 +235,7 @@ const ADMIN_SECTION: GlobalNavigationSection = {
       label: '관리자 대시보드',
       description: '핵심 운영 지표와 상태 확인',
       icon: 'shield',
+      exact: true,
     },
     {
       key: 'admin-moderation',
@@ -292,9 +296,10 @@ export function buildGlobalNavigation(role: NavigationRole): GlobalNavigationSec
 }
 
 export function isNavigationItemActive(pathname: string, item: GlobalNavigationItem): boolean {
-  const prefixes = [item.to, ...(item.activePrefixes ?? [])]
-  return prefixes.some((prefix) => {
-    if (prefix === '/') return pathname === '/'
-    return pathname === prefix || pathname.startsWith(`${prefix}/`)
-  })
+  if (pathname === item.to) return true
+  if (!item.exact && item.to !== '/' && pathname.startsWith(`${item.to}/`)) return true
+
+  return (item.activePrefixes ?? []).some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
 }

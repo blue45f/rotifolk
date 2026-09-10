@@ -229,7 +229,7 @@
   outline-offset: 2px;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 1024px) {
   .inner {
     grid-template-columns: minmax(132px, max-content) minmax(0, 1fr) max-content;
     column-gap: clamp(12px, 2vw, 28px);
