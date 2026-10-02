@@ -1,74 +1,114 @@
 import { Icon, type IconName } from '@components/ui/Icon/Icon'
 import { useAuthStore } from '@store/authStore'
 import { useQuery } from '@tanstack/react-query'
-import { NavLink } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 import styles from './BottomNav.module.css'
 
 import { chatKeys } from '@/domains/chat/queries'
 import { api } from '@/infrastructure/api'
 
-// 4 tabs + center action — the convergent mobile pattern (Hinge/Tinder/Munto/Frip).
-// 즉석(quick)이 중앙 강조 액션. 나머지 면(커뮤니티·튜토리얼 등)은 footer·⌘K·홈에서 도달.
-const BASE_ITEMS = [
-  { to: '/', label: '홈', icon: 'home', end: true, key: 'home' },
-  { to: '/discover', label: '탐색', icon: 'compass', key: 'discover' },
-  { to: '/quick', label: '즉석', icon: 'bolt', emphasize: true, key: 'quick' },
-  { to: '/chats', label: '채팅', icon: 'mail', key: 'chats' },
-  { to: '/me', label: '나', icon: 'user', key: 'me' },
-] as const satisfies readonly {
+interface BottomNavProps {
+  onOpenMenu: () => void
+  menuOpen: boolean
+}
+
+type MobileDestination = {
+  key: 'home' | 'discover' | 'quick'
   to: string
   label: string
   icon: IconName
-  key: string
-  end?: boolean
   emphasize?: boolean
-}[]
+}
 
-const ADMIN_ITEM = { to: '/admin', label: '관리', icon: 'shield', key: 'admin' } as const
+const PRIMARY_ITEMS: MobileDestination[] = [
+  { key: 'home', to: '/', label: '홈', icon: 'home' },
+  { key: 'discover', to: '/discover', label: '탐색', icon: 'compass' },
+  { key: 'quick', to: '/quick', label: '즉석', icon: 'bolt', emphasize: true },
+]
 
-export function BottomNav() {
-  const me = useAuthStore((s) => s.user)
-  const isAdmin = me?.role === 'admin'
+function destinationIsActive(pathname: string, key: MobileDestination['key']) {
+  if (key === 'home') return pathname === '/'
+  if (key === 'quick') return pathname === '/quick'
+  return ['/discover', '/category', '/parties', '/venues', '/vibe'].some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  )
+}
+
+export function BottomNav({ onOpenMenu, menuOpen }: BottomNavProps) {
+  const user = useAuthStore((state) => state.user)
+  const location = useLocation()
   const { data: chatUnread } = useQuery({
     queryKey: chatKeys.unread,
     queryFn: () => api.get<{ count: number; rooms: number }>('chat/unread-count'),
-    enabled: !!me,
+    enabled: !!user,
   })
-  const items = isAdmin ? [...BASE_ITEMS, ADMIN_ITEM] : BASE_ITEMS
+
+  const currentPath = `${location.pathname}${location.search}${location.hash}` || '/'
+  const accountDestination = user
+    ? '/chats'
+    : `/login?from=${encodeURIComponent(currentPath)}`
+  const accountActive = user
+    ? location.pathname === '/chats' || location.pathname.startsWith('/chats/')
+    : location.pathname === '/login' || location.pathname === '/signup'
+  const hasUnreadChat = !!user && (chatUnread?.rooms ?? 0) > 0
 
   return (
-    <nav className={styles.nav} aria-label="하단 메뉴">
-      {items.map((it) => {
-        const showBadge = it.key === 'chats' && (chatUnread?.rooms ?? 0) > 0
+    <nav className={styles.nav} aria-label="하단 주요 메뉴">
+      {PRIMARY_ITEMS.map((item) => {
+        const active = destinationIsActive(location.pathname, item.key)
         return (
-          <NavLink
-            key={it.key}
-            to={it.to}
-            end={'end' in it ? it.end : false}
-            className={({ isActive }) =>
-              `${styles.item} ${isActive ? styles.active : ''} ${
-                'emphasize' in it && it.emphasize ? styles.emphasize : ''
-              }`
-            }
+          <Link
+            key={item.key}
+            to={item.to}
+            className={`${styles.item} ${active ? styles.active : ''} ${
+              item.emphasize ? styles.emphasize : ''
+            }`}
+            aria-current={active ? 'page' : undefined}
           >
             <span className={styles.iconWrap}>
               <span className={styles.icon} aria-hidden="true">
-                <Icon name={it.icon} />
+                <Icon name={item.icon} />
               </span>
-              {showBadge && (
-                <span
-                  className={styles.badge}
-                  aria-label={`읽지 않은 메시지 ${chatUnread!.count}개`}
-                >
-                  {chatUnread!.count > 9 ? '9+' : chatUnread!.count}
-                </span>
-              )}
             </span>
-            <span>{it.label}</span>
-          </NavLink>
+            <span className={styles.label}>{item.label}</span>
+          </Link>
         )
       })}
+
+      <Link
+        to={accountDestination}
+        className={`${styles.item} ${accountActive ? styles.active : ''}`}
+        aria-current={accountActive ? 'page' : undefined}
+      >
+        <span className={styles.iconWrap}>
+          <span className={styles.icon} aria-hidden="true">
+            <Icon name={user ? 'mail' : 'user'} />
+          </span>
+          {hasUnreadChat && (
+            <span className={styles.badge} aria-label={`읽지 않은 메시지 ${chatUnread!.count}개`}>
+              {chatUnread!.count > 9 ? '9+' : chatUnread!.count}
+            </span>
+          )}
+        </span>
+        <span className={styles.label}>{user ? '채팅' : '로그인'}</span>
+      </Link>
+
+      <button
+        type="button"
+        className={`${styles.item} ${menuOpen ? styles.active : ''}`}
+        onClick={onOpenMenu}
+        aria-label="전체 메뉴 열기"
+        aria-haspopup="dialog"
+        aria-expanded={menuOpen}
+      >
+        <span className={styles.iconWrap}>
+          <span className={styles.icon} aria-hidden="true">
+            <Icon name="settings" />
+          </span>
+        </span>
+        <span className={styles.label}>메뉴</span>
+      </button>
     </nav>
   )
 }

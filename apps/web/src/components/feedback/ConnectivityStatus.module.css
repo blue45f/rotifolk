@@ -1,0 +1,68 @@
+.banner {
+  position: relative;
+  z-index: calc(var(--z-sticky) - 1);
+  width: min(calc(100% - var(--space-4)), 720px);
+  margin: var(--space-2) auto 0;
+  min-height: 48px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-sm);
+}
+
+.offline {
+  border-color: color-mix(in oklab, var(--color-danger) 38%, var(--color-border));
+  background: color-mix(in oklab, var(--color-danger) 7%, var(--color-surface));
+}
+
+.restored {
+  border-color: color-mix(in oklab, var(--color-success) 38%, var(--color-border));
+  background: color-mix(in oklab, var(--color-success) 7%, var(--color-surface));
+}
+
+.icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in oklab, currentColor 12%, transparent);
+  font-size: var(--fs-sm);
+}
+
+.offline .icon {
+  color: var(--color-danger);
+}
+
+.restored .icon {
+  color: var(--color-success);
+}
+
+.copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.copy strong {
+  color: var(--color-text);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+}
+
+.copy span {
+  color: var(--color-text-muted);
+  font-size: var(--fs-2xs);
+  line-height: 1.45;
+}
+
+@media (max-width: 520px) {
+  .banner {
+    width: calc(100% - var(--space-4));
+    align-items: start;
+  }
+}
