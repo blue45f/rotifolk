@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url'
+import babel from '@rolldown/plugin-babel'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
 
 // 브라우저 프리뷰 빌드(PREVIEW_NO_TDS=1)에서는 TDS를 대체 컴포넌트로 alias 해요.
 // @toss/tds-mobile은 앱인토스 밖에서 런타임 가드로 예외를 던져 일반 브라우저 마운트를 막거든요.
@@ -10,7 +11,7 @@ const tdsShim = fileURLToPath(new URL('./src/tds-shim.tsx', import.meta.url))
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react({ babel: { plugins: [['babel-plugin-react-compiler', {}]] } })],
+  plugins: [react(), babel({ presets: [reactCompilerPreset()] })],
   // shamefully-hoist 모노레포에서 web(React19)과 toss(React18)가 섞이지 않도록
   // 이 앱의 React 18 단일 인스턴스로 강제 정렬해요. (invalid hook 방지)
   resolve: {
