@@ -1,43 +1,27 @@
 import { Avatar } from '@components/ui/Avatar/Avatar'
 import { Button } from '@components/ui/Button/Button'
-import { Icon, type IconName } from '@components/ui/Icon/Icon'
+import { Icon } from '@components/ui/Icon/Icon'
 import { Tooltip } from '@components/ui/Tooltip/Tooltip'
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useAuthStore } from '@store/authStore'
-import { useThemeStore } from '@store/themeStore'
 import { useQuery } from '@tanstack/react-query'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 
 import styles from './Header.module.css'
 
 import { WhatsNew } from '@/domains/deskcloud/WhatsNew'
-import { useLocale, useT } from '@/domains/i18n/useI18n'
+import { useT } from '@/domains/i18n/useI18n'
 import { notificationKeys } from '@/domains/notifications/useNotificationsRealtime'
 import { api } from '@/infrastructure/api'
 
 interface HeaderProps {
   onOpenCommand?: () => void
+  onOpenMenu?: () => void
+  menuOpen?: boolean
 }
 
-type ThemeOption = {
-  value: 'light' | 'dark' | 'system'
-  labelKey: 'theme.light' | 'theme.dark' | 'theme.system'
-  icon: IconName
-}
-
-const THEME_OPTIONS: ThemeOption[] = [
-  { value: 'light', labelKey: 'theme.light', icon: 'sun' },
-  { value: 'dark', labelKey: 'theme.dark', icon: 'moon' },
-  { value: 'system', labelKey: 'theme.system', icon: 'monitor' },
-]
-
-export function Header({ onOpenCommand }: HeaderProps) {
-  const user = useAuthStore((s) => s.user)
-  const isAdmin = user?.role === 'admin'
-  const theme = useThemeStore((s) => s.theme)
-  const setTheme = useThemeStore((s) => s.setTheme)
+export function Header({ onOpenCommand, onOpenMenu, menuOpen = false }: HeaderProps) {
+  const user = useAuthStore((state) => state.user)
   const t = useT()
-  const [locale, setLocale] = useLocale()
   const location = useLocation()
   const { data: unread } = useQuery({
     queryKey: notificationKeys.unread,
@@ -46,13 +30,8 @@ export function Header({ onOpenCommand }: HeaderProps) {
     staleTime: 60_000,
   })
 
-  const themeModeLabel =
-    theme === 'light' ? t('theme.light') : theme === 'dark' ? t('theme.dark') : t('theme.system')
-  const nextLocale = locale === 'ko' ? 'en' : 'ko'
-  const langLabel = locale === 'ko' ? 'EN' : '한'
-  const currentPath = `${location.pathname}${location.search}${location.hash}`
-  const encodedCurrentPath = encodeURIComponent(currentPath || '/')
-  const demoLoginHref = `/login?demo=1&auto=1&from=${encodeURIComponent(currentPath || '/')}`
+  const currentPath = `${location.pathname}${location.search}${location.hash}` || '/'
+  const encodedCurrentPath = encodeURIComponent(currentPath)
 
   return (
     <header className={styles.header}>
@@ -67,8 +46,11 @@ export function Header({ onOpenCommand }: HeaderProps) {
           <NavLink to="/discover" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.discover')}
           </NavLink>
-          <NavLink to="/search" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('nav.search')}
+          <NavLink to="/clubs" className={({ isActive }) => (isActive ? styles.active : '')}>
+            클럽
+          </NavLink>
+          <NavLink to="/community" className={({ isActive }) => (isActive ? styles.active : '')}>
+            커뮤니티
           </NavLink>
           <NavLink to="/quick" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.quick')}
@@ -76,97 +58,41 @@ export function Header({ onOpenCommand }: HeaderProps) {
           <NavLink to="/host" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('nav.hosting')}
           </NavLink>
-          {isAdmin && (
-            <NavLink to="/admin" className={({ isActive }) => (isActive ? styles.active : '')}>
-              관리자
-            </NavLink>
-          )}
         </nav>
 
         <div className={styles.actions}>
-          {!user && (
-            <Link to={demoLoginHref} className={styles.commandBtn} aria-label="데모 계정 빠른 시작">
-              <Icon name="sparkle" aria-hidden />
-              <span className={styles.commandBtnHint}>데모</span>
-            </Link>
-          )}
-          <Tooltip label="파티 검색">
-            <Link to="/search" className={styles.commandBtn} aria-label="파티 검색">
-              <Icon name="search" aria-hidden />
-              <span className={styles.commandBtnHint} aria-hidden="true">
-                ⌘F
-              </span>
-            </Link>
-          </Tooltip>
-          <Tooltip label={`Switch language to ${nextLocale.toUpperCase()}`}>
-            <button
-              type="button"
-              className={styles.langBtn}
-              onClick={() => setLocale(nextLocale)}
-              aria-label={`Switch language to ${nextLocale.toUpperCase()}`}
-            >
-              {langLabel}
-            </button>
-          </Tooltip>
-          {onOpenCommand && (
-            <Tooltip label={`${t('command.openLabel')} (⌘K / /)`}>
+          <Tooltip label="검색과 빠른 이동 (⌘K / /)">
+            {onOpenCommand ? (
               <button
                 type="button"
-                className={styles.commandBtn}
-                onClick={() => onOpenCommand()}
-                aria-label={`${t('command.openLabel')} (⌘K / /)`}
+                className={`${styles.utilityButton} ${styles.searchButton}`}
+                onClick={onOpenCommand}
+                aria-label="검색과 빠른 이동 열기 (⌘K 또는 /)"
               >
-                <span aria-hidden="true">⌘K</span>
-                <span className={styles.commandBtnHint} aria-hidden="true">
-                  /
-                </span>
+                <Icon name="search" aria-hidden="true" />
+                <span className={styles.actionText}>검색</span>
+                <kbd className={styles.shortcut}>⌘K</kbd>
               </button>
-            </Tooltip>
-          )}
-          {/* ChangelogDesk(새 소식) — VITE_CHANGELOGDESK_URL 설정 시에만 렌더(SDK pk_ 네이티브). */}
-          <WhatsNew />
-          <div className={styles.themeWrap}>
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger asChild>
-                <button
-                  type="button"
-                  className={styles.themeBtn}
-                  aria-label={t('theme.switchLabel')}
-                >
-                  <Icon name={theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'monitor'} />
-                </button>
-              </DropdownMenu.Trigger>
-              <span className={styles.themeModeText}>{themeModeLabel}</span>
-              <DropdownMenu.Portal>
-                <DropdownMenu.Content
-                  className={styles.themeMenu}
-                  align="end"
-                  sideOffset={8}
-                  aria-label={t('theme.modeLabel')}
-                >
-                  <DropdownMenu.RadioGroup
-                    value={theme}
-                    onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
-                  >
-                    {THEME_OPTIONS.map((item) => (
-                      <DropdownMenu.RadioItem
-                        key={item.value}
-                        value={item.value}
-                        className={styles.themeOption}
-                      >
-                        <Icon name={item.icon} aria-hidden />
-                        <span>{t(item.labelKey)}</span>
-                      </DropdownMenu.RadioItem>
-                    ))}
-                  </DropdownMenu.RadioGroup>
-                </DropdownMenu.Content>
-              </DropdownMenu.Portal>
-            </DropdownMenu.Root>
+            ) : (
+              <Link
+                to="/search"
+                className={`${styles.utilityButton} ${styles.searchButton}`}
+                aria-label="파티 검색"
+              >
+                <Icon name="search" aria-hidden="true" />
+                <span className={styles.actionText}>검색</span>
+              </Link>
+            )}
+          </Tooltip>
+
+          <div className={styles.whatsNew}>
+            <WhatsNew />
           </div>
+
           {user && (
             <Tooltip label="알림">
               <Link to="/notifications" className={styles.bell} aria-label="알림">
-                <Icon name="bell" aria-hidden />
+                <Icon name="bell" aria-hidden="true" />
                 {(unread?.count ?? 0) > 0 && (
                   <span className={styles.bellDot} aria-hidden="true">
                     {unread!.count > 9 ? '9+' : unread!.count}
@@ -175,8 +101,25 @@ export function Header({ onOpenCommand }: HeaderProps) {
               </Link>
             </Tooltip>
           )}
+
+          {onOpenMenu && (
+            <Tooltip label="전체 메뉴와 설정">
+              <button
+                type="button"
+                className={styles.utilityButton}
+                onClick={onOpenMenu}
+                aria-label="전체 메뉴와 설정 열기"
+                aria-haspopup="dialog"
+                aria-expanded={menuOpen}
+              >
+                <Icon name="settings" aria-hidden="true" />
+                <span className={styles.actionText}>메뉴</span>
+              </button>
+            </Tooltip>
+          )}
+
           {user ? (
-            <Link to="/me" aria-label="내 프로필">
+            <Link to="/me" className={styles.avatarLink} aria-label="내 프로필">
               <Avatar
                 size="sm"
                 emoji={user.nickname[0]}
@@ -186,7 +129,7 @@ export function Header({ onOpenCommand }: HeaderProps) {
               />
             </Link>
           ) : (
-            <>
+            <div className={styles.authActions}>
               <Link to={`/login?from=${encodedCurrentPath}`}>
                 <Button variant="ghost" size="sm">
                   {t('btn.login')}
@@ -197,7 +140,7 @@ export function Header({ onOpenCommand }: HeaderProps) {
                   {t('btn.signup')}
                 </Button>
               </Link>
-            </>
+            </div>
           )}
         </div>
       </div>

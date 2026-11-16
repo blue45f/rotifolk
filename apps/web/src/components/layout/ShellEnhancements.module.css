@@ -1,0 +1,14 @@
+@media (max-width: 1023px) {
+  .toTop,
+  .ambientDock {
+    bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom, 0px) + var(--space-3));
+  }
+}
+
+@media (max-width: 520px) {
+  .ambientDock {
+    left: max(var(--space-2), env(safe-area-inset-left, 0px));
+    transform: scale(0.92);
+    transform-origin: bottom left;
+  }
+}
