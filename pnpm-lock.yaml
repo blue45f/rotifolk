@@ -139,8 +139,8 @@ importers:
         specifier: ^6.0.1
         version: 6.0.2
       nestjs-pino:
-        specifier: ^5.0.0
-        version: 5.3.1(@nestjs/common@12.5.0(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.5.0)(pino-http@11.0.0)(pino@10.3.1)(rxjs@7.8.2)
+        specifier: ^5.3.2
+        version: 5.3.2(@nestjs/common@12.5.0(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.5.0)(pino-http@11.0.0)(pino@10.3.1)(rxjs@7.8.2)
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -244,7 +244,7 @@ importers:
         version: 7.29.7
       '@rolldown/plugin-babel':
         specifier: ^0.2.3
-        version: 0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
+        version: 0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.14)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.15
@@ -253,7 +253,7 @@ importers:
         version: 19.2.3(@types/react@19.2.15)
       '@vitejs/plugin-react':
         specifier: ^6.1.1
-        version: 6.3.0(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
+        version: 6.3.0(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.14)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
@@ -347,7 +347,7 @@ importers:
         version: 7.29.7
       '@rolldown/plugin-babel':
         specifier: ^0.2.3
-        version: 0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
+        version: 0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.14)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
       '@storybook/addon-a11y':
         specifier: ^10.4.6
         version: 10.4.6(storybook@10.4.4(@testing-library/dom@10.4.1)(@types/react@19.2.15)(prettier@3.8.3)(react-dom@19.2.7(react@19.2.7))(react@19.2.7))
@@ -380,7 +380,7 @@ importers:
         version: 19.2.3(@types/react@19.2.15)
       '@vitejs/plugin-react':
         specifier: ^6.1.1
-        version: 6.3.0(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
+        version: 6.3.0(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.14)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
       babel-plugin-react-compiler:
         specifier: ^1.0.0
         version: 1.0.0
@@ -627,6 +627,10 @@ packages:
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
+
+  '@babel/runtime@7.29.14':
+    resolution: {integrity: sha512-Y5tqevQaUAZhhj82BpYMNC1ssvLQTVAfwKdm8iy8qwmhvC2/CpcAu8OC+QEtjM7pMk7knx83u1Qj8gzkicyelw==}
+    engines: {node: '>=6.9.0'}
 
   '@babel/runtime@7.29.7':
     resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
@@ -5130,8 +5134,8 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  nestjs-pino@5.3.1:
-    resolution: {integrity: sha512-tL3fFSY38Wuv3VS4dCo+zlHVt1xU7+RSXnlgenyTvfy74GLBLgisqvG+76983ilf2C2uFkPe68qUapXCYnoSoA==}
+  nestjs-pino@5.3.2:
+    resolution: {integrity: sha512-Exc8ZVbubM+OVRJJRvXfxhLY4KCxrjLk/7tARYm/9uvpoes4tWWMjUMd1ayD/ZwxZWpYyZmUkxJJ4YSLOqpqMg==}
     engines: {node: '>=22.12.0'}
     peerDependencies:
       '@nestjs/common': ^11.0.8 || ^12.0.2
@@ -6772,6 +6776,8 @@ snapshots:
       make-dir: 2.1.0
       pirates: 4.0.7
       source-map-support: 0.5.21
+
+  '@babel/runtime@7.29.14': {}
 
   '@babel/runtime@7.29.7': {}
 
@@ -8488,13 +8494,13 @@ snapshots:
   '@rolldown/binding-win32-x64-msvc@1.0.3':
     optional: true
 
-  '@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))':
+  '@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.14)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))':
     dependencies:
       '@babel/core': 7.29.7
       picomatch: 4.0.4
       rolldown: 1.0.3
     optionalDependencies:
-      '@babel/runtime': 7.29.7
+      '@babel/runtime': 7.29.14
       vite: 8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1)
 
   '@rolldown/pluginutils@1.0.1': {}
@@ -8714,7 +8720,7 @@ snapshots:
   '@testing-library/dom@10.4.1':
     dependencies:
       '@babel/code-frame': 7.29.7
-      '@babel/runtime': 7.29.7
+      '@babel/runtime': 7.29.14
       '@types/aria-query': 5.0.4
       aria-query: 5.3.0
       dom-accessibility-api: 0.5.16
@@ -9113,12 +9119,12 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
 
-  '@vitejs/plugin-react@6.3.0(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))':
+  '@vitejs/plugin-react@6.3.0(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.14)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1)))(babel-plugin-react-compiler@1.0.0)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))':
     dependencies:
       '@rolldown/pluginutils': 1.0.1
       vite: 8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1)
     optionalDependencies:
-      '@rolldown/plugin-babel': 0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
+      '@rolldown/plugin-babel': 0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.14)(rolldown@1.0.3)(vite@8.0.16(@types/node@26.6.6)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.1))
       babel-plugin-react-compiler: 1.0.0
 
   '@vitest/expect@3.2.4':
@@ -11052,7 +11058,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  nestjs-pino@5.3.1(@nestjs/common@12.5.0(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.5.0)(pino-http@11.0.0)(pino@10.3.1)(rxjs@7.8.2):
+  nestjs-pino@5.3.2(@nestjs/common@12.5.0(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.5.0)(pino-http@11.0.0)(pino@10.3.1)(rxjs@7.8.2):
     dependencies:
       '@nestjs/common': 12.5.0(reflect-metadata@0.2.2)(rxjs@7.8.2)
       '@nestjs/core': 12.5.0(@nestjs/common@12.5.0(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@12.5.0)(@nestjs/websockets@12.5.0)(reflect-metadata@0.2.2)(rxjs@7.8.2)
