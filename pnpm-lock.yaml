@@ -172,8 +172,8 @@ importers:
         specifier: ^4.2.0
         version: 4.2.0
       zod:
-        specifier: ^4.4.3
-        version: 4.4.3
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@nestjs/testing':
         specifier: ^12.5.1
@@ -274,7 +274,7 @@ importers:
         version: 0.1.0(@apps-in-toss/web-framework@3.0.0-beta.3051978(@types/node@26.6.6)(typanion@3.14.0)(typescript@5.7.3))(react@19.2.7)
       '@hookform/resolvers':
         specifier: ^5.9.1
-        version: 5.9.2(@standard-schema/spec@1.1.0)(ajv@8.20.0)(effect@3.20.0)(react-hook-form@7.80.0(react@19.2.7))(typanion@3.14.0)(valibot@1.2.0(typescript@6.0.3))(zod@4.4.3)
+        version: 5.9.2(@standard-schema/spec@1.1.0)(ajv@8.20.0)(effect@3.20.0)(react-hook-form@7.80.0(react@19.2.7))(typanion@3.14.0)(valibot@1.2.0(typescript@6.0.3))(zod@4.6.7)
       '@radix-ui/react-alert-dialog':
         specifier: ^1.1.17
         version: 1.1.17(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -336,8 +336,8 @@ importers:
         specifier: ^4.8.3
         version: 4.8.3
       zod:
-        specifier: ^4.4.3
-        version: 4.4.3
+        specifier: ^4.6.7
+        version: 4.6.7
       zustand:
         specifier: ^5.0.15
         version: 5.1.0(@types/react@19.2.15)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7))
@@ -409,8 +409,8 @@ importers:
   packages/shared:
     dependencies:
       zod:
-        specifier: ^4.4.3
-        version: 4.4.3
+        specifier: ^4.6.7
+        version: 4.6.7
     devDependencies:
       '@types/node':
         specifier: ^26.4.1
@@ -6542,6 +6542,9 @@ packages:
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
 
+  zod@4.6.7:
+    resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
+
   zustand@5.1.0:
     resolution: {integrity: sha512-ciJZlP48M1PTQbVQq81CGVFxHTLpZNrFjKqwjtCU34AWuXTZT/jrF3p9+fI84Cf1eSCMLapxqBy/SNTfwOBuqA==}
     engines: {node: '>=12.20.0'}
@@ -7404,11 +7407,11 @@ snapshots:
       '@heejun/contracts': 0.1.0
       '@heejun/core-server': 0.1.0
       jose: 5.10.0
-      zod: 4.4.3
+      zod: 4.6.7
 
   '@heejun/contracts@0.1.0':
     dependencies:
-      zod: 4.4.3
+      zod: 4.6.7
 
   '@heejun/core-server@0.1.0':
     dependencies:
@@ -7454,7 +7457,7 @@ snapshots:
     dependencies:
       hono: 4.12.26
 
-  '@hookform/resolvers@5.9.2(@standard-schema/spec@1.1.0)(ajv@8.20.0)(effect@3.20.0)(react-hook-form@7.80.0(react@19.2.7))(typanion@3.14.0)(valibot@1.2.0(typescript@6.0.3))(zod@4.4.3)':
+  '@hookform/resolvers@5.9.2(@standard-schema/spec@1.1.0)(ajv@8.20.0)(effect@3.20.0)(react-hook-form@7.80.0(react@19.2.7))(typanion@3.14.0)(valibot@1.2.0(typescript@6.0.3))(zod@4.6.7)':
     dependencies:
       '@standard-schema/utils': 0.3.0
       react-hook-form: 7.80.0(react@19.2.7)
@@ -7464,7 +7467,7 @@ snapshots:
       effect: 3.20.0
       typanion: 3.14.0
       valibot: 1.2.0(typescript@6.0.3)
-      zod: 4.4.3
+      zod: 4.6.7
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -12620,6 +12623,8 @@ snapshots:
   zod@3.25.76: {}
 
   zod@4.4.3: {}
+
+  zod@4.6.7: {}
 
   zustand@5.1.0(@types/react@19.2.15)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7)):
     optionalDependencies:
